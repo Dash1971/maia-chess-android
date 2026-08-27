@@ -103,7 +103,7 @@ class _GamePageState extends State<GamePage> {
     showAboutDialog(
       context: context,
       applicationName: 'Maia Chess for Android',
-      applicationVersion: '1.5.0',
+      applicationVersion: '1.5.1',
       children: [
         const Text(
           'Powered by Maia-3, the human-like chess engine developed by the '
@@ -163,7 +163,7 @@ class _GamePageState extends State<GamePage> {
       _premoveTo = null;
       _forcedResult = null;
       _started = true;
-      _status = _playerIsWhite ? 'Your move.' : 'Maia is loading…';
+      _status = _playerIsWhite ? 'Your move.' : 'Game in progress.';
       final date = DateTime.now();
       final dateTag =
           '${date.year.toString().padLeft(4, '0')}.'
@@ -229,7 +229,7 @@ class _GamePageState extends State<GamePage> {
     _positionHistory.add(_game.fen);
     setState(() {
       _selectedSquare = null;
-      _status = _game.game_over ? _finishNaturalGame() : 'Maia is thinking…';
+      _status = _game.game_over ? _finishNaturalGame() : 'Game in progress.';
     });
     if (!_game.game_over) _playMaiaMove();
   }
@@ -286,10 +286,7 @@ class _GamePageState extends State<GamePage> {
   Future<void> _playMaiaMove() async {
     if (_game.game_over) return;
     final thinkingTimer = Stopwatch()..start();
-    setState(() {
-      _engineThinking = true;
-      _status = 'Maia is thinking at $_elo Elo…';
-    });
+    setState(() => _engineThinking = true);
     try {
       final tokens = MaiaEncoding.historicalTokens(_positionHistory);
       final response = await maiaEngineChannel.invokeMethod<List<dynamic>>(
@@ -326,7 +323,7 @@ class _GamePageState extends State<GamePage> {
         _status = _game.game_over
             ? _finishNaturalGame()
             : premovePlayed
-            ? 'Premove played. Maia is thinking…'
+            ? 'Game in progress.'
             : 'Your move.';
       });
       if (premovePlayed && !_game.game_over) unawaited(_playMaiaMove());
@@ -623,13 +620,7 @@ class _GamePageState extends State<GamePage> {
   Widget _statusCard() {
     return Card(
       child: ListTile(
-        leading: _engineThinking
-            ? const SizedBox(
-                width: 24,
-                height: 24,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              )
-            : Icon(_gameFinished ? Icons.flag : Icons.smart_toy_outlined),
+        leading: Icon(_gameFinished ? Icons.flag : Icons.smart_toy_outlined),
         title: Text(_status),
         subtitle: Text('Maia-3 79M · $_elo Elo · offline'),
       ),
