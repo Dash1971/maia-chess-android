@@ -52,13 +52,20 @@ python -m pip install /path/to/maia3 onnx onnxruntime
 python tool/export_maia3_onnx.py --model maia3-79m --output assets/models/maia3-79m.onnx
 ```
 
-## Maia-3 credit
+## Credits
 
 Maia Chess for Android uses the
 [Maia-3 project](https://github.com/CSSLab/maia3) and its 79M model. Maia-3 was
 created by the University of Toronto Computational Social Science Lab to model
 human chess move choices at different rating levels. The app includes an About
 screen linking directly to the upstream project and source code.
+
+The board interface is provided by
+[Lichess Flutter Chessground](https://github.com/lichess-org/flutter-chessground),
+including the default Lichess brown theme and Cburnett pieces. Local Stockfish
+support uses
+[Lichess multistockfish](https://github.com/lichess-org/dart-multistockfish).
+Both Lichess projects are credited and linked in the app's About screen.
 
 ## Licensing
 

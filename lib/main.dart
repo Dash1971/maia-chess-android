@@ -13,6 +13,10 @@ void main() => runApp(const MaiaChessApp());
 
 const maiaEngineChannel = MethodChannel('maia_chess/engine');
 const maiaProjectUrl = 'https://github.com/CSSLab/maia3';
+const lichessChessgroundUrl =
+    'https://github.com/lichess-org/flutter-chessground';
+const lichessMultistockfishUrl =
+    'https://github.com/lichess-org/dart-multistockfish';
 
 class MaiaChessApp extends StatelessWidget {
   const MaiaChessApp({super.key});
@@ -99,7 +103,7 @@ class _GamePageState extends State<GamePage> {
     showAboutDialog(
       context: context,
       applicationName: 'Maia Chess for Android',
-      applicationVersion: '1.4.2',
+      applicationVersion: '1.4.3',
       children: [
         const Text(
           'Powered by Maia-3, the human-like chess engine developed by the '
@@ -113,9 +117,29 @@ class _GamePageState extends State<GamePage> {
           icon: const Icon(Icons.open_in_new),
           label: const Text('Maia-3 project and source code'),
         ),
+        const SizedBox(height: 8),
+        const Text(
+          'Board interface, default brown theme, and Cburnett pieces are '
+          'provided by Lichess Flutter Chessground. Local Stockfish support '
+          'uses Lichess multistockfish.',
+        ),
+        TextButton.icon(
+          onPressed: () => maiaEngineChannel.invokeMethod<void>('openUrl', {
+            'url': lichessChessgroundUrl,
+          }),
+          icon: const Icon(Icons.open_in_new),
+          label: const Text('Lichess Flutter Chessground'),
+        ),
+        TextButton.icon(
+          onPressed: () => maiaEngineChannel.invokeMethod<void>('openUrl', {
+            'url': lichessMultistockfishUrl,
+          }),
+          icon: const Icon(Icons.open_in_new),
+          label: const Text('Lichess multistockfish'),
+        ),
         const Text(
           'This independent community app is not an official Maia-3 or '
-          'University of Toronto application.',
+          'University of Toronto or Lichess application.',
         ),
       ],
     );
