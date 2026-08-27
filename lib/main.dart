@@ -56,11 +56,11 @@ class _GamePageState extends State<GamePage> {
   chess.Color _playerColor = chess.Color.WHITE;
   int _elo = 1500;
   String? _selectedSquare;
+  String? _premoveFrom;
+  String? _premoveTo;
   String _status = 'Choose your settings and start a game.';
   bool _started = false;
   bool _engineThinking = false;
-  bool _analysisRunning = false;
-  int _analysisProgress = 0;
   String? _forcedResult;
   bool _humanTiming = false;
   double _temperature = 0.5;
@@ -103,7 +103,7 @@ class _GamePageState extends State<GamePage> {
     showAboutDialog(
       context: context,
       applicationName: 'Maia Chess for Android',
-      applicationVersion: '1.4.3',
+      applicationVersion: '1.5.0',
       children: [
         const Text(
           'Powered by Maia-3, the human-like chess engine developed by the '
@@ -159,6 +159,8 @@ class _GamePageState extends State<GamePage> {
         ..add(_game.fen);
       _uciMoves.clear();
       _selectedSquare = null;
+      _premoveFrom = null;
+      _premoveTo = null;
       _forcedResult = null;
       _started = true;
       _status = _playerIsWhite ? 'Your move.' : 'Maia is loading…';
@@ -188,7 +190,11 @@ class _GamePageState extends State<GamePage> {
   }
 
   void _tapSquare(String square) {
-    if (!_started || _engineThinking || !_isPlayerTurn || _gameFinished) {
+    if (!_started || _gameFinished) {
+      return;
+    }
+    if (_engineThinking || !_isPlayerTurn) {
+      _tapPremoveSquare(square);
       return;
     }
     final piece = _game.get(square);
@@ -228,6 +234,55 @@ class _GamePageState extends State<GamePage> {
     if (!_game.game_over) _playMaiaMove();
   }
 
+  void _tapPremoveSquare(String square) {
+    final piece = _game.get(square);
+    if (_premoveFrom == null) {
+      if (piece?.color == _playerColor) {
+        setState(() {
+          _premoveFrom = square;
+          _premoveTo = null;
+          _status = 'Premove: select destination.';
+        });
+      }
+      return;
+    }
+    if (piece?.color == _playerColor) {
+      setState(() {
+        _premoveFrom = square;
+        _premoveTo = null;
+      });
+      return;
+    }
+    setState(() {
+      _premoveTo = square;
+      _status = 'Premove queued: ${_premoveFrom!}–$square';
+    });
+  }
+
+  bool _playQueuedPremove() {
+    final from = _premoveFrom;
+    final to = _premoveTo;
+    _premoveFrom = null;
+    _premoveTo = null;
+    if (from == null || to == null || !_isPlayerTurn || _gameFinished) {
+      return false;
+    }
+    final legalMoves = _game.moves({'asObjects': true}).cast<chess.Move>();
+    chess.Move? chosen;
+    for (final move in legalMoves) {
+      if (move.fromAlgebraic == from && move.toAlgebraic == to) {
+        if (chosen == null || move.promotion == chess.Chess.QUEEN) {
+          chosen = move;
+        }
+      }
+    }
+    if (chosen == null) return false;
+    _uciMoves.add(MaiaEncoding.uci(chosen));
+    _game.move(chosen);
+    _positionHistory.add(_game.fen);
+    return true;
+  }
+
   Future<void> _playMaiaMove() async {
     if (_game.game_over) return;
     final thinkingTimer = Stopwatch()..start();
@@ -265,10 +320,16 @@ class _GamePageState extends State<GamePage> {
       _uciMoves.add(MaiaEncoding.uci(move));
       _game.move(move);
       _positionHistory.add(_game.fen);
+      final premovePlayed = _playQueuedPremove();
       setState(() {
         _engineThinking = false;
-        _status = _game.game_over ? _finishNaturalGame() : 'Your move.';
+        _status = _game.game_over
+            ? _finishNaturalGame()
+            : premovePlayed
+            ? 'Premove played. Maia is thinking…'
+            : 'Your move.';
       });
+      if (premovePlayed && !_game.game_over) unawaited(_playMaiaMove());
     } catch (error) {
       if (!mounted) return;
       setState(() {
@@ -344,6 +405,8 @@ class _GamePageState extends State<GamePage> {
       _started = false;
       _engineThinking = false;
       _selectedSquare = null;
+      _premoveFrom = null;
+      _premoveTo = null;
       _status = 'Choose your settings and start a game.';
     });
   }
@@ -357,87 +420,20 @@ class _GamePageState extends State<GamePage> {
   }
 
   Future<void> _analyzeGame() async {
-    if (_analysisRunning || _positionHistory.length < 2) return;
-    setState(() {
-      _analysisRunning = true;
-      _analysisProgress = 0;
-    });
-    try {
-      final maiaReviews = <({double probability, String topMove})>[];
-      for (var i = 0; i < _uciMoves.length; i++) {
-        final position = chess.Chess.fromFEN(_positionHistory[i]);
-        final response = await maiaEngineChannel.invokeMethod<List<dynamic>>(
-          'predict',
-          {
-            'tokens': MaiaEncoding.historicalTokens(
-              _positionHistory.sublist(0, i + 1),
-            ),
-            'selfElo': _elo,
-            'opponentElo': _elo,
-          },
-        );
-        if (response == null) {
-          throw StateError('Maia review returned no policy.');
-        }
-        maiaReviews.add(
-          MaiaEncoding.reviewMove(
-            position,
-            _uciMoves[i],
-            response.cast<num>().map((value) => value.toDouble()).toList(),
-          ),
-        );
-        if (mounted) setState(() => _analysisProgress = i + 1);
-      }
-      final stockfishReviews = <StockfishReview>[];
-      for (var i = 0; i < _positionHistory.length; i++) {
-        stockfishReviews.add(
-          await StockfishAnalyzer.instance.evaluate(_positionHistory[i]),
-        );
-        if (mounted) {
-          setState(() => _analysisProgress = _uciMoves.length + i + 1);
-        }
-      }
-      if (!mounted) return;
-      final moves = _game.san_moves().whereType<String>().toList();
-      final entries = <AnalysisEntry>[];
-      for (var i = 0; i < moves.length; i++) {
-        final before = stockfishReviews[i].evaluation;
-        final after = stockfishReviews[i + 1].evaluation;
-        final loss = i.isEven ? before - after : after - before;
-        entries.add(
-          AnalysisEntry(
-            moves[i],
-            after,
-            max(0, loss),
-            maiaReviews[i].probability,
-            maiaReviews[i].topMove,
-          ),
-        );
-      }
-      await Navigator.of(context).push(
-        MaterialPageRoute<void>(
-          builder: (context) => ReviewPage(
-            positions: List.unmodifiable(_positionHistory),
-            uciMoves: List.unmodifiable(_uciMoves),
-            sanMoves: List.unmodifiable(moves),
-            entries: List.unmodifiable(entries),
-            stockfishReviews: List.unmodifiable(stockfishReviews),
-            playerIsWhite: _playerIsWhite,
-            maiaElo: _elo,
-            pgn: _game.pgn(),
-            onHome: _goHome,
-          ),
+    if (_positionHistory.length < 2) return;
+    final moves = _game.san_moves().whereType<String>().toList();
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (context) => ReviewPage(
+          positions: List.unmodifiable(_positionHistory),
+          uciMoves: List.unmodifiable(_uciMoves),
+          sanMoves: List.unmodifiable(moves),
+          playerIsWhite: _playerIsWhite,
+          pgn: _game.pgn(),
+          onHome: _goHome,
         ),
-      );
-    } catch (error) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Stockfish analysis failed: $error')),
-        );
-      }
-    } finally {
-      if (mounted) setState(() => _analysisRunning = false);
-    }
+      ),
+    );
   }
 
   @override
@@ -479,6 +475,7 @@ class _GamePageState extends State<GamePage> {
                           height: boardSize,
                           child: _board(),
                         ),
+                        MaterialDifference(fen: _game.fen),
                         const SizedBox(height: 12),
                         _gameInfoCard(),
                       ],
@@ -640,13 +637,19 @@ class _GamePageState extends State<GamePage> {
   }
 
   Widget _board() {
-    final selected = _selectedSquare == null
-        ? const <dc.Square, cg.SquareHighlight>{}
-        : <dc.Square, cg.SquareHighlight>{
-            dc.Square.fromName(_selectedSquare!): const cg.SquareHighlight(
-              details: cg.HighlightDetails(solidColor: Color(0x99D59120)),
-            ),
-          };
+    final selected = <dc.Square, cg.SquareHighlight>{};
+    if (_selectedSquare != null) {
+      selected[dc.Square.fromName(_selectedSquare!)] = const cg.SquareHighlight(
+        details: cg.HighlightDetails(solidColor: Color(0x99D59120)),
+      );
+    }
+    for (final square in [_premoveFrom, _premoveTo]) {
+      if (square != null) {
+        selected[dc.Square.fromName(square)] = const cg.SquareHighlight(
+          details: cg.HighlightDetails(solidColor: Color(0x99B84A4A)),
+        );
+      }
+    }
     final lastMove = _uciMoves.isEmpty
         ? null
         : dc.NormalMove.fromUci(_uciMoves.last);
@@ -690,19 +693,9 @@ class _GamePageState extends State<GamePage> {
             ),
             if (_gameFinished || moves.length >= 4)
               FilledButton.tonalIcon(
-                onPressed: _analysisRunning ? null : _analyzeGame,
-                icon: _analysisRunning
-                    ? const SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Icon(Icons.analytics_outlined),
-                label: Text(
-                  _analysisRunning
-                      ? 'Analyzing $_analysisProgress/${_positionHistory.length + _uciMoves.length}'
-                      : 'Analyze with Stockfish',
-                ),
+                onPressed: _analyzeGame,
+                icon: const Icon(Icons.analytics_outlined),
+                label: const Text('Review with Stockfish'),
               ),
             if (!_gameFinished)
               TextButton.icon(
@@ -740,50 +733,77 @@ class ReviewPage extends StatefulWidget {
     required this.positions,
     required this.uciMoves,
     required this.sanMoves,
-    required this.entries,
-    required this.stockfishReviews,
     required this.playerIsWhite,
-    required this.maiaElo,
     required this.pgn,
     required this.onHome,
+    this.evaluator,
     super.key,
   });
 
   final List<String> positions;
   final List<String> uciMoves;
   final List<String> sanMoves;
-  final List<AnalysisEntry> entries;
-  final List<StockfishReview> stockfishReviews;
   final bool playerIsWhite;
-  final int maiaElo;
   final String pgn;
   final VoidCallback onHome;
+  final Future<StockfishReview> Function(String fen)? evaluator;
 
   @override
   State<ReviewPage> createState() => _ReviewPageState();
 }
 
 class _ReviewPageState extends State<ReviewPage> {
-  late int _ply = widget.positions.length - 1;
-  bool _showStockfish = true;
-  bool _showMaia = true;
+  int _ply = 0;
+  final Map<int, StockfishReview> _reviews = {};
+  final Set<int> _loading = {};
+  String? _analysisError;
+  bool _fullGameRunning = false;
+  int _fullGameProgress = 0;
+
+  StockfishReview? get _review => _reviews[_ply];
+
+  @override
+  void initState() {
+    super.initState();
+    unawaited(_analyzePosition(0));
+  }
+
+  Future<void> _analyzePosition(int ply) async {
+    if (_reviews.containsKey(ply) || _loading.contains(ply)) return;
+    setState(() {
+      _loading.add(ply);
+      _analysisError = null;
+    });
+    try {
+      final evaluate = widget.evaluator ?? StockfishAnalyzer.instance.evaluate;
+      final review = await evaluate(widget.positions[ply]);
+      if (mounted) setState(() => _reviews[ply] = review);
+    } catch (error) {
+      if (mounted) setState(() => _analysisError = 'Stockfish failed: $error');
+    } finally {
+      if (mounted) setState(() => _loading.remove(ply));
+    }
+  }
+
+  Future<void> _analyzeFullGame() async {
+    if (_fullGameRunning) return;
+    setState(() {
+      _fullGameRunning = true;
+      _fullGameProgress = 0;
+    });
+    for (var i = 0; i < widget.positions.length && mounted; i++) {
+      await _analyzePosition(i);
+      if (mounted) setState(() => _fullGameProgress = i + 1);
+    }
+    if (mounted) setState(() => _fullGameRunning = false);
+  }
 
   Set<cg.Shape> get _arrows {
-    final arrows = <cg.Shape>{};
-    if (_ply >= widget.uciMoves.length) return arrows;
-    if (_showStockfish) {
-      final move = widget.stockfishReviews[_ply].bestMove;
-      if (move.length >= 4 && move != '(none)') {
-        arrows.add(_arrow(move, const Color(0xff3d9be9)));
-      }
+    final move = _review?.bestMove ?? '';
+    if (move.length >= 4 && move != '(none)') {
+      return {_arrow(move, const Color(0xff3d9be9))};
     }
-    if (_showMaia) {
-      final move = widget.entries[_ply].maiaTopMove;
-      if (move.length >= 4) {
-        arrows.add(_arrow(move, const Color(0xffe6a23c)));
-      }
-    }
-    return arrows;
+    return const {};
   }
 
   cg.Arrow _arrow(String uci, Color color) => cg.Arrow(
@@ -794,6 +814,7 @@ class _ReviewPageState extends State<ReviewPage> {
 
   void _step(int delta) {
     setState(() => _ply = (_ply + delta).clamp(0, widget.positions.length - 1));
+    unawaited(_analyzePosition(_ply));
   }
 
   Future<void> _copyPgn() async {
@@ -806,11 +827,10 @@ class _ReviewPageState extends State<ReviewPage> {
 
   @override
   Widget build(BuildContext context) {
-    final evaluation = widget.stockfishReviews[_ply].evaluation;
+    final evaluation = _review?.evaluation ?? 0;
     final moveLabel = _ply == 0
         ? 'Starting position'
         : '${(_ply + 1) ~/ 2}${_ply.isOdd ? '.' : '…'} ${widget.sanMoves[_ply - 1]}';
-    final entry = _ply == 0 ? null : widget.entries[_ply - 1];
     return Scaffold(
       appBar: AppBar(
         title: const Text('Game review'),
@@ -835,7 +855,7 @@ class _ReviewPageState extends State<ReviewPage> {
           builder: (context, constraints) {
             // Account for the scroll padding, evaluation bar, and gap so the
             // review row has finite dimensions without overflowing narrow phones.
-            final boardSize = min(constraints.maxWidth - 56, 560.0);
+            final boardSize = max(0.0, min(constraints.maxWidth - 56, 560.0));
             return SingleChildScrollView(
               padding: const EdgeInsets.fromLTRB(12, 8, 12, 24),
               child: Center(
@@ -876,6 +896,8 @@ class _ReviewPageState extends State<ReviewPage> {
                         ),
                       ),
                       const SizedBox(height: 12),
+                      MaterialDifference(fen: widget.positions[_ply]),
+                      const SizedBox(height: 8),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -883,8 +905,11 @@ class _ReviewPageState extends State<ReviewPage> {
                             onPressed: _ply == 0 ? null : () => _step(-1),
                             icon: const Icon(Icons.chevron_left),
                           ),
-                          Text(
-                            '$moveLabel  ·  $_ply/${widget.uciMoves.length}',
+                          Flexible(
+                            child: Text(
+                              '$moveLabel  ·  $_ply/${widget.uciMoves.length}',
+                              textAlign: TextAlign.center,
+                            ),
                           ),
                           IconButton(
                             onPressed: _ply == widget.positions.length - 1
@@ -897,34 +922,45 @@ class _ReviewPageState extends State<ReviewPage> {
                       Card(
                         child: Column(
                           children: [
-                            SwitchListTile(
-                              value: _showStockfish,
-                              onChanged: (value) =>
-                                  setState(() => _showStockfish = value),
-                              secondary: const Icon(
-                                Icons.arrow_upward,
-                                color: Color(0xff3d9be9),
-                              ),
-                              title: const Text('Stockfish recommendation'),
+                            ListTile(
+                              leading: _loading.contains(_ply)
+                                  ? const SizedBox(
+                                      width: 24,
+                                      height: 24,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                      ),
+                                    )
+                                  : const Icon(
+                                      Icons.arrow_upward,
+                                      color: Color(0xff3d9be9),
+                                    ),
+                              title: const Text('Stockfish best move'),
                               subtitle: Text(
-                                'Depth 12 · ${_formatEvaluation(evaluation)}',
+                                _analysisError ??
+                                    (_review == null
+                                        ? 'Analyzing this position…'
+                                        : 'Depth 12 · ${_formatEvaluation(evaluation)}'),
                               ),
                             ),
-                            SwitchListTile(
-                              value: _showMaia,
-                              onChanged: (value) =>
-                                  setState(() => _showMaia = value),
-                              secondary: const Icon(
-                                Icons.arrow_upward,
-                                color: Color(0xffe6a23c),
-                              ),
-                              title: Text('Maia-3 79M · ${widget.maiaElo} Elo'),
+                            const Divider(height: 1),
+                            ListTile(
+                              leading: _fullGameRunning
+                                  ? const SizedBox(
+                                      width: 24,
+                                      height: 24,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                      ),
+                                    )
+                                  : const Icon(Icons.analytics_outlined),
+                              title: const Text('Analyze full game'),
                               subtitle: Text(
-                                entry == null
-                                    ? 'Human move recommendation'
-                                    : 'Played move likelihood ${(entry.maiaProbability * 100).toStringAsFixed(1)}%'
-                                          '${entry.label == null ? '' : ' · ${entry.label}'}',
+                                _fullGameRunning
+                                    ? '$_fullGameProgress/${widget.positions.length} positions'
+                                    : 'Optional · cache every position',
                               ),
+                              onTap: _fullGameRunning ? null : _analyzeFullGame,
                             ),
                           ],
                         ),
@@ -977,6 +1013,67 @@ class EvaluationBar extends StatelessWidget {
   }
 }
 
+class MaterialDifference extends StatelessWidget {
+  const MaterialDifference({required this.fen, super.key});
+
+  final String fen;
+
+  @override
+  Widget build(BuildContext context) {
+    final white = <String, int>{};
+    final black = <String, int>{};
+    for (final rune in fen.split(' ').first.runes) {
+      final piece = String.fromCharCode(rune);
+      if (!'prnbqPRNBQ'.contains(piece)) continue;
+      final target = piece == piece.toUpperCase() ? white : black;
+      final key = piece.toLowerCase();
+      target[key] = (target[key] ?? 0) + 1;
+    }
+    const values = {'p': 1, 'n': 3, 'b': 3, 'r': 5, 'q': 9};
+    const whiteGlyphs = {'q': '♕', 'r': '♖', 'b': '♗', 'n': '♘', 'p': '♙'};
+    const blackGlyphs = {'q': '♛', 'r': '♜', 'b': '♝', 'n': '♞', 'p': '♟'};
+    const order = ['q', 'r', 'b', 'n', 'p'];
+    final whiteExtras = <String>[];
+    final blackExtras = <String>[];
+    var whiteScore = 0;
+    var blackScore = 0;
+    for (final piece in order) {
+      final difference = (white[piece] ?? 0) - (black[piece] ?? 0);
+      if (difference > 0) {
+        whiteExtras.addAll(List.filled(difference, blackGlyphs[piece]!));
+        whiteScore += values[piece]! * difference;
+      } else if (difference < 0) {
+        blackExtras.addAll(List.filled(-difference, whiteGlyphs[piece]!));
+        blackScore += values[piece]! * -difference;
+      }
+    }
+    final net = whiteScore - blackScore;
+    return Semantics(
+      label: 'Material difference',
+      child: Wrap(
+        alignment: WrapAlignment.center,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        children: [
+          Text(
+            whiteExtras.isEmpty ? '—' : whiteExtras.join(),
+            style: const TextStyle(fontSize: 22),
+          ),
+          if (net > 0) Text(' +$net'),
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 8),
+            child: Text('material', style: TextStyle(color: Colors.white60)),
+          ),
+          Text(
+            blackExtras.isEmpty ? '—' : blackExtras.join(),
+            style: const TextStyle(fontSize: 22),
+          ),
+          if (net < 0) Text(' +${-net}'),
+        ],
+      ),
+    );
+  }
+}
+
 class AnalysisEntry {
   const AnalysisEntry(
     this.move,
@@ -1014,6 +1111,7 @@ class StockfishAnalyzer {
   static final instance = StockfishAnalyzer._();
   final Stockfish _engine = Stockfish.instance;
   Future<void>? _startup;
+  Future<void> _queue = Future<void>.value();
 
   Future<void> _ensureStarted() async {
     _startup ??= _engine.start().then((_) {
@@ -1024,6 +1122,18 @@ class StockfishAnalyzer {
   }
 
   Future<StockfishReview> evaluate(String fen) async {
+    final result = Completer<StockfishReview>();
+    _queue = _queue.then((_) async {
+      try {
+        result.complete(await _evaluateNow(fen));
+      } catch (error, stackTrace) {
+        result.completeError(error, stackTrace);
+      }
+    });
+    return result.future;
+  }
+
+  Future<StockfishReview> _evaluateNow(String fen) async {
     await _ensureStarted();
     final completer = Completer<int>();
     var latest = 0;
@@ -1060,6 +1170,7 @@ class StockfishAnalyzer {
   }
 
   Future<void> close() async {
+    await _queue;
     await _engine.quit();
     _startup = null;
   }

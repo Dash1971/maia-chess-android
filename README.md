@@ -20,13 +20,15 @@ engine developed by the University of Toronto Computational Social Science Lab.
 - Play as White, Black, or a random side
 - Easy (800), Medium (1500), Hard (2200), or custom Elo
 - Optional human-like move timing with persistent advanced settings
+- Premoves while Maia is thinking, with invalid premoves cancelled safely
 - Adjustable Maia Temperature and Top-P from 0 to 1 (defaults 0.5 and 0.9)
 - Lichess Chessground board with the default brown theme and Cburnett pieces
 - Legal move handling, checkmate/draw detection, move list, and rematches
 - Resignation and post-game Home/Rematch actions
-- Move-by-move review with evaluation bar and board navigation
-- Independent Stockfish/Maia recommendations with colour-coded arrows
-- Inaccuracies, mistakes, and blunders based on centipawn loss
+- Lightweight move-by-move Stockfish review, starting from the initial position
+- Evaluation bar and blue best-move arrow calculated lazily for each position
+- Optional full-game Stockfish analysis on request
+- Lichess-style material imbalance display, including bishop-versus-knight trades
 - Tagged PGN export with players, event, date, result, and termination
 
 ## Build

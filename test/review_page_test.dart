@@ -20,20 +20,31 @@ void main() {
           positions: const [start, after],
           uciMoves: const ['b2b4'],
           sanMoves: const ['b4'],
-          entries: const [AnalysisEntry('b4', 0, 0, 0.2, 'e2e4')],
-          stockfishReviews: const [
-            StockfishReview(0, 'e2e4'),
-            StockfishReview(10, 'e7e5'),
-          ],
           playerIsWhite: true,
-          maiaElo: 1500,
           pgn: '1. b4',
           onHome: () {},
+          evaluator: (_) async => const StockfishReview(0, 'e2e4'),
         ),
       ),
     );
 
     expect(tester.takeException(), isNull);
     expect(find.text('Game review'), findsOneWidget);
+    expect(find.text('Starting position  ·  0/1'), findsOneWidget);
+    expect(find.text('Analyze full game'), findsOneWidget);
+  });
+
+  testWidgets('material display preserves bishop versus knight imbalance', (
+    tester,
+  ) async {
+    const fen = '4k3/8/8/8/8/8/8/2B1K1n1 w - - 0 1';
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(body: MaterialDifference(fen: fen)),
+      ),
+    );
+
+    expect(find.text('♝'), findsOneWidget);
+    expect(find.text('♘'), findsOneWidget);
   });
 }
