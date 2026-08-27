@@ -34,6 +34,29 @@ engine developed by the University of Toronto Computational Social Science Lab.
 - Lichess-style material imbalance display, including bishop-versus-knight trades
 - Tagged PGN export with players, event, date, result, and termination
 
+## Install and update with Obtainium
+
+[Obtainium](https://github.com/ImranR98/Obtainium) installs Android apps directly
+from their official release pages and can notify you when updates are available.
+
+1. Install Obtainium from its
+   [official releases page](https://github.com/ImranR98/Obtainium/releases/latest).
+2. Open Obtainium, select **Add App**, and paste this URL into **App Source URL**:
+
+   ```text
+   https://github.com/Dash1971/maia-chess-android
+   ```
+
+3. Confirm that Obtainium detects **GitHub** as the source. Leave
+   **Include prereleases** disabled to receive stable versions only.
+4. Select **Add**, open **Maia Chess for Android** in Obtainium, and select
+   **Install**.
+5. If Android asks, allow Obtainium to install unknown apps, then approve the
+   Maia Chess APK installation.
+
+After setup, use Obtainium's update check to download and install future Maia
+Chess releases. Android may ask you to confirm each update.
+
 ## Build
 
 Requirements: Flutter 3.47+, JDK 17, and Android SDK 36.
