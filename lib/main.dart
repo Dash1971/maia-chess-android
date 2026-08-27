@@ -1057,7 +1057,7 @@ class _ReviewPageState extends State<ReviewPage> {
   bool _flipped = false;
   bool _fullAnalysisRunning = false;
   int _fullAnalysisProgress = 0;
-  List<int>? _graphScores;
+  List<StockfishReview>? _graphScores;
 
   StockfishReview? get _review => _reviews[_ply];
 
@@ -1099,7 +1099,7 @@ class _ReviewPageState extends State<ReviewPage> {
     setState(() {
       _graphScores = List.generate(
         widget.positions.length,
-        (index) => _reviews[index]?.evaluation ?? 0,
+        (index) => _reviews[index] ?? const StockfishReview(0, ''),
       );
       _fullAnalysisRunning = false;
     });
@@ -1135,6 +1135,7 @@ class _ReviewPageState extends State<ReviewPage> {
   @override
   Widget build(BuildContext context) {
     final evaluation = _review?.evaluation;
+    final mate = _review?.mate;
     final moveLabel = _ply == 0
         ? 'Starting position'
         : '${(_ply + 1) ~/ 2}${_ply.isOdd ? '.' : '…'} ${widget.sanMoves[_ply - 1]}';
@@ -1180,7 +1181,7 @@ class _ReviewPageState extends State<ReviewPage> {
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            EvaluationBar(evaluation: evaluation),
+                            EvaluationBar(evaluation: evaluation, mate: mate),
                             const SizedBox(width: 8),
                             SizedBox(
                               width: boardSize,
@@ -1267,7 +1268,7 @@ class _ReviewPageState extends State<ReviewPage> {
                                 _analysisError ??
                                     (_review == null
                                         ? 'Analyzing this position…'
-                                        : 'Depth 12 · ${_formatEvaluation(evaluation!)}'),
+                                        : 'Depth 12 · ${_formatEvaluation(_review!)}'),
                               ),
                             ),
                             const Divider(height: 1),
@@ -1307,11 +1308,9 @@ class _ReviewPageState extends State<ReviewPage> {
     );
   }
 
-  String _formatEvaluation(int evaluation) {
-    if (evaluation.abs() >= 10000) {
-      return evaluation > 0 ? 'White mates' : 'Black mates';
-    }
-    final pawns = evaluation / 100;
+  String _formatEvaluation(StockfishReview review) {
+    if (review.mate != null) return '#${review.mate}';
+    final pawns = review.evaluation / 100;
     return '${pawns >= 0 ? '+' : ''}${pawns.toStringAsFixed(2)}';
   }
 }
@@ -1324,7 +1323,7 @@ class AnalysisGraph extends StatelessWidget {
     super.key,
   });
 
-  final List<int> scores;
+  final List<StockfishReview> scores;
   final int selectedPly;
   final ValueChanged<int> onSelected;
 
@@ -1356,36 +1355,58 @@ class AnalysisGraph extends StatelessWidget {
 class AnalysisGraphPainter extends CustomPainter {
   AnalysisGraphPainter({required this.scores, required this.selectedPly});
 
-  final List<int> scores;
+  final List<StockfishReview> scores;
   final int selectedPly;
 
   @override
   void paint(Canvas canvas, Size size) {
-    final background = Paint()..color = const Color(0xff262926);
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(Offset.zero & size, const Radius.circular(8)),
-      background,
+    final bounds = RRect.fromRectAndRadius(
+      Offset.zero & size,
+      const Radius.circular(8),
     );
-    final midline = Paint()
-      ..color = Colors.white24
-      ..strokeWidth = 1;
-    canvas.drawLine(
-      Offset(0, size.height / 2),
-      Offset(size.width, size.height / 2),
-      midline,
-    );
-    if (scores.isEmpty) return;
+    canvas.save();
+    canvas.clipRRect(bounds);
+    final background = Paint()..color = const Color(0xff262421);
+    canvas.drawRRect(bounds, background);
+    if (scores.isEmpty) {
+      canvas.restore();
+      return;
+    }
     final path = Path();
+    final points = <Offset>[];
     for (var i = 0; i < scores.length; i++) {
-      final normalized = scores[i].clamp(-1000, 1000) / 1000;
+      final normalized = scores[i].whiteWinningChances;
       final x = scores.length == 1 ? 0.0 : i * size.width / (scores.length - 1);
       final y = size.height / 2 - normalized * (size.height / 2 - 8);
+      points.add(Offset(x, y));
       if (i == 0) {
         path.moveTo(x, y);
       } else {
         path.lineTo(x, y);
       }
     }
+    final whiteArea = Path()
+      ..moveTo(0, size.height)
+      ..lineTo(points.first.dx, points.first.dy);
+    for (final point in points.skip(1)) {
+      whiteArea.lineTo(point.dx, point.dy);
+    }
+    whiteArea
+      ..lineTo(size.width, size.height)
+      ..close();
+    canvas.drawPath(
+      whiteArea,
+      Paint()
+        ..color = const Color(0xffeeeeee)
+        ..style = PaintingStyle.fill,
+    );
+    canvas.drawLine(
+      Offset(0, size.height / 2),
+      Offset(size.width, size.height / 2),
+      Paint()
+        ..color = Colors.black26
+        ..strokeWidth = 1,
+    );
     canvas.drawPath(
       path,
       Paint()
@@ -1403,6 +1424,7 @@ class AnalysisGraphPainter extends CustomPainter {
         ..color = const Color(0xffe6a23c)
         ..strokeWidth = 2,
     );
+    canvas.restore();
   }
 
   @override
@@ -1411,18 +1433,25 @@ class AnalysisGraphPainter extends CustomPainter {
 }
 
 class EvaluationBar extends StatelessWidget {
-  const EvaluationBar({required this.evaluation, super.key});
+  const EvaluationBar({required this.evaluation, this.mate, super.key});
 
   final int? evaluation;
+  final int? mate;
 
   @override
   Widget build(BuildContext context) {
     final score = evaluation;
-    final whiteShare = score == null
+    final whiteShare = mate != null
+        ? (1 +
+                  StockfishReview(
+                    score ?? 0,
+                    '',
+                    mate: mate,
+                  ).whiteWinningChances) /
+              2
+        : score == null
         ? 0.5
-        : score.abs() >= 10000
-        ? (score > 0 ? 0.999 : 0.001)
-        : (1 / (1 + exp(-score / 200))).clamp(0.03, 0.97);
+        : (1 + StockfishReview(score, '').whiteWinningChances) / 2;
     return SizedBox(
       width: 24,
       child: Stack(
@@ -1439,9 +1468,9 @@ class EvaluationBar extends StatelessWidget {
               ),
             ],
           ),
-          if (score != null)
+          if (score != null || mate != null)
             Align(
-              alignment: score < 0
+              alignment: (mate ?? score!) < 0
                   ? Alignment.topCenter
                   : Alignment.bottomCenter,
               child: Padding(
@@ -1449,9 +1478,9 @@ class EvaluationBar extends StatelessWidget {
                 child: RotatedBox(
                   quarterTurns: 3,
                   child: Text(
-                    _scoreLabel(score),
+                    _scoreLabel(score, mate),
                     style: TextStyle(
-                      color: score < 0 ? Colors.white : Colors.black,
+                      color: (mate ?? score!) < 0 ? Colors.white : Colors.black,
                       fontSize: 10,
                       fontWeight: FontWeight.w800,
                     ),
@@ -1464,8 +1493,9 @@ class EvaluationBar extends StatelessWidget {
     );
   }
 
-  String _scoreLabel(int score) {
-    if (score.abs() >= 10000) return score > 0 ? '+#' : '-#';
+  String _scoreLabel(int? score, int? mate) {
+    if (mate != null) return '#$mate';
+    if (score == null) return '';
     final pawns = score / 100;
     return '${pawns >= 0 ? '+' : ''}${pawns.toStringAsFixed(1)}';
   }
@@ -1592,18 +1622,29 @@ class StockfishAnalyzer {
   }
 
   Future<StockfishReview> _evaluateNow(String fen) async {
+    final position = chess.Chess.fromFEN(fen);
+    if (position.in_checkmate) {
+      final whiteToMove = fen.split(' ')[1] == 'w';
+      return StockfishReview(0, '(none)', mate: whiteToMove ? -1 : 1);
+    }
+    if (position.game_over) return const StockfishReview(0, '(none)');
+
     await _ensureStarted();
     final completer = Completer<int>();
     var latest = 0;
+    int? latestMate;
     var bestMove = '';
     late StreamSubscription<String> subscription;
     subscription = _engine.stdout.listen((line) {
       if (line.startsWith('info ') && line.contains(' score ')) {
         final cp = RegExp(r' score cp (-?\d+)').firstMatch(line);
         final mate = RegExp(r' score mate (-?\d+)').firstMatch(line);
-        if (cp != null) latest = int.parse(cp.group(1)!);
+        if (cp != null) {
+          latest = int.parse(cp.group(1)!);
+          latestMate = null;
+        }
         if (mate != null) {
-          latest = int.parse(mate.group(1)!).isNegative ? -10000 : 10000;
+          latestMate = int.parse(mate.group(1)!);
         }
       }
       if (line.startsWith('bestmove ') && !completer.isCompleted) {
@@ -1621,6 +1662,11 @@ class StockfishAnalyzer {
       return StockfishReview(
         blackToMove ? -sideToMoveScore : sideToMoveScore,
         bestMove,
+        mate: latestMate == null
+            ? null
+            : blackToMove
+            ? -latestMate!
+            : latestMate,
       );
     } finally {
       await subscription.cancel();
@@ -1635,10 +1681,18 @@ class StockfishAnalyzer {
 }
 
 class StockfishReview {
-  const StockfishReview(this.evaluation, this.bestMove);
+  const StockfishReview(this.evaluation, this.bestMove, {this.mate});
 
   final int evaluation;
   final String bestMove;
+  final int? mate;
+
+  double get whiteWinningChances {
+    final value = mate == null
+        ? evaluation.clamp(-1000, 1000)
+        : (21 - min(10, mate!.abs())) * 100 * (mate! > 0 ? 1 : -1);
+    return 2 / (1 + exp(-0.00368208 * value)) - 1;
+  }
 }
 
 class MaiaEncoding {

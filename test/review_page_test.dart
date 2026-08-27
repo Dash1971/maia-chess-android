@@ -1,3 +1,5 @@
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maia_chess/main.dart';
@@ -52,6 +54,55 @@ void main() {
     );
 
     expect(find.text('-2.0'), findsOneWidget);
+  });
+
+  testWidgets('evaluation bar preserves signed mate distance', (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: SizedBox(
+            height: 300,
+            child: EvaluationBar(evaluation: 0, mate: -3),
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('#-3'), findsOneWidget);
+  });
+
+  test('analysis graph fills black above and white below the curve', () async {
+    final recorder = ui.PictureRecorder();
+    final canvas = Canvas(recorder);
+    AnalysisGraphPainter(
+      scores: const [StockfishReview(0, ''), StockfishReview(0, '')],
+      selectedPly: 0,
+    ).paint(canvas, const Size(200, 100));
+    final image = await recorder.endRecording().toImage(200, 100);
+    final bytes = await image.toByteData(format: ui.ImageByteFormat.rawRgba);
+
+    Color pixelAt(int x, int y) {
+      final offset = (y * 200 + x) * 4;
+      return Color.fromARGB(
+        bytes!.getUint8(offset + 3),
+        bytes.getUint8(offset),
+        bytes.getUint8(offset + 1),
+        bytes.getUint8(offset + 2),
+      );
+    }
+
+    expect(pixelAt(100, 25), const Color(0xff262421));
+    expect(pixelAt(100, 75), const Color(0xffeeeeee));
+  });
+
+  test('checkmate position is handled without starting Stockfish', () async {
+    const checkmate =
+        'rnb1kbnr/pppp1ppp/8/4p3/6Pq/5P2/PPPPP2P/RNBQKBNR w KQkq - 1 3';
+    final review = await StockfishAnalyzer.instance.evaluate(checkmate);
+
+    expect(review.mate, -1);
+    expect(review.bestMove, '(none)');
+    expect(review.whiteWinningChances, lessThan(-0.99));
   });
 
   testWidgets('material display preserves bishop versus knight imbalance', (
