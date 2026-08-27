@@ -40,4 +40,19 @@ void main() {
     );
     expect(MaiaEncoding.uci(move), 'e2e4');
   });
+
+  test('zero temperature uses deterministic argmax', () {
+    final game = chess.Chess();
+    final legalMoves = game.moves({'asObjects': true}).cast<chess.Move>();
+    final logits = List<double>.filled(4352, -1);
+    logits[MaiaEncoding.moveIndex('d2d4', false)] = 3;
+    final move = MaiaEncoding.sampleLegalMove(
+      game,
+      legalMoves,
+      logits,
+      temperature: 0,
+      topP: 0,
+    );
+    expect(MaiaEncoding.uci(move), 'd2d4');
+  });
 }

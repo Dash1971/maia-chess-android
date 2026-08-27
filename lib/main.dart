@@ -58,8 +58,8 @@ class _GamePageState extends State<GamePage> {
   int _analysisProgress = 0;
   String? _forcedResult;
   bool _humanTiming = false;
-  double _temperature = 1.0;
-  double _topP = 1.0;
+  double _temperature = 0.5;
+  double _topP = 0.9;
   final Random _timingRandom = Random.secure();
 
   bool get _playerIsWhite => _playerColor == chess.Color.WHITE;
@@ -77,8 +77,11 @@ class _GamePageState extends State<GamePage> {
     if (!mounted) return;
     setState(() {
       _humanTiming = preferences.getBool('humanTiming') ?? false;
-      _temperature = preferences.getDouble('temperature') ?? 1.0;
-      _topP = preferences.getDouble('topP') ?? 1.0;
+      _temperature = (preferences.getDouble('temperatureV2') ?? 0.5).clamp(
+        0.0,
+        1.0,
+      );
+      _topP = (preferences.getDouble('topPV2') ?? 0.9).clamp(0.0, 1.0);
     });
   }
 
@@ -86,8 +89,8 @@ class _GamePageState extends State<GamePage> {
     final preferences = await SharedPreferences.getInstance();
     await Future.wait([
       preferences.setBool('humanTiming', _humanTiming),
-      preferences.setDouble('temperature', _temperature),
-      preferences.setDouble('topP', _topP),
+      preferences.setDouble('temperatureV2', _temperature),
+      preferences.setDouble('topPV2', _topP),
     ]);
   }
 
@@ -514,9 +517,9 @@ class _GamePageState extends State<GamePage> {
                     'Temperature: ${_temperature.toStringAsFixed(2)}',
                   ),
                   subtitle: Slider(
-                    min: 0.30,
-                    max: 2.00,
-                    divisions: 34,
+                    min: 0.00,
+                    max: 1.00,
+                    divisions: 20,
                     value: _temperature,
                     label: _temperature.toStringAsFixed(2),
                     onChanged: (value) => setState(() => _temperature = value),
@@ -527,9 +530,9 @@ class _GamePageState extends State<GamePage> {
                   contentPadding: EdgeInsets.zero,
                   title: Text('Top-P: ${_topP.toStringAsFixed(2)}'),
                   subtitle: Slider(
-                    min: 0.50,
+                    min: 0.00,
                     max: 1.00,
-                    divisions: 25,
+                    divisions: 20,
                     value: _topP,
                     label: _topP.toStringAsFixed(2),
                     onChanged: (value) => setState(() => _topP = value),
@@ -542,8 +545,8 @@ class _GamePageState extends State<GamePage> {
                     onPressed: () {
                       setState(() {
                         _humanTiming = false;
-                        _temperature = 1.0;
-                        _topP = 1.0;
+                        _temperature = 0.5;
+                        _topP = 0.9;
                       });
                       unawaited(_saveEnginePreferences());
                     },
@@ -1072,8 +1075,18 @@ class MaiaEncoding {
     double temperature = 1.0,
     double topP = 1.0,
   }) {
-    final safeTemperature = temperature.clamp(0.05, 5.0);
-    final safeTopP = topP.clamp(0.01, 1.0);
+    final safeTopP = topP.clamp(0.0, 1.0);
+    if (temperature <= 0) {
+      return legalMoves.reduce((best, move) {
+        final bestIndex = moveIndex(uci(best), game.turn == chess.Color.BLACK);
+        final moveIndexValue = moveIndex(
+          uci(move),
+          game.turn == chess.Color.BLACK,
+        );
+        return logits[moveIndexValue] > logits[bestIndex] ? move : best;
+      });
+    }
+    final safeTemperature = temperature.clamp(0.001, 1.0);
     final scored = legalMoves.map((move) {
       final uci =
           '${move.fromAlgebraic}${move.toAlgebraic}${move.promotion?.name ?? ''}';
@@ -1098,10 +1111,14 @@ class MaiaEncoding {
     );
     final nucleus = <({chess.Move move, double weight})>[];
     var cumulative = 0.0;
-    for (final item in weighted) {
-      nucleus.add(item);
+    for (var index = 0; index < weighted.length; index++) {
+      final item = weighted[index];
       cumulative += item.weight / fullTotal;
-      if (cumulative >= safeTopP) break;
+      if (index == 0 || safeTopP >= 1.0 || cumulative <= safeTopP) {
+        nucleus.add(item);
+      } else {
+        break;
+      }
     }
     final nucleusTotal = nucleus.fold<double>(
       0,

@@ -9,7 +9,7 @@ with Maia and Stockfish, and exporting PGN.
 - Play as White, Black, or a random side
 - Easy (800), Medium (1500), Hard (2200), or custom Elo
 - Optional human-like move timing with persistent advanced settings
-- Adjustable Maia sampling temperature and Top-P
+- Adjustable Maia Temperature and Top-P from 0 to 1 (defaults 0.5 and 0.9)
 - Lichess Chessground board with the default brown theme and Cburnett pieces
 - Legal move handling, checkmate/draw detection, move list, and rematches
 - Resignation and post-game Home/Rematch actions
