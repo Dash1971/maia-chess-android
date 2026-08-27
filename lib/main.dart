@@ -166,7 +166,7 @@ class _GamePageState extends State<GamePage> {
     showAboutDialog(
       context: context,
       applicationName: 'Maia Chess for Android',
-      applicationVersion: '1.6.0',
+      applicationVersion: '1.6.1',
       children: [
         const Text(
           'Powered by Maia-3, the human-like chess engine developed by the '
@@ -316,7 +316,7 @@ class _GamePageState extends State<GamePage> {
     setState(() {});
   }
 
-  void _tapSquare(String square) {
+  Future<void> _tapSquare(String square) async {
     if (!_started || _gameFinished) {
       return;
     }
@@ -337,18 +337,26 @@ class _GamePageState extends State<GamePage> {
       return;
     }
 
-    final legalMoves = _game.moves({'asObjects': true}).cast<chess.Move>();
-    chess.Move? chosen;
-    for (final move in legalMoves) {
-      if (move.fromAlgebraic == _selectedSquare && move.toAlgebraic == square) {
-        if (chosen == null || move.promotion == chess.Chess.QUEEN) {
-          chosen = move;
-        }
-      }
-    }
-    if (chosen == null) {
+    final candidates = _game
+        .moves({'asObjects': true})
+        .cast<chess.Move>()
+        .where(
+          (move) =>
+              move.fromAlgebraic == _selectedSquare &&
+              move.toAlgebraic == square,
+        )
+        .toList();
+    if (candidates.isEmpty) {
       setState(() => _selectedSquare = null);
       return;
+    }
+    var chosen = candidates.first;
+    if (candidates.length > 1) {
+      final promotion = await _choosePromotion();
+      if (promotion == null || !mounted || _gameFinished || !_isPlayerTurn) {
+        return;
+      }
+      chosen = candidates.firstWhere((move) => move.promotion == promotion);
     }
 
     _commitClock(_playerColor);
@@ -388,7 +396,7 @@ class _GamePageState extends State<GamePage> {
     });
   }
 
-  bool _playQueuedPremove() {
+  Future<bool> _playQueuedPremove() async {
     final from = _premoveFrom;
     final to = _premoveTo;
     _premoveFrom = null;
@@ -396,16 +404,18 @@ class _GamePageState extends State<GamePage> {
     if (from == null || to == null || !_isPlayerTurn || _gameFinished) {
       return false;
     }
-    final legalMoves = _game.moves({'asObjects': true}).cast<chess.Move>();
-    chess.Move? chosen;
-    for (final move in legalMoves) {
-      if (move.fromAlgebraic == from && move.toAlgebraic == to) {
-        if (chosen == null || move.promotion == chess.Chess.QUEEN) {
-          chosen = move;
-        }
-      }
+    final candidates = _game
+        .moves({'asObjects': true})
+        .cast<chess.Move>()
+        .where((move) => move.fromAlgebraic == from && move.toAlgebraic == to)
+        .toList();
+    if (candidates.isEmpty) return false;
+    var chosen = candidates.first;
+    if (candidates.length > 1) {
+      final promotion = await _choosePromotion();
+      if (promotion == null || !mounted || _gameFinished) return false;
+      chosen = candidates.firstWhere((move) => move.promotion == promotion);
     }
-    if (chosen == null) return false;
     _commitClock(_playerColor);
     _uciMoves.add(MaiaEncoding.uci(chosen));
     _game.move(chosen);
@@ -413,6 +423,27 @@ class _GamePageState extends State<GamePage> {
     _recordClockSnapshot();
     return true;
   }
+
+  Future<chess.PieceType?> _choosePromotion() => showDialog<chess.PieceType>(
+    context: context,
+    barrierDismissible: false,
+    builder: (context) => AlertDialog(
+      title: const Text('Promote pawn'),
+      content: const Text('Choose a piece'),
+      actions: [
+        for (final choice in const [
+          (piece: chess.Chess.QUEEN, label: 'Queen'),
+          (piece: chess.Chess.ROOK, label: 'Rook'),
+          (piece: chess.Chess.BISHOP, label: 'Bishop'),
+          (piece: chess.Chess.KNIGHT, label: 'Knight'),
+        ])
+          TextButton(
+            onPressed: () => Navigator.pop(context, choice.piece),
+            child: Text(choice.label),
+          ),
+      ],
+    ),
+  );
 
   Future<void> _playMaiaMove() async {
     if (_game.game_over) return;
@@ -451,7 +482,8 @@ class _GamePageState extends State<GamePage> {
       _game.move(move);
       _positionHistory.add(_game.fen);
       _recordClockSnapshot();
-      final premovePlayed = _playQueuedPremove();
+      final premovePlayed = await _playQueuedPremove();
+      if (!mounted || generation != _gameGeneration || _gameFinished) return;
       setState(() {
         _engineThinking = false;
         _status = _game.game_over
@@ -923,7 +955,7 @@ class _GamePageState extends State<GamePage> {
           pieceAssets: cg.PieceSet.cburnettAssets,
           enableCoordinates: true,
         ),
-        onTouchedSquare: (square) => _tapSquare(square.name),
+        onTouchedSquare: (square) => unawaited(_tapSquare(square.name)),
       ),
     );
   }
@@ -949,7 +981,7 @@ class _GamePageState extends State<GamePage> {
               icon: const Icon(Icons.copy),
               label: const Text('Copy PGN'),
             ),
-            if (_gameFinished || moves.length >= 4)
+            if (_gameFinished)
               FilledButton.tonalIcon(
                 onPressed: _analyzeGame,
                 icon: const Icon(Icons.analytics_outlined),
