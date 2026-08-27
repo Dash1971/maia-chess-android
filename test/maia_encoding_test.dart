@@ -1,3 +1,4 @@
+import 'package:chess/chess.dart' as chess;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maia_chess/main.dart';
 
@@ -23,5 +24,20 @@ void main() {
   test('historical tensor has the exported model shape', () {
     const fen = '8/8/8/8/8/8/8/K6k w - - 0 1';
     expect(MaiaEncoding.historicalTokens([fen]), hasLength(64 * 97));
+  });
+
+  test('top-p sampling keeps only the highest probability moves', () {
+    final game = chess.Chess();
+    final legalMoves = game.moves({'asObjects': true}).cast<chess.Move>();
+    final logits = List<double>.filled(4352, -20);
+    logits[MaiaEncoding.moveIndex('e2e4', false)] = 20;
+    final move = MaiaEncoding.sampleLegalMove(
+      game,
+      legalMoves,
+      logits,
+      temperature: 0.5,
+      topP: 0.5,
+    );
+    expect(MaiaEncoding.uci(move), 'e2e4');
   });
 }

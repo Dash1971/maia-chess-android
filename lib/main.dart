@@ -7,6 +7,7 @@ import 'package:dartchess/dartchess.dart' as dc;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:multistockfish/multistockfish.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() => runApp(const MaiaChessApp());
 
@@ -56,10 +57,39 @@ class _GamePageState extends State<GamePage> {
   bool _analysisRunning = false;
   int _analysisProgress = 0;
   String? _forcedResult;
+  bool _humanTiming = false;
+  double _temperature = 1.0;
+  double _topP = 1.0;
+  final Random _timingRandom = Random.secure();
 
   bool get _playerIsWhite => _playerColor == chess.Color.WHITE;
   bool get _isPlayerTurn => _game.turn == _playerColor;
   bool get _gameFinished => _game.game_over || _forcedResult != null;
+
+  @override
+  void initState() {
+    super.initState();
+    unawaited(_loadEnginePreferences());
+  }
+
+  Future<void> _loadEnginePreferences() async {
+    final preferences = await SharedPreferences.getInstance();
+    if (!mounted) return;
+    setState(() {
+      _humanTiming = preferences.getBool('humanTiming') ?? false;
+      _temperature = preferences.getDouble('temperature') ?? 1.0;
+      _topP = preferences.getDouble('topP') ?? 1.0;
+    });
+  }
+
+  Future<void> _saveEnginePreferences() async {
+    final preferences = await SharedPreferences.getInstance();
+    await Future.wait([
+      preferences.setBool('humanTiming', _humanTiming),
+      preferences.setDouble('temperature', _temperature),
+      preferences.setDouble('topP', _topP),
+    ]);
+  }
 
   void _startGame() {
     final randomWhite = Random.secure().nextBool();
@@ -146,6 +176,7 @@ class _GamePageState extends State<GamePage> {
 
   Future<void> _playMaiaMove() async {
     if (_game.game_over) return;
+    final thinkingTimer = Stopwatch()..start();
     setState(() {
       _engineThinking = true;
       _status = 'Maia is thinking at $_elo Elo…';
@@ -164,7 +195,18 @@ class _GamePageState extends State<GamePage> {
           .map((value) => value.toDouble())
           .toList();
       final legalMoves = _game.moves({'asObjects': true}).cast<chess.Move>();
-      final move = MaiaEncoding.sampleLegalMove(_game, legalMoves, logits);
+      final move = MaiaEncoding.sampleLegalMove(
+        _game,
+        legalMoves,
+        logits,
+        temperature: _temperature,
+        topP: _topP,
+      );
+      if (_humanTiming) {
+        final target = _humanThinkDuration();
+        final remaining = target - thinkingTimer.elapsed;
+        if (remaining > Duration.zero) await Future<void>.delayed(remaining);
+      }
       if (!mounted) return;
       _uciMoves.add(MaiaEncoding.uci(move));
       _game.move(move);
@@ -180,6 +222,17 @@ class _GamePageState extends State<GamePage> {
         _status = 'Maia error: $error';
       });
     }
+  }
+
+  Duration _humanThinkDuration() {
+    final u1 = max(_timingRandom.nextDouble(), 0.000001);
+    final u2 = _timingRandom.nextDouble();
+    final gaussian = sqrt(-2 * log(u1)) * cos(2 * pi * u2);
+    var seconds = exp(0.65 + gaussian * 0.48).clamp(0.7, 5.5);
+    if (_timingRandom.nextDouble() < 0.08) {
+      seconds += 2.5 + _timingRandom.nextDouble() * 4;
+    }
+    return Duration(milliseconds: (seconds * 1000).round());
   }
 
   String _resultText() {
@@ -433,6 +486,69 @@ class _GamePageState extends State<GamePage> {
                 TextButton(
                   onPressed: () => setState(() => _elo = 2200),
                   child: const Text('Hard 2200'),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            ExpansionTile(
+              tilePadding: EdgeInsets.zero,
+              childrenPadding: EdgeInsets.zero,
+              title: const Text('Advanced'),
+              subtitle: const Text('Timing and move sampling'),
+              children: [
+                SwitchListTile(
+                  contentPadding: EdgeInsets.zero,
+                  value: _humanTiming,
+                  title: const Text('Human move timing'),
+                  subtitle: const Text(
+                    'Variable natural pauses before Maia moves',
+                  ),
+                  onChanged: (value) {
+                    setState(() => _humanTiming = value);
+                    unawaited(_saveEnginePreferences());
+                  },
+                ),
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(
+                    'Temperature: ${_temperature.toStringAsFixed(2)}',
+                  ),
+                  subtitle: Slider(
+                    min: 0.30,
+                    max: 2.00,
+                    divisions: 34,
+                    value: _temperature,
+                    label: _temperature.toStringAsFixed(2),
+                    onChanged: (value) => setState(() => _temperature = value),
+                    onChangeEnd: (_) => unawaited(_saveEnginePreferences()),
+                  ),
+                ),
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: Text('Top-P: ${_topP.toStringAsFixed(2)}'),
+                  subtitle: Slider(
+                    min: 0.50,
+                    max: 1.00,
+                    divisions: 25,
+                    value: _topP,
+                    label: _topP.toStringAsFixed(2),
+                    onChanged: (value) => setState(() => _topP = value),
+                    onChangeEnd: (_) => unawaited(_saveEnginePreferences()),
+                  ),
+                ),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: TextButton(
+                    onPressed: () {
+                      setState(() {
+                        _humanTiming = false;
+                        _temperature = 1.0;
+                        _topP = 1.0;
+                      });
+                      unawaited(_saveEnginePreferences());
+                    },
+                    child: const Text('Reset engine defaults'),
+                  ),
                 ),
               ],
             ),
@@ -952,25 +1068,51 @@ class MaiaEncoding {
   static chess.Move sampleLegalMove(
     chess.Chess game,
     List<chess.Move> legalMoves,
-    List<double> logits,
-  ) {
+    List<double> logits, {
+    double temperature = 1.0,
+    double topP = 1.0,
+  }) {
+    final safeTemperature = temperature.clamp(0.05, 5.0);
+    final safeTopP = topP.clamp(0.01, 1.0);
     final scored = legalMoves.map((move) {
       final uci =
           '${move.fromAlgebraic}${move.toAlgebraic}${move.promotion?.name ?? ''}';
       return (
         move: move,
-        logit: logits[moveIndex(uci, game.turn == chess.Color.BLACK)],
+        logit:
+            logits[moveIndex(uci, game.turn == chess.Color.BLACK)] /
+            safeTemperature,
       );
     }).toList();
     final maxLogit = scored.map((item) => item.logit).reduce(max);
-    final weights = scored.map((item) => exp(item.logit - maxLogit)).toList();
-    final total = weights.reduce((a, b) => a + b);
-    var target = _random.nextDouble() * total;
-    for (var i = 0; i < scored.length; i++) {
-      target -= weights[i];
-      if (target <= 0) return scored[i].move;
+    final weighted =
+        scored
+            .map(
+              (item) => (move: item.move, weight: exp(item.logit - maxLogit)),
+            )
+            .toList()
+          ..sort((a, b) => b.weight.compareTo(a.weight));
+    final fullTotal = weighted.fold<double>(
+      0,
+      (sum, item) => sum + item.weight,
+    );
+    final nucleus = <({chess.Move move, double weight})>[];
+    var cumulative = 0.0;
+    for (final item in weighted) {
+      nucleus.add(item);
+      cumulative += item.weight / fullTotal;
+      if (cumulative >= safeTopP) break;
     }
-    return scored.last.move;
+    final nucleusTotal = nucleus.fold<double>(
+      0,
+      (sum, item) => sum + item.weight,
+    );
+    var target = _random.nextDouble() * nucleusTotal;
+    for (final item in nucleus) {
+      target -= item.weight;
+      if (target <= 0) return item.move;
+    }
+    return nucleus.last.move;
   }
 
   static ({double probability, String topMove}) reviewMove(
