@@ -26,8 +26,7 @@ engine developed by the University of Toronto Computational Social Science Lab.
 - Legal move handling, checkmate/draw detection, move list, and rematches
 - Resignation and post-game Home/Rematch actions
 - Lightweight move-by-move Stockfish review, starting from the initial position
-- Evaluation bar and blue best-move arrow calculated lazily for each position
-- Optional full-game Stockfish analysis on request
+- Evaluation bar with Lichess-style numeric score and blue best-move arrow
 - Lichess-style material imbalance display, including bishop-versus-knight trades
 - Tagged PGN export with players, event, date, result, and termination
 

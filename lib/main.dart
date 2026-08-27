@@ -103,7 +103,7 @@ class _GamePageState extends State<GamePage> {
     showAboutDialog(
       context: context,
       applicationName: 'Maia Chess for Android',
-      applicationVersion: '1.5.1',
+      applicationVersion: '1.5.2',
       children: [
         const Text(
           'Powered by Maia-3, the human-like chess engine developed by the '
@@ -340,9 +340,9 @@ class _GamePageState extends State<GamePage> {
     final u1 = max(_timingRandom.nextDouble(), 0.000001);
     final u2 = _timingRandom.nextDouble();
     final gaussian = sqrt(-2 * log(u1)) * cos(2 * pi * u2);
-    var seconds = exp(0.65 + gaussian * 0.48).clamp(0.7, 5.5);
-    if (_timingRandom.nextDouble() < 0.08) {
-      seconds += 2.5 + _timingRandom.nextDouble() * 4;
+    var seconds = exp(0.50 + gaussian * 0.44).clamp(0.55, 4.5);
+    if (_timingRandom.nextDouble() < 0.06) {
+      seconds += 1.5 + _timingRandom.nextDouble() * 3;
     }
     return Duration(milliseconds: (seconds * 1000).round());
   }
@@ -748,8 +748,6 @@ class _ReviewPageState extends State<ReviewPage> {
   final Map<int, StockfishReview> _reviews = {};
   final Set<int> _loading = {};
   String? _analysisError;
-  bool _fullGameRunning = false;
-  int _fullGameProgress = 0;
 
   StockfishReview? get _review => _reviews[_ply];
 
@@ -774,19 +772,6 @@ class _ReviewPageState extends State<ReviewPage> {
     } finally {
       if (mounted) setState(() => _loading.remove(ply));
     }
-  }
-
-  Future<void> _analyzeFullGame() async {
-    if (_fullGameRunning) return;
-    setState(() {
-      _fullGameRunning = true;
-      _fullGameProgress = 0;
-    });
-    for (var i = 0; i < widget.positions.length && mounted; i++) {
-      await _analyzePosition(i);
-      if (mounted) setState(() => _fullGameProgress = i + 1);
-    }
-    if (mounted) setState(() => _fullGameRunning = false);
   }
 
   Set<cg.Shape> get _arrows {
@@ -818,7 +803,7 @@ class _ReviewPageState extends State<ReviewPage> {
 
   @override
   Widget build(BuildContext context) {
-    final evaluation = _review?.evaluation ?? 0;
+    final evaluation = _review?.evaluation;
     final moveLabel = _ply == 0
         ? 'Starting position'
         : '${(_ply + 1) ~/ 2}${_ply.isOdd ? '.' : '…'} ${widget.sanMoves[_ply - 1]}';
@@ -931,27 +916,8 @@ class _ReviewPageState extends State<ReviewPage> {
                                 _analysisError ??
                                     (_review == null
                                         ? 'Analyzing this position…'
-                                        : 'Depth 12 · ${_formatEvaluation(evaluation)}'),
+                                        : 'Depth 12 · ${_formatEvaluation(evaluation!)}'),
                               ),
-                            ),
-                            const Divider(height: 1),
-                            ListTile(
-                              leading: _fullGameRunning
-                                  ? const SizedBox(
-                                      width: 24,
-                                      height: 24,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                      ),
-                                    )
-                                  : const Icon(Icons.analytics_outlined),
-                              title: const Text('Analyze full game'),
-                              subtitle: Text(
-                                _fullGameRunning
-                                    ? '$_fullGameProgress/${widget.positions.length} positions'
-                                    : 'Optional · cache every position',
-                              ),
-                              onTap: _fullGameRunning ? null : _analyzeFullGame,
                             ),
                           ],
                         ),
@@ -979,28 +945,61 @@ class _ReviewPageState extends State<ReviewPage> {
 class EvaluationBar extends StatelessWidget {
   const EvaluationBar({required this.evaluation, super.key});
 
-  final int evaluation;
+  final int? evaluation;
 
   @override
   Widget build(BuildContext context) {
-    final whiteShare = evaluation.abs() >= 10000
-        ? (evaluation > 0 ? 0.999 : 0.001)
-        : (1 / (1 + exp(-evaluation / 200))).clamp(0.03, 0.97);
+    final score = evaluation;
+    final whiteShare = score == null
+        ? 0.5
+        : score.abs() >= 10000
+        ? (score > 0 ? 0.999 : 0.001)
+        : (1 / (1 + exp(-score / 200))).clamp(0.03, 0.97);
     return SizedBox(
       width: 24,
-      child: Column(
+      child: Stack(
         children: [
-          Expanded(
-            flex: ((1 - whiteShare) * 1000).round(),
-            child: Container(color: const Color(0xff262421)),
+          Column(
+            children: [
+              Expanded(
+                flex: ((1 - whiteShare) * 1000).round(),
+                child: Container(color: const Color(0xff262421)),
+              ),
+              Expanded(
+                flex: (whiteShare * 1000).round(),
+                child: Container(color: const Color(0xfff0f0f0)),
+              ),
+            ],
           ),
-          Expanded(
-            flex: (whiteShare * 1000).round(),
-            child: Container(color: const Color(0xfff0f0f0)),
-          ),
+          if (score != null)
+            Align(
+              alignment: score < 0
+                  ? Alignment.topCenter
+                  : Alignment.bottomCenter,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 6),
+                child: RotatedBox(
+                  quarterTurns: 3,
+                  child: Text(
+                    _scoreLabel(score),
+                    style: TextStyle(
+                      color: score < 0 ? Colors.white : Colors.black,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ),
+              ),
+            ),
         ],
       ),
     );
+  }
+
+  String _scoreLabel(int score) {
+    if (score.abs() >= 10000) return score > 0 ? '+#' : '-#';
+    final pawns = score / 100;
+    return '${pawns >= 0 ? '+' : ''}${pawns.toStringAsFixed(1)}';
   }
 }
 

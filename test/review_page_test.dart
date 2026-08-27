@@ -27,11 +27,25 @@ void main() {
         ),
       ),
     );
+    await tester.pump();
 
     expect(tester.takeException(), isNull);
     expect(find.text('Game review'), findsOneWidget);
     expect(find.text('Starting position  ·  0/1'), findsOneWidget);
-    expect(find.text('Analyze full game'), findsOneWidget);
+    expect(find.text('Analyze full game'), findsNothing);
+    expect(find.text('+0.0'), findsOneWidget);
+  });
+
+  testWidgets('evaluation bar uses signed Lichess-style score', (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: SizedBox(height: 300, child: EvaluationBar(evaluation: -200)),
+        ),
+      ),
+    );
+
+    expect(find.text('-2.0'), findsOneWidget);
   });
 
   testWidgets('material display preserves bishop versus knight imbalance', (
