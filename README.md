@@ -10,9 +10,11 @@ with Maia and Stockfish, and exporting PGN.
 - Easy (800), Medium (1500), Hard (2200), or custom Elo
 - Lichess Chessground board with the default brown theme and Cburnett pieces
 - Legal move handling, checkmate/draw detection, move list, and rematches
-- Post-game Maia human-move likelihood and Stockfish depth-12 review
+- Resignation and post-game Home/Rematch actions
+- Move-by-move review with evaluation bar and board navigation
+- Independent Stockfish/Maia recommendations with colour-coded arrows
 - Inaccuracies, mistakes, and blunders based on centipawn loss
-- PGN copy to the Android clipboard
+- Tagged PGN export with players, event, date, result, and termination
 
 ## Build
 
