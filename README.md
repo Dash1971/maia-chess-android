@@ -18,15 +18,19 @@ engine developed by the University of Toronto Computational Social Science Lab.
 
 - Bundled Maia-3 79M model; no account, server, or network connection required
 - Play as White, Black, or a random side
+- Unlimited play by default, Lichess-style clock presets, or custom time and increment
 - Easy (800), Medium (1500), Hard (2200), or custom Elo
 - Optional human-like move timing with persistent advanced settings
 - Premoves while Maia is thinking, with invalid premoves cancelled safely
+- Takebacks that restore the previous playable position and clock state
 - Adjustable Maia Temperature and Top-P from 0 to 1 (defaults 0.5 and 0.9)
 - Lichess Chessground board with the default brown theme and Cburnett pieces
 - Legal move handling, checkmate/draw detection, move list, and rematches
 - Resignation and post-game Home/Rematch actions
 - Lightweight move-by-move Stockfish review, starting from the initial position
 - Evaluation bar with Lichess-style numeric score and blue best-move arrow
+- Optional full-game computer analysis graph with tap-to-navigate positions
+- Flip-board control during analysis
 - Lichess-style material imbalance display, including bishop-versus-knight trades
 - Tagged PGN export with players, event, date, result, and termination
 

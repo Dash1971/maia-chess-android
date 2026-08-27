@@ -41,6 +41,51 @@ class MaiaChessApp extends StatelessWidget {
 
 enum PlayerSide { white, black, random }
 
+enum TimePreset {
+  unlimited,
+  bullet,
+  blitz,
+  blitzFive,
+  rapid,
+  classical,
+  custom,
+}
+
+extension TimePresetDetails on TimePreset {
+  String get label => switch (this) {
+    TimePreset.unlimited => 'Unlimited',
+    TimePreset.bullet => '1 + 0',
+    TimePreset.blitz => '3 + 2',
+    TimePreset.blitzFive => '5 + 3',
+    TimePreset.rapid => '10 + 0',
+    TimePreset.classical => '15 + 10',
+    TimePreset.custom => 'Custom',
+  };
+
+  int get minutes => switch (this) {
+    TimePreset.bullet => 1,
+    TimePreset.blitz => 3,
+    TimePreset.blitzFive => 5,
+    TimePreset.rapid => 10,
+    TimePreset.classical => 15,
+    _ => 0,
+  };
+
+  int get increment => switch (this) {
+    TimePreset.blitz => 2,
+    TimePreset.blitzFive => 3,
+    TimePreset.classical => 10,
+    _ => 0,
+  };
+}
+
+class ClockSnapshot {
+  const ClockSnapshot(this.whiteMillis, this.blackMillis);
+
+  final int whiteMillis;
+  final int blackMillis;
+}
+
 class GamePage extends StatefulWidget {
   const GamePage({super.key});
 
@@ -65,11 +110,29 @@ class _GamePageState extends State<GamePage> {
   bool _humanTiming = false;
   double _temperature = 0.5;
   double _topP = 0.9;
+  TimePreset _timePreset = TimePreset.unlimited;
+  int _customMinutes = 10;
+  int _customIncrement = 0;
+  int _whiteMillis = 0;
+  int _blackMillis = 0;
+  DateTime? _turnStartedAt;
+  Timer? _clockTimer;
+  final List<ClockSnapshot> _clockHistory = [];
+  int _gameGeneration = 0;
   final Random _timingRandom = Random.secure();
 
   bool get _playerIsWhite => _playerColor == chess.Color.WHITE;
   bool get _isPlayerTurn => _game.turn == _playerColor;
   bool get _gameFinished => _game.game_over || _forcedResult != null;
+  bool get _clockEnabled => _timePreset != TimePreset.unlimited;
+  bool get _canTakeBack =>
+      !_gameFinished &&
+      (_engineThinking ? _uciMoves.isNotEmpty : _uciMoves.length >= 2);
+  int get _baseMinutes =>
+      _timePreset == TimePreset.custom ? _customMinutes : _timePreset.minutes;
+  int get _incrementSeconds => _timePreset == TimePreset.custom
+      ? _customIncrement
+      : _timePreset.increment;
 
   @override
   void initState() {
@@ -103,7 +166,7 @@ class _GamePageState extends State<GamePage> {
     showAboutDialog(
       context: context,
       applicationName: 'Maia Chess for Android',
-      applicationVersion: '1.5.2',
+      applicationVersion: '1.6.0',
       children: [
         const Text(
           'Powered by Maia-3, the human-like chess engine developed by the '
@@ -146,6 +209,8 @@ class _GamePageState extends State<GamePage> {
   }
 
   void _startGame() {
+    _gameGeneration++;
+    _clockTimer?.cancel();
     final randomWhite = Random.secure().nextBool();
     _playerColor = switch (_sideChoice) {
       PlayerSide.white => chess.Color.WHITE,
@@ -163,6 +228,13 @@ class _GamePageState extends State<GamePage> {
       _premoveTo = null;
       _forcedResult = null;
       _started = true;
+      final startingMillis = _baseMinutes * 60 * 1000;
+      _whiteMillis = startingMillis;
+      _blackMillis = startingMillis;
+      _turnStartedAt = _clockEnabled ? DateTime.now() : null;
+      _clockHistory
+        ..clear()
+        ..add(ClockSnapshot(_whiteMillis, _blackMillis));
       _status = _playerIsWhite ? 'Your move.' : 'Game in progress.';
       final date = DateTime.now();
       final dateTag =
@@ -186,7 +258,62 @@ class _GamePageState extends State<GamePage> {
         '*',
       ]);
     });
+    if (_clockEnabled) {
+      _clockTimer = Timer.periodic(
+        const Duration(milliseconds: 200),
+        (_) => _tickClock(),
+      );
+    }
     if (!_playerIsWhite) _playMaiaMove();
+  }
+
+  int _liveMillis(chess.Color color) {
+    final base = color == chess.Color.WHITE ? _whiteMillis : _blackMillis;
+    if (!_clockEnabled || _gameFinished || _game.turn != color) return base;
+    final started = _turnStartedAt;
+    if (started == null) return base;
+    return max(0, base - DateTime.now().difference(started).inMilliseconds);
+  }
+
+  void _commitClock(chess.Color mover) {
+    if (!_clockEnabled) return;
+    final remaining = _liveMillis(mover) + _incrementSeconds * 1000;
+    if (mover == chess.Color.WHITE) {
+      _whiteMillis = remaining;
+    } else {
+      _blackMillis = remaining;
+    }
+    _turnStartedAt = DateTime.now();
+  }
+
+  void _recordClockSnapshot() {
+    _clockHistory.add(ClockSnapshot(_whiteMillis, _blackMillis));
+  }
+
+  void _tickClock() {
+    if (!mounted || !_started || !_clockEnabled || _gameFinished) return;
+    final remaining = _liveMillis(_game.turn);
+    if (remaining <= 0) {
+      final whiteFlagged = _game.turn == chess.Color.WHITE;
+      final result = whiteFlagged ? '0-1' : '1-0';
+      _gameGeneration++;
+      _clockTimer?.cancel();
+      setState(() {
+        if (whiteFlagged) {
+          _whiteMillis = 0;
+        } else {
+          _blackMillis = 0;
+        }
+        _forcedResult = result;
+        _engineThinking = false;
+        _game.set_header(['Result', result, 'Termination', 'Time forfeit']);
+        _status = whiteFlagged
+            ? 'White ran out of time.'
+            : 'Black ran out of time.';
+      });
+      return;
+    }
+    setState(() {});
   }
 
   void _tapSquare(String square) {
@@ -224,9 +351,11 @@ class _GamePageState extends State<GamePage> {
       return;
     }
 
+    _commitClock(_playerColor);
     _uciMoves.add(MaiaEncoding.uci(chosen));
     _game.move(chosen);
     _positionHistory.add(_game.fen);
+    _recordClockSnapshot();
     setState(() {
       _selectedSquare = null;
       _status = _game.game_over ? _finishNaturalGame() : 'Game in progress.';
@@ -277,14 +406,17 @@ class _GamePageState extends State<GamePage> {
       }
     }
     if (chosen == null) return false;
+    _commitClock(_playerColor);
     _uciMoves.add(MaiaEncoding.uci(chosen));
     _game.move(chosen);
     _positionHistory.add(_game.fen);
+    _recordClockSnapshot();
     return true;
   }
 
   Future<void> _playMaiaMove() async {
     if (_game.game_over) return;
+    final generation = _gameGeneration;
     final thinkingTimer = Stopwatch()..start();
     setState(() => _engineThinking = true);
     try {
@@ -313,10 +445,12 @@ class _GamePageState extends State<GamePage> {
         final remaining = target - thinkingTimer.elapsed;
         if (remaining > Duration.zero) await Future<void>.delayed(remaining);
       }
-      if (!mounted) return;
+      if (!mounted || generation != _gameGeneration || _gameFinished) return;
+      _commitClock(_game.turn);
       _uciMoves.add(MaiaEncoding.uci(move));
       _game.move(move);
       _positionHistory.add(_game.fen);
+      _recordClockSnapshot();
       final premovePlayed = _playQueuedPremove();
       setState(() {
         _engineThinking = false;
@@ -362,6 +496,7 @@ class _GamePageState extends State<GamePage> {
   }
 
   String _finishNaturalGame() {
+    _clockTimer?.cancel();
     final result = _game.in_checkmate
         ? (_game.turn == chess.Color.WHITE ? '0-1' : '1-0')
         : '1/2-1/2';
@@ -390,6 +525,8 @@ class _GamePageState extends State<GamePage> {
     );
     if (confirmed != true || !mounted) return;
     final result = _playerIsWhite ? '0-1' : '1-0';
+    _gameGeneration++;
+    _clockTimer?.cancel();
     setState(() {
       _forcedResult = result;
       _game.set_header(['Result', result, 'Termination', 'Player resigned']);
@@ -398,6 +535,8 @@ class _GamePageState extends State<GamePage> {
   }
 
   void _goHome() {
+    _gameGeneration++;
+    _clockTimer?.cancel();
     setState(() {
       _started = false;
       _engineThinking = false;
@@ -406,6 +545,38 @@ class _GamePageState extends State<GamePage> {
       _premoveTo = null;
       _status = 'Choose your settings and start a game.';
     });
+  }
+
+  void _takeBack() {
+    if (!_started || !_canTakeBack) return;
+    _gameGeneration++;
+    final plies = _engineThinking ? 1 : min(2, _uciMoves.length);
+    for (var i = 0; i < plies; i++) {
+      _game.undo();
+      _uciMoves.removeLast();
+      _positionHistory.removeLast();
+      if (_clockHistory.length > 1) _clockHistory.removeLast();
+    }
+    final clock = _clockHistory.last;
+    setState(() {
+      _whiteMillis = clock.whiteMillis;
+      _blackMillis = clock.blackMillis;
+      _turnStartedAt = _clockEnabled ? DateTime.now() : null;
+      _engineThinking = false;
+      _selectedSquare = null;
+      _premoveFrom = null;
+      _premoveTo = null;
+      _forcedResult = null;
+      _game.set_header(['Result', '*']);
+      _status = 'Move taken back. Your move.';
+    });
+    if (_clockEnabled) {
+      _clockTimer?.cancel();
+      _clockTimer = Timer.periodic(
+        const Duration(milliseconds: 200),
+        (_) => _tickClock(),
+      );
+    }
   }
 
   Future<void> _copyPgn() async {
@@ -467,11 +638,24 @@ class _GamePageState extends State<GamePage> {
                       if (_started) ...[
                         _statusCard(),
                         const SizedBox(height: 12),
+                        if (_clockEnabled) ...[
+                          _clockTile(
+                            _playerIsWhite
+                                ? chess.Color.BLACK
+                                : chess.Color.WHITE,
+                            'Maia',
+                          ),
+                          const SizedBox(height: 6),
+                        ],
                         SizedBox(
                           width: boardSize,
                           height: boardSize,
                           child: _board(),
                         ),
+                        if (_clockEnabled) ...[
+                          const SizedBox(height: 6),
+                          _clockTile(_playerColor, 'You'),
+                        ],
                         MaterialDifference(fen: _game.fen),
                         const SizedBox(height: 12),
                         _gameInfoCard(),
@@ -542,6 +726,48 @@ class _GamePageState extends State<GamePage> {
                 ),
               ],
             ),
+            const SizedBox(height: 16),
+            DropdownButtonFormField<TimePreset>(
+              initialValue: _timePreset,
+              decoration: const InputDecoration(
+                labelText: 'Time control',
+                border: OutlineInputBorder(),
+              ),
+              items: TimePreset.values
+                  .map(
+                    (preset) => DropdownMenuItem(
+                      value: preset,
+                      child: Text(preset.label),
+                    ),
+                  )
+                  .toList(),
+              onChanged: (value) {
+                if (value != null) setState(() => _timePreset = value);
+              },
+            ),
+            if (_timePreset == TimePreset.custom) ...[
+              const SizedBox(height: 8),
+              Text('Minutes: $_customMinutes'),
+              Slider(
+                min: 1,
+                max: 60,
+                divisions: 59,
+                value: _customMinutes.toDouble(),
+                label: '$_customMinutes',
+                onChanged: (value) =>
+                    setState(() => _customMinutes = value.round()),
+              ),
+              Text('Increment: $_customIncrement seconds'),
+              Slider(
+                min: 0,
+                max: 30,
+                divisions: 30,
+                value: _customIncrement.toDouble(),
+                label: '$_customIncrement',
+                onChanged: (value) =>
+                    setState(() => _customIncrement = value.round()),
+              ),
+            ],
             const SizedBox(height: 8),
             ExpansionTile(
               tilePadding: EdgeInsets.zero,
@@ -627,6 +853,47 @@ class _GamePageState extends State<GamePage> {
     );
   }
 
+  Widget _clockTile(chess.Color color, String label) {
+    final milliseconds = _liveMillis(color);
+    final urgent = milliseconds < 10000;
+    return Align(
+      alignment: Alignment.centerRight,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: _game.turn == color && !_gameFinished
+              ? const Color(0xfff0f0f0)
+              : const Color(0xff343735),
+          borderRadius: BorderRadius.circular(6),
+        ),
+        child: Text(
+          '$label  ${_formatClock(milliseconds)}',
+          style: TextStyle(
+            color: urgent
+                ? Colors.redAccent
+                : _game.turn == color && !_gameFinished
+                ? Colors.black
+                : Colors.white70,
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
+            fontFeatures: const [FontFeature.tabularFigures()],
+          ),
+        ),
+      ),
+    );
+  }
+
+  String _formatClock(int milliseconds) {
+    final safe = max(0, milliseconds);
+    final minutes = safe ~/ 60000;
+    final seconds = (safe % 60000) ~/ 1000;
+    if (safe < 10000) {
+      final tenths = (safe % 1000) ~/ 100;
+      return '$minutes:${seconds.toString().padLeft(2, '0')}.$tenths';
+    }
+    return '$minutes:${seconds.toString().padLeft(2, '0')}';
+  }
+
   Widget _board() {
     final selected = <dc.Square, cg.SquareHighlight>{};
     if (_selectedSquare != null) {
@@ -690,6 +957,12 @@ class _GamePageState extends State<GamePage> {
               ),
             if (!_gameFinished)
               TextButton.icon(
+                onPressed: _canTakeBack ? _takeBack : null,
+                icon: const Icon(Icons.undo),
+                label: const Text('Takeback'),
+              ),
+            if (!_gameFinished)
+              TextButton.icon(
                 onPressed: _engineThinking ? null : _resign,
                 icon: const Icon(Icons.flag_outlined),
                 label: const Text('Resign'),
@@ -714,6 +987,7 @@ class _GamePageState extends State<GamePage> {
 
   @override
   void dispose() {
+    _clockTimer?.cancel();
     unawaited(StockfishAnalyzer.instance.close());
     super.dispose();
   }
@@ -748,6 +1022,10 @@ class _ReviewPageState extends State<ReviewPage> {
   final Map<int, StockfishReview> _reviews = {};
   final Set<int> _loading = {};
   String? _analysisError;
+  bool _flipped = false;
+  bool _fullAnalysisRunning = false;
+  int _fullAnalysisProgress = 0;
+  List<int>? _graphScores;
 
   StockfishReview? get _review => _reviews[_ply];
 
@@ -772,6 +1050,27 @@ class _ReviewPageState extends State<ReviewPage> {
     } finally {
       if (mounted) setState(() => _loading.remove(ply));
     }
+  }
+
+  Future<void> _analyzeFullGame() async {
+    if (_fullAnalysisRunning) return;
+    setState(() {
+      _fullAnalysisRunning = true;
+      _fullAnalysisProgress = 0;
+      _graphScores = null;
+    });
+    for (var i = 0; i < widget.positions.length && mounted; i++) {
+      await _analyzePosition(i);
+      if (mounted) setState(() => _fullAnalysisProgress = i + 1);
+    }
+    if (!mounted) return;
+    setState(() {
+      _graphScores = List.generate(
+        widget.positions.length,
+        (index) => _reviews[index]?.evaluation ?? 0,
+      );
+      _fullAnalysisRunning = false;
+    });
   }
 
   Set<cg.Shape> get _arrows {
@@ -812,6 +1111,11 @@ class _ReviewPageState extends State<ReviewPage> {
         title: const Text('Game review'),
         actions: [
           IconButton(
+            onPressed: () => setState(() => _flipped = !_flipped),
+            icon: const Icon(Icons.flip_camera_android_outlined),
+            tooltip: 'Flip board',
+          ),
+          IconButton(
             onPressed: _copyPgn,
             icon: const Icon(Icons.copy),
             tooltip: 'Copy PGN',
@@ -851,9 +1155,13 @@ class _ReviewPageState extends State<ReviewPage> {
                               height: boardSize,
                               child: cg.StaticChessboard(
                                 size: boardSize,
-                                orientation: widget.playerIsWhite
-                                    ? dc.Side.white
-                                    : dc.Side.black,
+                                orientation: _flipped
+                                    ? (widget.playerIsWhite
+                                          ? dc.Side.black
+                                          : dc.Side.white)
+                                    : (widget.playerIsWhite
+                                          ? dc.Side.white
+                                          : dc.Side.black),
                                 fen: widget.positions[_ply],
                                 lastMove: _ply == 0
                                     ? null
@@ -895,6 +1203,17 @@ class _ReviewPageState extends State<ReviewPage> {
                           ),
                         ],
                       ),
+                      if (_graphScores != null) ...[
+                        const SizedBox(height: 8),
+                        AnalysisGraph(
+                          scores: _graphScores!,
+                          selectedPly: _ply,
+                          onSelected: (ply) {
+                            setState(() => _ply = ply);
+                            unawaited(_analyzePosition(ply));
+                          },
+                        ),
+                      ],
                       Card(
                         child: Column(
                           children: [
@@ -919,6 +1238,29 @@ class _ReviewPageState extends State<ReviewPage> {
                                         : 'Depth 12 · ${_formatEvaluation(evaluation!)}'),
                               ),
                             ),
+                            const Divider(height: 1),
+                            ListTile(
+                              leading: _fullAnalysisRunning
+                                  ? const SizedBox(
+                                      width: 24,
+                                      height: 24,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                      ),
+                                    )
+                                  : const Icon(Icons.show_chart),
+                              title: const Text('Computer analysis graph'),
+                              subtitle: Text(
+                                _fullAnalysisRunning
+                                    ? '$_fullAnalysisProgress/${widget.positions.length} positions'
+                                    : _graphScores == null
+                                    ? 'Analyze the full game on request'
+                                    : 'Tap the graph to jump to a position',
+                              ),
+                              onTap: _fullAnalysisRunning
+                                  ? null
+                                  : _analyzeFullGame,
+                            ),
                           ],
                         ),
                       ),
@@ -940,6 +1282,100 @@ class _ReviewPageState extends State<ReviewPage> {
     final pawns = evaluation / 100;
     return '${pawns >= 0 ? '+' : ''}${pawns.toStringAsFixed(2)}';
   }
+}
+
+class AnalysisGraph extends StatelessWidget {
+  const AnalysisGraph({
+    required this.scores,
+    required this.selectedPly,
+    required this.onSelected,
+    super.key,
+  });
+
+  final List<int> scores;
+  final int selectedPly;
+  final ValueChanged<int> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 130,
+      width: double.infinity,
+      child: LayoutBuilder(
+        builder: (context, constraints) => GestureDetector(
+          onTapDown: (details) {
+            if (scores.length < 2) return;
+            final fraction = (details.localPosition.dx / constraints.maxWidth)
+                .clamp(0.0, 1.0);
+            onSelected((fraction * (scores.length - 1)).round());
+          },
+          child: CustomPaint(
+            painter: AnalysisGraphPainter(
+              scores: scores,
+              selectedPly: selectedPly,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class AnalysisGraphPainter extends CustomPainter {
+  AnalysisGraphPainter({required this.scores, required this.selectedPly});
+
+  final List<int> scores;
+  final int selectedPly;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final background = Paint()..color = const Color(0xff262926);
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(Offset.zero & size, const Radius.circular(8)),
+      background,
+    );
+    final midline = Paint()
+      ..color = Colors.white24
+      ..strokeWidth = 1;
+    canvas.drawLine(
+      Offset(0, size.height / 2),
+      Offset(size.width, size.height / 2),
+      midline,
+    );
+    if (scores.isEmpty) return;
+    final path = Path();
+    for (var i = 0; i < scores.length; i++) {
+      final normalized = scores[i].clamp(-1000, 1000) / 1000;
+      final x = scores.length == 1 ? 0.0 : i * size.width / (scores.length - 1);
+      final y = size.height / 2 - normalized * (size.height / 2 - 8);
+      if (i == 0) {
+        path.moveTo(x, y);
+      } else {
+        path.lineTo(x, y);
+      }
+    }
+    canvas.drawPath(
+      path,
+      Paint()
+        ..color = const Color(0xff3d9be9)
+        ..strokeWidth = 2
+        ..style = PaintingStyle.stroke,
+    );
+    final selectedX = scores.length == 1
+        ? 0.0
+        : selectedPly * size.width / (scores.length - 1);
+    canvas.drawLine(
+      Offset(selectedX, 0),
+      Offset(selectedX, size.height),
+      Paint()
+        ..color = const Color(0xffe6a23c)
+        ..strokeWidth = 2,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant AnalysisGraphPainter oldDelegate) =>
+      oldDelegate.selectedPly != selectedPly || oldDelegate.scores != scores;
 }
 
 class EvaluationBar extends StatelessWidget {

@@ -32,8 +32,14 @@ void main() {
     expect(tester.takeException(), isNull);
     expect(find.text('Game review'), findsOneWidget);
     expect(find.text('Starting position  ·  0/1'), findsOneWidget);
-    expect(find.text('Analyze full game'), findsNothing);
+    expect(find.text('Computer analysis graph'), findsOneWidget);
+    expect(find.byTooltip('Flip board'), findsOneWidget);
     expect(find.text('+0.0'), findsOneWidget);
+
+    await tester.tap(find.text('Computer analysis graph'));
+    await tester.pumpAndSettle();
+    expect(find.byType(AnalysisGraph), findsOneWidget);
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('evaluation bar uses signed Lichess-style score', (tester) async {
