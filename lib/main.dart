@@ -18,6 +18,13 @@ const lichessChessgroundUrl =
 const lichessMultistockfishUrl =
     'https://github.com/lichess-org/dart-multistockfish';
 
+bool isPremoveDestination(String fen, String from, String to) {
+  final pieces = cg.readFen(fen);
+  return cg
+      .premovesOf(dc.Square.fromName(from), pieces, canCastle: true)
+      .contains(dc.Square.fromName(to));
+}
+
 class MaiaChessApp extends StatelessWidget {
   const MaiaChessApp({super.key});
 
@@ -383,17 +390,20 @@ class _GamePageState extends State<GamePage> {
       }
       return;
     }
+    final from = _premoveFrom!;
+    if (isPremoveDestination(_game.fen, from, square)) {
+      setState(() {
+        _premoveTo = square;
+        _status = 'Premove queued: $from–$square';
+      });
+      return;
+    }
     if (piece?.color == _playerColor) {
       setState(() {
         _premoveFrom = square;
         _premoveTo = null;
       });
-      return;
     }
-    setState(() {
-      _premoveTo = square;
-      _status = 'Premove queued: ${_premoveFrom!}–$square';
-    });
   }
 
   Future<bool> _playQueuedPremove() async {
