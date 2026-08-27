@@ -1186,138 +1186,150 @@ class _ReviewPageState extends State<ReviewPage> {
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
-            // Account for the scroll padding, evaluation bar, and gap so the
-            // review row has finite dimensions without overflowing narrow phones.
-            final boardSize = max(0.0, min(constraints.maxWidth - 56, 560.0));
             return SingleChildScrollView(
               padding: const EdgeInsets.fromLTRB(12, 8, 12, 24),
               child: Center(
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 600),
-                  child: Column(
-                    children: [
-                      SizedBox(
-                        height: boardSize,
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            EvaluationBar(evaluation: evaluation, mate: mate),
-                            const SizedBox(width: 8),
-                            SizedBox(
-                              width: boardSize,
-                              height: boardSize,
-                              child: cg.StaticChessboard(
-                                size: boardSize,
-                                orientation: _flipped
-                                    ? (widget.playerIsWhite
-                                          ? dc.Side.black
-                                          : dc.Side.white)
-                                    : (widget.playerIsWhite
-                                          ? dc.Side.white
-                                          : dc.Side.black),
-                                fen: widget.positions[_ply],
-                                lastMove: _ply == 0
-                                    ? null
-                                    : dc.NormalMove.fromUci(
-                                        widget.uciMoves[_ply - 1],
-                                      ),
-                                shapes: _arrows,
-                                settings: const cg.StaticChessboardSettings(
-                                  colorScheme: cg.ChessboardColorScheme.brown,
-                                  pieceAssets: cg.PieceSet.cburnettAssets,
-                                  enableCoordinates: true,
+                  child: LayoutBuilder(
+                    builder: (context, contentConstraints) {
+                      // The board row also contains the 24px evaluation bar and
+                      // an 8px gap. Compute from the actual padded content width,
+                      // not the outer viewport width.
+                      final boardSize = max(
+                        0.0,
+                        min(contentConstraints.maxWidth - 32, 560.0),
+                      );
+                      return Column(
+                        children: [
+                          SizedBox(
+                            height: boardSize,
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                EvaluationBar(
+                                  evaluation: evaluation,
+                                  mate: mate,
+                                ),
+                                const SizedBox(width: 8),
+                                SizedBox(
+                                  width: boardSize,
+                                  height: boardSize,
+                                  child: cg.StaticChessboard(
+                                    size: boardSize,
+                                    orientation: _flipped
+                                        ? (widget.playerIsWhite
+                                              ? dc.Side.black
+                                              : dc.Side.white)
+                                        : (widget.playerIsWhite
+                                              ? dc.Side.white
+                                              : dc.Side.black),
+                                    fen: widget.positions[_ply],
+                                    lastMove: _ply == 0
+                                        ? null
+                                        : dc.NormalMove.fromUci(
+                                            widget.uciMoves[_ply - 1],
+                                          ),
+                                    shapes: _arrows,
+                                    settings: const cg.StaticChessboardSettings(
+                                      colorScheme:
+                                          cg.ChessboardColorScheme.brown,
+                                      pieceAssets: cg.PieceSet.cburnettAssets,
+                                      enableCoordinates: true,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          MaterialDifference(fen: widget.positions[_ply]),
+                          const SizedBox(height: 8),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              IconButton(
+                                onPressed: _ply == 0 ? null : () => _step(-1),
+                                icon: const Icon(Icons.chevron_left),
+                              ),
+                              Flexible(
+                                child: Text(
+                                  '$moveLabel  ·  $_ply/${widget.uciMoves.length}',
+                                  textAlign: TextAlign.center,
                                 ),
                               ),
+                              IconButton(
+                                onPressed: _ply == widget.positions.length - 1
+                                    ? null
+                                    : () => _step(1),
+                                icon: const Icon(Icons.chevron_right),
+                              ),
+                            ],
+                          ),
+                          if (_graphScores != null) ...[
+                            const SizedBox(height: 8),
+                            AnalysisGraph(
+                              scores: _graphScores!,
+                              selectedPly: _ply,
+                              onSelected: (ply) {
+                                setState(() => _ply = ply);
+                                unawaited(_analyzePosition(ply));
+                              },
                             ),
                           ],
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      MaterialDifference(fen: widget.positions[_ply]),
-                      const SizedBox(height: 8),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          IconButton(
-                            onPressed: _ply == 0 ? null : () => _step(-1),
-                            icon: const Icon(Icons.chevron_left),
-                          ),
-                          Flexible(
-                            child: Text(
-                              '$moveLabel  ·  $_ply/${widget.uciMoves.length}',
-                              textAlign: TextAlign.center,
+                          Card(
+                            child: Column(
+                              children: [
+                                ListTile(
+                                  leading: _loading.contains(_ply)
+                                      ? const SizedBox(
+                                          width: 24,
+                                          height: 24,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                          ),
+                                        )
+                                      : const Icon(
+                                          Icons.arrow_upward,
+                                          color: Color(0xff3d9be9),
+                                        ),
+                                  title: const Text('Stockfish best move'),
+                                  subtitle: Text(
+                                    _analysisError ??
+                                        (_review == null
+                                            ? 'Analyzing this position…'
+                                            : 'Depth 12 · ${_formatEvaluation(_review!)}'),
+                                  ),
+                                ),
+                                const Divider(height: 1),
+                                ListTile(
+                                  leading: _fullAnalysisRunning
+                                      ? const SizedBox(
+                                          width: 24,
+                                          height: 24,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                          ),
+                                        )
+                                      : const Icon(Icons.show_chart),
+                                  title: const Text('Computer analysis graph'),
+                                  subtitle: Text(
+                                    _fullAnalysisRunning
+                                        ? '$_fullAnalysisProgress/${widget.positions.length} positions'
+                                        : _graphScores == null
+                                        ? 'Analyze the full game on request'
+                                        : 'Tap the graph to jump to a position',
+                                  ),
+                                  onTap: _fullAnalysisRunning
+                                      ? null
+                                      : _analyzeFullGame,
+                                ),
+                              ],
                             ),
-                          ),
-                          IconButton(
-                            onPressed: _ply == widget.positions.length - 1
-                                ? null
-                                : () => _step(1),
-                            icon: const Icon(Icons.chevron_right),
                           ),
                         ],
-                      ),
-                      if (_graphScores != null) ...[
-                        const SizedBox(height: 8),
-                        AnalysisGraph(
-                          scores: _graphScores!,
-                          selectedPly: _ply,
-                          onSelected: (ply) {
-                            setState(() => _ply = ply);
-                            unawaited(_analyzePosition(ply));
-                          },
-                        ),
-                      ],
-                      Card(
-                        child: Column(
-                          children: [
-                            ListTile(
-                              leading: _loading.contains(_ply)
-                                  ? const SizedBox(
-                                      width: 24,
-                                      height: 24,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                      ),
-                                    )
-                                  : const Icon(
-                                      Icons.arrow_upward,
-                                      color: Color(0xff3d9be9),
-                                    ),
-                              title: const Text('Stockfish best move'),
-                              subtitle: Text(
-                                _analysisError ??
-                                    (_review == null
-                                        ? 'Analyzing this position…'
-                                        : 'Depth 12 · ${_formatEvaluation(_review!)}'),
-                              ),
-                            ),
-                            const Divider(height: 1),
-                            ListTile(
-                              leading: _fullAnalysisRunning
-                                  ? const SizedBox(
-                                      width: 24,
-                                      height: 24,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                      ),
-                                    )
-                                  : const Icon(Icons.show_chart),
-                              title: const Text('Computer analysis graph'),
-                              subtitle: Text(
-                                _fullAnalysisRunning
-                                    ? '$_fullAnalysisProgress/${widget.positions.length} positions'
-                                    : _graphScores == null
-                                    ? 'Analyze the full game on request'
-                                    : 'Tap the graph to jump to a position',
-                              ),
-                              onTap: _fullAnalysisRunning
-                                  ? null
-                                  : _analyzeFullGame,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
+                      );
+                    },
                   ),
                 ),
               ),
@@ -1474,41 +1486,46 @@ class EvaluationBar extends StatelessWidget {
         : (1 + StockfishReview(score, '').whiteWinningChances) / 2;
     return SizedBox(
       width: 24,
-      child: Stack(
-        children: [
-          Column(
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final whiteHeight = constraints.maxHeight * whiteShare;
+          return Stack(
             children: [
-              Expanded(
-                flex: ((1 - whiteShare) * 1000).round(),
-                child: Container(color: const Color(0xff262421)),
+              const Positioned.fill(
+                child: ColoredBox(color: Color(0xff262421)),
               ),
-              Expanded(
-                flex: (whiteShare * 1000).round(),
-                child: Container(color: const Color(0xfff0f0f0)),
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                height: whiteHeight,
+                child: const ColoredBox(color: Color(0xfff0f0f0)),
               ),
-            ],
-          ),
-          if (score != null || mate != null)
-            Align(
-              alignment: (mate ?? score!) < 0
-                  ? Alignment.topCenter
-                  : Alignment.bottomCenter,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 6),
-                child: RotatedBox(
-                  quarterTurns: 3,
-                  child: Text(
-                    _scoreLabel(score, mate),
-                    style: TextStyle(
-                      color: (mate ?? score!) < 0 ? Colors.white : Colors.black,
-                      fontSize: 10,
-                      fontWeight: FontWeight.w800,
+              if (score != null || mate != null)
+                Align(
+                  alignment: (mate ?? score!) < 0
+                      ? Alignment.topCenter
+                      : Alignment.bottomCenter,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 6),
+                    child: RotatedBox(
+                      quarterTurns: 3,
+                      child: Text(
+                        _scoreLabel(score, mate),
+                        style: TextStyle(
+                          color: (mate ?? score!) < 0
+                              ? Colors.white
+                              : Colors.black,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
                     ),
                   ),
                 ),
-              ),
-            ),
-        ],
+            ],
+          );
+        },
       ),
     );
   }
