@@ -5,7 +5,7 @@ with Maia and Stockfish, and exporting PGN.
 
 ## MVP features
 
-- Bundled Maia-3 5M model; no account, server, or network connection required
+- Bundled Maia-3 79M model; no account, server, or network connection required
 - Play as White, Black, or a random side
 - Easy (800), Medium (1500), Hard (2200), or custom Elo
 - Legal move handling, checkmate/draw detection, move list, and rematches
@@ -28,12 +28,12 @@ The APK is written to `build/app/outputs/flutter-apk/app-release.apk`.
 
 ## Re-export Maia-3
 
-The checked-in ONNX model was exported from the official Maia-3 5M checkpoint.
+The checked-in ONNX model was exported from the official Maia-3 79M checkpoint.
 The exporter verifies ONNX Runtime outputs against PyTorch before succeeding.
 
 ```sh
 python -m pip install /path/to/maia3 onnx onnxruntime
-python tool/export_maia3_onnx.py --output assets/models/maia3-5m.onnx
+python tool/export_maia3_onnx.py --model maia3-79m --output assets/models/maia3-79m.onnx
 ```
 
 ## Licensing

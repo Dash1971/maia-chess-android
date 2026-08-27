@@ -16,9 +16,9 @@ class MainActivity : FlutterActivity() {
     private val channelName = "maia_chess/engine"
     private val environment by lazy { OrtEnvironment.getEnvironment() }
     private val session: OrtSession by lazy {
-        val model = File(cacheDir, "maia3-5m.onnx")
+        val model = File(cacheDir, "maia3-79m.onnx")
         if (!model.exists() || model.length() == 0L) {
-            assets.open("flutter_assets/assets/models/maia3-5m.onnx").use { input ->
+            assets.open("flutter_assets/assets/models/maia3-79m.onnx").use { input ->
                 FileOutputStream(model).use { output -> input.copyTo(output) }
             }
         }

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Export Maia-3 5M to ONNX and verify it against PyTorch."""
+"""Export a released Maia-3 model to ONNX and verify it against PyTorch."""
 
 from __future__ import annotations
 
@@ -34,10 +34,11 @@ from maia3.uci import load_model, parse_args
 
 def main() -> None:
     parser = argparse.ArgumentParser()
+    parser.add_argument("--model", default="maia3-79m")
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
 
-    cfg = parse_args(["--model", "maia3-5m", "--device", "cpu", "--local-files-only"])
+    cfg = parse_args(["--model", args.model, "--device", "cpu", "--local-files-only"])
     cfg.checkpoint_path = resolve_checkpoint_path(
         cfg.model_spec,
         checkpoint_filename=cfg.checkpoint_filename,

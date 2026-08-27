@@ -388,7 +388,7 @@ class _GamePageState extends State<GamePage> {
               )
             : Icon(_game.game_over ? Icons.flag : Icons.smart_toy_outlined),
         title: Text(_status),
-        subtitle: Text('Maia-3 5M · $_elo Elo · offline'),
+        subtitle: Text('Maia-3 79M · $_elo Elo · offline'),
       ),
     );
   }

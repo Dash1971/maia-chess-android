@@ -3,11 +3,11 @@
 ## Maia-3
 
 - Project: <https://github.com/CSSLab/maia3>
-- Model: <https://huggingface.co/UofTCSSLab/Maia3-5M>
+- Model: <https://huggingface.co/UofTCSSLab/Maia3-79M>
 - Copyright: University of Toronto CSSLab contributors
 - Licence: GNU Affero General Public License v3.0
 
-`assets/models/maia3-5m.onnx` is a converted form of the released Maia-3 5M
+`assets/models/maia3-79m.onnx` is a converted form of the released Maia-3 79M
 checkpoint. The corresponding architecture, original checkpoint, inference
 source, and licence are available from the links above. The conversion tool is
 included in `tool/export_maia3_onnx.py`.
