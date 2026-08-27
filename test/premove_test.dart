@@ -13,4 +13,18 @@ void main() {
 
     expect(isPremoveDestination(fen, 'd3', 'e1'), isFalse);
   });
+
+  test('does not request another Maia move after a mating premove', () {
+    expect(
+      shouldRequestMaiaReply(premovePlayed: true, gameOver: true),
+      isFalse,
+    );
+  });
+
+  test('requests a Maia reply after a non-terminal premove', () {
+    expect(
+      shouldRequestMaiaReply(premovePlayed: true, gameOver: false),
+      isTrue,
+    );
+  });
 }

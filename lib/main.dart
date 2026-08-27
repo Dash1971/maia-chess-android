@@ -25,6 +25,11 @@ bool isPremoveDestination(String fen, String from, String to) {
       .contains(dc.Square.fromName(to));
 }
 
+bool shouldRequestMaiaReply({
+  required bool premovePlayed,
+  required bool gameOver,
+}) => premovePlayed && !gameOver;
+
 class MaiaChessApp extends StatelessWidget {
   const MaiaChessApp({super.key});
 
@@ -173,7 +178,7 @@ class _GamePageState extends State<GamePage> {
     showAboutDialog(
       context: context,
       applicationName: 'Maia Chess for Android',
-      applicationVersion: '1.6.1',
+      applicationVersion: '1.6.4',
       children: [
         const Text(
           'Powered by Maia-3, the human-like chess engine developed by the '
@@ -493,7 +498,7 @@ class _GamePageState extends State<GamePage> {
       _positionHistory.add(_game.fen);
       _recordClockSnapshot();
       final premovePlayed = await _playQueuedPremove();
-      if (!mounted || generation != _gameGeneration || _gameFinished) return;
+      if (!mounted || generation != _gameGeneration) return;
       setState(() {
         _engineThinking = false;
         _status = _game.game_over
@@ -502,7 +507,12 @@ class _GamePageState extends State<GamePage> {
             ? 'Game in progress.'
             : 'Your move.';
       });
-      if (premovePlayed && !_game.game_over) unawaited(_playMaiaMove());
+      if (shouldRequestMaiaReply(
+        premovePlayed: premovePlayed,
+        gameOver: _game.game_over,
+      )) {
+        unawaited(_playMaiaMove());
+      }
     } catch (error) {
       if (!mounted) return;
       setState(() {
