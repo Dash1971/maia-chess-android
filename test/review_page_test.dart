@@ -174,11 +174,7 @@ void main() {
       final to = move['to'] as String;
       final promotion = move['promotion'] as String?;
       expect(
-        replay.move({
-          'from': from,
-          'to': to,
-          if (promotion != null) 'promotion': promotion,
-        }),
+        replay.move({'from': from, 'to': to, 'promotion': ?promotion}),
         isTrue,
       );
       uciMoves.add('$from$to${promotion ?? ''}');
