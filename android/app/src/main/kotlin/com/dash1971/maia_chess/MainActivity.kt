@@ -1,5 +1,7 @@
 package com.dash1971.maia_chess
 
+import android.content.Intent
+import android.net.Uri
 import ai.onnxruntime.OnnxTensor
 import ai.onnxruntime.OrtEnvironment
 import ai.onnxruntime.OrtSession
@@ -37,6 +39,16 @@ class MainActivity : FlutterActivity() {
         super.configureFlutterEngine(flutterEngine)
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, channelName)
             .setMethodCallHandler { call, result ->
+                if (call.method == "openUrl") {
+                    val url = call.argument<String>("url")
+                    if (url == null) {
+                        result.error("bad_arguments", "Expected a URL", null)
+                    } else {
+                        startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+                        result.success(null)
+                    }
+                    return@setMethodCallHandler
+                }
                 if (call.method != "predict") {
                     result.notImplemented()
                     return@setMethodCallHandler

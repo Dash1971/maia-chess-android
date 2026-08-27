@@ -12,6 +12,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 void main() => runApp(const MaiaChessApp());
 
 const maiaEngineChannel = MethodChannel('maia_chess/engine');
+const maiaProjectUrl = 'https://github.com/CSSLab/maia3';
 
 class MaiaChessApp extends StatelessWidget {
   const MaiaChessApp({super.key});
@@ -92,6 +93,32 @@ class _GamePageState extends State<GamePage> {
       preferences.setDouble('temperatureV2', _temperature),
       preferences.setDouble('topPV2', _topP),
     ]);
+  }
+
+  void _showAbout() {
+    showAboutDialog(
+      context: context,
+      applicationName: 'Maia Chess for Android',
+      applicationVersion: '1.4.2',
+      children: [
+        const Text(
+          'Powered by Maia-3, the human-like chess engine developed by the '
+          'University of Toronto Computational Social Science Lab.',
+        ),
+        const SizedBox(height: 8),
+        TextButton.icon(
+          onPressed: () => maiaEngineChannel.invokeMethod<void>('openUrl', {
+            'url': maiaProjectUrl,
+          }),
+          icon: const Icon(Icons.open_in_new),
+          label: const Text('Maia-3 project and source code'),
+        ),
+        const Text(
+          'This independent community app is not an official Maia-3 or '
+          'University of Toronto application.',
+        ),
+      ],
+    );
   }
 
   void _startGame() {
@@ -395,6 +422,11 @@ class _GamePageState extends State<GamePage> {
       appBar: AppBar(
         title: const Text('Maia Chess'),
         actions: [
+          IconButton(
+            onPressed: _showAbout,
+            icon: const Icon(Icons.info_outline),
+            tooltip: 'About',
+          ),
           IconButton(
             onPressed: _started ? _startGame : null,
             icon: const Icon(Icons.refresh),
@@ -777,7 +809,9 @@ class _ReviewPageState extends State<ReviewPage> {
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
-            final boardSize = min(constraints.maxWidth - 40, 560.0);
+            // Account for the scroll padding, evaluation bar, and gap so the
+            // review row has finite dimensions without overflowing narrow phones.
+            final boardSize = min(constraints.maxWidth - 56, 560.0);
             return SingleChildScrollView(
               padding: const EdgeInsets.fromLTRB(12, 8, 12, 24),
               child: Center(
@@ -785,34 +819,37 @@ class _ReviewPageState extends State<ReviewPage> {
                   constraints: const BoxConstraints(maxWidth: 600),
                   child: Column(
                     children: [
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          EvaluationBar(evaluation: evaluation),
-                          const SizedBox(width: 8),
-                          SizedBox(
-                            width: boardSize,
-                            height: boardSize,
-                            child: cg.StaticChessboard(
-                              size: boardSize,
-                              orientation: widget.playerIsWhite
-                                  ? dc.Side.white
-                                  : dc.Side.black,
-                              fen: widget.positions[_ply],
-                              lastMove: _ply == 0
-                                  ? null
-                                  : dc.NormalMove.fromUci(
-                                      widget.uciMoves[_ply - 1],
-                                    ),
-                              shapes: _arrows,
-                              settings: const cg.StaticChessboardSettings(
-                                colorScheme: cg.ChessboardColorScheme.brown,
-                                pieceAssets: cg.PieceSet.cburnettAssets,
-                                enableCoordinates: true,
+                      SizedBox(
+                        height: boardSize,
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            EvaluationBar(evaluation: evaluation),
+                            const SizedBox(width: 8),
+                            SizedBox(
+                              width: boardSize,
+                              height: boardSize,
+                              child: cg.StaticChessboard(
+                                size: boardSize,
+                                orientation: widget.playerIsWhite
+                                    ? dc.Side.white
+                                    : dc.Side.black,
+                                fen: widget.positions[_ply],
+                                lastMove: _ply == 0
+                                    ? null
+                                    : dc.NormalMove.fromUci(
+                                        widget.uciMoves[_ply - 1],
+                                      ),
+                                shapes: _arrows,
+                                settings: const cg.StaticChessboardSettings(
+                                  colorScheme: cg.ChessboardColorScheme.brown,
+                                  pieceAssets: cg.PieceSet.cburnettAssets,
+                                  enableCoordinates: true,
+                                ),
                               ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                       const SizedBox(height: 12),
                       Row(

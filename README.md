@@ -3,6 +3,17 @@
 An offline-first Android chess app for playing against Maia-3, reviewing games
 with Maia and Stockfish, and exporting PGN.
 
+Built around [Maia-3](https://github.com/CSSLab/maia3), the human-like chess
+engine developed by the University of Toronto Computational Social Science Lab.
+
+## Screenshots
+
+<p align="center">
+  <img src="docs/screenshots/setup.jpg" width="30%" alt="Maia Chess game setup screen">
+  <img src="docs/screenshots/gameplay.jpg" width="30%" alt="Playing an offline game against Maia-3">
+  <img src="docs/screenshots/completed-game.jpg" width="30%" alt="Completed Maia-3 game">
+</p>
+
 ## MVP features
 
 - Bundled Maia-3 79M model; no account, server, or network connection required
@@ -40,6 +51,14 @@ The exporter verifies ONNX Runtime outputs against PyTorch before succeeding.
 python -m pip install /path/to/maia3 onnx onnxruntime
 python tool/export_maia3_onnx.py --model maia3-79m --output assets/models/maia3-79m.onnx
 ```
+
+## Maia-3 credit
+
+Maia Chess for Android uses the
+[Maia-3 project](https://github.com/CSSLab/maia3) and its 79M model. Maia-3 was
+created by the University of Toronto Computational Social Science Lab to model
+human chess move choices at different rating levels. The app includes an About
+screen linking directly to the upstream project and source code.
 
 ## Licensing
 
