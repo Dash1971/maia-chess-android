@@ -33,6 +33,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.8.1"
+  chessground:
+    dependency: "direct main"
+    description:
+      name: chessground
+      sha256: "1599bfd0a75a0ed1bdb401ad4399c3b185d17a6eb79236b2a5c504a1d8a4e660"
+      url: "https://pub.dev"
+    source: hosted
+    version: "10.1.1"
   clock:
     dependency: transitive
     description:
@@ -57,6 +65,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.9"
+  dartchess:
+    dependency: "direct main"
+    description:
+      name: dartchess
+      sha256: d1750f765be1c81bbd529413e4bf4804dd9814a871cbce5f427cb4d1e7a3ae7a
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.13.1"
   fake_async:
     dependency: transitive
     description:
@@ -274,4 +290,4 @@ packages:
     version: "15.3.0"
 sdks:
   dart: ">=3.13.1 <4.0.0"
-  flutter: ">=3.18.0-18.0.pre.54"
+  flutter: ">=3.29.0"

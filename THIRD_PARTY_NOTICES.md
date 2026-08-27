@@ -22,6 +22,14 @@ The Android application uses the Stockfish 16 engine provided by multistockfish.
 Corresponding source and build instructions are available in the linked
 repositories.
 
+## Flutter Chessground
+
+- Project: <https://github.com/lichess-org/flutter-chessground>
+- Copyright: Lichess contributors
+- Licence: GNU General Public License v3.0
+
+The game board uses Lichess's default brown colour scheme and Cburnett pieces.
+
 ## ONNX Runtime
 
 - Project: <https://github.com/microsoft/onnxruntime>

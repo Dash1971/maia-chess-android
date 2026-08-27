@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:chess/chess.dart' as chess;
+import 'package:chessground/chessground.dart' as cg;
+import 'package:dartchess/dartchess.dart' as dc;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:multistockfish/multistockfish.dart';
@@ -40,22 +42,6 @@ class GamePage extends StatefulWidget {
 
 class _GamePageState extends State<GamePage> {
   static const _engineChannel = MethodChannel('maia_chess/engine');
-  static const _files = 'abcdefgh';
-  static const _pieceSymbols = <String, String>{
-    'wp': '♙',
-    'wn': '♘',
-    'wb': '♗',
-    'wr': '♖',
-    'wq': '♕',
-    'wk': '♔',
-    'bp': '♟',
-    'bn': '♞',
-    'bb': '♝',
-    'br': '♜',
-    'bq': '♛',
-    'bk': '♚',
-  };
-
   chess.Chess _game = chess.Chess();
   final List<String> _positionHistory = [];
   final List<String> _uciMoves = [];
@@ -394,61 +380,29 @@ class _GamePageState extends State<GamePage> {
   }
 
   Widget _board() {
-    final ranks = _playerIsWhite
-        ? List.generate(8, (i) => 8 - i)
-        : List.generate(8, (i) => i + 1);
-    final files = _playerIsWhite
-        ? _files.split('')
-        : _files.split('').reversed.toList();
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        border: Border.all(color: Colors.black54, width: 2),
-      ),
-      child: Column(
-        children: [
-          for (final rank in ranks)
-            Expanded(
-              child: Row(
-                children: [
-                  for (final file in files)
-                    Expanded(
-                      child: _square(
-                        '$file$rank',
-                        (_files.indexOf(file) + rank).isEven,
-                      ),
-                    ),
-                ],
-              ),
+    final selected = _selectedSquare == null
+        ? const <dc.Square, cg.SquareHighlight>{}
+        : <dc.Square, cg.SquareHighlight>{
+            dc.Square.fromName(_selectedSquare!): const cg.SquareHighlight(
+              details: cg.HighlightDetails(solidColor: Color(0x99D59120)),
             ),
-        ],
-      ),
-    );
-  }
-
-  Widget _square(String square, bool light) {
-    final piece = _game.get(square);
-    final key = piece == null
+          };
+    final lastMove = _uciMoves.isEmpty
         ? null
-        : '${piece.color == chess.Color.WHITE ? 'w' : 'b'}${piece.type.name}';
-    final selected = square == _selectedSquare;
-    return Material(
-      color: selected
-          ? const Color(0xffd7b94e)
-          : light
-          ? const Color(0xffd8c7a3)
-          : const Color(0xff71846e),
-      child: InkWell(
-        onTap: () => _tapSquare(square),
-        child: Center(
-          child: Text(
-            key == null ? '' : _pieceSymbols[key]!,
-            style: const TextStyle(
-              fontSize: 39,
-              height: 1,
-              color: Colors.black,
-            ),
-          ),
+        : dc.NormalMove.fromUci(_uciMoves.last);
+    return LayoutBuilder(
+      builder: (context, constraints) => cg.StaticChessboard(
+        size: constraints.biggest.shortestSide,
+        orientation: _playerIsWhite ? dc.Side.white : dc.Side.black,
+        fen: _game.fen,
+        lastMove: lastMove,
+        squareHighlights: selected,
+        settings: const cg.StaticChessboardSettings(
+          colorScheme: cg.ChessboardColorScheme.brown,
+          pieceAssets: cg.PieceSet.cburnettAssets,
+          enableCoordinates: true,
         ),
+        onTouchedSquare: (square) => _tapSquare(square.name),
       ),
     );
   }

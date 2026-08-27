@@ -8,6 +8,7 @@ with Maia and Stockfish, and exporting PGN.
 - Bundled Maia-3 79M model; no account, server, or network connection required
 - Play as White, Black, or a random side
 - Easy (800), Medium (1500), Hard (2200), or custom Elo
+- Lichess Chessground board with the default brown theme and Cburnett pieces
 - Legal move handling, checkmate/draw detection, move list, and rematches
 - Post-game Maia human-move likelihood and Stockfish depth-12 review
 - Inaccuracies, mistakes, and blunders based on centipawn loss

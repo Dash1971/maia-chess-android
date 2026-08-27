@@ -22,7 +22,15 @@ class MainActivity : FlutterActivity() {
                 FileOutputStream(model).use { output -> input.copyTo(output) }
             }
         }
-        environment.createSession(model.absolutePath, OrtSession.SessionOptions())
+        val options = OrtSession.SessionOptions().apply {
+            // Keep peak memory and thread pressure predictable on 6 GB phones.
+            setIntraOpNumThreads(2)
+            setInterOpNumThreads(1)
+            setExecutionMode(OrtSession.SessionOptions.ExecutionMode.SEQUENTIAL)
+            setOptimizationLevel(OrtSession.SessionOptions.OptLevel.BASIC_OPT)
+            setMemoryPatternOptimization(false)
+        }
+        environment.createSession(model.absolutePath, options)
     }
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
