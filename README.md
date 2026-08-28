@@ -38,6 +38,31 @@ rating used for Maia's human-move suggestion during review. The default review
 rating is 1600. **Copy diagnostics** is also available here if a reproducible
 screen error needs investigation.
 
+#### Temperature and Top-P
+
+Maia-3 predicts a probability distribution over the legal moves in each
+position. **Temperature** and **Top-P** control how Mobile Maia selects a move
+from that distribution; they do not change the model's weights or make Maia
+search like Stockfish.
+
+- **Temperature 0** is deterministic: Maia always chooses its
+  highest-probability move. Raising Temperature allows progressively more
+  variety and gives lower-probability moves a greater chance of being played.
+- **Top-P 1.0** keeps the complete legal-move distribution. Lower values keep
+  only the most probable moves up to the selected cumulative-probability
+  threshold before Maia samples one of them.
+- **Mobile Maia's defaults—Temperature 0.5 and Top-P 0.9—**provide human-like
+  variety while reducing low-probability outliers. For the most reproducible
+  top-choice policy, use Temperature 0 and Top-P 1.0.
+
+These settings are not extra Elo controls. They can change the character and
+consistency of play at a given rating, but there is no reliable conversion such
+as “lowering Temperature adds 200 Elo.” Keep them fixed while judging which
+Maia rating gives you the training experience you want.
+
+For a deeper explanation, see the
+[Maia3 local-stack sampling guide](https://github.com/Dash1971/maia3-local-stack#temperature-and-topp).
+
 ### Play and take back
 
 Tap or drag pieces to play. The status card shows whose turn it is, while the
