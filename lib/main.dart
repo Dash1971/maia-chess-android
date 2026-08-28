@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:math';
+import 'dart:ui' as ui;
 
 import 'package:chess/chess.dart' as chess;
 import 'package:chessground/chessground.dart' as cg;
@@ -7,9 +8,29 @@ import 'package:dartchess/dartchess.dart' as dc;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:multistockfish/multistockfish.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-void main() => runApp(const MaiaChessApp());
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  FlutterError.onError = (details) {
+    FlutterError.presentError(details);
+    unawaited(
+      AppDiagnostics.record(
+        'flutter-framework',
+        details.exception,
+        details.stack ?? StackTrace.current,
+      ),
+    );
+  };
+  ui.PlatformDispatcher.instance.onError = (error, stackTrace) {
+    unawaited(AppDiagnostics.record('unhandled-async', error, stackTrace));
+    return true;
+  };
+  ErrorWidget.builder = (_) => const DiagnosticsErrorScreen();
+  runApp(const MaiaChessApp());
+  unawaited(AppDiagnostics.recordEvent('app-started'));
+}
 
 const maiaEngineChannel = MethodChannel('maia_chess/engine');
 const maiaProjectUrl = 'https://github.com/CSSLab/maia3';
@@ -17,6 +38,118 @@ const lichessChessgroundUrl =
     'https://github.com/lichess-org/flutter-chessground';
 const lichessMultistockfishUrl =
     'https://github.com/lichess-org/dart-multistockfish';
+
+class AppDiagnostics {
+  static const _key = 'diagnosticEntriesV1';
+  static const _maximumEntries = 20;
+  static const _maximumEntryCharacters = 8000;
+  static Future<void> _writeQueue = Future<void>.value();
+
+  static Future<void> recordEvent(String event) async {
+    await _append('${DateTime.now().toUtc().toIso8601String()} [$event]');
+  }
+
+  static Future<void> record(
+    String source,
+    Object error,
+    StackTrace stackTrace,
+  ) async {
+    final entry = StringBuffer()
+      ..writeln('${DateTime.now().toUtc().toIso8601String()} [$source]')
+      ..writeln(error)
+      ..write(stackTrace);
+    await _append(entry.toString());
+  }
+
+  static Future<void> _append(String entry) async {
+    _writeQueue = _writeQueue.then((_) => _writeEntry(entry));
+    await _writeQueue;
+  }
+
+  static Future<void> _writeEntry(String entry) async {
+    try {
+      final preferences = await SharedPreferences.getInstance();
+      final entries = preferences.getStringList(_key) ?? <String>[];
+      entries.add(
+        entry.length <= _maximumEntryCharacters
+            ? entry
+            : entry.substring(0, _maximumEntryCharacters),
+      );
+      if (entries.length > _maximumEntries) {
+        entries.removeRange(0, entries.length - _maximumEntries);
+      }
+      await preferences.setStringList(_key, entries);
+    } catch (_) {
+      // Diagnostics must never trigger another application failure.
+    }
+  }
+
+  static Future<String> report() async {
+    String version = 'unknown';
+    String build = 'unknown';
+    try {
+      final package = await PackageInfo.fromPlatform();
+      version = package.version;
+      build = package.buildNumber;
+    } catch (_) {}
+    final preferences = await SharedPreferences.getInstance();
+    final entries = preferences.getStringList(_key) ?? const <String>[];
+    return [
+      'Maia Chess diagnostics',
+      'version=$version build=$build',
+      'exported=${DateTime.now().toUtc().toIso8601String()}',
+      if (entries.isEmpty) 'No recorded errors.',
+      ...entries,
+    ].join('\n\n');
+  }
+
+  static Future<void> copyToClipboard() async {
+    await Clipboard.setData(ClipboardData(text: await report()));
+  }
+}
+
+class DiagnosticsErrorScreen extends StatelessWidget {
+  const DiagnosticsErrorScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return ColoredBox(
+      color: const Color(0xff171a18),
+      child: SafeArea(
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.error_outline, color: Colors.orange, size: 48),
+                const SizedBox(height: 16),
+                const Text(
+                  'Maia Chess encountered a screen error.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Colors.white, fontSize: 18),
+                ),
+                const SizedBox(height: 12),
+                const Text(
+                  'Copy the diagnostics and send them with a description of '
+                  'what you tapped immediately before this screen appeared.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Colors.white70),
+                ),
+                const SizedBox(height: 20),
+                FilledButton.icon(
+                  onPressed: AppDiagnostics.copyToClipboard,
+                  icon: const Icon(Icons.copy),
+                  label: const Text('Copy diagnostics'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
 
 bool isPremoveDestination(String fen, String from, String to) {
   final pieces = cg.readFen(fen);
@@ -174,11 +307,18 @@ class _GamePageState extends State<GamePage> {
     ]);
   }
 
-  void _showAbout() {
+  Future<void> _showAbout() async {
+    String version;
+    try {
+      version = (await PackageInfo.fromPlatform()).version;
+    } catch (_) {
+      version = 'Unknown version';
+    }
+    if (!mounted) return;
     showAboutDialog(
       context: context,
       applicationName: 'Maia Chess for Android',
-      applicationVersion: '1.6.4',
+      applicationVersion: version,
       children: [
         const Text(
           'Powered by Maia-3, the human-like chess engine developed by the '
@@ -211,6 +351,17 @@ class _GamePageState extends State<GamePage> {
           }),
           icon: const Icon(Icons.open_in_new),
           label: const Text('Lichess multistockfish'),
+        ),
+        TextButton.icon(
+          onPressed: () async {
+            await AppDiagnostics.copyToClipboard();
+            if (!mounted) return;
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(const SnackBar(content: Text('Diagnostics copied')));
+          },
+          icon: const Icon(Icons.copy),
+          label: const Text('Copy diagnostics'),
         ),
         const Text(
           'This independent community app is not an official Maia-3 or '
@@ -1040,7 +1191,6 @@ class _GamePageState extends State<GamePage> {
   @override
   void dispose() {
     _clockTimer?.cancel();
-    unawaited(StockfishAnalyzer.instance.close());
     super.dispose();
   }
 }
@@ -1073,6 +1223,7 @@ class _ReviewPageState extends State<ReviewPage> {
   int _ply = 0;
   final Map<int, StockfishReview> _reviews = {};
   final Set<int> _loading = {};
+  final Map<int, Future<void>> _pendingAnalyses = {};
   String? _analysisError;
   bool _flipped = false;
   bool _fullAnalysisRunning = false;
@@ -1088,7 +1239,20 @@ class _ReviewPageState extends State<ReviewPage> {
   }
 
   Future<void> _analyzePosition(int ply) async {
-    if (_reviews.containsKey(ply) || _loading.contains(ply)) return;
+    if (_reviews.containsKey(ply)) return;
+    final pending = _pendingAnalyses[ply];
+    if (pending != null) return pending;
+    late Future<void> operation;
+    operation = _runAnalysis(ply).whenComplete(() {
+      if (identical(_pendingAnalyses[ply], operation)) {
+        _pendingAnalyses.remove(ply);
+      }
+    });
+    _pendingAnalyses[ply] = operation;
+    return operation;
+  }
+
+  Future<void> _runAnalysis(int ply) async {
     setState(() {
       _loading.add(ply);
       _analysisError = null;
@@ -1097,7 +1261,8 @@ class _ReviewPageState extends State<ReviewPage> {
       final evaluate = widget.evaluator ?? StockfishAnalyzer.instance.evaluate;
       final review = await evaluate(widget.positions[ply]);
       if (mounted) setState(() => _reviews[ply] = review);
-    } catch (error) {
+    } catch (error, stackTrace) {
+      unawaited(AppDiagnostics.record('stockfish-analysis', error, stackTrace));
       if (mounted) setState(() => _analysisError = 'Stockfish failed: $error');
     } finally {
       if (mounted) setState(() => _loading.remove(ply));
@@ -1127,7 +1292,7 @@ class _ReviewPageState extends State<ReviewPage> {
 
   Set<cg.Shape> get _arrows {
     final move = _review?.bestMove ?? '';
-    if (move.length >= 4 && move != '(none)') {
+    if (RegExp(r'^[a-h][1-8][a-h][1-8][qrbn]?$').hasMatch(move)) {
       return {_arrow(move, const Color(0xff3d9be9))};
     }
     return const {};
@@ -1639,11 +1804,19 @@ class StockfishAnalyzer {
   Future<void> _queue = Future<void>.value();
 
   Future<void> _ensureStarted() async {
-    _startup ??= _engine.start().then((_) {
+    final startup = _startup ??= _engine.start().then((_) async {
       _engine.stdin = 'setoption name Threads value 2';
       _engine.stdin = 'setoption name Hash value 64';
+      final ready = _engine.stdout.firstWhere((line) => line == 'readyok');
+      _engine.stdin = 'isready';
+      await ready.timeout(const Duration(seconds: 5));
     });
-    await _startup;
+    try {
+      await startup;
+    } catch (_) {
+      if (identical(_startup, startup)) _startup = null;
+      rethrow;
+    }
   }
 
   Future<StockfishReview> evaluate(String fen) async {
@@ -1685,7 +1858,16 @@ class StockfishAnalyzer {
         }
       }
       if (line.startsWith('bestmove ') && !completer.isCompleted) {
-        bestMove = line.split(' ')[1];
+        final fields = line.trim().split(RegExp(r'\s+'));
+        final candidate = fields.length > 1 ? fields[1] : '(none)';
+        bestMove = RegExp(r'^[a-h][1-8][a-h][1-8][qrbn]?$').hasMatch(candidate)
+            ? candidate
+            : '(none)';
+        if (bestMove == '(none)' && candidate != '(none)') {
+          unawaited(
+            AppDiagnostics.recordEvent('stockfish-invalid-bestmove:$candidate'),
+          );
+        }
         completer.complete(latest);
       }
     });
@@ -1705,6 +1887,23 @@ class StockfishAnalyzer {
             ? -latestMate!
             : latestMate,
       );
+    } on TimeoutException {
+      // Stop and drain the outstanding search before the next queued request.
+      // Otherwise its delayed bestmove can be mistaken for the next position.
+      _engine.stdin = 'stop';
+      try {
+        await completer.future.timeout(const Duration(seconds: 2));
+      } on TimeoutException {
+        // Never reuse an engine whose output could not be drained. A delayed
+        // bestmove from it could otherwise satisfy the next position request.
+        await subscription.cancel();
+        try {
+          await _engine.quit().timeout(const Duration(seconds: 3));
+        } finally {
+          _startup = null;
+        }
+      }
+      rethrow;
     } finally {
       await subscription.cancel();
     }

@@ -1,11 +1,57 @@
+import 'dart:async';
 import 'dart:ui' as ui;
 
 import 'package:chess/chess.dart' as chess;
+import 'package:chessground/chessground.dart' as cg;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maia_chess/main.dart';
+import 'package:package_info_plus/package_info_plus.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
+  test('diagnostics persist exception evidence and version metadata', () async {
+    SharedPreferences.setMockInitialValues({});
+    PackageInfo.setMockInitialValues(
+      appName: 'Maia Chess',
+      packageName: 'com.dash1971.maia_chess',
+      version: '1.6.6',
+      buildNumber: '19',
+      buildSignature: '',
+    );
+    await AppDiagnostics.record(
+      'test-source',
+      StateError('diagnostic-test-error'),
+      StackTrace.fromString('diagnostic-test-stack'),
+    );
+
+    final report = await AppDiagnostics.report();
+    expect(report, contains('version=1.6.6 build=19'));
+    expect(report, contains('[test-source]'));
+    expect(report, contains('diagnostic-test-error'));
+    expect(report, contains('diagnostic-test-stack'));
+  });
+
+  testWidgets('About shows the package version instead of a hard-coded value', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues({});
+    PackageInfo.setMockInitialValues(
+      appName: 'Maia Chess',
+      packageName: 'com.dash1971.maia_chess',
+      version: '1.6.6',
+      buildNumber: '19',
+      buildSignature: '',
+    );
+    await tester.pumpWidget(const MaiaChessApp());
+    await tester.tap(find.byTooltip('About'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('1.6.6'), findsOneWidget);
+    expect(find.text('1.6.4'), findsNothing);
+    expect(find.text('Copy diagnostics'), findsOneWidget);
+  });
+
   testWidgets('review page lays out inside a vertical scroll view', (
     tester,
   ) async {
@@ -71,6 +117,70 @@ void main() {
 
     expect(find.text('#-3'), findsOneWidget);
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('invalid engine bestmove cannot crash review rendering', (
+    tester,
+  ) async {
+    const start = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
+    await tester.pumpWidget(
+      MaterialApp(
+        home: ReviewPage(
+          positions: const [start],
+          uciMoves: const [],
+          sanMoves: const [],
+          playerIsWhite: true,
+          pgn: '',
+          onHome: () {},
+          evaluator: (_) async => const StockfishReview(0, '0000'),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    expect(find.byType(cg.StaticChessboard), findsOneWidget);
+  });
+
+  testWidgets('full graph awaits an evaluation already in flight', (
+    tester,
+  ) async {
+    const start = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
+    const after = 'rnbqkbnr/pppp1ppp/8/4p3/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 2';
+    final firstEvaluation = Completer<StockfishReview>();
+    await tester.pumpWidget(
+      MaterialApp(
+        home: ReviewPage(
+          positions: const [start, after],
+          uciMoves: const ['e7e5'],
+          sanMoves: const ['e5'],
+          playerIsWhite: true,
+          pgn: '1... e5',
+          onHome: () {},
+          evaluator: (fen) => fen == start
+              ? firstEvaluation.future
+              : Future.value(const StockfishReview(-40, 'g1f3')),
+        ),
+      ),
+    );
+    await tester.pump();
+    final graphAction = find.text('Computer analysis graph');
+    await tester.ensureVisible(graphAction);
+    await tester.tap(graphAction);
+    await tester.pump();
+    expect(find.byType(AnalysisGraph), findsNothing);
+
+    firstEvaluation.complete(const StockfishReview(120, 'e2e4'));
+    await tester.pumpAndSettle();
+
+    final paint = tester.widget<CustomPaint>(
+      find.descendant(
+        of: find.byType(AnalysisGraph),
+        matching: find.byType(CustomPaint),
+      ),
+    );
+    final painter = paint.painter! as AnalysisGraphPainter;
+    expect(painter.scores.first.evaluation, 120);
   });
 
   testWidgets('evaluation bar renders forced mate at both extremes', (

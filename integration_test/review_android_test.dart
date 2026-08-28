@@ -7,6 +7,78 @@ import 'package:maia_chess/main.dart';
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
+  Future<void> waitForRealEvaluation(WidgetTester tester) async {
+    for (var i = 0; i < 240; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+      if (find.textContaining('Depth 12').evaluate().isNotEmpty) return;
+    }
+    fail('real Stockfish evaluation did not finish within 24 seconds');
+  }
+
+  testWidgets('real Stockfish survives navigation and graph taps on Android', (
+    tester,
+  ) async {
+    const positions = [
+      'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+      'rnbqkbnr/pppppppp/8/8/8/5P2/PPPPP1PP/RNBQKBNR b KQkq - 0 1',
+      'rnbqkbnr/pppp1ppp/8/4p3/8/5P2/PPPPP1PP/RNBQKBNR w KQkq - 0 2',
+      'rnbqkbnr/pppp1ppp/8/4p3/6P1/5P2/PPPPP2P/RNBQKBNR b KQkq g3 0 2',
+      'rnb1kbnr/pppp1ppp/8/4p3/6Pq/5P2/PPPPP2P/RNBQKBNR w KQkq - 1 3',
+    ];
+    await tester.pumpWidget(
+      MaterialApp(
+        home: ReviewPage(
+          positions: positions,
+          uciMoves: const ['f2f3', 'e7e5', 'g2g4', 'd8h4'],
+          sanMoves: const ['f3', 'e5', 'g4', 'Qh4#'],
+          playerIsWhite: true,
+          pgn: '1. f3 e5 2. g4 Qh4#',
+          onHome: () {},
+        ),
+      ),
+    );
+
+    await waitForRealEvaluation(tester);
+    for (var ply = 1; ply < positions.length; ply++) {
+      await tester.tap(find.byIcon(Icons.chevron_right));
+      await tester.pump();
+      await waitForRealEvaluation(tester);
+      expect(tester.takeException(), isNull, reason: 'real engine ply $ply');
+    }
+
+    // Recreate the page so graph analysis cannot reuse the evaluations above.
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
+    await tester.pumpWidget(
+      MaterialApp(
+        home: ReviewPage(
+          positions: positions,
+          uciMoves: const ['f2f3', 'e7e5', 'g2g4', 'd8h4'],
+          sanMoves: const ['f3', 'e5', 'g4', 'Qh4#'],
+          playerIsWhite: true,
+          pgn: '1. f3 e5 2. g4 Qh4#',
+          onHome: () {},
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.tap(find.text('Computer analysis graph'));
+    for (var i = 0; i < 600; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+      if (find.byType(AnalysisGraph).evaluate().isNotEmpty) break;
+    }
+    expect(find.textContaining('Stockfish failed:'), findsNothing);
+    expect(find.byType(AnalysisGraph), findsOneWidget);
+    for (final alignment in const [-0.9, 0.0, 0.9]) {
+      final rect = tester.getRect(find.byType(AnalysisGraph));
+      await tester.tapAt(
+        Offset(rect.center.dx + alignment * rect.width / 2, rect.center.dy),
+      );
+      await tester.pump();
+      expect(tester.takeException(), isNull);
+    }
+  });
+
   testWidgets('reported game review survives every Next move on Android', (
     tester,
   ) async {
