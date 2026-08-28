@@ -143,6 +143,10 @@ void main() {
     expect(tester.takeException(), isNull);
     expect(find.text('Game review'), findsOneWidget);
     expect(find.text('Starting position  ·  0/1'), findsOneWidget);
+    expect(find.byKey(const ValueKey('analysis-move-list')), findsOneWidget);
+    expect(find.byType(ActionChip), findsNothing);
+    expect(find.text('1.'), findsOneWidget);
+    expect(find.text('b4'), findsOneWidget);
     expect(find.text('Computer analysis graph'), findsOneWidget);
     expect(find.byTooltip('Flip board'), findsOneWidget);
     expect(find.text('+0.0'), findsOneWidget);
@@ -256,6 +260,14 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.textContaining('Variation: e4 e5'), findsOneWidget);
+    expect(find.byType(ActionChip), findsNothing);
+    await tester.ensureVisible(find.text('e4'));
+    await tester.tap(find.text('e4'));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('Variation: e4  ·  1/2'), findsOneWidget);
+    await tester.ensureVisible(find.text('e5'));
+    await tester.tap(find.text('e5'));
+    await tester.pumpAndSettle();
     await tester.ensureVisible(find.byIcon(Icons.chevron_left));
     await tester.tap(find.byIcon(Icons.chevron_left));
     await tester.pumpAndSettle();
@@ -265,6 +277,52 @@ void main() {
     await tester.tap(find.byIcon(Icons.chevron_right));
     await tester.pumpAndSettle();
     expect(find.textContaining('Variation: e4 e5'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('branching from a variation creates a nested clickable line', (
+    tester,
+  ) async {
+    const start = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
+    const afterE4 =
+        'rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1';
+    const afterE4E5 =
+        'rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2';
+    await tester.pumpWidget(
+      MaterialApp(
+        home: ReviewPage(
+          positions: const [start, afterE4, afterE4E5],
+          uciMoves: const ['e2e4', 'e7e5'],
+          sanMoves: const ['e4', 'e5'],
+          playerIsWhite: true,
+          pgn: '[Result "*"]\n\n1. e4 e5 *',
+          onHome: () {},
+          evaluator: (_) async => const StockfishReview(0, ''),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    var board = tester.widget<cg.Chessboard>(find.byType(cg.Chessboard));
+    board.onMove!(dc.NormalMove.fromUci('d2d4'));
+    await tester.pumpAndSettle();
+    board = tester.widget<cg.Chessboard>(find.byType(cg.Chessboard));
+    board.onMove!(dc.NormalMove.fromUci('d7d5'));
+    await tester.pumpAndSettle();
+
+    await tester.ensureVisible(find.text('d4'));
+    await tester.tap(find.text('d4'));
+    await tester.pumpAndSettle();
+    board = tester.widget<cg.Chessboard>(find.byType(cg.Chessboard));
+    board.onMove!(dc.NormalMove.fromUci('c7c5'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('c5'), findsOneWidget);
+    expect(find.byType(ActionChip), findsNothing);
+    await tester.ensureVisible(find.text('c5'));
+    await tester.tap(find.text('c5'));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('Variation: c5  ·  1/1'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 

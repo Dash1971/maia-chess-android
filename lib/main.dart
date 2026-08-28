@@ -1515,7 +1515,52 @@ class _ReviewPageState extends State<ReviewPage> {
                 .cast<Map<String, dynamic>>()
                 .last['san']
             as String;
-    final basePly = _variationBasePly ?? _ply;
+    final opened = _openedVariation;
+    final branchingInsideVariation =
+        opened != null && _variationIndex < _variationSan.length;
+    final basePly = branchingInsideVariation
+        ? opened.basePly + _variationIndex
+        : _variationBasePly ?? _ply;
+    _boardPosition = _boardPosition.playUnchecked(move) as dc.Chess;
+    if (branchingInsideVariation) {
+      final child = RecordedVariation(
+        basePly: basePly,
+        baseFen: fenBefore,
+        sanMoves: [san],
+      );
+      final siblings = List<RecordedVariation>.of(opened.children)
+        ..removeWhere(
+          (item) =>
+              item.basePly == basePly &&
+              item.sanMoves.isNotEmpty &&
+              item.sanMoves.first == san,
+        )
+        ..add(child);
+      final updatedParent = RecordedVariation(
+        basePly: opened.basePly,
+        baseFen: opened.baseFen,
+        sanMoves: opened.sanMoves,
+        children: siblings,
+      );
+      _replaceVariation(_variations, opened, updatedParent);
+      _openedVariation = child;
+      _variationBasePly = basePly;
+      _variationSan
+        ..clear()
+        ..add(san);
+      _variationPositions
+        ..clear()
+        ..add(fenBefore)
+        ..add(_boardPosition.fen);
+      _variationIndex = 1;
+      _boardController.updatePosition(_boardGameData());
+      setState(() {
+        _variationReview = null;
+        _variationMaiaMove = null;
+      });
+      unawaited(_analyzeVariation());
+      return;
+    }
     if (_variationBasePly == null) {
       _variationBasePly = basePly;
       _variationSan.clear();
@@ -1523,7 +1568,6 @@ class _ReviewPageState extends State<ReviewPage> {
         ..clear()
         ..add(fenBefore);
     }
-    _boardPosition = _boardPosition.playUnchecked(move) as dc.Chess;
     _variationSan.add(san);
     _variationPositions.add(_boardPosition.fen);
     _variationIndex = _variationSan.length;
@@ -1533,7 +1577,6 @@ class _ReviewPageState extends State<ReviewPage> {
       sanMoves: List.unmodifiable(_variationSan),
       children: _openedVariation?.children ?? const [],
     );
-    final opened = _openedVariation;
     if (opened != null) {
       _replaceVariation(_variations, opened, updated);
       _openedVariation = updated;
@@ -1685,7 +1728,7 @@ class _ReviewPageState extends State<ReviewPage> {
     return false;
   }
 
-  void _openVariation(RecordedVariation variation) {
+  void _openVariation(RecordedVariation variation, [int? selectedIndex]) {
     final sanGame = chess.Chess.fromFEN(variation.baseFen);
     var position = dc.Chess.fromSetup(dc.Setup.parseFen(variation.baseFen));
     final positions = <String>[variation.baseFen];
@@ -1706,14 +1749,19 @@ class _ReviewPageState extends State<ReviewPage> {
     setState(() {
       _openedVariation = variation;
       _variationBasePly = variation.basePly;
-      _variationIndex = variation.sanMoves.length;
+      _variationIndex = (selectedIndex ?? variation.sanMoves.length).clamp(
+        0,
+        variation.sanMoves.length,
+      );
       _variationSan
         ..clear()
         ..addAll(variation.sanMoves);
       _variationPositions
         ..clear()
         ..addAll(positions);
-      _boardPosition = position;
+      _boardPosition = dc.Chess.fromSetup(
+        dc.Setup.parseFen(positions[_variationIndex]),
+      );
       _variationReview = null;
       _variationMaiaMove = null;
       _boardController.updatePosition(
@@ -1799,27 +1847,187 @@ class _ReviewPageState extends State<ReviewPage> {
     dest: dc.Square.fromName(uci.substring(2, 4)),
   );
 
-  String _variationLabel(RecordedVariation variation) {
-    final move = (variation.basePly ~/ 2) + 1;
-    final prefix = variation.basePly.isEven ? '$move.' : '$move...';
-    return '$prefix ${variation.sanMoves.join(' ')}';
+  Widget _notationMove({
+    required String san,
+    required bool selected,
+    required VoidCallback onTap,
+    Key? key,
+    bool variation = false,
+  }) {
+    final colors = Theme.of(context).colorScheme;
+    return Material(
+      key: key,
+      color: selected ? colors.primaryContainer : Colors.transparent,
+      borderRadius: BorderRadius.circular(3),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(3),
+        onTap: onTap,
+        child: Padding(
+          padding: EdgeInsets.symmetric(
+            horizontal: variation ? 3 : 6,
+            vertical: variation ? 3 : 7,
+          ),
+          child: Text(
+            san,
+            style: TextStyle(
+              fontSize: variation ? 14 : 16,
+              fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+              color: selected ? colors.onPrimaryContainer : null,
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
-  Iterable<Widget> _variationEntries(
-    List<RecordedVariation> variations, [
-    int depth = 0,
-  ]) sync* {
-    for (final variation in variations) {
-      yield Padding(
-        padding: EdgeInsets.only(top: 6, left: depth * 16.0),
-        child: ActionChip(
-          avatar: const Icon(Icons.account_tree_outlined, size: 18),
-          label: Text('(${_variationLabel(variation)})'),
-          onPressed: () => _openVariation(variation),
+  Widget _variationLine(RecordedVariation variation, [int depth = 0]) {
+    final children = variation.children;
+    return Container(
+      margin: EdgeInsets.only(top: 3, left: depth * 14.0),
+      padding: const EdgeInsets.fromLTRB(8, 3, 6, 3),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+        border: Border(
+          left: BorderSide(
+            width: 3,
+            color: Theme.of(context).colorScheme.outlineVariant,
+          ),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Wrap(
+            spacing: 1,
+            runSpacing: 1,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              for (
+                var index = 0;
+                index < variation.sanMoves.length;
+                index++
+              ) ...[
+                if ((variation.basePly + index).isEven)
+                  Padding(
+                    padding: const EdgeInsets.only(right: 1),
+                    child: Text(
+                      '${((variation.basePly + index) ~/ 2) + 1}.',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  )
+                else if (index == 0)
+                  Padding(
+                    padding: const EdgeInsets.only(right: 1),
+                    child: Text(
+                      '${((variation.basePly + index) ~/ 2) + 1}...',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
+                _notationMove(
+                  key: ValueKey('variation-${variation.hashCode}-$index'),
+                  san: variation.sanMoves[index],
+                  variation: true,
+                  selected:
+                      identical(_openedVariation, variation) &&
+                      _variationIndex == index + 1,
+                  onTap: () => _openVariation(variation, index + 1),
+                ),
+              ],
+            ],
+          ),
+          for (final child in children) _variationLine(child, depth + 1),
+        ],
+      ),
+    );
+  }
+
+  Widget _movesNotation() {
+    final variationsByBase = <int, List<RecordedVariation>>{};
+    for (final variation in _variations) {
+      variationsByBase.putIfAbsent(variation.basePly, () => []).add(variation);
+    }
+    final renderedVariations = <RecordedVariation>{};
+    final rows = <Widget>[];
+    for (var whiteIndex = 0; whiteIndex < _maximumPly; whiteIndex += 2) {
+      final blackIndex = whiteIndex + 1;
+      rows.add(
+        Container(
+          color: (whiteIndex ~/ 2).isOdd
+              ? Theme.of(context).colorScheme.surfaceContainerLow
+              : Colors.transparent,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              SizedBox(
+                width: 38,
+                child: Text(
+                  '${(whiteIndex ~/ 2) + 1}.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    fontFeatures: const [FontFeature.tabularFigures()],
+                  ),
+                ),
+              ),
+              Expanded(
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: _notationMove(
+                    key: ValueKey('main-move-$whiteIndex'),
+                    san: widget.sanMoves[whiteIndex],
+                    selected: !_inVariation && _ply == whiteIndex + 1,
+                    onTap: () => setState(() => _showMainPly(whiteIndex + 1)),
+                  ),
+                ),
+              ),
+              Expanded(
+                child: blackIndex < _maximumPly
+                    ? Align(
+                        alignment: Alignment.centerLeft,
+                        child: _notationMove(
+                          key: ValueKey('main-move-$blackIndex'),
+                          san: widget.sanMoves[blackIndex],
+                          selected: !_inVariation && _ply == blackIndex + 1,
+                          onTap: () =>
+                              setState(() => _showMainPly(blackIndex + 1)),
+                        ),
+                      )
+                    : const SizedBox.shrink(),
+              ),
+            ],
+          ),
         ),
       );
-      yield* _variationEntries(variation.children, depth + 1);
+      for (final basePly in [whiteIndex, blackIndex]) {
+        for (final variation in variationsByBase[basePly] ?? const []) {
+          rows.add(_variationLine(variation));
+          renderedVariations.add(variation);
+        }
+      }
     }
+    // A review may begin from a terminal or deliberately truncated main line.
+    // Keep analysis branches visible even when there is no corresponding row.
+    for (final variation in _variations) {
+      if (renderedVariations.add(variation)) {
+        rows.add(_variationLine(variation));
+      }
+    }
+    return Container(
+      key: const ValueKey('analysis-move-list'),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Column(children: rows),
+    );
   }
 
   void _step(int delta) {
@@ -2002,47 +2210,7 @@ class _ReviewPageState extends State<ReviewPage> {
                           ),
                           const SizedBox(height: 8),
                           if (!_showGraph)
-                            Card(
-                              child: Padding(
-                                padding: const EdgeInsets.all(12),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Wrap(
-                                      spacing: 4,
-                                      runSpacing: 4,
-                                      children: [
-                                        for (
-                                          var index = 0;
-                                          index < _maximumPly;
-                                          index++
-                                        )
-                                          ActionChip(
-                                            backgroundColor: _ply == index + 1
-                                                ? Theme.of(context)
-                                                      .colorScheme
-                                                      .secondaryContainer
-                                                : null,
-                                            label: Text(
-                                              '${(index ~/ 2) + 1}${index.isEven ? '.' : '…'} ${widget.sanMoves[index]}',
-                                            ),
-                                            onPressed: () {
-                                              setState(
-                                                () => _showMainPly(index + 1),
-                                              );
-                                            },
-                                          ),
-                                      ],
-                                    ),
-                                    if (_variations.isNotEmpty) ...[
-                                      const Divider(height: 24),
-                                      const Text('Variations'),
-                                      ..._variationEntries(_variations),
-                                    ],
-                                  ],
-                                ),
-                              ),
-                            )
+                            _movesNotation()
                           else if (_graphScores != null) ...[
                             AccuracySummary(scores: _graphScores!),
                             const SizedBox(height: 8),
