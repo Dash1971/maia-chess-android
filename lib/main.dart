@@ -39,6 +39,36 @@ const lichessChessgroundUrl =
 const lichessMultistockfishUrl =
     'https://github.com/lichess-org/dart-multistockfish';
 
+class MaiaInferenceQueue {
+  static Future<void> _tail = Future<void>.value();
+  static int _replaceableGeneration = 0;
+
+  static Future<List<dynamic>?> predict(
+    Map<String, Object> arguments, {
+    bool replaceable = false,
+  }) {
+    final result = Completer<List<dynamic>?>();
+    final generation = replaceable ? ++_replaceableGeneration : null;
+    _tail = _tail.catchError((_) {}).then((_) async {
+      if (replaceable && generation != _replaceableGeneration) {
+        result.complete(null);
+        return;
+      }
+      try {
+        result.complete(
+          await maiaEngineChannel.invokeMethod<List<dynamic>>(
+            'predict',
+            arguments,
+          ),
+        );
+      } catch (error, stackTrace) {
+        result.completeError(error, stackTrace);
+      }
+    });
+    return result.future;
+  }
+}
+
 class AppDiagnostics {
   static const _key = 'diagnosticEntriesV1';
   static const _maximumEntries = 20;
@@ -95,7 +125,7 @@ class AppDiagnostics {
     final preferences = await SharedPreferences.getInstance();
     final entries = preferences.getStringList(_key) ?? const <String>[];
     return [
-      'Maia Chess diagnostics',
+      'Mobile Maia diagnostics',
       'version=$version build=$build',
       'exported=${DateTime.now().toUtc().toIso8601String()}',
       if (entries.isEmpty) 'No recorded errors.',
@@ -125,7 +155,7 @@ class DiagnosticsErrorScreen extends StatelessWidget {
                 const Icon(Icons.error_outline, color: Colors.orange, size: 48),
                 const SizedBox(height: 16),
                 const Text(
-                  'Maia Chess encountered a screen error.',
+                  'Mobile Maia encountered a screen error.',
                   textAlign: TextAlign.center,
                   style: TextStyle(color: Colors.white, fontSize: 18),
                 ),
@@ -169,7 +199,7 @@ class MaiaChessApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Maia Chess',
+      title: 'Mobile Maia',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
@@ -231,6 +261,84 @@ class ClockSnapshot {
   final int blackMillis;
 }
 
+class RecordedVariation {
+  const RecordedVariation({
+    required this.basePly,
+    required this.baseFen,
+    required this.sanMoves,
+    this.children = const [],
+  });
+
+  final int basePly;
+  final String baseFen;
+  final List<String> sanMoves;
+  final List<RecordedVariation> children;
+}
+
+class PgnVariationExporter {
+  static String export(
+    String pgn,
+    List<String> mainSan,
+    List<RecordedVariation> variations, {
+    List<String>? mainPositions,
+  }) {
+    final headerEnd = pgn.indexOf('\n\n');
+    final headers = headerEnd < 0 ? '' : pgn.substring(0, headerEnd).trim();
+    final result =
+        RegExp(
+          r'^\[Result "([^"]+)"\]$',
+          multiLine: true,
+        ).firstMatch(headers)?.group(1) ??
+        '*';
+    final byBase = <int, List<RecordedVariation>>{};
+    for (final variation in variations) {
+      if (variation.sanMoves.isNotEmpty) {
+        byBase.putIfAbsent(variation.basePly, () => []).add(variation);
+      }
+    }
+    final tokens = <String>[];
+    void addVariations(int basePly) {
+      for (final variation in byBase[basePly] ?? const []) {
+        if (mainPositions != null &&
+            (basePly >= mainPositions.length ||
+                variation.baseFen != mainPositions[basePly])) {
+          continue;
+        }
+        tokens.add('(${_formatLine(variation)})');
+      }
+    }
+
+    for (var ply = 0; ply < mainSan.length; ply++) {
+      if (ply.isEven) tokens.add('${(ply ~/ 2) + 1}.');
+      tokens.add(mainSan[ply]);
+      // A RAV is an alternative to the immediately preceding move, so a
+      // branch starting at `ply` belongs after the main-line move at `ply`.
+      addVariations(ply);
+    }
+    tokens.add(result);
+    return '${headers.isEmpty ? '' : '$headers\n\n'}${tokens.join(' ')}';
+  }
+
+  static String _formatLine(RecordedVariation variation) {
+    final tokens = <String>[];
+    for (var offset = 0; offset < variation.sanMoves.length; offset++) {
+      final ply = variation.basePly + offset;
+      if (ply.isEven) {
+        tokens.add('${(ply ~/ 2) + 1}.');
+      } else if (offset == 0) {
+        tokens.add('${(ply ~/ 2) + 1}...');
+      }
+      tokens.add(variation.sanMoves[offset]);
+      for (final child in variation.children.where(
+        (item) => item.basePly == ply,
+      )) {
+        tokens.add('(${_formatLine(child)})');
+      }
+    }
+    return tokens.join(' ');
+  }
+}
+
 class GamePage extends StatefulWidget {
   const GamePage({super.key});
 
@@ -242,9 +350,11 @@ class _GamePageState extends State<GamePage> {
   chess.Chess _game = chess.Chess();
   final List<String> _positionHistory = [];
   final List<String> _uciMoves = [];
+  final List<RecordedVariation> _takebackVariations = [];
   PlayerSide _sideChoice = PlayerSide.white;
   chess.Color _playerColor = chess.Color.WHITE;
   int _elo = 1500;
+  int _analysisElo = 1600;
   String? _selectedSquare;
   String? _premoveFrom;
   String? _premoveTo;
@@ -295,6 +405,7 @@ class _GamePageState extends State<GamePage> {
         1.0,
       );
       _topP = (preferences.getDouble('topPV2') ?? 0.9).clamp(0.0, 1.0);
+      _analysisElo = preferences.getInt('analysisElo') ?? 1600;
     });
   }
 
@@ -304,6 +415,7 @@ class _GamePageState extends State<GamePage> {
       preferences.setBool('humanTiming', _humanTiming),
       preferences.setDouble('temperatureV2', _temperature),
       preferences.setDouble('topPV2', _topP),
+      preferences.setInt('analysisElo', _analysisElo),
     ]);
   }
 
@@ -317,7 +429,7 @@ class _GamePageState extends State<GamePage> {
     if (!mounted) return;
     showAboutDialog(
       context: context,
-      applicationName: 'Maia Chess for Android',
+      applicationName: 'Mobile Maia',
       applicationVersion: version,
       children: [
         const Text(
@@ -375,6 +487,7 @@ class _GamePageState extends State<GamePage> {
         ..clear()
         ..add(_game.fen);
       _uciMoves.clear();
+      _takebackVariations.clear();
       _selectedSquare = null;
       _premoveFrom = null;
       _premoveTo = null;
@@ -395,9 +508,9 @@ class _GamePageState extends State<GamePage> {
           '${date.day.toString().padLeft(2, '0')}';
       _game.set_header([
         'Event',
-        'Maia Android App Game',
+        'Mobile Maia Game',
         'Site',
-        'Maia Chess for Android',
+        'Mobile Maia',
         'Date',
         dateTag,
         'Round',
@@ -607,10 +720,11 @@ class _GamePageState extends State<GamePage> {
     setState(() => _engineThinking = true);
     try {
       final tokens = MaiaEncoding.historicalTokens(_positionHistory);
-      final response = await maiaEngineChannel.invokeMethod<List<dynamic>>(
-        'predict',
-        {'tokens': tokens, 'selfElo': _elo, 'opponentElo': _elo},
-      );
+      final response = await MaiaInferenceQueue.predict({
+        'tokens': tokens,
+        'selfElo': _elo,
+        'opponentElo': _elo,
+      });
       if (response == null || response.length != 4352) {
         throw StateError('Maia returned an invalid policy vector.');
       }
@@ -743,6 +857,32 @@ class _GamePageState extends State<GamePage> {
     if (!_started || !_canTakeBack) return;
     _gameGeneration++;
     final plies = _engineThinking ? 1 : min(2, _uciMoves.length);
+    final history = _game
+        .getHistory({'verbose': true})
+        .cast<Map<String, dynamic>>()
+        .map((move) => move['san'] as String)
+        .toList(growable: false);
+    final basePly = max(0, history.length - plies);
+    final removedSan = history.skip(basePly).toList(growable: false);
+    if (removedSan.isNotEmpty) {
+      final removedPathFens = _positionHistory.skip(basePly).toSet();
+      final nested = _takebackVariations
+          .where(
+            (variation) =>
+                variation.basePly > basePly &&
+                removedPathFens.contains(variation.baseFen),
+          )
+          .toList(growable: false);
+      _takebackVariations.removeWhere(nested.contains);
+      _takebackVariations.add(
+        RecordedVariation(
+          basePly: basePly,
+          baseFen: _positionHistory[basePly],
+          sanMoves: removedSan,
+          children: nested,
+        ),
+      );
+    }
     for (var i = 0; i < plies; i++) {
       _game.undo();
       _uciMoves.removeLast();
@@ -772,7 +912,7 @@ class _GamePageState extends State<GamePage> {
   }
 
   Future<void> _copyPgn() async {
-    await Clipboard.setData(ClipboardData(text: _game.pgn()));
+    await Clipboard.setData(ClipboardData(text: _exportPgn()));
     if (mounted) {
       ScaffoldMessenger.of(context)
           .showSnackBar(const SnackBar(content: Text('PGN copied')));
@@ -794,10 +934,26 @@ class _GamePageState extends State<GamePage> {
           uciMoves: List.unmodifiable(_uciMoves.take(plyCount)),
           sanMoves: List.unmodifiable(moves.take(plyCount)),
           playerIsWhite: _playerIsWhite,
-          pgn: _game.pgn(),
+          pgn: _exportPgn(),
+          initialVariations: List.unmodifiable(_takebackVariations),
+          maiaElo: _analysisElo,
           onHome: _goHome,
         ),
       ),
+    );
+  }
+
+  String _exportPgn() {
+    final moves = _game
+        .getHistory({'verbose': true})
+        .cast<Map<String, dynamic>>()
+        .map((move) => move['san'] as String)
+        .toList(growable: false);
+    return PgnVariationExporter.export(
+      _game.pgn(),
+      moves,
+      _takebackVariations,
+      mainPositions: _positionHistory,
     );
   }
 
@@ -805,7 +961,7 @@ class _GamePageState extends State<GamePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Maia Chess'),
+        title: const Text('Mobile Maia'),
         actions: [
           IconButton(
             onPressed: _showAbout,
@@ -1012,6 +1168,20 @@ class _GamePageState extends State<GamePage> {
                     onChangeEnd: (_) => unawaited(_saveEnginePreferences()),
                   ),
                 ),
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: Text('Maia analysis rating: $_analysisElo'),
+                  subtitle: Slider(
+                    min: 500,
+                    max: 2400,
+                    divisions: 19,
+                    value: _analysisElo.toDouble(),
+                    label: '$_analysisElo',
+                    onChanged: (value) =>
+                        setState(() => _analysisElo = value.round()),
+                    onChangeEnd: (_) => unawaited(_saveEnginePreferences()),
+                  ),
+                ),
                 Align(
                   alignment: Alignment.centerLeft,
                   child: TextButton(
@@ -1020,6 +1190,7 @@ class _GamePageState extends State<GamePage> {
                         _humanTiming = false;
                         _temperature = 0.5;
                         _topP = 0.9;
+                        _analysisElo = 1600;
                       });
                       unawaited(_saveEnginePreferences());
                     },
@@ -1210,8 +1381,11 @@ class ReviewPage extends StatefulWidget {
     required this.sanMoves,
     required this.playerIsWhite,
     required this.pgn,
+    this.initialVariations = const [],
+    this.maiaElo = 1600,
     required this.onHome,
     this.evaluator,
+    this.maiaEvaluator,
     super.key,
   });
 
@@ -1220,8 +1394,12 @@ class ReviewPage extends StatefulWidget {
   final List<String> sanMoves;
   final bool playerIsWhite;
   final String pgn;
+  final List<RecordedVariation> initialVariations;
+  final int maiaElo;
   final VoidCallback onHome;
   final Future<StockfishReview> Function(String fen)? evaluator;
+  final Future<String?> Function(List<String> positions, int elo)?
+  maiaEvaluator;
 
   @override
   State<ReviewPage> createState() => _ReviewPageState();
@@ -1229,6 +1407,7 @@ class ReviewPage extends StatefulWidget {
 
 class _ReviewPageState extends State<ReviewPage> {
   int _ply = 0;
+  bool _showGraph = false;
   final Map<int, StockfishReview> _reviews = {};
   final Set<int> _loading = {};
   final Map<int, Future<void>> _pendingAnalyses = {};
@@ -1237,8 +1416,28 @@ class _ReviewPageState extends State<ReviewPage> {
   bool _fullAnalysisRunning = false;
   int _fullAnalysisProgress = 0;
   List<StockfishReview>? _graphScores;
+  final Map<int, String> _maiaMoves = {};
+  final Set<int> _maiaLoading = {};
+  late final cg.ChessboardController _boardController;
+  late dc.Chess _boardPosition;
+  late final List<RecordedVariation> _variations;
+  RecordedVariation? _openedVariation;
+  int? _variationBasePly;
+  int _variationIndex = 0;
+  final List<String> _variationSan = [];
+  final List<String> _variationPositions = [];
+  StockfishReview? _variationReview;
+  String? _variationMaiaMove;
+  bool _variationLoading = false;
+  bool _variationMaiaLoading = false;
+  String? _variationError;
 
-  StockfishReview? get _review => _reviews[_ply];
+  bool get _inVariation => _variationBasePly != null;
+  String get _currentFen => _inVariation
+      ? _variationPositions[_variationIndex]
+      : widget.positions[_ply];
+  StockfishReview? get _review =>
+      _inVariation ? _variationReview : _reviews[_ply];
   int get _maximumPly => max(
     0,
     min(
@@ -1250,7 +1449,280 @@ class _ReviewPageState extends State<ReviewPage> {
   @override
   void initState() {
     super.initState();
+    _variations = List.of(widget.initialVariations);
+    _boardPosition = dc.Chess.fromSetup(dc.Setup.parseFen(widget.positions[0]));
+    _boardController = cg.ChessboardController(game: _boardGameData());
     unawaited(_analyzePosition(0));
+    unawaited(_analyzeMaiaPosition(0));
+  }
+
+  @override
+  void dispose() {
+    _boardController.dispose();
+    super.dispose();
+  }
+
+  cg.GameData _boardGameData() => cg.GameData(
+    fen: _boardPosition.fen,
+    playerSide:
+        _boardPosition.isGameOver ||
+            (_inVariation && _variationIndex < _variationSan.length)
+        ? cg.PlayerSide.none
+        : cg.PlayerSide.both,
+    sideToMove: _boardPosition.turn,
+    validMoves: dc.makeLegalMoves(_boardPosition),
+    kingSquareInCheck: _boardPosition.isCheck
+        ? _boardPosition.board.kingOf(_boardPosition.turn)
+        : null,
+  );
+
+  void _showMainPly(int ply) {
+    _variationBasePly = null;
+    _openedVariation = null;
+    _variationIndex = 0;
+    _variationSan.clear();
+    _variationPositions.clear();
+    _variationReview = null;
+    _variationMaiaMove = null;
+    _ply = ply.clamp(0, _maximumPly);
+    _boardPosition = dc.Chess.fromSetup(
+      dc.Setup.parseFen(widget.positions[_ply]),
+    );
+    _boardController.updatePosition(
+      _boardGameData(),
+      animate: false,
+      resetPremove: true,
+    );
+    unawaited(_analyzePosition(_ply));
+    unawaited(_analyzeMaiaPosition(_ply));
+  }
+
+  void _onAnalysisMove(dc.Move move, {bool? viaDragAndDrop}) {
+    if (!_boardPosition.isLegal(move)) return;
+    final fenBefore = _boardPosition.fen;
+    final uci = move.uci;
+    final sanGame = chess.Chess.fromFEN(fenBefore);
+    final candidate = sanGame
+        .moves({'asObjects': true})
+        .cast<chess.Move>()
+        .where((item) => MaiaEncoding.uci(item) == uci)
+        .firstOrNull;
+    if (candidate == null) return;
+    sanGame.move(candidate);
+    final san =
+        sanGame
+                .getHistory({'verbose': true})
+                .cast<Map<String, dynamic>>()
+                .last['san']
+            as String;
+    final basePly = _variationBasePly ?? _ply;
+    if (_variationBasePly == null) {
+      _variationBasePly = basePly;
+      _variationSan.clear();
+      _variationPositions
+        ..clear()
+        ..add(fenBefore);
+    }
+    _boardPosition = _boardPosition.playUnchecked(move) as dc.Chess;
+    _variationSan.add(san);
+    _variationPositions.add(_boardPosition.fen);
+    _variationIndex = _variationSan.length;
+    final updated = RecordedVariation(
+      basePly: basePly,
+      baseFen: _variationPositions.first,
+      sanMoves: List.unmodifiable(_variationSan),
+      children: _openedVariation?.children ?? const [],
+    );
+    final opened = _openedVariation;
+    if (opened != null) {
+      _replaceVariation(_variations, opened, updated);
+      _openedVariation = updated;
+    } else {
+      _variations.removeWhere(
+        (item) =>
+            item.basePly == basePly &&
+            item.sanMoves.isNotEmpty &&
+            item.sanMoves.first == _variationSan.first,
+      );
+      _variations.add(updated);
+    }
+    _boardController.updatePosition(_boardGameData());
+    setState(() {
+      _variationReview = null;
+      _variationMaiaMove = null;
+    });
+    unawaited(_analyzeVariation());
+  }
+
+  Future<void> _analyzeMaiaPosition(int ply) async {
+    // Widget tests commonly inject only Stockfish. Do not invoke the native
+    // Maia channel in that case unless a Maia test double was also supplied.
+    if (widget.evaluator != null && widget.maiaEvaluator == null) return;
+    if (_maiaMoves.containsKey(ply) || _maiaLoading.contains(ply)) return;
+    setState(() => _maiaLoading.add(ply));
+    try {
+      final positions = widget.positions.take(ply + 1).toList(growable: false);
+      final injected = widget.maiaEvaluator;
+      if (injected != null) {
+        final move = await injected(positions, widget.maiaElo);
+        if (move != null && mounted) setState(() => _maiaMoves[ply] = move);
+        return;
+      }
+      final response = await MaiaInferenceQueue.predict({
+        'tokens': MaiaEncoding.historicalTokens(positions),
+        'selfElo': widget.maiaElo,
+        'opponentElo': widget.maiaElo,
+      }, replaceable: true);
+      if (response == null || response.length != 4352) return;
+      final game = chess.Chess.fromFEN(widget.positions[ply]);
+      if (game.game_over) return;
+      final move = MaiaEncoding.sampleLegalMove(
+        game,
+        game.moves({'asObjects': true}).cast<chess.Move>().toList(),
+        response.cast<num>().map((value) => value.toDouble()).toList(),
+        temperature: 0,
+      );
+      if (mounted) setState(() => _maiaMoves[ply] = MaiaEncoding.uci(move));
+    } catch (error, stackTrace) {
+      unawaited(AppDiagnostics.record('maia-analysis', error, stackTrace));
+    } finally {
+      if (mounted) setState(() => _maiaLoading.remove(ply));
+    }
+  }
+
+  Future<void> _analyzeVariation() async {
+    final fen = _currentFen;
+    setState(() {
+      _variationLoading = true;
+      _variationError = null;
+    });
+    try {
+      final evaluate = widget.evaluator ?? StockfishAnalyzer.instance.evaluate;
+      final review = await evaluate(fen);
+      if (!mounted || fen != _currentFen) return;
+      setState(() => _variationReview = review);
+    } catch (error, stackTrace) {
+      if (mounted && fen == _currentFen) {
+        setState(() => _variationError = 'Stockfish failed: $error');
+      }
+      unawaited(
+        AppDiagnostics.record('stockfish-variation', error, stackTrace),
+      );
+    } finally {
+      if (mounted && fen == _currentFen) {
+        setState(() => _variationLoading = false);
+      }
+    }
+    if (mounted && fen == _currentFen) {
+      setState(() => _variationMaiaLoading = true);
+    }
+    try {
+      final injected = widget.maiaEvaluator;
+      if (injected != null) {
+        final move = await injected([
+          ...widget.positions.take((_variationBasePly ?? 0) + 1),
+          ..._variationPositions.skip(1).take(_variationIndex),
+        ], widget.maiaElo);
+        if (move != null && mounted && fen == _currentFen) {
+          setState(() => _variationMaiaMove = move);
+        }
+        return;
+      }
+      if (widget.evaluator != null) return;
+      final response = await MaiaInferenceQueue.predict({
+        'tokens': MaiaEncoding.historicalTokens([
+          ...widget.positions.take((_variationBasePly ?? 0) + 1),
+          ..._variationPositions.skip(1).take(_variationIndex),
+        ]),
+        'selfElo': widget.maiaElo,
+        'opponentElo': widget.maiaElo,
+      }, replaceable: true);
+      if (response == null || response.length != 4352 || fen != _currentFen) {
+        return;
+      }
+      final game = chess.Chess.fromFEN(fen);
+      if (game.game_over) return;
+      final move = MaiaEncoding.sampleLegalMove(
+        game,
+        game.moves({'asObjects': true}).cast<chess.Move>().toList(),
+        response.cast<num>().map((value) => value.toDouble()).toList(),
+        temperature: 0,
+      );
+      if (mounted && fen == _currentFen) {
+        setState(() => _variationMaiaMove = MaiaEncoding.uci(move));
+      }
+    } catch (error, stackTrace) {
+      unawaited(AppDiagnostics.record('maia-variation', error, stackTrace));
+    } finally {
+      if (mounted && fen == _currentFen) {
+        setState(() => _variationMaiaLoading = false);
+      }
+    }
+  }
+
+  bool _replaceVariation(
+    List<RecordedVariation> variations,
+    RecordedVariation target,
+    RecordedVariation replacement,
+  ) {
+    for (var index = 0; index < variations.length; index++) {
+      final current = variations[index];
+      if (identical(current, target)) {
+        variations[index] = replacement;
+        return true;
+      }
+      final children = List<RecordedVariation>.of(current.children);
+      if (_replaceVariation(children, target, replacement)) {
+        variations[index] = RecordedVariation(
+          basePly: current.basePly,
+          baseFen: current.baseFen,
+          sanMoves: current.sanMoves,
+          children: children,
+        );
+        return true;
+      }
+    }
+    return false;
+  }
+
+  void _openVariation(RecordedVariation variation) {
+    final sanGame = chess.Chess.fromFEN(variation.baseFen);
+    var position = dc.Chess.fromSetup(dc.Setup.parseFen(variation.baseFen));
+    final positions = <String>[variation.baseFen];
+    for (final san in variation.sanMoves) {
+      final sanOptions = sanGame.moves().cast<String>().toList();
+      final moveOptions = sanGame
+          .moves({'asObjects': true})
+          .cast<chess.Move>()
+          .toList();
+      final index = sanOptions.indexOf(san);
+      if (index < 0) return;
+      final uci = MaiaEncoding.uci(moveOptions[index]);
+      final move = dc.NormalMove.fromUci(uci);
+      if (!position.isLegal(move) || !sanGame.move(moveOptions[index])) return;
+      position = position.playUnchecked(move) as dc.Chess;
+      positions.add(position.fen);
+    }
+    setState(() {
+      _openedVariation = variation;
+      _variationBasePly = variation.basePly;
+      _variationIndex = variation.sanMoves.length;
+      _variationSan
+        ..clear()
+        ..addAll(variation.sanMoves);
+      _variationPositions
+        ..clear()
+        ..addAll(positions);
+      _boardPosition = position;
+      _variationReview = null;
+      _variationMaiaMove = null;
+      _boardController.updatePosition(
+        _boardGameData(),
+        animate: false,
+        resetPremove: true,
+      );
+    });
+    unawaited(_analyzeVariation());
   }
 
   Future<void> _analyzePosition(int ply) async {
@@ -1307,10 +1779,18 @@ class _ReviewPageState extends State<ReviewPage> {
 
   Set<cg.Shape> get _arrows {
     final move = _review?.bestMove ?? '';
-    if (RegExp(r'^[a-h][1-8][a-h][1-8][qrbn]?$').hasMatch(move)) {
-      return {_arrow(move, const Color(0xff3d9be9))};
+    final maiaMove = _inVariation
+        ? _variationMaiaMove ?? ''
+        : _maiaMoves[_ply] ?? '';
+    final valid = RegExp(r'^[a-h][1-8][a-h][1-8][qrbn]?$');
+    final arrows = <cg.Shape>{};
+    if (valid.hasMatch(move)) {
+      arrows.add(_arrow(move, const Color(0xff3d9be9)));
     }
-    return const {};
+    if (valid.hasMatch(maiaMove) && maiaMove != move) {
+      arrows.add(_arrow(maiaMove, const Color(0xffe89b3c)));
+    }
+    return arrows;
   }
 
   cg.Arrow _arrow(String uci, Color color) => cg.Arrow(
@@ -1319,13 +1799,62 @@ class _ReviewPageState extends State<ReviewPage> {
     dest: dc.Square.fromName(uci.substring(2, 4)),
   );
 
+  String _variationLabel(RecordedVariation variation) {
+    final move = (variation.basePly ~/ 2) + 1;
+    final prefix = variation.basePly.isEven ? '$move.' : '$move...';
+    return '$prefix ${variation.sanMoves.join(' ')}';
+  }
+
+  Iterable<Widget> _variationEntries(
+    List<RecordedVariation> variations, [
+    int depth = 0,
+  ]) sync* {
+    for (final variation in variations) {
+      yield Padding(
+        padding: EdgeInsets.only(top: 6, left: depth * 16.0),
+        child: ActionChip(
+          avatar: const Icon(Icons.account_tree_outlined, size: 18),
+          label: Text('(${_variationLabel(variation)})'),
+          onPressed: () => _openVariation(variation),
+        ),
+      );
+      yield* _variationEntries(variation.children, depth + 1);
+    }
+  }
+
   void _step(int delta) {
-    setState(() => _ply = (_ply + delta).clamp(0, _maximumPly));
-    unawaited(_analyzePosition(_ply));
+    if (_inVariation) {
+      final next = (_variationIndex + delta).clamp(0, _variationSan.length);
+      setState(() {
+        _variationIndex = next;
+        _boardPosition = dc.Chess.fromSetup(
+          dc.Setup.parseFen(_variationPositions[next]),
+        );
+        _variationReview = null;
+        _variationMaiaMove = null;
+        _boardController.updatePosition(
+          _boardGameData(),
+          animate: false,
+          resetPremove: true,
+        );
+      });
+      unawaited(_analyzeVariation());
+      return;
+    }
+    setState(() => _showMainPly(_ply + delta));
   }
 
   Future<void> _copyPgn() async {
-    await Clipboard.setData(ClipboardData(text: widget.pgn));
+    await Clipboard.setData(
+      ClipboardData(
+        text: PgnVariationExporter.export(
+          widget.pgn,
+          widget.sanMoves,
+          _variations,
+          mainPositions: widget.positions,
+        ),
+      ),
+    );
     if (mounted) {
       ScaffoldMessenger.of(context)
           .showSnackBar(const SnackBar(content: Text('PGN copied')));
@@ -1336,7 +1865,9 @@ class _ReviewPageState extends State<ReviewPage> {
   Widget build(BuildContext context) {
     final evaluation = _review?.evaluation;
     final mate = _review?.mate;
-    final moveLabel = _ply == 0
+    final moveLabel = _inVariation
+        ? 'Variation: ${_variationSan.take(_variationIndex).join(' ')}'
+        : _ply == 0
         ? 'Starting position'
         : '${(_ply + 1) ~/ 2}${_ply.isOdd ? '.' : '…'} ${widget.sanMoves[_ply - 1]}';
     return Scaffold(
@@ -1395,7 +1926,8 @@ class _ReviewPageState extends State<ReviewPage> {
                                 SizedBox(
                                   width: boardSize,
                                   height: boardSize,
-                                  child: cg.StaticChessboard(
+                                  child: cg.Chessboard(
+                                    controller: _boardController,
                                     size: boardSize,
                                     orientation: _flipped
                                         ? (widget.playerIsWhite
@@ -1404,14 +1936,9 @@ class _ReviewPageState extends State<ReviewPage> {
                                         : (widget.playerIsWhite
                                               ? dc.Side.white
                                               : dc.Side.black),
-                                    fen: widget.positions[_ply],
-                                    lastMove: _ply == 0
-                                        ? null
-                                        : dc.NormalMove.fromUci(
-                                            widget.uciMoves[_ply - 1],
-                                          ),
+                                    onMove: _onAnalysisMove,
                                     shapes: _arrows,
-                                    settings: const cg.StaticChessboardSettings(
+                                    settings: const cg.ChessboardSettings(
                                       colorScheme:
                                           cg.ChessboardColorScheme.brown,
                                       pieceAssets: cg.PieceSet.cburnettAssets,
@@ -1423,47 +1950,127 @@ class _ReviewPageState extends State<ReviewPage> {
                             ),
                           ),
                           const SizedBox(height: 12),
-                          MaterialDifference(fen: widget.positions[_ply]),
+                          MaterialDifference(fen: _currentFen),
                           const SizedBox(height: 8),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               IconButton(
-                                onPressed: _ply == 0 ? null : () => _step(-1),
+                                onPressed:
+                                    (_inVariation
+                                        ? _variationIndex == 0
+                                        : _ply == 0)
+                                    ? null
+                                    : () => _step(-1),
                                 icon: const Icon(Icons.chevron_left),
                               ),
                               Flexible(
                                 child: Text(
-                                  '$moveLabel  ·  $_ply/$_maximumPly',
+                                  '$moveLabel  ·  ${_inVariation ? '$_variationIndex/${_variationSan.length}' : '$_ply/$_maximumPly'}',
                                   textAlign: TextAlign.center,
                                 ),
                               ),
                               IconButton(
-                                onPressed: _ply == _maximumPly
+                                onPressed:
+                                    (_inVariation
+                                        ? _variationIndex ==
+                                              _variationSan.length
+                                        : _ply == _maximumPly)
                                     ? null
                                     : () => _step(1),
                                 icon: const Icon(Icons.chevron_right),
                               ),
                             ],
                           ),
-                          if (_graphScores != null) ...[
-                            const SizedBox(height: 8),
+                          const SizedBox(height: 8),
+                          SegmentedButton<bool>(
+                            segments: const [
+                              ButtonSegment(
+                                value: false,
+                                icon: Icon(Icons.list_alt),
+                                label: Text('Moves'),
+                              ),
+                              ButtonSegment(
+                                value: true,
+                                icon: Icon(Icons.show_chart),
+                                label: Text('Graph'),
+                              ),
+                            ],
+                            selected: {_showGraph},
+                            onSelectionChanged: (selection) =>
+                                setState(() => _showGraph = selection.first),
+                          ),
+                          const SizedBox(height: 8),
+                          if (!_showGraph)
+                            Card(
+                              child: Padding(
+                                padding: const EdgeInsets.all(12),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Wrap(
+                                      spacing: 4,
+                                      runSpacing: 4,
+                                      children: [
+                                        for (
+                                          var index = 0;
+                                          index < _maximumPly;
+                                          index++
+                                        )
+                                          ActionChip(
+                                            backgroundColor: _ply == index + 1
+                                                ? Theme.of(context)
+                                                      .colorScheme
+                                                      .secondaryContainer
+                                                : null,
+                                            label: Text(
+                                              '${(index ~/ 2) + 1}${index.isEven ? '.' : '…'} ${widget.sanMoves[index]}',
+                                            ),
+                                            onPressed: () {
+                                              setState(
+                                                () => _showMainPly(index + 1),
+                                              );
+                                            },
+                                          ),
+                                      ],
+                                    ),
+                                    if (_variations.isNotEmpty) ...[
+                                      const Divider(height: 24),
+                                      const Text('Variations'),
+                                      ..._variationEntries(_variations),
+                                    ],
+                                  ],
+                                ),
+                              ),
+                            )
+                          else if (_graphScores != null) ...[
                             AccuracySummary(scores: _graphScores!),
                             const SizedBox(height: 8),
                             AnalysisGraph(
                               scores: _graphScores!,
                               selectedPly: _ply,
                               onSelected: (ply) {
-                                setState(() => _ply = ply);
-                                unawaited(_analyzePosition(ply));
+                                setState(() => _showMainPly(ply));
                               },
                             ),
-                          ],
+                          ] else
+                            const Card(
+                              child: ListTile(
+                                leading: Icon(Icons.info_outline),
+                                title: Text('No full-game analysis yet'),
+                                subtitle: Text(
+                                  'Run computer analysis below to create the graph.',
+                                ),
+                              ),
+                            ),
                           Card(
                             child: Column(
                               children: [
                                 ListTile(
-                                  leading: _loading.contains(_ply)
+                                  leading:
+                                      (_inVariation
+                                          ? _variationLoading
+                                          : _loading.contains(_ply))
                                       ? const SizedBox(
                                           width: 24,
                                           height: 24,
@@ -1477,10 +2084,46 @@ class _ReviewPageState extends State<ReviewPage> {
                                         ),
                                   title: const Text('Stockfish best move'),
                                   subtitle: Text(
-                                    _analysisError ??
+                                    (_inVariation
+                                            ? _variationError
+                                            : _analysisError) ??
                                         (_review == null
                                             ? 'Analyzing this position…'
                                             : 'Depth 12 · ${_formatEvaluation(_review!)}'),
+                                  ),
+                                ),
+                                const Divider(height: 1),
+                                ListTile(
+                                  leading:
+                                      (_inVariation
+                                          ? _variationMaiaLoading
+                                          : _maiaLoading.contains(_ply))
+                                      ? const SizedBox(
+                                          width: 24,
+                                          height: 24,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                          ),
+                                        )
+                                      : const Icon(
+                                          Icons.arrow_upward,
+                                          color: Color(0xffe89b3c),
+                                        ),
+                                  title: Text(
+                                    'Maia ${widget.maiaElo} human move',
+                                  ),
+                                  subtitle: Text(
+                                    (_inVariation
+                                                ? _variationMaiaMove
+                                                : _maiaMoves[_ply]) ==
+                                            null
+                                        ? 'Analyzing this position…'
+                                        : (_inVariation
+                                                  ? _variationMaiaMove
+                                                  : _maiaMoves[_ply]) ==
+                                              _review?.bestMove
+                                        ? 'Matches Stockfish'
+                                        : 'Most likely human move',
                                   ),
                                 ),
                                 const Divider(height: 1),

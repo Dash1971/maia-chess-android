@@ -3,6 +3,7 @@ import 'dart:ui' as ui;
 
 import 'package:chess/chess.dart' as chess;
 import 'package:chessground/chessground.dart' as cg;
+import 'package:dartchess/dartchess.dart' as dc;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maia_chess/main.dart';
@@ -10,10 +11,62 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
+  test('PGN export preserves takebacks as recursive annotation variations', () {
+    const source =
+        '[Event "Mobile Maia Game"]\n[Result "*"]\n\n1. e4 e5 2. Nf3 *';
+    const start = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
+    const afterE4 =
+        'rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1';
+    final exported = PgnVariationExporter.export(
+      source,
+      const ['e4', 'c5', 'Nf3'],
+      const [
+        RecordedVariation(
+          basePly: 1,
+          baseFen: afterE4,
+          sanMoves: ['e5', 'Nf3'],
+        ),
+      ],
+      mainPositions: const [start, afterE4],
+    );
+
+    expect(exported, contains('1. e4 c5 (1... e5 2. Nf3) 2. Nf3 *'));
+    expect(exported, contains('[Event "Mobile Maia Game"]'));
+  });
+
+  test('PGN export keeps a nested abandoned branch attached to its parent', () {
+    const start = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
+    const afterE4 =
+        'rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1';
+    const afterE4E5 =
+        'rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2';
+    final exported = PgnVariationExporter.export(
+      '[Result "*"]\n\n*',
+      const ['e4', 'd5'],
+      const [
+        RecordedVariation(
+          basePly: 1,
+          baseFen: afterE4,
+          sanMoves: ['e5', 'Nf3'],
+          children: [
+            RecordedVariation(
+              basePly: 2,
+              baseFen: afterE4E5,
+              sanMoves: ['Nc3'],
+            ),
+          ],
+        ),
+      ],
+      mainPositions: const [start, afterE4],
+    );
+
+    expect(exported, contains('1. e4 d5 (1... e5 2. Nf3 (2. Nc3)) *'));
+  });
+
   test('diagnostics persist exception evidence and version metadata', () async {
     SharedPreferences.setMockInitialValues({});
     PackageInfo.setMockInitialValues(
-      appName: 'Maia Chess',
+      appName: 'Mobile Maia',
       packageName: 'com.dash1971.maia_chess',
       version: '1.6.6',
       buildNumber: '19',
@@ -37,7 +90,7 @@ void main() {
   ) async {
     SharedPreferences.setMockInitialValues({});
     PackageInfo.setMockInitialValues(
-      appName: 'Maia Chess',
+      appName: 'Mobile Maia',
       packageName: 'com.dash1971.maia_chess',
       version: '1.6.6',
       buildNumber: '19',
@@ -94,7 +147,11 @@ void main() {
     expect(find.byTooltip('Flip board'), findsOneWidget);
     expect(find.text('+0.0'), findsOneWidget);
 
+    await tester.ensureVisible(find.text('Computer analysis graph'));
     await tester.tap(find.text('Computer analysis graph'));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Graph'));
+    await tester.tap(find.text('Graph'));
     await tester.pumpAndSettle();
     expect(find.byType(AnalysisGraph), findsOneWidget);
     expect(find.text('White 100.0%'), findsOneWidget);
@@ -164,7 +221,51 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(tester.takeException(), isNull);
-    expect(find.byType(cg.StaticChessboard), findsOneWidget);
+    expect(find.byType(cg.Chessboard), findsOneWidget);
+  });
+
+  testWidgets('moving on the review board creates an analyzed variation', (
+    tester,
+  ) async {
+    const start = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
+    final maiaHistoryLengths = <int>[];
+    await tester.pumpWidget(
+      MaterialApp(
+        home: ReviewPage(
+          positions: const [start],
+          uciMoves: const [],
+          sanMoves: const [],
+          playerIsWhite: true,
+          pgn: '[Result "*"]\n\n*',
+          onHome: () {},
+          evaluator: (_) async => const StockfishReview(20, 'e7e5'),
+          maiaEvaluator: (positions, _) async {
+            maiaHistoryLengths.add(positions.length);
+            return null;
+          },
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    var board = tester.widget<cg.Chessboard>(find.byType(cg.Chessboard));
+    board.onMove!(dc.NormalMove.fromUci('e2e4'));
+    await tester.pumpAndSettle();
+    board = tester.widget<cg.Chessboard>(find.byType(cg.Chessboard));
+    board.onMove!(dc.NormalMove.fromUci('e7e5'));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('Variation: e4 e5'), findsOneWidget);
+    await tester.ensureVisible(find.byIcon(Icons.chevron_left));
+    await tester.tap(find.byIcon(Icons.chevron_left));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('1/2'), findsOneWidget);
+    expect(maiaHistoryLengths.last, 2);
+    await tester.ensureVisible(find.byIcon(Icons.chevron_right));
+    await tester.tap(find.byIcon(Icons.chevron_right));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('Variation: e4 e5'), findsOneWidget);
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('full graph awaits an evaluation already in flight', (
@@ -196,6 +297,9 @@ void main() {
     expect(find.byType(AnalysisGraph), findsNothing);
 
     firstEvaluation.complete(const StockfishReview(120, 'e2e4'));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Graph'));
+    await tester.tap(find.text('Graph'));
     await tester.pumpAndSettle();
 
     final paint = tester.widget<CustomPaint>(
@@ -233,7 +337,11 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Computer analysis graph'));
     await tester.tap(find.text('Computer analysis graph'));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Graph'));
+    await tester.tap(find.text('Graph'));
     await tester.pumpAndSettle();
 
     final graph = find.byType(AnalysisGraph);
@@ -304,7 +412,11 @@ void main() {
     expect(find.text('#-1'), findsWidgets);
     expect(tester.takeException(), isNull);
 
+    await tester.ensureVisible(find.text('Computer analysis graph'));
     await tester.tap(find.text('Computer analysis graph'));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Graph'));
+    await tester.tap(find.text('Graph'));
     await tester.pumpAndSettle();
     expect(find.byType(AnalysisGraph), findsOneWidget);
     await tester.tapAt(tester.getCenter(find.byType(AnalysisGraph)));
