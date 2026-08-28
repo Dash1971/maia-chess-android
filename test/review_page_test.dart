@@ -183,6 +183,43 @@ void main() {
     expect(painter.scores.first.evaluation, 120);
   });
 
+  testWidgets('graph selection is bounded by per-ply SAN labels', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1080, 2400);
+    tester.view.devicePixelRatio = 3;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    const position = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
+    await tester.pumpWidget(
+      MaterialApp(
+        home: ReviewPage(
+          positions: List.filled(100, position),
+          uciMoves: List.filled(99, 'e2e4'),
+          // Reproduces v1.6.6 diagnostics: graph/position data reached ply
+          // 98 while the grouped SAN list only had indices 0..60.
+          sanMoves: List.filled(61, 'e4'),
+          playerIsWhite: true,
+          pgn: '',
+          onHome: () {},
+          evaluator: (_) async => const StockfishReview(0, 'e2e4'),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Computer analysis graph'));
+    await tester.pumpAndSettle();
+
+    final graph = find.byType(AnalysisGraph);
+    final rect = tester.getRect(graph);
+    await tester.tapAt(Offset(rect.right - 1, rect.center.dy));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('61/61'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('evaluation bar renders forced mate at both extremes', (
     tester,
   ) async {

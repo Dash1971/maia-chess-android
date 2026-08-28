@@ -792,13 +792,18 @@ class _GamePageState extends State<GamePage> {
 
   Future<void> _analyzeGame() async {
     if (_positionHistory.length < 2) return;
-    final moves = _game.san_moves().whereType<String>().toList();
+    final moves = _game
+        .getHistory({'verbose': true})
+        .cast<Map<String, dynamic>>()
+        .map((move) => move['san'] as String)
+        .toList(growable: false);
+    final plyCount = min(_uciMoves.length, moves.length);
     await Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (context) => ReviewPage(
-          positions: List.unmodifiable(_positionHistory),
-          uciMoves: List.unmodifiable(_uciMoves),
-          sanMoves: List.unmodifiable(moves),
+          positions: List.unmodifiable(_positionHistory.take(plyCount + 1)),
+          uciMoves: List.unmodifiable(_uciMoves.take(plyCount)),
+          sanMoves: List.unmodifiable(moves.take(plyCount)),
           playerIsWhite: _playerIsWhite,
           pgn: _game.pgn(),
           onHome: _goHome,
@@ -1231,6 +1236,13 @@ class _ReviewPageState extends State<ReviewPage> {
   List<StockfishReview>? _graphScores;
 
   StockfishReview? get _review => _reviews[_ply];
+  int get _maximumPly => max(
+    0,
+    min(
+      widget.positions.length - 1,
+      min(widget.uciMoves.length, widget.sanMoves.length),
+    ),
+  );
 
   @override
   void initState() {
@@ -1276,14 +1288,14 @@ class _ReviewPageState extends State<ReviewPage> {
       _fullAnalysisProgress = 0;
       _graphScores = null;
     });
-    for (var i = 0; i < widget.positions.length && mounted; i++) {
+    for (var i = 0; i <= _maximumPly && mounted; i++) {
       await _analyzePosition(i);
       if (mounted) setState(() => _fullAnalysisProgress = i + 1);
     }
     if (!mounted) return;
     setState(() {
       _graphScores = List.generate(
-        widget.positions.length,
+        _maximumPly + 1,
         (index) => _reviews[index] ?? const StockfishReview(0, ''),
       );
       _fullAnalysisRunning = false;
@@ -1305,7 +1317,7 @@ class _ReviewPageState extends State<ReviewPage> {
   );
 
   void _step(int delta) {
-    setState(() => _ply = (_ply + delta).clamp(0, widget.positions.length - 1));
+    setState(() => _ply = (_ply + delta).clamp(0, _maximumPly));
     unawaited(_analyzePosition(_ply));
   }
 
@@ -1419,12 +1431,12 @@ class _ReviewPageState extends State<ReviewPage> {
                               ),
                               Flexible(
                                 child: Text(
-                                  '$moveLabel  ·  $_ply/${widget.uciMoves.length}',
+                                  '$moveLabel  ·  $_ply/$_maximumPly',
                                   textAlign: TextAlign.center,
                                 ),
                               ),
                               IconButton(
-                                onPressed: _ply == widget.positions.length - 1
+                                onPressed: _ply == _maximumPly
                                     ? null
                                     : () => _step(1),
                                 icon: const Icon(Icons.chevron_right),
@@ -1480,7 +1492,7 @@ class _ReviewPageState extends State<ReviewPage> {
                                   title: const Text('Computer analysis graph'),
                                   subtitle: Text(
                                     _fullAnalysisRunning
-                                        ? '$_fullAnalysisProgress/${widget.positions.length} positions'
+                                        ? '$_fullAnalysisProgress/${_maximumPly + 1} positions'
                                         : _graphScores == null
                                         ? 'Analyze the full game on request'
                                         : 'Tap the graph to jump to a position',
