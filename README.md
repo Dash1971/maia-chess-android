@@ -9,9 +9,15 @@ engine developed by the University of Toronto Computational Social Science Lab.
 ## Screenshots
 
 <p align="center">
-  <img src="docs/screenshots/setup.jpg" width="30%" alt="Mobile Maia game setup screen">
-  <img src="docs/screenshots/gameplay.jpg" width="30%" alt="Playing an offline game against Maia-3">
-  <img src="docs/screenshots/completed-game.jpg" width="30%" alt="Completed Maia-3 game">
+  <img src="docs/screenshots/20260828_v0_completed_game.jpg" width="30%" alt="Completed offline game against Maia-3">
+  <img src="docs/screenshots/20260828_v0_review_moves.jpg" width="30%" alt="Clickable Lichess-style analysis move list">
+  <img src="docs/screenshots/20260828_v0_review_graph.jpg" width="30%" alt="Stockfish evaluation graph with White and Black accuracy">
+</p>
+
+<p align="center">
+  <img src="docs/screenshots/20260828_v0_review_variation.jpg" width="30%" alt="Inline nested analysis variation">
+  <img src="docs/screenshots/20260828_v0_review_graph_opening.jpg" width="30%" alt="Opening position with Stockfish and Maia analysis arrows">
+  <img src="docs/screenshots/20260828_v0_about.jpg" width="30%" alt="Mobile Maia version and open-source project credits">
 </p>
 
 ## User guide
@@ -41,7 +47,7 @@ line is retained as a variation when the PGN is copied.
 
 <p align="center">
   <img src="docs/screenshots/gameplay.jpg" width="38%" alt="Game board, material balance, move list, and takeback control">
-  <img src="docs/screenshots/completed-game.jpg" width="38%" alt="Completed game with PGN and review actions">
+  <img src="docs/screenshots/20260828_v0_completed_game.jpg" width="38%" alt="Completed game with PGN and review actions">
 </p>
 
 ### Review with Stockfish and Maia
@@ -58,8 +64,13 @@ tap-to-navigate evaluation graph. Move the pieces from any reviewed position to
 explore a branch; analysis variations are retained in exported PGN.
 
 <p align="center">
-  <img src="docs/screenshots/review.jpg" width="38%" alt="Stockfish review with evaluation, accuracy, and graph">
-  <img src="docs/screenshots/review-checkmate.jpg" width="38%" alt="Reviewing the final checkmate position">
+  <img src="docs/screenshots/20260828_v0_review_moves.jpg" width="30%" alt="Clickable main-line moves in compact chess notation">
+  <img src="docs/screenshots/20260828_v0_review_variation.jpg" width="30%" alt="Inline nested variation in the move list">
+  <img src="docs/screenshots/20260828_v0_review_graph.jpg" width="30%" alt="Stockfish review with evaluation, accuracy, and graph">
+</p>
+
+<p align="center">
+  <img src="docs/screenshots/20260828_v0_review_graph_opening.jpg" width="38%" alt="Stockfish and Maia suggestions shown as different colored arrows">
 </p>
 
 ### About and licensing
@@ -68,7 +79,7 @@ The About screen shows the installed version and links to Maia-3, Lichess
 Flutter Chessground, Lichess multistockfish, and the bundled licences.
 
 <p align="center">
-  <img src="docs/screenshots/about.jpg" width="38%" alt="Mobile Maia version, project credits, and licence links">
+  <img src="docs/screenshots/20260828_v0_about.jpg" width="38%" alt="Mobile Maia version, project credits, and licence links">
 </p>
 
 ## MVP features
