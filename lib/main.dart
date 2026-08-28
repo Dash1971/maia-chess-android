@@ -352,17 +352,6 @@ class _GamePageState extends State<GamePage> {
           icon: const Icon(Icons.open_in_new),
           label: const Text('Lichess multistockfish'),
         ),
-        TextButton.icon(
-          onPressed: () async {
-            await AppDiagnostics.copyToClipboard();
-            if (!mounted) return;
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(const SnackBar(content: Text('Diagnostics copied')));
-          },
-          icon: const Icon(Icons.copy),
-          label: const Text('Copy diagnostics'),
-        ),
         const Text(
           'This independent community app is not an official Maia-3 or '
           'University of Toronto or Lichess application.',
@@ -1037,6 +1026,20 @@ class _GamePageState extends State<GamePage> {
                     child: const Text('Reset engine defaults'),
                   ),
                 ),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: TextButton.icon(
+                    onPressed: () async {
+                      await AppDiagnostics.copyToClipboard();
+                      if (!mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Diagnostics copied')),
+                      );
+                    },
+                    icon: const Icon(Icons.copy),
+                    label: const Text('Copy diagnostics'),
+                  ),
+                ),
               ],
             ),
             const SizedBox(height: 20),
@@ -1445,6 +1448,8 @@ class _ReviewPageState extends State<ReviewPage> {
                           ),
                           if (_graphScores != null) ...[
                             const SizedBox(height: 8),
+                            AccuracySummary(scores: _graphScores!),
+                            const SizedBox(height: 8),
                             AnalysisGraph(
                               scores: _graphScores!,
                               selectedPly: _ply,
@@ -1521,6 +1526,125 @@ class _ReviewPageState extends State<ReviewPage> {
     if (review.mate != null) return '#${review.mate}';
     final pawns = review.evaluation / 100;
     return '${pawns >= 0 ? '+' : ''}${pawns.toStringAsFixed(2)}';
+  }
+}
+
+class GameAccuracy {
+  const GameAccuracy({required this.white, required this.black});
+
+  final double? white;
+  final double? black;
+
+  static GameAccuracy fromScores(List<StockfishReview> scores) {
+    if (scores.length < 2) {
+      return const GameAccuracy(white: null, black: null);
+    }
+    final winPercents = scores.map((score) => score.whiteWinPercent).toList();
+    final windowSize = (scores.length ~/ 10).clamp(2, 8);
+    final windows = <List<double>>[
+      ...List.generate(
+        min(windowSize, winPercents.length) - 2,
+        (_) => winPercents.take(windowSize).toList(),
+      ),
+      for (var start = 0; start + windowSize <= winPercents.length; start++)
+        winPercents.sublist(start, start + windowSize),
+    ];
+    final whiteMoves = <(double, double)>[];
+    final blackMoves = <(double, double)>[];
+    for (var ply = 0; ply + 1 < scores.length; ply++) {
+      final whiteMoved = ply.isEven;
+      final beforeWhite = winPercents[ply];
+      final afterWhite = winPercents[ply + 1];
+      final before = whiteMoved ? beforeWhite : 100 - beforeWhite;
+      final after = whiteMoved ? afterWhite : 100 - afterWhite;
+      final accuracy = moveAccuracy(before, after);
+      final weight = _standardDeviation(windows[ply]).clamp(0.5, 12.0);
+      (whiteMoved ? whiteMoves : blackMoves).add((accuracy, weight));
+    }
+    return GameAccuracy(
+      white: _gameMean(whiteMoves),
+      black: _gameMean(blackMoves),
+    );
+  }
+
+  static double moveAccuracy(double before, double after) {
+    if (after >= before) return 100;
+    final loss = before - after;
+    return (103.1668100711649 * exp(-0.04354415386753951 * loss) -
+            3.166924740191411 +
+            1)
+        .clamp(0, 100)
+        .toDouble();
+  }
+
+  static double _standardDeviation(List<double> values) {
+    final mean = values.reduce((total, value) => total + value) / values.length;
+    final variance =
+        values
+            .map((value) => pow(value - mean, 2))
+            .reduce((total, value) => total + value) /
+        values.length;
+    return sqrt(variance);
+  }
+
+  static double? _gameMean(List<(double, double)> moves) {
+    if (moves.isEmpty) return null;
+    final totalWeight = moves.fold<double>(0, (total, move) => total + move.$2);
+    final weighted =
+        moves.fold<double>(0, (total, move) => total + move.$1 * move.$2) /
+        totalWeight;
+    final harmonic = moves.any((move) => move.$1 == 0)
+        ? 0.0
+        : moves.length /
+              moves.fold<double>(0, (total, move) => total + 1 / move.$1);
+    return (weighted + harmonic) / 2;
+  }
+}
+
+class AccuracySummary extends StatelessWidget {
+  const AccuracySummary({required this.scores, super.key});
+
+  final List<StockfishReview> scores;
+
+  @override
+  Widget build(BuildContext context) {
+    final accuracy = GameAccuracy.fromScores(scores);
+    String label(double? value) =>
+        value == null ? '—' : '${value.clamp(0, 100).toStringAsFixed(1)}%';
+    return Semantics(
+      label: 'Game accuracy',
+      child: Card(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Row(
+            children: [
+              const Icon(Icons.gps_fixed),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const Text(
+                      'Accuracy',
+                      style: TextStyle(fontWeight: FontWeight.w700),
+                    ),
+                    const SizedBox(height: 4),
+                    Wrap(
+                      spacing: 16,
+                      runSpacing: 4,
+                      children: [
+                        Text('White ${label(accuracy.white)}'),
+                        Text('Black ${label(accuracy.black)}'),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
 
@@ -1941,6 +2065,8 @@ class StockfishReview {
         : (21 - min(10, mate!.abs())) * 100 * (mate! > 0 ? 1 : -1);
     return 2 / (1 + exp(-0.00368208 * value)) - 1;
   }
+
+  double get whiteWinPercent => 50 + 50 * whiteWinningChances;
 }
 
 class MaiaEncoding {

@@ -49,6 +49,15 @@ void main() {
 
     expect(find.text('1.6.6'), findsOneWidget);
     expect(find.text('1.6.4'), findsNothing);
+    expect(find.text('Copy diagnostics'), findsNothing);
+  });
+
+  testWidgets('Copy diagnostics is in Advanced settings', (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    await tester.pumpWidget(const MaiaChessApp());
+    await tester.tap(find.text('Advanced'));
+    await tester.pumpAndSettle();
+
     expect(find.text('Copy diagnostics'), findsOneWidget);
   });
 
@@ -88,7 +97,23 @@ void main() {
     await tester.tap(find.text('Computer analysis graph'));
     await tester.pumpAndSettle();
     expect(find.byType(AnalysisGraph), findsOneWidget);
+    expect(find.text('White 100.0%'), findsOneWidget);
+    expect(find.text('Black —'), findsOneWidget);
     expect(tester.takeException(), isNull);
+  });
+
+  test('accuracy is computed separately for White and Black', () {
+    final accuracy = GameAccuracy.fromScores(const [
+      StockfishReview(0, ''),
+      StockfishReview(0, ''),
+      StockfishReview(300, ''),
+      StockfishReview(300, ''),
+    ]);
+
+    expect(accuracy.white, 100);
+    expect(accuracy.black, lessThan(50));
+    expect(GameAccuracy.moveAccuracy(50, 50), 100);
+    expect(GameAccuracy.moveAccuracy(40, 60), 100);
   });
 
   testWidgets('evaluation bar uses signed Lichess-style score', (tester) async {

@@ -10,6 +10,7 @@ import java.nio.FloatBuffer
 import java.nio.LongBuffer
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
+import org.junit.Assert.assertNotEquals
 import org.junit.Test
 import org.junit.runner.RunWith
 
@@ -47,6 +48,42 @@ class MaiaInferenceTest {
                     }
                 }
             }
+        }
+    }
+
+    @Test
+    fun packagedModelUsesRequestedElo() {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val model = File(context.cacheDir, "instrumentation-maia3-79m.onnx")
+        context.assets.open("flutter_assets/assets/models/maia3-79m.onnx").use { input ->
+            FileOutputStream(model).use { output -> input.copyTo(output) }
+        }
+        val environment = OrtEnvironment.getEnvironment()
+        environment.createSession(model.absolutePath).use { session ->
+            fun logitsAt(eloValue: Long): FloatArray {
+                OnnxTensor.createTensor(
+                    environment,
+                    FloatBuffer.wrap(FloatArray(64 * 97)),
+                    longArrayOf(1, 64, 97),
+                ).use { tokens ->
+                    OnnxTensor.createTensor(
+                        environment,
+                        LongBuffer.wrap(longArrayOf(eloValue)),
+                        longArrayOf(1),
+                    ).use { elo ->
+                        session.run(
+                            mapOf("tokens" to tokens, "self_elo" to elo, "opponent_elo" to elo)
+                        ).use { output ->
+                            @Suppress("UNCHECKED_CAST")
+                            return (output.get("move_logits").get().value as Array<FloatArray>)[0].copyOf()
+                        }
+                    }
+                }
+            }
+            val at500 = logitsAt(500)
+            val at1500 = logitsAt(1500)
+            assertTrue(at500.zip(at1500).any { (low, medium) -> kotlin.math.abs(low - medium) > 0.01f })
+            assertNotEquals(at500.indices.maxBy { at500[it] }, at1500.indices.maxBy { at1500[it] })
         }
     }
 }
