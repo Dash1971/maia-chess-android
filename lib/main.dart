@@ -2938,6 +2938,34 @@ class _ReviewPageState extends State<ReviewPage> {
     final maiaLoading = _inVariation
         ? _variationMaiaLoading
         : _maiaLoading.contains(_ply);
+    Widget engineRow({
+      required String label,
+      required Color color,
+      required String text,
+      Key? key,
+    }) => SizedBox(
+      key: key,
+      height: 26,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          SizedBox(
+            width: 48,
+            child: Text(
+              label,
+              style: TextStyle(
+                color: color,
+                fontWeight: FontWeight.w700,
+                fontFeatures: const [FontFeature.tabularFigures()],
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(text, maxLines: 1, overflow: TextOverflow.ellipsis),
+          ),
+        ],
+      ),
+    );
     return Container(
       key: const ValueKey('analysis-engine-lines'),
       decoration: BoxDecoration(
@@ -2947,65 +2975,33 @@ class _ReviewPageState extends State<ReviewPage> {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
       child: Column(
         children: [
-          if (error != null)
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                error,
-                style: TextStyle(color: Theme.of(context).colorScheme.error),
-              ),
-            )
-          else if (loading && stockfishLines.isEmpty)
-            const LinearProgressIndicator(minHeight: 2)
-          else
-            for (var index = 0; index < stockfishLines.length; index++)
-              Padding(
-                padding: EdgeInsets.only(top: index == 0 ? 0 : 5),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SizedBox(
-                      width: 48,
-                      child: Text(
-                        _formatLineEvaluation(stockfishLines[index]),
-                        style: const TextStyle(
-                          color: Color(0xff72b7ee),
-                          fontWeight: FontWeight.w700,
-                          fontFeatures: [FontFeature.tabularFigures()],
-                        ),
-                      ),
-                    ),
-                    Expanded(child: Text(_pvSan(stockfishLines[index]))),
-                  ],
-                ),
-              ),
-          if (maiaMove != null && maiaMove != review?.bestMove)
-            Padding(
-              padding: const EdgeInsets.only(top: 5),
-              child: Row(
-                children: [
-                  SizedBox(
-                    width: 48,
-                    child: Text(
-                      'M${widget.maiaElo}',
-                      style: const TextStyle(
-                        color: Color(0xffe89b3c),
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
-                  Expanded(child: Text(_sanForUci(_currentFen, maiaMove))),
-                ],
-              ),
+          for (var index = 0; index < 2; index++)
+            engineRow(
+              key: ValueKey('stockfish-line-${index + 1}'),
+              label: index < stockfishLines.length
+                  ? _formatLineEvaluation(stockfishLines[index])
+                  : 'SF${index + 1}',
+              color: const Color(0xff72b7ee),
+              text:
+                  error ??
+                  (index < stockfishLines.length
+                      ? _pvSan(stockfishLines[index])
+                      : loading
+                      ? 'Analyzing…'
+                      : '—'),
             ),
-          if (maiaLoading && maiaMove == null)
-            const Padding(
-              padding: EdgeInsets.only(top: 5),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Text('Maia analyzing…'),
-              ),
-            ),
+          engineRow(
+            key: const ValueKey('maia-engine-line'),
+            label: 'M${widget.maiaElo}',
+            color: const Color(0xffe89b3c),
+            text: maiaMove == null
+                ? maiaLoading
+                      ? 'Analyzing…'
+                      : '—'
+                : maiaMove == review?.bestMove
+                ? '${_sanForUci(_currentFen, maiaMove)} · Matches Stockfish'
+                : _sanForUci(_currentFen, maiaMove),
+          ),
         ],
       ),
     );
@@ -3125,13 +3121,23 @@ class _ReviewPageState extends State<ReviewPage> {
   }
 
   Widget _movesNotation() {
+    final rootMainline = _maximumPly == 0
+        ? _variations
+              .where(
+                (variation) =>
+                    variation.basePly == 0 && variation.sanMoves.isNotEmpty,
+              )
+              .firstOrNull
+        : null;
     final variationsByBase = <int, List<RecordedVariation>>{};
     for (final variation in _variations) {
+      if (identical(variation, rootMainline)) continue;
       variationsByBase.putIfAbsent(variation.basePly, () => []).add(variation);
     }
     final renderedVariations = <RecordedVariation>{};
     final tokens = <Widget>[];
-    for (var index = 0; index < _maximumPly; index++) {
+    final mainlineLength = rootMainline?.sanMoves.length ?? _maximumPly;
+    for (var index = 0; index < mainlineLength; index++) {
       if (index.isEven) {
         tokens.add(
           Padding(
@@ -3148,13 +3154,23 @@ class _ReviewPageState extends State<ReviewPage> {
       }
       tokens.add(
         _notationMove(
-          key: ValueKey('main-move-$index'),
-          san: widget.sanMoves[index],
-          selected: !_inVariation && _ply == index + 1,
-          onTap: () => setState(() => _showMainPly(index + 1)),
+          key: ValueKey('mainline-move-$index'),
+          san: rootMainline?.sanMoves[index] ?? widget.sanMoves[index],
+          selected: rootMainline != null
+              ? identical(_openedVariation, rootMainline) &&
+                    _variationIndex == index + 1
+              : !_inVariation && _ply == index + 1,
+          onTap: rootMainline != null
+              ? () => _openVariation(rootMainline, index + 1)
+              : () => setState(() => _showMainPly(index + 1)),
         ),
       );
-      for (final variation in variationsByBase[index] ?? const []) {
+      final attachedVariations = <RecordedVariation>[
+        ...variationsByBase[index] ?? const [],
+        if (rootMainline != null)
+          ...rootMainline.children.where((child) => child.basePly == index),
+      ];
+      for (final variation in attachedVariations) {
         tokens.add(_variationLine(variation));
         renderedVariations.add(variation);
       }
@@ -3162,6 +3178,7 @@ class _ReviewPageState extends State<ReviewPage> {
     // A review may begin from a terminal or deliberately truncated main line.
     // Keep analysis branches visible even when there is no corresponding row.
     for (final variation in _variations) {
+      if (identical(variation, rootMainline)) continue;
       if (renderedVariations.add(variation)) {
         tokens.add(_variationLine(variation));
       }

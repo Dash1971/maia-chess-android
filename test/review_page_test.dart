@@ -424,6 +424,119 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('Maia engine row is stable when Maia matches Stockfish', (
+    tester,
+  ) async {
+    const start = chess.Chess.DEFAULT_POSITION;
+    final maia = Completer<String?>();
+    await tester.pumpWidget(
+      MaterialApp(
+        home: ReviewPage(
+          positions: const [start],
+          uciMoves: const [],
+          sanMoves: const [],
+          playerIsWhite: true,
+          pgn: '[Result "*"]\n\n*',
+          onHome: () {},
+          evaluator: (_) async => const StockfishReview(20, 'e2e4'),
+          maiaEvaluator: (_, _) => maia.future,
+        ),
+      ),
+    );
+    await tester.pump();
+
+    final panel = find.byKey(const ValueKey('analysis-engine-lines'));
+    final before = tester.getSize(panel);
+    expect(find.byKey(const ValueKey('maia-engine-line')), findsOneWidget);
+    expect(find.text('Analyzing…'), findsWidgets);
+
+    maia.complete('e2e4');
+    await tester.pumpAndSettle();
+
+    expect(tester.getSize(panel), before);
+    expect(find.text('e4 · Matches Stockfish'), findsOneWidget);
+  });
+
+  testWidgets(
+    'analysis root is an unbracketed mainline and paths survive branching',
+    (tester) async {
+      const start = chess.Chess.DEFAULT_POSITION;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: ReviewPage(
+            positions: const [start],
+            uciMoves: const [],
+            sanMoves: const [],
+            playerIsWhite: true,
+            pgn: '[Result "*"]\n\n*',
+            onHome: () {},
+            evaluator: (_) async => const StockfishReview(20, 'a2a3'),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      var board = tester.widget<cg.Chessboard>(find.byType(cg.Chessboard));
+      board.onMove!(dc.NormalMove.fromUci('e2e4'));
+      await tester.pumpAndSettle();
+      board = tester.widget<cg.Chessboard>(find.byType(cg.Chessboard));
+      board.onMove!(dc.NormalMove.fromUci('e7e5'));
+      await tester.pumpAndSettle();
+      board = tester.widget<cg.Chessboard>(find.byType(cg.Chessboard));
+      board.onMove!(dc.NormalMove.fromUci('g1f3'));
+      await tester.pumpAndSettle();
+
+      final moveList = find.byKey(const ValueKey('analysis-move-list'));
+      expect(
+        find.descendant(of: moveList, matching: find.text('(')),
+        findsNothing,
+      );
+      expect(find.byKey(const ValueKey('mainline-move-0')), findsOneWidget);
+      expect(find.byKey(const ValueKey('mainline-move-1')), findsOneWidget);
+      expect(find.byKey(const ValueKey('mainline-move-2')), findsOneWidget);
+
+      final firstMainMove = find.byKey(const ValueKey('mainline-move-0'));
+      await tester.ensureVisible(firstMainMove);
+      await tester.tap(firstMainMove);
+      await tester.pumpAndSettle();
+      board = tester.widget<cg.Chessboard>(find.byType(cg.Chessboard));
+      board.onMove!(dc.NormalMove.fromUci('c7c5'));
+      await tester.pumpAndSettle();
+
+      final replay = chess.Chess();
+      replay.move('e4');
+      replay.move('e5');
+      final afterE4E5 = replay.fen;
+      replay.move('Nf3');
+      final afterE4E5Nf3 = replay.fen;
+      final sicilian = chess.Chess()
+        ..move('e4')
+        ..move('c5');
+      String positionCore(String fen) => fen.split(' ').take(3).join(' ');
+
+      final secondMainMove = find.byKey(const ValueKey('mainline-move-1'));
+      await tester.ensureVisible(secondMainMove);
+      await tester.tap(secondMainMove);
+      await tester.pumpAndSettle();
+      board = tester.widget<cg.Chessboard>(find.byType(cg.Chessboard));
+      expect(positionCore(board.controller.fen), positionCore(afterE4E5));
+
+      final c5 = find.descendant(of: moveList, matching: find.text('c5'));
+      await tester.ensureVisible(c5);
+      await tester.tap(c5);
+      await tester.pumpAndSettle();
+      board = tester.widget<cg.Chessboard>(find.byType(cg.Chessboard));
+      expect(positionCore(board.controller.fen), positionCore(sicilian.fen));
+
+      final thirdMainMove = find.byKey(const ValueKey('mainline-move-2'));
+      await tester.ensureVisible(thirdMainMove);
+      await tester.tap(thirdMainMove);
+      await tester.pumpAndSettle();
+      board = tester.widget<cg.Chessboard>(find.byType(cg.Chessboard));
+      expect(positionCore(board.controller.fen), positionCore(afterE4E5Nf3));
+    },
+  );
+
   testWidgets('branching from a variation creates a nested clickable line', (
     tester,
   ) async {
