@@ -245,7 +245,7 @@ void main() {
     expect(find.text('Copy diagnostics'), findsOneWidget);
   });
 
-  testWidgets('review page lays out inside a vertical scroll view', (
+  testWidgets('review page uses a fixed internally scrolling tab panel', (
     tester,
   ) async {
     tester.view.physicalSize = const Size(1080, 2400);
@@ -282,8 +282,10 @@ void main() {
     expect(find.byTooltip('Flip board'), findsOneWidget);
     expect(find.text('+0.0'), findsWidgets);
 
-    await tester.ensureVisible(find.text('Graph'));
-    await tester.tap(find.text('Graph'));
+    await tester.tap(find.byTooltip('Computer analysis'));
+    await tester.pump();
+    expect(find.text('Run computer analysis'), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('run-computer-analysis')));
     await tester.pumpAndSettle();
     expect(find.byType(AnalysisGraph), findsOneWidget);
     expect(find.text('White 100.0%'), findsOneWidget);
@@ -604,9 +606,9 @@ void main() {
       ),
     );
     await tester.pump();
-    final graphAction = find.text('Graph');
-    await tester.ensureVisible(graphAction);
-    await tester.tap(graphAction);
+    await tester.tap(find.byTooltip('Computer analysis'));
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('run-computer-analysis')));
     await tester.pump();
     expect(find.byType(AnalysisGraph), findsNothing);
 
@@ -649,8 +651,9 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    await tester.ensureVisible(find.text('Graph'));
-    await tester.tap(find.text('Graph'));
+    await tester.tap(find.byTooltip('Computer analysis'));
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('run-computer-analysis')));
     await tester.pumpAndSettle();
 
     final graph = find.byType(AnalysisGraph);
@@ -721,8 +724,9 @@ void main() {
     expect(find.text('#-1'), findsWidgets);
     expect(tester.takeException(), isNull);
 
-    await tester.ensureVisible(find.text('Graph'));
-    await tester.tap(find.text('Graph'));
+    await tester.tap(find.byTooltip('Computer analysis'));
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('run-computer-analysis')));
     await tester.pumpAndSettle();
     expect(find.byType(AnalysisGraph), findsOneWidget);
     await tester.tapAt(tester.getCenter(find.byType(AnalysisGraph)));
@@ -786,6 +790,8 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
+    final tabPanel = find.byKey(const ValueKey('analysis-tab-panel'));
+    final initialPanelSize = tester.getSize(tabPanel);
 
     for (var ply = 1; ply < positions.length; ply++) {
       await tester.ensureVisible(find.byTooltip('Next move'));
@@ -795,6 +801,8 @@ void main() {
     }
     final board = tester.widget<cg.Chessboard>(find.byType(cg.Chessboard));
     expect(board.controller.fen, positions.last);
+    expect(tester.getSize(tabPanel), initialPanelSize);
+    expect(find.byKey(const ValueKey('analysis-move-scroll')), findsOneWidget);
   });
 
   test('analysis graph fills black above and white below the curve', () async {

@@ -2340,6 +2340,7 @@ class _ReviewPageState extends State<ReviewPage> {
   String? _analysisError;
   bool _flipped = false;
   bool _fullAnalysisRunning = false;
+  int _fullAnalysisCompleted = 0;
   List<StockfishReview>? _graphScores;
   final Map<int, String> _maiaMoves = {};
   final Set<int> _maiaLoading = {};
@@ -2841,17 +2842,22 @@ class _ReviewPageState extends State<ReviewPage> {
     if (_fullAnalysisRunning) return;
     setState(() {
       _fullAnalysisRunning = true;
+      _fullAnalysisCompleted = 0;
       _graphScores = null;
+      _analysisError = null;
     });
     for (var i = 0; i <= _maximumPly && mounted; i++) {
       await _analyzePosition(i);
+      if (mounted) setState(() => _fullAnalysisCompleted = i + 1);
     }
     if (!mounted) return;
+    final complete = List.generate(_maximumPly + 1, (index) => _reviews[index]);
     setState(() {
-      _graphScores = List.generate(
-        _maximumPly + 1,
-        (index) => _reviews[index] ?? const StockfishReview(0, ''),
-      );
+      if (complete.every((score) => score != null)) {
+        _graphScores = complete.cast<StockfishReview>();
+      } else {
+        _analysisError ??= 'Computer analysis did not complete. Try again.';
+      }
       _fullAnalysisRunning = false;
     });
   }
@@ -3043,79 +3049,70 @@ class _ReviewPageState extends State<ReviewPage> {
     );
   }
 
-  Widget _variationLine(RecordedVariation variation, [int depth = 0]) {
-    final children = variation.children;
-    return Container(
-      margin: EdgeInsets.only(top: 2, left: depth * 10.0),
-      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-      decoration: BoxDecoration(
+  Widget _variationLine(RecordedVariation variation, [int depth = 0]) =>
+      Container(
+        width: double.infinity,
+        margin: EdgeInsets.only(left: 34 + depth * 14.0),
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
         color: Theme.of(context).colorScheme.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(3),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Wrap(
-            spacing: 1,
-            runSpacing: 1,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            children: [
-              Text(
-                '(',
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Wrap(
+              spacing: 1,
+              runSpacing: 0,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                Text(
+                  '(',
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
                 ),
-              ),
-              for (
-                var index = 0;
-                index < variation.sanMoves.length;
-                index++
-              ) ...[
-                if ((variation.basePly + index).isEven)
-                  Padding(
-                    padding: const EdgeInsets.only(right: 1),
-                    child: Text(
+                for (
+                  var index = 0;
+                  index < variation.sanMoves.length;
+                  index++
+                ) ...[
+                  if ((variation.basePly + index).isEven)
+                    Text(
                       '${((variation.basePly + index) ~/ 2) + 1}.',
                       style: TextStyle(
                         fontSize: 13,
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
-                    ),
-                  )
-                else if (index == 0)
-                  Padding(
-                    padding: const EdgeInsets.only(right: 1),
-                    child: Text(
+                    )
+                  else if (index == 0)
+                    Text(
                       '${((variation.basePly + index) ~/ 2) + 1}...',
                       style: TextStyle(
                         fontSize: 13,
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
                     ),
+                  _notationMove(
+                    key: ValueKey('variation-${variation.hashCode}-$index'),
+                    san: variation.sanMoves[index],
+                    variation: true,
+                    selected:
+                        identical(_openedVariation, variation) &&
+                        _variationIndex == index + 1,
+                    onTap: () => _openVariation(variation, index + 1),
                   ),
-                _notationMove(
-                  key: ValueKey('variation-${variation.hashCode}-$index'),
-                  san: variation.sanMoves[index],
-                  variation: true,
-                  selected:
-                      identical(_openedVariation, variation) &&
-                      _variationIndex == index + 1,
-                  onTap: () => _openVariation(variation, index + 1),
+                ],
+                Text(
+                  ')',
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
                 ),
               ],
-              Text(
-                ')',
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-              ),
-            ],
-          ),
-          for (final child in children) _variationLine(child, depth + 1),
-        ],
-      ),
-    );
-  }
+            ),
+            for (final child in variation.children)
+              _variationLine(child, depth + 1),
+          ],
+        ),
+      );
 
   Widget _movesNotation() {
     final rootMainline = _maximumPly == 0
@@ -3132,44 +3129,54 @@ class _ReviewPageState extends State<ReviewPage> {
       variationsByBase.putIfAbsent(variation.basePly, () => []).add(variation);
     }
     final renderedVariations = <RecordedVariation>{};
-    final tokens = <Widget>[];
+    final rows = <Widget>[];
     final mainlineLength = rootMainline?.sanMoves.length ?? _maximumPly;
-    for (var index = 0; index < mainlineLength; index++) {
-      if (index.isEven) {
-        tokens.add(
-          Padding(
-            padding: const EdgeInsets.only(left: 4),
-            child: Text(
-              '${(index ~/ 2) + 1}.',
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-                fontFeatures: const [FontFeature.tabularFigures()],
+    for (var whiteIndex = 0; whiteIndex < mainlineLength; whiteIndex += 2) {
+      Widget move(int index) => _notationMove(
+        key: ValueKey('mainline-move-$index'),
+        san: rootMainline?.sanMoves[index] ?? widget.sanMoves[index],
+        selected: rootMainline != null
+            ? identical(_openedVariation, rootMainline) &&
+                  _variationIndex == index + 1
+            : !_inVariation && _ply == index + 1,
+        onTap: rootMainline != null
+            ? () => _openVariation(rootMainline, index + 1)
+            : () => setState(() => _showMainPly(index + 1)),
+      );
+      rows.add(
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            SizedBox(
+              width: 34,
+              child: Text(
+                '${(whiteIndex ~/ 2) + 1}.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  fontFeatures: const [FontFeature.tabularFigures()],
+                ),
               ),
             ),
-          ),
-        );
-      }
-      tokens.add(
-        _notationMove(
-          key: ValueKey('mainline-move-$index'),
-          san: rootMainline?.sanMoves[index] ?? widget.sanMoves[index],
-          selected: rootMainline != null
-              ? identical(_openedVariation, rootMainline) &&
-                    _variationIndex == index + 1
-              : !_inVariation && _ply == index + 1,
-          onTap: rootMainline != null
-              ? () => _openVariation(rootMainline, index + 1)
-              : () => setState(() => _showMainPly(index + 1)),
+            Expanded(child: move(whiteIndex)),
+            Expanded(
+              child: whiteIndex + 1 < mainlineLength
+                  ? move(whiteIndex + 1)
+                  : const SizedBox.shrink(),
+            ),
+          ],
         ),
       );
-      final attachedVariations = <RecordedVariation>[
-        ...variationsByBase[index] ?? const [],
-        if (rootMainline != null)
-          ...rootMainline.children.where((child) => child.basePly == index),
-      ];
-      for (final variation in attachedVariations) {
-        tokens.add(_variationLine(variation));
-        renderedVariations.add(variation);
+      for (final basePly in [whiteIndex, whiteIndex + 1]) {
+        final attachedVariations = <RecordedVariation>[
+          ...variationsByBase[basePly] ?? const [],
+          if (rootMainline != null)
+            ...rootMainline.children.where((child) => child.basePly == basePly),
+        ];
+        for (final variation in attachedVariations) {
+          rows.add(_variationLine(variation));
+          renderedVariations.add(variation);
+        }
       }
     }
     // A review may begin from a terminal or deliberately truncated main line.
@@ -3177,7 +3184,7 @@ class _ReviewPageState extends State<ReviewPage> {
     for (final variation in _variations) {
       if (identical(variation, rootMainline)) continue;
       if (renderedVariations.add(variation)) {
-        tokens.add(_variationLine(variation));
+        rows.add(_variationLine(variation));
       }
     }
     return Container(
@@ -3188,12 +3195,10 @@ class _ReviewPageState extends State<ReviewPage> {
         borderRadius: BorderRadius.circular(6),
       ),
       clipBehavior: Clip.antiAlias,
-      padding: const EdgeInsets.all(6),
-      child: Wrap(
-        spacing: 1,
-        runSpacing: 2,
-        crossAxisAlignment: WrapCrossAlignment.center,
-        children: tokens,
+      child: SingleChildScrollView(
+        key: const ValueKey('analysis-move-scroll'),
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: Column(children: rows),
       ),
     );
   }
@@ -3244,6 +3249,155 @@ class _ReviewPageState extends State<ReviewPage> {
       ScaffoldMessenger.of(context)
           .showSnackBar(const SnackBar(content: Text('FEN copied')));
     }
+  }
+
+  Widget _analysisTabBar() {
+    final colors = Theme.of(context).colorScheme;
+    Widget tab({
+      required bool graph,
+      required IconData icon,
+      required String tooltip,
+    }) {
+      final selected = _showGraph == graph;
+      return Expanded(
+        child: Tooltip(
+          message: tooltip,
+          child: InkWell(
+            key: ValueKey(graph ? 'graph-tab' : 'moves-tab'),
+            onTap: () => setState(() => _showGraph = graph),
+            child: Container(
+              height: 32,
+              decoration: BoxDecoration(
+                border: Border(
+                  bottom: BorderSide(
+                    color: selected ? colors.primary : Colors.transparent,
+                    width: 2,
+                  ),
+                ),
+              ),
+              child: Icon(
+                icon,
+                size: 19,
+                color: selected ? colors.primary : colors.onSurfaceVariant,
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Material(
+      color: colors.surface,
+      child: Row(
+        children: [
+          tab(
+            graph: false,
+            icon: Icons.account_tree_outlined,
+            tooltip: 'Moves',
+          ),
+          tab(
+            graph: true,
+            icon: Icons.area_chart_outlined,
+            tooltip: 'Computer analysis',
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _movesTab() => Column(
+    children: [
+      Expanded(child: _movesNotation()),
+      SizedBox(
+        height: 42,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            IconButton(
+              tooltip: 'Previous move',
+              onPressed: (_inVariation ? _variationIndex == 0 : _ply == 0)
+                  ? null
+                  : () => _step(-1),
+              icon: const Icon(Icons.chevron_left),
+            ),
+            IconButton(
+              tooltip: 'Next move',
+              onPressed:
+                  (_inVariation
+                      ? _variationIndex == _variationSan.length
+                      : _ply == _maximumPly)
+                  ? null
+                  : () => _step(1),
+              icon: const Icon(Icons.chevron_right),
+            ),
+          ],
+        ),
+      ),
+    ],
+  );
+
+  Widget _graphTab() {
+    final scores = _graphScores;
+    if (scores != null) {
+      return SingleChildScrollView(
+        padding: const EdgeInsets.all(8),
+        child: Column(
+          children: [
+            AccuracySummary(scores: scores),
+            const SizedBox(height: 8),
+            AnalysisGraph(
+              scores: scores,
+              selectedPly: _ply,
+              onSelected: (ply) => setState(() => _showMainPly(ply)),
+            ),
+            const SizedBox(height: 8),
+            TextButton.icon(
+              onPressed: _analyzeFullGame,
+              icon: const Icon(Icons.refresh),
+              label: const Text('Run computer analysis again'),
+            ),
+          ],
+        ),
+      );
+    }
+    final total = _maximumPly + 1;
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (_fullAnalysisRunning) ...[
+              LinearProgressIndicator(
+                value: total == 0 ? null : _fullAnalysisCompleted / total,
+              ),
+              const SizedBox(height: 10),
+              Text('Analyzing $_fullAnalysisCompleted of $total positions…'),
+            ] else ...[
+              const Text(
+                'Run computer analysis to generate the evaluation graph and White/Black accuracy.',
+                textAlign: TextAlign.center,
+              ),
+              if (_analysisError != null) ...[
+                const SizedBox(height: 8),
+                Text(
+                  _analysisError!,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Theme.of(context).colorScheme.error),
+                ),
+              ],
+              const SizedBox(height: 12),
+              FilledButton.icon(
+                key: const ValueKey('run-computer-analysis'),
+                onPressed: _analyzeFullGame,
+                icon: const Icon(Icons.analytics_outlined),
+                label: const Text('Run computer analysis'),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
   }
 
   @override
@@ -3341,163 +3495,84 @@ class _ReviewPageState extends State<ReviewPage> {
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
-            return SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(12, 8, 12, 24),
-              child: Center(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 600),
-                  child: LayoutBuilder(
-                    builder: (context, contentConstraints) {
-                      // The board row also contains the 24px evaluation bar and
-                      // an 8px gap. Compute from the actual padded content width,
-                      // not the outer viewport width.
-                      final boardSize = max(
-                        0.0,
-                        min(contentConstraints.maxWidth - 32, 560.0),
-                      );
-                      return Column(
+            final contentWidth = min(constraints.maxWidth, 600.0);
+            final boardByWidth = max(0.0, contentWidth - 32);
+            final boardByHeight = max(190.0, constraints.maxHeight - 365);
+            final boardSize = min(boardByWidth, min(boardByHeight, 560.0));
+            return Center(
+              child: SizedBox(
+                width: contentWidth,
+                height: constraints.maxHeight,
+                child: Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(12, 6, 12, 0),
+                      child: _engineLinesPanel(),
+                    ),
+                    const SizedBox(height: 6),
+                    SizedBox(
+                      height: boardSize,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          _engineLinesPanel(),
-                          const SizedBox(height: 8),
+                          EvaluationBar(evaluation: evaluation, mate: mate),
+                          const SizedBox(width: 8),
                           SizedBox(
+                            width: boardSize,
                             height: boardSize,
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                EvaluationBar(
-                                  evaluation: evaluation,
-                                  mate: mate,
-                                ),
-                                const SizedBox(width: 8),
-                                SizedBox(
-                                  width: boardSize,
-                                  height: boardSize,
-                                  child: cg.Chessboard(
-                                    controller: _boardController,
-                                    size: boardSize,
-                                    orientation: _flipped
-                                        ? (widget.playerIsWhite
-                                              ? dc.Side.black
-                                              : dc.Side.white)
-                                        : (widget.playerIsWhite
-                                              ? dc.Side.white
-                                              : dc.Side.black),
-                                    onMove: _onAnalysisMove,
-                                    shapes: _arrows,
-                                    settings: const cg.ChessboardSettings(
-                                      colorScheme:
-                                          cg.ChessboardColorScheme.brown,
-                                      pieceAssets: cg.PieceSet.cburnettAssets,
-                                      enableCoordinates: true,
-                                    ),
-                                  ),
-                                ),
-                              ],
+                            child: cg.Chessboard(
+                              controller: _boardController,
+                              size: boardSize,
+                              orientation: _flipped
+                                  ? (widget.playerIsWhite
+                                        ? dc.Side.black
+                                        : dc.Side.white)
+                                  : (widget.playerIsWhite
+                                        ? dc.Side.white
+                                        : dc.Side.black),
+                              onMove: _onAnalysisMove,
+                              shapes: _arrows,
+                              settings: const cg.ChessboardSettings(
+                                colorScheme: cg.ChessboardColorScheme.brown,
+                                pieceAssets: cg.PieceSet.cburnettAssets,
+                                enableCoordinates: true,
+                              ),
                             ),
                           ),
-                          const SizedBox(height: 12),
-                          if (openingName != null)
-                            Padding(
-                              padding: const EdgeInsets.only(top: 8),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  const Icon(
-                                    Icons.menu_book_outlined,
-                                    size: 18,
-                                  ),
-                                  const SizedBox(width: 6),
-                                  Flexible(
-                                    child: Text(
-                                      openingName,
-                                      textAlign: TextAlign.center,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          const SizedBox(height: 8),
-                          SegmentedButton<bool>(
-                            segments: const [
-                              ButtonSegment(
-                                value: false,
-                                icon: Icon(Icons.list_alt),
-                                label: Text('Moves'),
-                              ),
-                              ButtonSegment(
-                                value: true,
-                                icon: Icon(Icons.show_chart),
-                                label: Text('Graph'),
-                              ),
-                            ],
-                            selected: {_showGraph},
-                            onSelectionChanged: (selection) {
-                              final showGraph = selection.first;
-                              setState(() => _showGraph = showGraph);
-                              if (showGraph &&
-                                  _graphScores == null &&
-                                  !_fullAnalysisRunning) {
-                                _analyzeFullGame();
-                              }
-                            },
-                          ),
-                          const SizedBox(height: 8),
-                          if (!_showGraph)
-                            Column(
-                              children: [
-                                _movesNotation(),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    IconButton(
-                                      tooltip: 'Previous move',
-                                      onPressed:
-                                          (_inVariation
-                                              ? _variationIndex == 0
-                                              : _ply == 0)
-                                          ? null
-                                          : () => _step(-1),
-                                      icon: const Icon(Icons.chevron_left),
-                                    ),
-                                    IconButton(
-                                      tooltip: 'Next move',
-                                      onPressed:
-                                          (_inVariation
-                                              ? _variationIndex ==
-                                                    _variationSan.length
-                                              : _ply == _maximumPly)
-                                          ? null
-                                          : () => _step(1),
-                                      icon: const Icon(Icons.chevron_right),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            )
-                          else if (_graphScores != null) ...[
-                            AccuracySummary(scores: _graphScores!),
-                            const SizedBox(height: 8),
-                            AnalysisGraph(
-                              scores: _graphScores!,
-                              selectedPly: _ply,
-                              onSelected: (ply) {
-                                setState(() => _showMainPly(ply));
-                              },
-                            ),
-                          ] else
-                            const Card(
-                              child: ListTile(
-                                leading: Icon(Icons.info_outline),
-                                title: Text('No full-game analysis yet'),
-                                subtitle: Text(
-                                  'Run computer analysis below to create the graph.',
-                                ),
-                              ),
-                            ),
                         ],
-                      );
-                    },
-                  ),
+                      ),
+                    ),
+                    SizedBox(
+                      height: 28,
+                      child: openingName == null
+                          ? const SizedBox.shrink()
+                          : Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Icon(Icons.menu_book_outlined, size: 16),
+                                const SizedBox(width: 5),
+                                Flexible(
+                                  child: Text(
+                                    openingName,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    textAlign: TextAlign.center,
+                                    style: const TextStyle(fontSize: 13),
+                                  ),
+                                ),
+                              ],
+                            ),
+                    ),
+                    _analysisTabBar(),
+                    Expanded(
+                      child: SizedBox(
+                        key: const ValueKey('analysis-tab-panel'),
+                        width: double.infinity,
+                        child: _showGraph ? _graphTab() : _movesTab(),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             );
