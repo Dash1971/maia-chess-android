@@ -62,7 +62,7 @@ void main() {
       ),
     );
     await tester.pump();
-    await tester.tap(find.text('Computer analysis graph'));
+    await tester.tap(find.text('Graph'));
     for (var i = 0; i < 600; i++) {
       await tester.pump(const Duration(milliseconds: 100));
       if (find.byType(AnalysisGraph).evaluate().isNotEmpty) break;
@@ -137,7 +137,7 @@ void main() {
       expect(tester.takeException(), isNull, reason: 'failed at ply $ply');
     }
 
-    await tester.tap(find.text('Computer analysis graph'));
+    await tester.tap(find.text('Graph'));
     await tester.pumpAndSettle();
     expect(find.byType(AnalysisGraph), findsOneWidget);
     await tester.tapAt(tester.getCenter(find.byType(AnalysisGraph)));

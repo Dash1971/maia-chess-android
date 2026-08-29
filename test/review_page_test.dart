@@ -11,6 +11,137 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
+  setUpAll(OpeningNames.load);
+
+  test('analysis session loads FEN and preserves setup headers', () {
+    const fen = '8/8/8/8/8/4k3/8/4K3 w - - 0 1';
+    final session = AnalysisSession.fromFen(fen);
+    expect(session.positions, [fen]);
+    expect(session.pgn, contains('[SetUp "1"]'));
+    expect(session.pgn, contains('[FEN "$fen"]'));
+  });
+
+  test('analysis session reconstructs PGN position history', () {
+    final session = AnalysisSession.fromPgn(
+      '[Event "Test"]\n[Result "*"]\n\n1. e4 e5 2. Nf3 *',
+    );
+    expect(session.uciMoves, ['e2e4', 'e7e5', 'g1f3']);
+    expect(session.sanMoves, ['e4', 'e5', 'Nf3']);
+    expect(session.positions, hasLength(4));
+  });
+
+  test('root analysis line exports as playable PGN mainline', () {
+    final exported = PgnVariationExporter.export(
+      '[Event "Analysis"]\n[Result "*"]\n\n*',
+      const [],
+      const [
+        RecordedVariation(
+          basePly: 0,
+          baseFen: chess.Chess.DEFAULT_POSITION,
+          sanMoves: ['e4', 'e5'],
+        ),
+      ],
+    );
+    expect(exported, contains('1. e4 e5 *'));
+  });
+
+  test('root alternatives persist as sibling PGN variations', () {
+    final exported = PgnVariationExporter.export(
+      '[Event "Analysis"]\n[Result "*"]\n\n*',
+      const [],
+      const [
+        RecordedVariation(
+          basePly: 0,
+          baseFen: chess.Chess.DEFAULT_POSITION,
+          sanMoves: ['e4', 'e5'],
+        ),
+        RecordedVariation(
+          basePly: 0,
+          baseFen: chess.Chess.DEFAULT_POSITION,
+          sanMoves: ['d4', 'd5'],
+        ),
+      ],
+    );
+
+    expect(exported, contains('1. e4 e5 (1. d4 d5) *'));
+  });
+
+  test('opening names prefer the longest known sequence', () {
+    expect(
+      OpeningNames.identify(['e2e4', 'e7e5', 'g1f3', 'b8c6', 'f1b5']),
+      'C60 · Ruy Lopez',
+    );
+  });
+
+  test('Lichess opening data recognizes the Smith-Morra Gambit', () {
+    expect(
+      OpeningNames.identify(['e2e4', 'c7c5', 'd2d4', 'c5d4', 'c2c3']),
+      'B21 · Sicilian Defense: Smith-Morra Gambit',
+    );
+  });
+
+  test('analysis tree survives persistent JSON round trip', () async {
+    SharedPreferences.setMockInitialValues({});
+    const variation = RecordedVariation(
+      basePly: 0,
+      baseFen: chess.Chess.DEFAULT_POSITION,
+      sanMoves: ['e4', 'e5'],
+      children: [
+        RecordedVariation(
+          basePly: 1,
+          baseFen: 'rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1',
+          sanMoves: ['c5'],
+        ),
+      ],
+    );
+    await ActiveSessionStore.save({
+      'type': 'analysis',
+      'session': AnalysisSession.start().toJson(),
+      'variations': [variation.toJson()],
+      'currentFen': variation.baseFen,
+      'flipped': true,
+    });
+
+    final restored = await ActiveSessionStore.load();
+    final tree = RecordedVariation.fromJson(
+      Map<String, dynamic>.from(
+        (restored!['variations'] as List).single as Map,
+      ),
+    );
+    expect(restored['type'], 'analysis');
+    expect(restored['flipped'], isTrue);
+    expect(tree.sanMoves, ['e4', 'e5']);
+    expect(tree.children.single.sanMoves, ['c5']);
+  });
+
+  testWidgets('board editor uses selected piece as a Lichess-style toggle', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: BoardEditorPage(initialFen: chess.Chess.DEFAULT_POSITION),
+      ),
+    );
+
+    var board = tester.widget<cg.StaticChessboard>(
+      find.byType(cg.StaticChessboard),
+    );
+    expect(board.fen, contains('PPPPPPPP'));
+    board.onTouchedSquare!(dc.Square.e2);
+    await tester.pump();
+    board = tester.widget<cg.StaticChessboard>(
+      find.byType(cg.StaticChessboard),
+    );
+    expect(cg.readFen(board.fen)[dc.Square.e2], isNull);
+
+    board.onTouchedSquare!(dc.Square.e4);
+    await tester.pump();
+    board = tester.widget<cg.StaticChessboard>(
+      find.byType(cg.StaticChessboard),
+    );
+    expect(cg.readFen(board.fen)[dc.Square.e4], isNotNull);
+    expect(find.text('Erase'), findsNothing);
+  });
   test('PGN export preserves takebacks as recursive annotation variations', () {
     const source =
         '[Event "Mobile Maia Game"]\n[Result "*"]\n\n1. e4 e5 2. Nf3 *';
@@ -114,7 +245,7 @@ void main() {
     expect(find.text('Copy diagnostics'), findsOneWidget);
   });
 
-  testWidgets('review page lays out inside a vertical scroll view', (
+  testWidgets('review page uses a fixed internally scrolling tab panel', (
     tester,
   ) async {
     tester.view.physicalSize = const Size(1080, 2400);
@@ -142,24 +273,26 @@ void main() {
 
     expect(tester.takeException(), isNull);
     expect(find.text('Game review'), findsOneWidget);
-    expect(find.text('Starting position  ·  0/1'), findsOneWidget);
+    expect(find.textContaining('Variation:'), findsNothing);
     expect(find.byKey(const ValueKey('analysis-move-list')), findsOneWidget);
     expect(find.byType(ActionChip), findsNothing);
     expect(find.text('1.'), findsOneWidget);
     expect(find.text('b4'), findsOneWidget);
-    expect(find.text('Computer analysis graph'), findsOneWidget);
+    expect(find.text('Computer analysis graph'), findsNothing);
     expect(find.byTooltip('Flip board'), findsOneWidget);
-    expect(find.text('+0.0'), findsOneWidget);
+    expect(find.text('+0.0'), findsWidgets);
 
-    await tester.ensureVisible(find.text('Computer analysis graph'));
-    await tester.tap(find.text('Computer analysis graph'));
-    await tester.pumpAndSettle();
-    await tester.ensureVisible(find.text('Graph'));
-    await tester.tap(find.text('Graph'));
+    await tester.tap(find.byTooltip('Computer analysis'));
+    await tester.pump();
+    expect(find.text('Run computer analysis'), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('run-computer-analysis')));
     await tester.pumpAndSettle();
     expect(find.byType(AnalysisGraph), findsOneWidget);
-    expect(find.text('White 100.0%'), findsOneWidget);
-    expect(find.text('Black —'), findsOneWidget);
+    expect(find.text('White'), findsOneWidget);
+    expect(find.text('100.0%'), findsOneWidget);
+    expect(find.text('Black'), findsOneWidget);
+    expect(find.text('Not enough moves'), findsOneWidget);
+    expect(find.text('Position 0 of 1  ·  +0.0'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
@@ -176,6 +309,95 @@ void main() {
     expect(GameAccuracy.moveAccuracy(50, 50), 100);
     expect(GameAccuracy.moveAccuracy(40, 60), 100);
   });
+
+  test('multi-move computer analysis produces both accuracy values', () {
+    final accuracy = GameAccuracy.fromScores(const [
+      StockfishReview(20, ''),
+      StockfishReview(-40, ''),
+      StockfishReview(-10, ''),
+      StockfishReview(-180, ''),
+      StockfishReview(-120, ''),
+      StockfishReview(-260, ''),
+      StockfishReview(-220, ''),
+      StockfishReview(-500, ''),
+      StockfishReview(-450, ''),
+    ]);
+
+    expect(accuracy.white, isNotNull);
+    expect(accuracy.black, isNotNull);
+    expect(accuracy.white, inInclusiveRange(0, 100));
+    expect(accuracy.black, inInclusiveRange(0, 100));
+  });
+
+  testWidgets(
+    'computer analysis evaluates the complete Analysis Board root line',
+    (tester) async {
+      tester.view.physicalSize = const Size(1080, 2400);
+      tester.view.devicePixelRatio = 3;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      const start = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
+      const moves = [
+        'e4',
+        'e5',
+        'Nf3',
+        'Nc6',
+        'Bb5',
+        'a6',
+        'Ba4',
+        'Nf6',
+        'O-O',
+        'Be7',
+        'Re1',
+        'b5',
+        'Bb3',
+        'd6',
+        'c3',
+      ];
+      final evaluated = <String>[];
+      await tester.pumpWidget(
+        MaterialApp(
+          home: ReviewPage(
+            positions: const [start],
+            uciMoves: const [],
+            sanMoves: const [],
+            playerIsWhite: true,
+            pgn: '*',
+            initialVariations: const [
+              RecordedVariation(basePly: 0, baseFen: start, sanMoves: moves),
+            ],
+            onHome: () {},
+            evaluator: (fen) async {
+              evaluated.add(fen);
+              return StockfishReview(evaluated.length * 10, 'e2e4');
+            },
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byTooltip('Computer analysis'));
+      await tester.pump();
+      await tester.tap(find.byKey(const ValueKey('run-computer-analysis')));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(AnalysisGraph), findsOneWidget);
+      expect(find.textContaining('Not enough moves'), findsNothing);
+      expect(evaluated.toSet(), hasLength(16));
+      expect(find.textContaining('Position 0 of 15'), findsOneWidget);
+
+      final graph = tester.widget<AnalysisGraph>(find.byType(AnalysisGraph));
+      graph.onSelected(15);
+      await tester.pumpAndSettle();
+      final board = tester.widget<cg.Chessboard>(find.byType(cg.Chessboard));
+      final replay = chess.Chess.fromFEN(start);
+      for (final san in moves) {
+        expect(replay.move(san), isTrue);
+      }
+      expect(board.controller.fen, replay.fen);
+    },
+  );
 
   testWidgets('evaluation bar uses signed Lichess-style score', (tester) async {
     await tester.pumpWidget(
@@ -259,26 +481,152 @@ void main() {
     board.onMove!(dc.NormalMove.fromUci('e7e5'));
     await tester.pumpAndSettle();
 
-    expect(find.textContaining('Variation: e4 e5'), findsOneWidget);
+    expect(find.text('e4'), findsOneWidget);
+    expect(find.text('e5'), findsOneWidget);
+    expect(find.textContaining('Variation:'), findsNothing);
     expect(find.byType(ActionChip), findsNothing);
-    await tester.ensureVisible(find.text('e4'));
-    await tester.tap(find.text('e4'));
+    final moveList = find.byKey(const ValueKey('analysis-move-list'));
+    final e4Move = find.descendant(of: moveList, matching: find.text('e4'));
+    await tester.ensureVisible(e4Move);
+    await tester.tap(e4Move);
     await tester.pumpAndSettle();
-    expect(find.textContaining('Variation: e4  ·  1/2'), findsOneWidget);
-    await tester.ensureVisible(find.text('e5'));
-    await tester.tap(find.text('e5'));
+    board = tester.widget<cg.Chessboard>(find.byType(cg.Chessboard));
+    expect(board.controller.lastMove?.uci, 'e2e4');
+    expect(
+      board.controller.interactive,
+      isTrue,
+      reason: 'Earlier variation nodes must remain playable for branching.',
+    );
+    final e5Move = find.descendant(of: moveList, matching: find.text('e5'));
+    await tester.ensureVisible(e5Move);
+    await tester.tap(e5Move);
     await tester.pumpAndSettle();
-    await tester.ensureVisible(find.byIcon(Icons.chevron_left));
-    await tester.tap(find.byIcon(Icons.chevron_left));
+    await tester.ensureVisible(find.byTooltip('Previous move'));
+    await tester.tap(find.byTooltip('Previous move'));
     await tester.pumpAndSettle();
-    expect(find.textContaining('1/2'), findsOneWidget);
+    board = tester.widget<cg.Chessboard>(find.byType(cg.Chessboard));
+    expect(board.controller.lastMove?.uci, 'e2e4');
     expect(maiaHistoryLengths.last, 2);
-    await tester.ensureVisible(find.byIcon(Icons.chevron_right));
-    await tester.tap(find.byIcon(Icons.chevron_right));
+    await tester.ensureVisible(find.byTooltip('Next move'));
+    await tester.tap(find.byTooltip('Next move'));
     await tester.pumpAndSettle();
-    expect(find.textContaining('Variation: e4 e5'), findsOneWidget);
+    board = tester.widget<cg.Chessboard>(find.byType(cg.Chessboard));
+    expect(board.controller.lastMove?.uci, 'e7e5');
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('Maia engine row is stable when Maia matches Stockfish', (
+    tester,
+  ) async {
+    const start = chess.Chess.DEFAULT_POSITION;
+    final maia = Completer<String?>();
+    await tester.pumpWidget(
+      MaterialApp(
+        home: ReviewPage(
+          positions: const [start],
+          uciMoves: const [],
+          sanMoves: const [],
+          playerIsWhite: true,
+          pgn: '[Result "*"]\n\n*',
+          onHome: () {},
+          evaluator: (_) async => const StockfishReview(20, 'e2e4'),
+          maiaEvaluator: (_, _) => maia.future,
+        ),
+      ),
+    );
+    await tester.pump();
+
+    final panel = find.byKey(const ValueKey('analysis-engine-lines'));
+    final before = tester.getSize(panel);
+    expect(find.byKey(const ValueKey('maia-engine-line')), findsOneWidget);
+    expect(find.text('Analyzing…'), findsWidgets);
+
+    maia.complete('e2e4');
+    await tester.pumpAndSettle();
+
+    expect(tester.getSize(panel), before);
+    expect(find.text('e4 · Matches Stockfish'), findsOneWidget);
+  });
+
+  testWidgets(
+    'analysis root is an unbracketed mainline and paths survive branching',
+    (tester) async {
+      const start = chess.Chess.DEFAULT_POSITION;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: ReviewPage(
+            positions: const [start],
+            uciMoves: const [],
+            sanMoves: const [],
+            playerIsWhite: true,
+            pgn: '[Result "*"]\n\n*',
+            onHome: () {},
+            evaluator: (_) async => const StockfishReview(20, 'a2a3'),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      var board = tester.widget<cg.Chessboard>(find.byType(cg.Chessboard));
+      board.onMove!(dc.NormalMove.fromUci('e2e4'));
+      await tester.pumpAndSettle();
+      board = tester.widget<cg.Chessboard>(find.byType(cg.Chessboard));
+      board.onMove!(dc.NormalMove.fromUci('e7e5'));
+      await tester.pumpAndSettle();
+      board = tester.widget<cg.Chessboard>(find.byType(cg.Chessboard));
+      board.onMove!(dc.NormalMove.fromUci('g1f3'));
+      await tester.pumpAndSettle();
+
+      final moveList = find.byKey(const ValueKey('analysis-move-list'));
+      expect(
+        find.descendant(of: moveList, matching: find.text('(')),
+        findsNothing,
+      );
+      expect(find.byKey(const ValueKey('mainline-move-0')), findsOneWidget);
+      expect(find.byKey(const ValueKey('mainline-move-1')), findsOneWidget);
+      expect(find.byKey(const ValueKey('mainline-move-2')), findsOneWidget);
+
+      final firstMainMove = find.byKey(const ValueKey('mainline-move-0'));
+      await tester.ensureVisible(firstMainMove);
+      await tester.tap(firstMainMove);
+      await tester.pumpAndSettle();
+      board = tester.widget<cg.Chessboard>(find.byType(cg.Chessboard));
+      board.onMove!(dc.NormalMove.fromUci('c7c5'));
+      await tester.pumpAndSettle();
+
+      final replay = chess.Chess();
+      replay.move('e4');
+      replay.move('e5');
+      final afterE4E5 = replay.fen;
+      replay.move('Nf3');
+      final afterE4E5Nf3 = replay.fen;
+      final sicilian = chess.Chess()
+        ..move('e4')
+        ..move('c5');
+      String positionCore(String fen) => fen.split(' ').take(3).join(' ');
+
+      final secondMainMove = find.byKey(const ValueKey('mainline-move-1'));
+      await tester.ensureVisible(secondMainMove);
+      await tester.tap(secondMainMove);
+      await tester.pumpAndSettle();
+      board = tester.widget<cg.Chessboard>(find.byType(cg.Chessboard));
+      expect(positionCore(board.controller.fen), positionCore(afterE4E5));
+
+      final c5 = find.descendant(of: moveList, matching: find.text('c5'));
+      await tester.ensureVisible(c5);
+      await tester.tap(c5);
+      await tester.pumpAndSettle();
+      board = tester.widget<cg.Chessboard>(find.byType(cg.Chessboard));
+      expect(positionCore(board.controller.fen), positionCore(sicilian.fen));
+
+      final thirdMainMove = find.byKey(const ValueKey('mainline-move-2'));
+      await tester.ensureVisible(thirdMainMove);
+      await tester.tap(thirdMainMove);
+      await tester.pumpAndSettle();
+      board = tester.widget<cg.Chessboard>(find.byType(cg.Chessboard));
+      expect(positionCore(board.controller.fen), positionCore(afterE4E5Nf3));
+    },
+  );
 
   testWidgets('branching from a variation creates a nested clickable line', (
     tester,
@@ -322,8 +670,93 @@ void main() {
     await tester.ensureVisible(find.text('c5'));
     await tester.tap(find.text('c5'));
     await tester.pumpAndSettle();
-    expect(find.textContaining('Variation: c5  ·  1/1'), findsOneWidget);
+    board = tester.widget<cg.Chessboard>(find.byType(cg.Chessboard));
+    expect(board.controller.lastMove?.uci, 'c7c5');
+    expect(find.textContaining('Variation:'), findsNothing);
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('long press promotes a variation and preserves PGN branches', (
+    tester,
+  ) async {
+    final session = AnalysisSession.fromPgn(
+      '[Event "Analysis"]\n[Result "*"]\n\n1. e4 e5 2. Nf3 *',
+    );
+    final afterE4 = session.positions[1];
+    List<RecordedVariation> saved = const [];
+    await tester.pumpWidget(
+      MaterialApp(
+        home: ReviewPage(
+          positions: session.positions,
+          uciMoves: session.uciMoves,
+          sanMoves: session.sanMoves,
+          playerIsWhite: true,
+          pgn: session.pgn,
+          initialVariations: [
+            RecordedVariation(
+              basePly: 1,
+              baseFen: afterE4,
+              sanMoves: const ['c5', 'Nf3'],
+            ),
+          ],
+          onHome: () {},
+          evaluator: (_) async => const StockfishReview(0, 'a2a3'),
+          onSessionChanged: (_, _, variations) async {
+            saved = variations;
+          },
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.ensureVisible(find.text('c5'));
+    await tester.longPress(find.text('c5'));
+    await tester.pumpAndSettle();
+    expect(find.text('Promote variation'), findsOneWidget);
+    expect(find.text('Make main line'), findsOneWidget);
+    expect(find.text('Delete from here'), findsOneWidget);
+    await tester.tap(find.text('Promote variation'));
+    await tester.pumpAndSettle();
+
+    expect(saved.first.sanMoves, ['e4', 'c5', 'Nf3']);
+    expect(saved.first.children.single.sanMoves, ['e5', 'Nf3']);
+    final exported = PgnVariationExporter.export(session.pgn, const [], saved);
+    expect(exported, contains('1. e4 c5 (1... e5 2. Nf3) 2. Nf3 *'));
+  });
+
+  testWidgets('long press deletes the selected move and continuation', (
+    tester,
+  ) async {
+    final session = AnalysisSession.fromPgn(
+      '[Result "*"]\n\n1. e4 e5 2. Nf3 *',
+    );
+    List<RecordedVariation> saved = const [];
+    await tester.pumpWidget(
+      MaterialApp(
+        home: ReviewPage(
+          positions: session.positions,
+          uciMoves: session.uciMoves,
+          sanMoves: session.sanMoves,
+          playerIsWhite: true,
+          pgn: session.pgn,
+          onHome: () {},
+          evaluator: (_) async => const StockfishReview(0, 'a2a3'),
+          onSessionChanged: (_, _, variations) async {
+            saved = variations;
+          },
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.longPress(find.byKey(const ValueKey('mainline-move-1')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Delete from here'));
+    await tester.pumpAndSettle();
+
+    expect(saved.single.sanMoves, ['e4']);
+    expect(find.text('e5'), findsNothing);
+    expect(find.text('Nf3'), findsNothing);
   });
 
   testWidgets('full graph awaits an evaluation already in flight', (
@@ -348,16 +781,14 @@ void main() {
       ),
     );
     await tester.pump();
-    final graphAction = find.text('Computer analysis graph');
-    await tester.ensureVisible(graphAction);
-    await tester.tap(graphAction);
+    await tester.tap(find.byTooltip('Computer analysis'));
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('run-computer-analysis')));
     await tester.pump();
     expect(find.byType(AnalysisGraph), findsNothing);
 
     firstEvaluation.complete(const StockfishReview(120, 'e2e4'));
     await tester.pumpAndSettle();
-    await tester.ensureVisible(find.text('Graph'));
-    await tester.tap(find.text('Graph'));
     await tester.pumpAndSettle();
 
     final paint = tester.widget<CustomPaint>(
@@ -395,11 +826,9 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    await tester.ensureVisible(find.text('Computer analysis graph'));
-    await tester.tap(find.text('Computer analysis graph'));
-    await tester.pumpAndSettle();
-    await tester.ensureVisible(find.text('Graph'));
-    await tester.tap(find.text('Graph'));
+    await tester.tap(find.byTooltip('Computer analysis'));
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('run-computer-analysis')));
     await tester.pumpAndSettle();
 
     final graph = find.byType(AnalysisGraph);
@@ -407,7 +836,7 @@ void main() {
     await tester.tapAt(Offset(rect.right - 1, rect.center.dy));
     await tester.pumpAndSettle();
 
-    expect(find.textContaining('61/61'), findsOneWidget);
+    expect(tester.widget<AnalysisGraph>(graph).selectedPly, 61);
     expect(tester.takeException(), isNull);
   });
 
@@ -470,11 +899,9 @@ void main() {
     expect(find.text('#-1'), findsWidgets);
     expect(tester.takeException(), isNull);
 
-    await tester.ensureVisible(find.text('Computer analysis graph'));
-    await tester.tap(find.text('Computer analysis graph'));
-    await tester.pumpAndSettle();
-    await tester.ensureVisible(find.text('Graph'));
-    await tester.tap(find.text('Graph'));
+    await tester.tap(find.byTooltip('Computer analysis'));
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('run-computer-analysis')));
     await tester.pumpAndSettle();
     expect(find.byType(AnalysisGraph), findsOneWidget);
     await tester.tapAt(tester.getCenter(find.byType(AnalysisGraph)));
@@ -538,13 +965,19 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
+    final tabPanel = find.byKey(const ValueKey('analysis-tab-panel'));
+    final initialPanelSize = tester.getSize(tabPanel);
 
     for (var ply = 1; ply < positions.length; ply++) {
-      await tester.tap(find.byIcon(Icons.chevron_right));
+      await tester.ensureVisible(find.byTooltip('Next move'));
+      await tester.tap(find.byTooltip('Next move'));
       await tester.pumpAndSettle();
       expect(tester.takeException(), isNull, reason: 'failed at ply $ply');
     }
-    expect(find.textContaining('${positions.length - 1}/'), findsOneWidget);
+    final board = tester.widget<cg.Chessboard>(find.byType(cg.Chessboard));
+    expect(board.controller.fen, positions.last);
+    expect(tester.getSize(tabPanel), initialPanelSize);
+    expect(find.byKey(const ValueKey('analysis-move-scroll')), findsOneWidget);
   });
 
   test('analysis graph fills black above and white below the curve', () async {

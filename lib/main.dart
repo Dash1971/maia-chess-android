@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:math';
 import 'dart:ui' as ui;
 
@@ -28,6 +29,7 @@ Future<void> main() async {
     return true;
   };
   ErrorWidget.builder = (_) => const DiagnosticsErrorScreen();
+  await OpeningNames.load();
   runApp(const MaiaChessApp());
   unawaited(AppDiagnostics.recordEvent('app-started'));
 }
@@ -273,6 +275,55 @@ class RecordedVariation {
   final String baseFen;
   final List<String> sanMoves;
   final List<RecordedVariation> children;
+
+  Map<String, Object> toJson() => {
+    'basePly': basePly,
+    'baseFen': baseFen,
+    'sanMoves': sanMoves,
+    'children': children.map((item) => item.toJson()).toList(),
+  };
+
+  factory RecordedVariation.fromJson(Map<String, dynamic> json) =>
+      RecordedVariation(
+        basePly: json['basePly'] as int,
+        baseFen: json['baseFen'] as String,
+        sanMoves: (json['sanMoves'] as List).cast<String>(),
+        children: (json['children'] as List? ?? const [])
+            .map(
+              (item) => RecordedVariation.fromJson(
+                Map<String, dynamic>.from(item as Map),
+              ),
+            )
+            .toList(growable: false),
+      );
+}
+
+class ActiveSessionStore {
+  static const _key = 'activeSessionV1';
+
+  static Future<Map<String, dynamic>?> load() async {
+    final source = (await SharedPreferences.getInstance()).getString(_key);
+    if (source == null) return null;
+    try {
+      return Map<String, dynamic>.from(jsonDecode(source) as Map);
+    } catch (error, stackTrace) {
+      unawaited(
+        AppDiagnostics.record('active-session-load', error, stackTrace),
+      );
+      return null;
+    }
+  }
+
+  static Future<void> save(Map<String, Object?> value) async {
+    await (await SharedPreferences.getInstance()).setString(
+      _key,
+      jsonEncode({'schema': 1, ...value}),
+    );
+  }
+
+  static Future<void> clear() async {
+    await (await SharedPreferences.getInstance()).remove(_key);
+  }
 }
 
 class PgnVariationExporter {
@@ -315,6 +366,15 @@ class PgnVariationExporter {
       // branch starting at `ply` belongs after the main-line move at `ply`.
       addVariations(ply);
     }
+    if (mainSan.isEmpty) {
+      final rootLines = byBase[0] ?? const <RecordedVariation>[];
+      if (rootLines.isNotEmpty) {
+        tokens.add(_formatLine(rootLines.first));
+        for (final alternative in rootLines.skip(1)) {
+          tokens.add('(${_formatLine(alternative)})');
+        }
+      }
+    }
     tokens.add(result);
     return '${headers.isEmpty ? '' : '$headers\n\n'}${tokens.join(' ')}';
   }
@@ -339,14 +399,161 @@ class PgnVariationExporter {
   }
 }
 
+class AnalysisSession {
+  const AnalysisSession({
+    required this.positions,
+    required this.uciMoves,
+    required this.sanMoves,
+    required this.pgn,
+  });
+
+  final List<String> positions;
+  final List<String> uciMoves;
+  final List<String> sanMoves;
+  final String pgn;
+
+  Map<String, Object> toJson() => {
+    'positions': positions,
+    'uciMoves': uciMoves,
+    'sanMoves': sanMoves,
+    'pgn': pgn,
+  };
+
+  factory AnalysisSession.fromJson(Map<String, dynamic> json) =>
+      AnalysisSession(
+        positions: (json['positions'] as List).cast<String>(),
+        uciMoves: (json['uciMoves'] as List).cast<String>(),
+        sanMoves: (json['sanMoves'] as List).cast<String>(),
+        pgn: json['pgn'] as String,
+      );
+
+  factory AnalysisSession.fromFen(String fen) {
+    final validation = chess.Chess.validate_fen(fen.trim());
+    if (validation['valid'] != true) {
+      throw FormatException(validation['error']?.toString() ?? 'Invalid FEN');
+    }
+    final game = chess.Chess.fromFEN(fen.trim());
+    game.set_header([
+      'Event',
+      'Mobile Maia Analysis',
+      'SetUp',
+      '1',
+      'FEN',
+      fen.trim(),
+      'Result',
+      '*',
+    ]);
+    return AnalysisSession(
+      positions: [game.fen],
+      uciMoves: const [],
+      sanMoves: const [],
+      pgn: game.pgn(),
+    );
+  }
+
+  factory AnalysisSession.start() =>
+      AnalysisSession.fromFen(chess.Chess.DEFAULT_POSITION);
+
+  factory AnalysisSession.fromPgn(String source) {
+    final loaded = chess.Chess();
+    if (!loaded.load_pgn(source.trim())) {
+      throw const FormatException('The PGN could not be parsed.');
+    }
+    final verbose = loaded.getHistory({
+      'verbose': true,
+    }).cast<Map<String, dynamic>>();
+    final baseFen =
+        loaded.header['FEN']?.toString() ?? chess.Chess.DEFAULT_POSITION;
+    final replay = chess.Chess.fromFEN(baseFen);
+    final positions = <String>[replay.fen];
+    final uciMoves = <String>[];
+    final sanMoves = <String>[];
+    for (final item in verbose) {
+      final from = item['from']?.toString();
+      final to = item['to']?.toString();
+      if (from == null || to == null) {
+        throw const FormatException('PGN move is incomplete.');
+      }
+      final String? promotion = item.containsKey('promotion')
+          ? item['promotion'].toString()
+          : null;
+      final moveData = <String, String>{'from': from, 'to': to};
+      if (promotion case final value?) moveData['promotion'] = value;
+      final moved = replay.move(moveData);
+      if (!moved) {
+        throw const FormatException('PGN contains an illegal move.');
+      }
+      uciMoves.add('$from$to${promotion ?? ''}');
+      sanMoves.add(item['san'].toString());
+      positions.add(replay.fen);
+    }
+    return AnalysisSession(
+      positions: List.unmodifiable(positions),
+      uciMoves: List.unmodifiable(uciMoves),
+      sanMoves: List.unmodifiable(sanMoves),
+      pgn: loaded.pgn(),
+    );
+  }
+}
+
+class OpeningNames {
+  static final Map<String, ({String eco, String name})> _byEpd = {};
+
+  static Future<void> load() async {
+    if (_byEpd.isNotEmpty) return;
+    final source = await rootBundle.loadString(
+      'assets/openings/lichess_openings.tsv',
+    );
+    for (final line in const LineSplitter().convert(source).skip(1)) {
+      final columns = line.split('\t');
+      if (columns.length != 5) continue;
+      _byEpd[columns[4]] = (eco: columns[0], name: columns[1]);
+    }
+  }
+
+  static String? identifyPositions(Iterable<String> positions) {
+    for (final fen in positions.toList(growable: false).reversed) {
+      final fields = fen.split(RegExp(r'\s+'));
+      if (fields.length < 4) continue;
+      final opening = _byEpd[fields.take(4).join(' ')];
+      if (opening != null) return '${opening.eco} · ${opening.name}';
+    }
+    return null;
+  }
+
+  static String? identify(List<String> moves) {
+    final game = chess.Chess();
+    final positions = <String>[game.fen];
+    for (final uci in moves) {
+      final candidate = game
+          .moves({'asObjects': true})
+          .cast<chess.Move>()
+          .where((move) => MaiaEncoding.uci(move) == uci)
+          .firstOrNull;
+      if (candidate == null || !game.move(candidate)) break;
+      positions.add(game.fen);
+    }
+    return identifyPositions(positions);
+  }
+}
+
 class GamePage extends StatefulWidget {
-  const GamePage({super.key});
+  const GamePage({
+    this.startingFen,
+    this.startingSide,
+    this.startingElo,
+    super.key,
+  });
+
+  final String? startingFen;
+  final PlayerSide? startingSide;
+  final int? startingElo;
 
   @override
   State<GamePage> createState() => _GamePageState();
 }
 
-class _GamePageState extends State<GamePage> {
+class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
   chess.Chess _game = chess.Chess();
   final List<String> _positionHistory = [];
   final List<String> _uciMoves = [];
@@ -374,6 +581,7 @@ class _GamePageState extends State<GamePage> {
   Timer? _clockTimer;
   final List<ClockSnapshot> _clockHistory = [];
   int _gameGeneration = 0;
+  bool _reviewOpen = false;
   final Random _timingRandom = Random.secure();
 
   bool get _playerIsWhite => _playerColor == chess.Color.WHITE;
@@ -392,8 +600,233 @@ class _GamePageState extends State<GamePage> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    if (widget.startingSide != null) _sideChoice = widget.startingSide!;
+    if (widget.startingElo != null) _elo = widget.startingElo!;
     unawaited(_loadEnginePreferences());
+    if (widget.startingFen != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _startGame());
+    } else {
+      unawaited(_restoreActiveSession());
+    }
   }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.paused ||
+        state == AppLifecycleState.detached ||
+        state == AppLifecycleState.hidden) {
+      if (!_reviewOpen) unawaited(_saveGameState());
+    }
+  }
+
+  Future<void> _restoreActiveSession() async {
+    final saved = await ActiveSessionStore.load();
+    if (!mounted || saved == null) return;
+    if (saved['type'] == 'analysis') {
+      try {
+        final session = AnalysisSession.fromJson(
+          Map<String, dynamic>.from(saved['session'] as Map),
+        );
+        final variations = (saved['variations'] as List? ?? const [])
+            .map(
+              (item) => RecordedVariation.fromJson(
+                Map<String, dynamic>.from(item as Map),
+              ),
+            )
+            .toList(growable: false);
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          Navigator.of(context).push(
+            MaterialPageRoute<void>(
+              builder: (_) => AnalysisBoardPage(
+                initialSession: session,
+                maiaElo: saved['maiaElo'] as int? ?? _analysisElo,
+                initialVariations: variations,
+                initialCurrentFen: saved['currentFen'] as String?,
+                initialFlipped: saved['flipped'] as bool? ?? false,
+              ),
+            ),
+          );
+        });
+      } catch (error, stackTrace) {
+        unawaited(
+          AppDiagnostics.record('analysis-session-restore', error, stackTrace),
+        );
+      }
+      return;
+    }
+    if (saved['type'] == 'review') {
+      try {
+        final session = AnalysisSession.fromJson(
+          Map<String, dynamic>.from(saved['session'] as Map),
+        );
+        final variations = (saved['variations'] as List? ?? const [])
+            .map(
+              (item) => RecordedVariation.fromJson(
+                Map<String, dynamic>.from(item as Map),
+              ),
+            )
+            .toList(growable: false);
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          _reviewOpen = true;
+          Navigator.of(context)
+              .push(
+                MaterialPageRoute<void>(
+                  builder: (_) => ReviewPage(
+                    positions: session.positions,
+                    uciMoves: session.uciMoves,
+                    sanMoves: session.sanMoves,
+                    playerIsWhite: saved['playerIsWhite'] as bool? ?? true,
+                    pgn: session.pgn,
+                    initialVariations: variations,
+                    maiaElo: saved['maiaElo'] as int? ?? _analysisElo,
+                    initialCurrentFen: saved['currentFen'] as String?,
+                    initialFlipped: saved['flipped'] as bool? ?? false,
+                    onSessionChanged: (fen, flipped, updated) =>
+                        _saveReviewState(
+                          session,
+                          saved['playerIsWhite'] as bool? ?? true,
+                          fen,
+                          flipped,
+                          updated,
+                        ),
+                    onHome: () => unawaited(ActiveSessionStore.clear()),
+                  ),
+                ),
+              )
+              .whenComplete(() => _reviewOpen = false);
+        });
+      } catch (error, stackTrace) {
+        unawaited(
+          AppDiagnostics.record('review-session-restore', error, stackTrace),
+        );
+      }
+      return;
+    }
+    if (saved['type'] != 'game') return;
+    try {
+      final restored = chess.Chess();
+      if (!restored.load_pgn(saved['pgn'] as String)) {
+        throw const FormatException('Saved game PGN is invalid.');
+      }
+      final savedAt = DateTime.tryParse(saved['savedAt'] as String? ?? '');
+      var whiteMillis = saved['whiteMillis'] as int? ?? 0;
+      var blackMillis = saved['blackMillis'] as int? ?? 0;
+      final preset = TimePreset.values.byName(
+        saved['timePreset'] as String? ?? TimePreset.unlimited.name,
+      );
+      if (savedAt != null &&
+          preset != TimePreset.unlimited &&
+          saved['forcedResult'] == null &&
+          !restored.game_over) {
+        final elapsed = DateTime.now().difference(savedAt).inMilliseconds;
+        if (restored.turn == chess.Color.WHITE) {
+          whiteMillis = max(0, whiteMillis - elapsed);
+        } else {
+          blackMillis = max(0, blackMillis - elapsed);
+        }
+      }
+      setState(() {
+        _game = restored;
+        _positionHistory
+          ..clear()
+          ..addAll((saved['positions'] as List).cast<String>());
+        _uciMoves
+          ..clear()
+          ..addAll((saved['uciMoves'] as List).cast<String>());
+        _takebackVariations
+          ..clear()
+          ..addAll(
+            (saved['variations'] as List? ?? const []).map(
+              (item) => RecordedVariation.fromJson(
+                Map<String, dynamic>.from(item as Map),
+              ),
+            ),
+          );
+        _playerColor = saved['playerIsWhite'] as bool? ?? true
+            ? chess.Color.WHITE
+            : chess.Color.BLACK;
+        _sideChoice = _playerColor == chess.Color.WHITE
+            ? PlayerSide.white
+            : PlayerSide.black;
+        _elo = saved['elo'] as int? ?? 1500;
+        _timePreset = preset;
+        _customMinutes = saved['customMinutes'] as int? ?? 10;
+        _customIncrement = saved['customIncrement'] as int? ?? 0;
+        _whiteMillis = whiteMillis;
+        _blackMillis = blackMillis;
+        _turnStartedAt = _clockEnabled ? DateTime.now() : null;
+        _clockHistory
+          ..clear()
+          ..addAll(
+            (saved['clockHistory'] as List? ?? const []).map((item) {
+              final values = (item as List).cast<int>();
+              return ClockSnapshot(values[0], values[1]);
+            }),
+          );
+        if (_clockHistory.isEmpty) {
+          _clockHistory.add(ClockSnapshot(whiteMillis, blackMillis));
+        }
+        _forcedResult = saved['forcedResult'] as String?;
+        _status = saved['status'] as String? ?? 'Game restored.';
+        _started = true;
+      });
+      if (_clockEnabled && !_gameFinished) {
+        _clockTimer = Timer.periodic(
+          const Duration(milliseconds: 200),
+          (_) => _tickClock(),
+        );
+      }
+      if (!_gameFinished && !_isPlayerTurn) unawaited(_playMaiaMove());
+    } catch (error, stackTrace) {
+      unawaited(
+        AppDiagnostics.record('game-session-restore', error, stackTrace),
+      );
+    }
+  }
+
+  Future<void> _saveGameState() async {
+    if (!_started) return;
+    await ActiveSessionStore.save({
+      'type': 'game',
+      'pgn': _game.pgn(),
+      'positions': _positionHistory,
+      'uciMoves': _uciMoves,
+      'variations': _takebackVariations.map((item) => item.toJson()).toList(),
+      'playerIsWhite': _playerIsWhite,
+      'elo': _elo,
+      'timePreset': _timePreset.name,
+      'customMinutes': _customMinutes,
+      'customIncrement': _customIncrement,
+      'whiteMillis': _liveMillis(chess.Color.WHITE),
+      'blackMillis': _liveMillis(chess.Color.BLACK),
+      'clockHistory': _clockHistory
+          .map((item) => [item.whiteMillis, item.blackMillis])
+          .toList(),
+      'savedAt': DateTime.now().toIso8601String(),
+      'forcedResult': _forcedResult,
+      'status': _status,
+    });
+  }
+
+  Future<void> _saveReviewState(
+    AnalysisSession session,
+    bool playerIsWhite,
+    String currentFen,
+    bool flipped,
+    List<RecordedVariation> variations,
+  ) => ActiveSessionStore.save({
+    'type': 'review',
+    'session': session.toJson(),
+    'variations': variations.map((item) => item.toJson()).toList(),
+    'currentFen': currentFen,
+    'flipped': flipped,
+    'playerIsWhite': playerIsWhite,
+    'maiaElo': _analysisElo,
+  });
 
   Future<void> _loadEnginePreferences() async {
     final preferences = await SharedPreferences.getInstance();
@@ -472,6 +905,17 @@ class _GamePageState extends State<GamePage> {
     );
   }
 
+  Future<void> _openAnalysisBoard() async {
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (context) => AnalysisBoardPage(
+          initialSession: AnalysisSession.start(),
+          maiaElo: _analysisElo,
+        ),
+      ),
+    );
+  }
+
   void _startGame() {
     _gameGeneration++;
     _clockTimer?.cancel();
@@ -482,7 +926,9 @@ class _GamePageState extends State<GamePage> {
       PlayerSide.random => randomWhite ? chess.Color.WHITE : chess.Color.BLACK,
     };
     setState(() {
-      _game = chess.Chess();
+      _game = widget.startingFen == null
+          ? chess.Chess()
+          : chess.Chess.fromFEN(widget.startingFen!);
       _positionHistory
         ..clear()
         ..add(_game.fen);
@@ -522,6 +968,10 @@ class _GamePageState extends State<GamePage> {
         'Result',
         '*',
       ]);
+      if (widget.startingFen != null &&
+          widget.startingFen != chess.Chess.DEFAULT_POSITION) {
+        _game.set_header(['SetUp', '1', 'FEN', widget.startingFen!]);
+      }
     });
     if (_clockEnabled) {
       _clockTimer = Timer.periodic(
@@ -530,6 +980,7 @@ class _GamePageState extends State<GamePage> {
       );
     }
     if (!_playerIsWhite) _playMaiaMove();
+    unawaited(_saveGameState());
   }
 
   int _liveMillis(chess.Color color) {
@@ -576,6 +1027,7 @@ class _GamePageState extends State<GamePage> {
             ? 'White ran out of time.'
             : 'Black ran out of time.';
       });
+      unawaited(_saveGameState());
       return;
     }
     setState(() {});
@@ -633,6 +1085,7 @@ class _GamePageState extends State<GamePage> {
       _selectedSquare = null;
       _status = _game.game_over ? _finishNaturalGame() : 'Game in progress.';
     });
+    unawaited(_saveGameState());
     if (!_game.game_over) _playMaiaMove();
   }
 
@@ -761,6 +1214,7 @@ class _GamePageState extends State<GamePage> {
             ? 'Game in progress.'
             : 'Your move.';
       });
+      unawaited(_saveGameState());
       if (shouldRequestMaiaReply(
         premovePlayed: premovePlayed,
         gameOver: _game.game_over,
@@ -838,6 +1292,7 @@ class _GamePageState extends State<GamePage> {
       _game.set_header(['Result', result, 'Termination', 'Player resigned']);
       _status = 'You resigned — Maia wins.';
     });
+    unawaited(_saveGameState());
   }
 
   void _goHome() {
@@ -851,6 +1306,7 @@ class _GamePageState extends State<GamePage> {
       _premoveTo = null;
       _status = 'Choose your settings and start a game.';
     });
+    unawaited(ActiveSessionStore.clear());
   }
 
   void _takeBack() {
@@ -909,6 +1365,7 @@ class _GamePageState extends State<GamePage> {
         (_) => _tickClock(),
       );
     }
+    unawaited(_saveGameState());
   }
 
   Future<void> _copyPgn() async {
@@ -927,20 +1384,47 @@ class _GamePageState extends State<GamePage> {
         .map((move) => move['san'] as String)
         .toList(growable: false);
     final plyCount = min(_uciMoves.length, moves.length);
+    final session = AnalysisSession(
+      positions: List.unmodifiable(_positionHistory.take(plyCount + 1)),
+      uciMoves: List.unmodifiable(_uciMoves.take(plyCount)),
+      sanMoves: List.unmodifiable(moves.take(plyCount)),
+      pgn: _exportPgn(),
+    );
+    final initialVariations = List<RecordedVariation>.unmodifiable(
+      _takebackVariations,
+    );
+    await _saveReviewState(
+      session,
+      _playerIsWhite,
+      session.positions.last,
+      false,
+      initialVariations,
+    );
+    if (!mounted) return;
+    _reviewOpen = true;
     await Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (context) => ReviewPage(
-          positions: List.unmodifiable(_positionHistory.take(plyCount + 1)),
-          uciMoves: List.unmodifiable(_uciMoves.take(plyCount)),
-          sanMoves: List.unmodifiable(moves.take(plyCount)),
+          positions: session.positions,
+          uciMoves: session.uciMoves,
+          sanMoves: session.sanMoves,
           playerIsWhite: _playerIsWhite,
-          pgn: _exportPgn(),
-          initialVariations: List.unmodifiable(_takebackVariations),
+          pgn: session.pgn,
+          initialVariations: initialVariations,
           maiaElo: _analysisElo,
+          initialCurrentFen: session.positions.last,
+          onSessionChanged: (fen, flipped, variations) => _saveReviewState(
+            session,
+            _playerIsWhite,
+            fen,
+            flipped,
+            variations,
+          ),
           onHome: _goHome,
         ),
       ),
     );
+    _reviewOpen = false;
   }
 
   String _exportPgn() {
@@ -1219,6 +1703,12 @@ class _GamePageState extends State<GamePage> {
               icon: const Icon(Icons.play_arrow),
               label: const Text('Start game'),
             ),
+            const SizedBox(height: 12),
+            OutlinedButton.icon(
+              onPressed: _openAnalysisBoard,
+              icon: const Icon(Icons.analytics_outlined),
+              label: const Text('Analysis Board'),
+            ),
           ],
         ),
       ),
@@ -1369,8 +1859,423 @@ class _GamePageState extends State<GamePage> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _clockTimer?.cancel();
     super.dispose();
+  }
+}
+
+class AnalysisBoardPage extends StatefulWidget {
+  const AnalysisBoardPage({
+    required this.initialSession,
+    required this.maiaElo,
+    this.initialVariations = const [],
+    this.initialCurrentFen,
+    this.initialFlipped = false,
+    super.key,
+  });
+
+  final AnalysisSession initialSession;
+  final int maiaElo;
+  final List<RecordedVariation> initialVariations;
+  final String? initialCurrentFen;
+  final bool initialFlipped;
+
+  @override
+  State<AnalysisBoardPage> createState() => _AnalysisBoardPageState();
+}
+
+class _AnalysisBoardPageState extends State<AnalysisBoardPage> {
+  late AnalysisSession _session = widget.initialSession;
+  int _revision = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    unawaited(
+      _saveAnalysisState(
+        widget.initialCurrentFen ?? widget.initialSession.positions.first,
+        widget.initialFlipped,
+        widget.initialVariations,
+      ),
+    );
+  }
+
+  Future<void> _saveAnalysisState(
+    String currentFen,
+    bool flipped,
+    List<RecordedVariation> variations,
+  ) => ActiveSessionStore.save({
+    'type': 'analysis',
+    'session': _session.toJson(),
+    'variations': variations.map((item) => item.toJson()).toList(),
+    'currentFen': currentFen,
+    'flipped': flipped,
+    'maiaElo': widget.maiaElo,
+  });
+
+  void _replace(AnalysisSession session) {
+    setState(() {
+      _session = session;
+      _revision++;
+    });
+    unawaited(_saveAnalysisState(session.positions.first, false, const []));
+  }
+
+  Future<String?> _textDialog(String title, String hint) async {
+    final controller = TextEditingController();
+    final value = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(title),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          minLines: 3,
+          maxLines: 10,
+          decoration: InputDecoration(
+            hintText: hint,
+            border: const OutlineInputBorder(),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, controller.text),
+            child: const Text('Load'),
+          ),
+        ],
+      ),
+    );
+    controller.dispose();
+    return value;
+  }
+
+  void _showError(Object error) {
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(error.toString())));
+  }
+
+  Future<void> _loadFen() async {
+    final value = await _textDialog(
+      'Load FEN',
+      'Paste a complete six-field FEN',
+    );
+    if (value == null || value.trim().isEmpty) return;
+    try {
+      _replace(AnalysisSession.fromFen(value));
+    } catch (error) {
+      _showError(error);
+    }
+  }
+
+  Future<void> _loadPgn() async {
+    final value = await _textDialog('Load PGN', 'Paste a PGN game');
+    if (value == null || value.trim().isEmpty) return;
+    try {
+      _replace(AnalysisSession.fromPgn(value));
+    } catch (error) {
+      _showError(error);
+    }
+  }
+
+  Future<void> _editBoard(String fen) async {
+    final edited = await Navigator.of(context).push<String>(
+      MaterialPageRoute(builder: (_) => BoardEditorPage(initialFen: fen)),
+    );
+    if (edited != null) _replace(AnalysisSession.fromFen(edited));
+  }
+
+  Future<void> _playFrom(String fen) async {
+    final side = await showDialog<PlayerSide>(
+      context: context,
+      builder: (context) => SimpleDialog(
+        title: const Text('Play from this position'),
+        children: [
+          SimpleDialogOption(
+            onPressed: () => Navigator.pop(context, PlayerSide.white),
+            child: const ListTile(
+              leading: Icon(Icons.light_mode),
+              title: Text('Play White'),
+            ),
+          ),
+          SimpleDialogOption(
+            onPressed: () => Navigator.pop(context, PlayerSide.black),
+            child: const ListTile(
+              leading: Icon(Icons.dark_mode),
+              title: Text('Play Black'),
+            ),
+          ),
+          SimpleDialogOption(
+            onPressed: () => Navigator.pop(context, PlayerSide.random),
+            child: const ListTile(
+              leading: Icon(Icons.casino_outlined),
+              title: Text('Random side'),
+            ),
+          ),
+        ],
+      ),
+    );
+    if (side == null || !mounted) return;
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => GamePage(
+          startingFen: fen,
+          startingSide: side,
+          startingElo: widget.maiaElo,
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) => ReviewPage(
+    key: ValueKey(_revision),
+    positions: _session.positions,
+    uciMoves: _session.uciMoves,
+    sanMoves: _session.sanMoves,
+    playerIsWhite: true,
+    pgn: _session.pgn,
+    initialVariations: widget.initialVariations,
+    initialCurrentFen: widget.initialCurrentFen,
+    initialFlipped: widget.initialFlipped,
+    onSessionChanged: _saveAnalysisState,
+    maiaElo: widget.maiaElo,
+    title: 'Analysis Board',
+    onHome: () => unawaited(ActiveSessionStore.clear()),
+    onLoadFen: _loadFen,
+    onLoadPgn: _loadPgn,
+    onEditBoard: _editBoard,
+    onPlayFromPosition: _playFrom,
+  );
+}
+
+class BoardEditorPage extends StatefulWidget {
+  const BoardEditorPage({required this.initialFen, super.key});
+
+  final String initialFen;
+
+  @override
+  State<BoardEditorPage> createState() => _BoardEditorPageState();
+}
+
+class _BoardEditorPageState extends State<BoardEditorPage> {
+  late chess.Chess _position = chess.Chess.fromFEN(
+    widget.initialFen,
+    check_validity: false,
+  );
+  chess.Color _color = chess.Color.WHITE;
+  chess.PieceType _piece = chess.PieceType.PAWN;
+  bool _whiteTurn = true;
+  bool _wk = false;
+  bool _wq = false;
+  bool _bk = false;
+  bool _bq = false;
+  String _enPassant = '-';
+
+  @override
+  void initState() {
+    super.initState();
+    final fields = widget.initialFen.split(RegExp(r'\s+'));
+    _whiteTurn = fields.length > 1 ? fields[1] == 'w' : true;
+    final rights = fields.length > 2 ? fields[2] : '-';
+    _wk = rights.contains('K');
+    _wq = rights.contains('Q');
+    _bk = rights.contains('k');
+    _bq = rights.contains('q');
+    _enPassant = fields.length > 3 ? fields[3] : '-';
+  }
+
+  void _touch(String square) {
+    setState(() {
+      final existing = _position.get(square);
+      if (existing?.type == _piece && existing?.color == _color) {
+        _position.remove(square);
+      } else {
+        _position.remove(square);
+        _position.put(chess.Piece(_piece, _color), square);
+      }
+    });
+  }
+
+  String _editedFen() {
+    final board = _position.fen.split(RegExp(r'\s+')).first;
+    final rights =
+        '${_wk ? 'K' : ''}${_wq ? 'Q' : ''}${_bk ? 'k' : ''}${_bq ? 'q' : ''}';
+    return '$board ${_whiteTurn ? 'w' : 'b'} ${rights.isEmpty ? '-' : rights} $_enPassant 0 1';
+  }
+
+  void _finish() {
+    final fen = _editedFen();
+    final validation = chess.Chess.validate_fen(fen);
+    if (validation['valid'] != true) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(validation['error'].toString())));
+      return;
+    }
+    Navigator.pop(context, fen);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    const pieces = <chess.PieceType>[
+      chess.PieceType.KING,
+      chess.PieceType.QUEEN,
+      chess.PieceType.ROOK,
+      chess.PieceType.BISHOP,
+      chess.PieceType.KNIGHT,
+      chess.PieceType.PAWN,
+    ];
+    const labels = ['K', 'Q', 'R', 'B', 'N', 'P'];
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Edit Board'),
+        actions: [TextButton(onPressed: _finish, child: const Text('Done'))],
+      ),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(12),
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 560),
+              child: Column(
+                children: [
+                  AspectRatio(
+                    aspectRatio: 1,
+                    child: LayoutBuilder(
+                      builder: (_, box) => cg.StaticChessboard(
+                        size: box.biggest.shortestSide,
+                        orientation: dc.Side.white,
+                        fen: _position.fen,
+                        settings: const cg.StaticChessboardSettings(
+                          colorScheme: cg.ChessboardColorScheme.brown,
+                          pieceAssets: cg.PieceSet.cburnettAssets,
+                          enableCoordinates: true,
+                        ),
+                        onTouchedSquare: (square) => _touch(square.name),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  SegmentedButton<chess.Color>(
+                    segments: const [
+                      ButtonSegment(
+                        value: chess.Color.WHITE,
+                        label: Text('White pieces'),
+                      ),
+                      ButtonSegment(
+                        value: chess.Color.BLACK,
+                        label: Text('Black pieces'),
+                      ),
+                    ],
+                    selected: {_color},
+                    onSelectionChanged: (value) =>
+                        setState(() => _color = value.first),
+                  ),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 6,
+                    children: List.generate(
+                      pieces.length,
+                      (index) => ChoiceChip(
+                        label: Text(labels[index]),
+                        selected: _piece == pieces[index],
+                        onSelected: (_) =>
+                            setState(() => _piece = pieces[index]),
+                      ),
+                    ),
+                  ),
+                  SwitchListTile(
+                    value: _whiteTurn,
+                    onChanged: (value) => setState(() => _whiteTurn = value),
+                    title: Text(_whiteTurn ? 'White to move' : 'Black to move'),
+                  ),
+                  ExpansionTile(
+                    title: const Text('Castling rights'),
+                    children: [
+                      CheckboxListTile(
+                        value: _wk,
+                        onChanged: (v) => setState(() => _wk = v ?? false),
+                        title: const Text('White kingside'),
+                      ),
+                      CheckboxListTile(
+                        value: _wq,
+                        onChanged: (v) => setState(() => _wq = v ?? false),
+                        title: const Text('White queenside'),
+                      ),
+                      CheckboxListTile(
+                        value: _bk,
+                        onChanged: (v) => setState(() => _bk = v ?? false),
+                        title: const Text('Black kingside'),
+                      ),
+                      CheckboxListTile(
+                        value: _bq,
+                        onChanged: (v) => setState(() => _bq = v ?? false),
+                        title: const Text('Black queenside'),
+                      ),
+                    ],
+                  ),
+                  DropdownButtonFormField<String>(
+                    initialValue: _enPassant,
+                    decoration: const InputDecoration(
+                      labelText: 'En-passant target',
+                      border: OutlineInputBorder(),
+                    ),
+                    items:
+                        [
+                              '-',
+                              for (final rank in [3, 6])
+                                for (final file in 'abcdefgh'.split(''))
+                                  '$file$rank',
+                            ]
+                            .map(
+                              (square) => DropdownMenuItem(
+                                value: square,
+                                child: Text(square),
+                              ),
+                            )
+                            .toList(),
+                    onChanged: (value) =>
+                        setState(() => _enPassant = value ?? '-'),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      TextButton(
+                        onPressed: () => setState(() {
+                          _position = chess.Chess();
+                          _whiteTurn = true;
+                          _wk = _wq = _bk = _bq = true;
+                          _enPassant = '-';
+                        }),
+                        child: const Text('Starting position'),
+                      ),
+                      TextButton(
+                        onPressed: () => setState(() {
+                          _position = chess.Chess.fromFEN(
+                            '8/8/8/8/8/8/8/8 w - - 0 1',
+                            check_validity: false,
+                          );
+                          _whiteTurn = true;
+                          _wk = _wq = _bk = _bq = false;
+                          _enPassant = '-';
+                        }),
+                        child: const Text('Clear board'),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
 
@@ -1386,6 +2291,14 @@ class ReviewPage extends StatefulWidget {
     required this.onHome,
     this.evaluator,
     this.maiaEvaluator,
+    this.title = 'Game review',
+    this.onLoadFen,
+    this.onLoadPgn,
+    this.onEditBoard,
+    this.onPlayFromPosition,
+    this.initialCurrentFen,
+    this.initialFlipped = false,
+    this.onSessionChanged,
     super.key,
   });
 
@@ -1400,6 +2313,19 @@ class ReviewPage extends StatefulWidget {
   final Future<StockfishReview> Function(String fen)? evaluator;
   final Future<String?> Function(List<String> positions, int elo)?
   maiaEvaluator;
+  final String title;
+  final Future<void> Function()? onLoadFen;
+  final Future<void> Function()? onLoadPgn;
+  final Future<void> Function(String fen)? onEditBoard;
+  final Future<void> Function(String fen)? onPlayFromPosition;
+  final String? initialCurrentFen;
+  final bool initialFlipped;
+  final Future<void> Function(
+    String currentFen,
+    bool flipped,
+    List<RecordedVariation> variations,
+  )?
+  onSessionChanged;
 
   @override
   State<ReviewPage> createState() => _ReviewPageState();
@@ -1414,7 +2340,7 @@ class _ReviewPageState extends State<ReviewPage> {
   String? _analysisError;
   bool _flipped = false;
   bool _fullAnalysisRunning = false;
-  int _fullAnalysisProgress = 0;
+  int _fullAnalysisCompleted = 0;
   List<StockfishReview>? _graphScores;
   final Map<int, String> _maiaMoves = {};
   final Set<int> _maiaLoading = {};
@@ -1425,12 +2351,14 @@ class _ReviewPageState extends State<ReviewPage> {
   int? _variationBasePly;
   int _variationIndex = 0;
   final List<String> _variationSan = [];
+  final List<String> _variationUci = [];
   final List<String> _variationPositions = [];
   StockfishReview? _variationReview;
   String? _variationMaiaMove;
   bool _variationLoading = false;
   bool _variationMaiaLoading = false;
   String? _variationError;
+  final Set<String> _collapsedVariationKeys = {};
 
   bool get _inVariation => _variationBasePly != null;
   String get _currentFen => _inVariation
@@ -1446,14 +2374,90 @@ class _ReviewPageState extends State<ReviewPage> {
     ),
   );
 
+  RecordedVariation? get _rootMainline => _maximumPly == 0
+      ? _variations
+            .where(
+              (variation) =>
+                  variation.basePly == 0 && variation.sanMoves.isNotEmpty,
+            )
+            .firstOrNull
+      : widget.onSessionChanged != null
+      ? _variations
+            .where(
+              (variation) =>
+                  variation.basePly == 0 && variation.sanMoves.isNotEmpty,
+            )
+            .firstOrNull
+      : null;
+
+  List<String> get _computerAnalysisPositions {
+    final rootMainline = _rootMainline;
+    if (rootMainline == null) return widget.positions;
+    final game = chess.Chess.fromFEN(rootMainline.baseFen);
+    final positions = <String>[game.fen];
+    for (final san in rootMainline.sanMoves) {
+      if (!game.move(san)) break;
+      positions.add(game.fen);
+    }
+    return positions;
+  }
+
+  void _showComputerAnalysisPly(int ply) {
+    final rootMainline = _rootMainline;
+    if (rootMainline != null) {
+      _openVariation(rootMainline, ply);
+    } else {
+      setState(() => _showMainPly(ply));
+    }
+  }
+
   @override
   void initState() {
     super.initState();
+    _flipped = widget.initialFlipped;
     _variations = List.of(widget.initialVariations);
+    // The Analysis Board owns a mutable tree. Imported PGN mainlines arrive
+    // as immutable seed positions, so normalize them into the same root-line
+    // representation used by lines played directly on the board. This makes
+    // Lichess-style delete/promote operations possible without special cases.
+    if (widget.onSessionChanged != null &&
+        widget.sanMoves.isNotEmpty &&
+        !_variations.any(
+          (line) => line.basePly == 0 && line.sanMoves.isNotEmpty,
+        )) {
+      final attached = _variations
+          .where((line) => line.basePly > 0)
+          .toList(growable: false);
+      _variations.removeWhere((line) => line.basePly > 0);
+      _variations.insert(
+        0,
+        RecordedVariation(
+          basePly: 0,
+          baseFen: widget.positions.first,
+          sanMoves: List.unmodifiable(widget.sanMoves),
+          children: attached,
+        ),
+      );
+    }
     _boardPosition = dc.Chess.fromSetup(dc.Setup.parseFen(widget.positions[0]));
     _boardController = cg.ChessboardController(game: _boardGameData());
+    final initialFen = widget.initialCurrentFen;
+    if (initialFen != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _restoreCurrentFen(initialFen);
+      });
+    }
     unawaited(_analyzePosition(0));
     unawaited(_analyzeMaiaPosition(0));
+  }
+
+  void _notifySessionChanged() {
+    final callback = widget.onSessionChanged;
+    if (callback != null) {
+      unawaited(
+        callback(_currentFen, _flipped, List.unmodifiable(_variations)),
+      );
+    }
   }
 
   @override
@@ -1464,9 +2468,7 @@ class _ReviewPageState extends State<ReviewPage> {
 
   cg.GameData _boardGameData() => cg.GameData(
     fen: _boardPosition.fen,
-    playerSide:
-        _boardPosition.isGameOver ||
-            (_inVariation && _variationIndex < _variationSan.length)
+    playerSide: _boardPosition.isGameOver
         ? cg.PlayerSide.none
         : cg.PlayerSide.both,
     sideToMove: _boardPosition.turn,
@@ -1474,13 +2476,26 @@ class _ReviewPageState extends State<ReviewPage> {
     kingSquareInCheck: _boardPosition.isCheck
         ? _boardPosition.board.kingOf(_boardPosition.turn)
         : null,
+    lastMove: _selectedLastMove,
   );
+
+  dc.Move? get _selectedLastMove {
+    final uci = _inVariation
+        ? (_variationIndex == 0 ? null : _variationUci[_variationIndex - 1])
+        : (_ply == 0 ? null : widget.uciMoves[_ply - 1]);
+    if (uci == null ||
+        !RegExp(r'^[a-h][1-8][a-h][1-8][qrbn]?$').hasMatch(uci)) {
+      return null;
+    }
+    return dc.NormalMove.fromUci(uci);
+  }
 
   void _showMainPly(int ply) {
     _variationBasePly = null;
     _openedVariation = null;
     _variationIndex = 0;
     _variationSan.clear();
+    _variationUci.clear();
     _variationPositions.clear();
     _variationReview = null;
     _variationMaiaMove = null;
@@ -1495,6 +2510,7 @@ class _ReviewPageState extends State<ReviewPage> {
     );
     unawaited(_analyzePosition(_ply));
     unawaited(_analyzeMaiaPosition(_ply));
+    _notifySessionChanged();
   }
 
   void _onAnalysisMove(dc.Move move, {bool? viaDragAndDrop}) {
@@ -1528,26 +2544,36 @@ class _ReviewPageState extends State<ReviewPage> {
         baseFen: fenBefore,
         sanMoves: [san],
       );
-      final siblings = List<RecordedVariation>.of(opened.children)
-        ..removeWhere(
-          (item) =>
-              item.basePly == basePly &&
-              item.sanMoves.isNotEmpty &&
-              item.sanMoves.first == san,
-        )
-        ..add(child);
-      final updatedParent = RecordedVariation(
-        basePly: opened.basePly,
-        baseFen: opened.baseFen,
-        sanMoves: opened.sanMoves,
-        children: siblings,
-      );
-      _replaceVariation(_variations, opened, updatedParent);
+      if (_variationIndex == 0) {
+        // A move from the branch's starting position is a sibling RAV, not a
+        // child of the branch's first move. Keeping this distinction is what
+        // makes the exported PGN tree round-trip correctly.
+        _insertSiblingVariation(opened, child);
+      } else {
+        final siblings = List<RecordedVariation>.of(opened.children)
+          ..removeWhere(
+            (item) =>
+                item.basePly == basePly &&
+                item.sanMoves.isNotEmpty &&
+                item.sanMoves.first == san,
+          )
+          ..add(child);
+        final updatedParent = RecordedVariation(
+          basePly: opened.basePly,
+          baseFen: opened.baseFen,
+          sanMoves: opened.sanMoves,
+          children: siblings,
+        );
+        _replaceVariation(_variations, opened, updatedParent);
+      }
       _openedVariation = child;
       _variationBasePly = basePly;
       _variationSan
         ..clear()
         ..add(san);
+      _variationUci
+        ..clear()
+        ..add(uci);
       _variationPositions
         ..clear()
         ..add(fenBefore)
@@ -1559,16 +2585,19 @@ class _ReviewPageState extends State<ReviewPage> {
         _variationMaiaMove = null;
       });
       unawaited(_analyzeVariation());
+      _notifySessionChanged();
       return;
     }
     if (_variationBasePly == null) {
       _variationBasePly = basePly;
       _variationSan.clear();
+      _variationUci.clear();
       _variationPositions
         ..clear()
         ..add(fenBefore);
     }
     _variationSan.add(san);
+    _variationUci.add(uci);
     _variationPositions.add(_boardPosition.fen);
     _variationIndex = _variationSan.length;
     final updated = RecordedVariation(
@@ -1595,6 +2624,7 @@ class _ReviewPageState extends State<ReviewPage> {
       _variationMaiaMove = null;
     });
     unawaited(_analyzeVariation());
+    _notifySessionChanged();
   }
 
   Future<void> _analyzeMaiaPosition(int ply) async {
@@ -1728,10 +2758,260 @@ class _ReviewPageState extends State<ReviewPage> {
     return false;
   }
 
+  void _insertSiblingVariation(
+    RecordedVariation target,
+    RecordedVariation sibling,
+  ) {
+    bool insert(List<RecordedVariation> lines) {
+      for (var index = 0; index < lines.length; index++) {
+        final current = lines[index];
+        if (identical(current, target)) {
+          lines.removeWhere(
+            (item) =>
+                item.basePly == sibling.basePly &&
+                item.sanMoves.isNotEmpty &&
+                item.sanMoves.first == sibling.sanMoves.first,
+          );
+          lines.add(sibling);
+          return true;
+        }
+        final children = List<RecordedVariation>.of(current.children);
+        if (insert(children)) {
+          lines[index] = RecordedVariation(
+            basePly: current.basePly,
+            baseFen: current.baseFen,
+            sanMoves: current.sanMoves,
+            children: children,
+          );
+          return true;
+        }
+      }
+      return false;
+    }
+
+    if (!insert(_variations)) _variations.add(sibling);
+  }
+
+  String _variationKey(RecordedVariation line) =>
+      '${line.baseFen}|${line.sanMoves.firstOrNull ?? ''}';
+
+  String _fenAt(RecordedVariation line, int moveIndex) {
+    final game = chess.Chess.fromFEN(line.baseFen);
+    for (final san in line.sanMoves.take(moveIndex)) {
+      if (!game.move(san)) break;
+    }
+    return game.fen;
+  }
+
+  RecordedVariation? _deleteVariationFrom(
+    RecordedVariation target,
+    int moveIndex,
+  ) {
+    RecordedVariation? replacement;
+    bool removeFrom(List<RecordedVariation> lines) {
+      for (var index = 0; index < lines.length; index++) {
+        final current = lines[index];
+        if (identical(current, target)) {
+          if (moveIndex <= 1) {
+            lines.removeAt(index);
+          } else {
+            final deletedPly = current.basePly + moveIndex - 1;
+            replacement = RecordedVariation(
+              basePly: current.basePly,
+              baseFen: current.baseFen,
+              sanMoves: List.unmodifiable(current.sanMoves.take(moveIndex - 1)),
+              children: current.children
+                  .where((child) => child.basePly < deletedPly)
+                  .toList(growable: false),
+            );
+            lines[index] = replacement!;
+          }
+          return true;
+        }
+        final children = List<RecordedVariation>.of(current.children);
+        if (removeFrom(children)) {
+          lines[index] = RecordedVariation(
+            basePly: current.basePly,
+            baseFen: current.baseFen,
+            sanMoves: current.sanMoves,
+            children: children,
+          );
+          return true;
+        }
+      }
+      return false;
+    }
+
+    removeFrom(_variations);
+    return replacement;
+  }
+
+  RecordedVariation _promoteVariationOnce(RecordedVariation target) {
+    final topIndex = _variations.indexWhere((line) => identical(line, target));
+    if (topIndex >= 0) {
+      if (topIndex > 0) {
+        _variations
+          ..removeAt(topIndex)
+          ..insert(0, target);
+      }
+      return target;
+    }
+
+    RecordedVariation? promoted;
+    bool promoteIn(List<RecordedVariation> lines) {
+      for (var index = 0; index < lines.length; index++) {
+        final parent = lines[index];
+        final directIndex = parent.children.indexWhere(
+          (line) => identical(line, target),
+        );
+        if (directIndex >= 0) {
+          final branchPly = target.basePly;
+          final offset = (branchPly - parent.basePly).clamp(
+            0,
+            parent.sanMoves.length,
+          );
+          final oldTail = parent.sanMoves.skip(offset).toList(growable: false);
+          final siblings = parent.children
+              .where(
+                (line) => !identical(line, target) && line.basePly <= branchPly,
+              )
+              .toList();
+          if (oldTail.isNotEmpty) {
+            siblings.add(
+              RecordedVariation(
+                basePly: branchPly,
+                baseFen: target.baseFen,
+                sanMoves: oldTail,
+                children: parent.children
+                    .where((line) => line.basePly > branchPly)
+                    .toList(growable: false),
+              ),
+            );
+          }
+          siblings.addAll(target.children);
+          promoted = RecordedVariation(
+            basePly: parent.basePly,
+            baseFen: parent.baseFen,
+            sanMoves: [...parent.sanMoves.take(offset), ...target.sanMoves],
+            children: siblings,
+          );
+          lines[index] = promoted!;
+          return true;
+        }
+        final children = List<RecordedVariation>.of(parent.children);
+        if (promoteIn(children)) {
+          lines[index] = RecordedVariation(
+            basePly: parent.basePly,
+            baseFen: parent.baseFen,
+            sanMoves: parent.sanMoves,
+            children: children,
+          );
+          return true;
+        }
+      }
+      return false;
+    }
+
+    promoteIn(_variations);
+    return promoted ?? target;
+  }
+
+  bool _isTopLevelVariation(RecordedVariation target) =>
+      _variations.any((line) => identical(line, target));
+
+  Future<void> _showMoveActions(
+    RecordedVariation line,
+    int moveIndex, {
+    required bool variation,
+  }) async {
+    if (widget.onSessionChanged == null) return;
+    final selectedFen = _fenAt(line, moveIndex);
+    final previousFen = _fenAt(line, moveIndex - 1);
+    final action = await showModalBottomSheet<String>(
+      context: context,
+      showDragHandle: true,
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              title: Text(
+                line.sanMoves[moveIndex - 1],
+                style: const TextStyle(fontWeight: FontWeight.w700),
+              ),
+            ),
+            const Divider(height: 1),
+            if (variation) ...[
+              ListTile(
+                leading: const Icon(Icons.subtitles_off),
+                title: Text(
+                  _collapsedVariationKeys.contains(_variationKey(line))
+                      ? 'Expand variations'
+                      : 'Collapse variations',
+                ),
+                onTap: () => Navigator.pop(context, 'collapse'),
+              ),
+              ListTile(
+                leading: const Icon(Icons.expand_less),
+                title: const Text('Promote variation'),
+                onTap: () => Navigator.pop(context, 'promote'),
+              ),
+              ListTile(
+                leading: const Icon(Icons.check),
+                title: const Text('Make main line'),
+                onTap: () => Navigator.pop(context, 'mainline'),
+              ),
+            ],
+            ListTile(
+              leading: const Icon(Icons.delete_outline),
+              title: const Text('Delete from here'),
+              onTap: () => Navigator.pop(context, 'delete'),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (!mounted || action == null) return;
+    setState(() {
+      switch (action) {
+        case 'collapse':
+          final key = _variationKey(line);
+          if (!_collapsedVariationKeys.remove(key)) {
+            _collapsedVariationKeys.add(key);
+          }
+          break;
+        case 'delete':
+          _deleteVariationFrom(line, moveIndex);
+          break;
+        case 'promote':
+          _promoteVariationOnce(line);
+          break;
+        case 'mainline':
+          var promoted = line;
+          while (!_isTopLevelVariation(promoted) ||
+              _variations.indexOf(promoted) > 0) {
+            final next = _promoteVariationOnce(promoted);
+            if (identical(next, promoted) && _variations.indexOf(next) == 0) {
+              break;
+            }
+            promoted = next;
+          }
+          break;
+      }
+    });
+    if (action == 'delete') {
+      _restoreCurrentFen(previousFen);
+    } else if (action == 'promote' || action == 'mainline') {
+      _restoreCurrentFen(selectedFen);
+    }
+    _notifySessionChanged();
+  }
+
   void _openVariation(RecordedVariation variation, [int? selectedIndex]) {
     final sanGame = chess.Chess.fromFEN(variation.baseFen);
     var position = dc.Chess.fromSetup(dc.Setup.parseFen(variation.baseFen));
     final positions = <String>[variation.baseFen];
+    final uciMoves = <String>[];
     for (final san in variation.sanMoves) {
       final sanOptions = sanGame.moves().cast<String>().toList();
       final moveOptions = sanGame
@@ -1741,6 +3021,7 @@ class _ReviewPageState extends State<ReviewPage> {
       final index = sanOptions.indexOf(san);
       if (index < 0) return;
       final uci = MaiaEncoding.uci(moveOptions[index]);
+      uciMoves.add(uci);
       final move = dc.NormalMove.fromUci(uci);
       if (!position.isLegal(move) || !sanGame.move(moveOptions[index])) return;
       position = position.playUnchecked(move) as dc.Chess;
@@ -1756,6 +3037,9 @@ class _ReviewPageState extends State<ReviewPage> {
       _variationSan
         ..clear()
         ..addAll(variation.sanMoves);
+      _variationUci
+        ..clear()
+        ..addAll(uciMoves);
       _variationPositions
         ..clear()
         ..addAll(positions);
@@ -1771,6 +3055,32 @@ class _ReviewPageState extends State<ReviewPage> {
       );
     });
     unawaited(_analyzeVariation());
+    _notifySessionChanged();
+  }
+
+  void _restoreCurrentFen(String fen) {
+    final mainIndex = widget.positions.indexOf(fen);
+    if (mainIndex >= 0) {
+      setState(() => _showMainPly(mainIndex));
+      return;
+    }
+    bool visit(RecordedVariation variation) {
+      final game = chess.Chess.fromFEN(variation.baseFen);
+      if (variation.baseFen == fen) {
+        _openVariation(variation, 0);
+        return true;
+      }
+      for (var index = 0; index < variation.sanMoves.length; index++) {
+        if (!game.move(variation.sanMoves[index])) break;
+        if (game.fen == fen) {
+          _openVariation(variation, index + 1);
+          return true;
+        }
+      }
+      return variation.children.any(visit);
+    }
+
+    _variations.any(visit);
   }
 
   Future<void> _analyzePosition(int ply) async {
@@ -1806,21 +3116,42 @@ class _ReviewPageState extends State<ReviewPage> {
 
   Future<void> _analyzeFullGame() async {
     if (_fullAnalysisRunning) return;
+    final positions = _computerAnalysisPositions;
     setState(() {
       _fullAnalysisRunning = true;
-      _fullAnalysisProgress = 0;
+      _fullAnalysisCompleted = 0;
       _graphScores = null;
+      _analysisError = null;
     });
-    for (var i = 0; i <= _maximumPly && mounted; i++) {
-      await _analyzePosition(i);
-      if (mounted) setState(() => _fullAnalysisProgress = i + 1);
+    final scores = <StockfishReview>[];
+    final evaluate = widget.evaluator ?? StockfishAnalyzer.instance.evaluate;
+    for (var i = 0; i < positions.length && mounted; i++) {
+      try {
+        final review =
+            i < widget.positions.length && positions[i] == widget.positions[i]
+            ? (_reviews[i] ?? await evaluate(positions[i]))
+            : await evaluate(positions[i]);
+        scores.add(review);
+        if (i < widget.positions.length &&
+            positions[i] == widget.positions[i]) {
+          _reviews[i] = review;
+        }
+      } catch (error, stackTrace) {
+        unawaited(
+          AppDiagnostics.record('stockfish-full-analysis', error, stackTrace),
+        );
+        _analysisError = 'Computer analysis failed: $error';
+        break;
+      }
+      if (mounted) setState(() => _fullAnalysisCompleted = i + 1);
     }
     if (!mounted) return;
     setState(() {
-      _graphScores = List.generate(
-        _maximumPly + 1,
-        (index) => _reviews[index] ?? const StockfishReview(0, ''),
-      );
+      if (scores.length == positions.length) {
+        _graphScores = List.unmodifiable(scores);
+      } else {
+        _analysisError ??= 'Computer analysis did not complete. Try again.';
+      }
       _fullAnalysisRunning = false;
     });
   }
@@ -1847,10 +3178,143 @@ class _ReviewPageState extends State<ReviewPage> {
     dest: dc.Square.fromName(uci.substring(2, 4)),
   );
 
+  String _sanForUci(String fen, String uci) {
+    final game = chess.Chess.fromFEN(fen);
+    final candidate = game
+        .moves({'asObjects': true})
+        .cast<chess.Move>()
+        .where((move) => MaiaEncoding.uci(move) == uci)
+        .firstOrNull;
+    if (candidate == null) return uci;
+    game.move(candidate);
+    return game
+        .getHistory({'verbose': true})
+        .cast<Map<String, dynamic>>()
+        .last['san']
+        .toString();
+  }
+
+  String _pvSan(StockfishLine line) {
+    final game = chess.Chess.fromFEN(_currentFen);
+    final san = <String>[];
+    for (final uci in line.moves.take(8)) {
+      final candidate = game
+          .moves({'asObjects': true})
+          .cast<chess.Move>()
+          .where((move) => MaiaEncoding.uci(move) == uci)
+          .firstOrNull;
+      if (candidate == null) break;
+      game.move(candidate);
+      san.add(
+        game
+            .getHistory({'verbose': true})
+            .cast<Map<String, dynamic>>()
+            .last['san']
+            .toString(),
+      );
+    }
+    return san.join(' ');
+  }
+
+  Widget _engineLinesPanel() {
+    final review = _review;
+    final maiaMove = _inVariation ? _variationMaiaMove : _maiaMoves[_ply];
+    final stockfishLines = review?.lines.isNotEmpty == true
+        ? review!.lines.take(2).toList(growable: false)
+        : review == null || review.bestMove == '(none)'
+        ? const <StockfishLine>[]
+        : [
+            StockfishLine(
+              evaluation: review.evaluation,
+              mate: review.mate,
+              moves: [review.bestMove],
+            ),
+          ];
+    final loading = _inVariation ? _variationLoading : _loading.contains(_ply);
+    final error = _inVariation ? _variationError : _analysisError;
+    final maiaLoading = _inVariation
+        ? _variationMaiaLoading
+        : _maiaLoading.contains(_ply);
+    Widget engineRow({
+      required String label,
+      required Color color,
+      required String text,
+      Key? key,
+    }) => SizedBox(
+      key: key,
+      height: 26,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          SizedBox(
+            width: 48,
+            child: Text(
+              label,
+              style: TextStyle(
+                color: color,
+                fontWeight: FontWeight.w700,
+                fontFeatures: const [FontFeature.tabularFigures()],
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(text, maxLines: 1, overflow: TextOverflow.ellipsis),
+          ),
+        ],
+      ),
+    );
+    return Container(
+      key: const ValueKey('analysis-engine-lines'),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainer,
+        borderRadius: BorderRadius.circular(6),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+      child: Column(
+        children: [
+          for (var index = 0; index < 2; index++)
+            engineRow(
+              key: ValueKey('stockfish-line-${index + 1}'),
+              label: index < stockfishLines.length
+                  ? _formatLineEvaluation(stockfishLines[index])
+                  : 'SF${index + 1}',
+              color: const Color(0xff72b7ee),
+              text:
+                  error ??
+                  (index < stockfishLines.length
+                      ? _pvSan(stockfishLines[index])
+                      : loading
+                      ? 'Analyzing…'
+                      : '—'),
+            ),
+          engineRow(
+            key: const ValueKey('maia-engine-line'),
+            label: 'M${widget.maiaElo}',
+            color: const Color(0xffe89b3c),
+            text: maiaMove == null
+                ? maiaLoading
+                      ? 'Analyzing…'
+                      : '—'
+                : maiaMove == review?.bestMove
+                ? '${_sanForUci(_currentFen, maiaMove)} · Matches Stockfish'
+                : _sanForUci(_currentFen, maiaMove),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _formatLineEvaluation(StockfishLine line) {
+    if (line.mate != null) return '#${line.mate}';
+    final pawns = line.evaluation / 100;
+    return '${pawns >= 0 ? '+' : ''}${pawns.toStringAsFixed(1)}';
+  }
+
   Widget _notationMove({
     required String san,
     required bool selected,
     required VoidCallback onTap,
+    VoidCallback? onLongPress,
     Key? key,
     bool variation = false,
   }) {
@@ -1862,6 +3326,7 @@ class _ReviewPageState extends State<ReviewPage> {
       child: InkWell(
         borderRadius: BorderRadius.circular(3),
         onTap: onTap,
+        onLongPress: onLongPress,
         child: Padding(
           padding: EdgeInsets.symmetric(
             horizontal: variation ? 3 : 6,
@@ -1880,132 +3345,130 @@ class _ReviewPageState extends State<ReviewPage> {
     );
   }
 
-  Widget _variationLine(RecordedVariation variation, [int depth = 0]) {
-    final children = variation.children;
-    return Container(
-      margin: EdgeInsets.only(top: 3, left: depth * 14.0),
-      padding: const EdgeInsets.fromLTRB(8, 3, 6, 3),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest,
-        border: Border(
-          left: BorderSide(
-            width: 3,
-            color: Theme.of(context).colorScheme.outlineVariant,
-          ),
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Wrap(
-            spacing: 1,
-            runSpacing: 1,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            children: [
-              for (
-                var index = 0;
-                index < variation.sanMoves.length;
-                index++
-              ) ...[
-                if ((variation.basePly + index).isEven)
-                  Padding(
-                    padding: const EdgeInsets.only(right: 1),
-                    child: Text(
+  Widget _variationLine(RecordedVariation variation, [int depth = 0]) =>
+      Container(
+        width: double.infinity,
+        margin: EdgeInsets.only(left: 34 + depth * 14.0),
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+        color: Theme.of(context).colorScheme.surfaceContainerLow,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Wrap(
+              spacing: 1,
+              runSpacing: 0,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                Text(
+                  '(',
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                for (
+                  var index = 0;
+                  index < variation.sanMoves.length;
+                  index++
+                ) ...[
+                  if ((variation.basePly + index).isEven)
+                    Text(
                       '${((variation.basePly + index) ~/ 2) + 1}.',
                       style: TextStyle(
                         fontSize: 13,
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
-                    ),
-                  )
-                else if (index == 0)
-                  Padding(
-                    padding: const EdgeInsets.only(right: 1),
-                    child: Text(
+                    )
+                  else if (index == 0)
+                    Text(
                       '${((variation.basePly + index) ~/ 2) + 1}...',
                       style: TextStyle(
                         fontSize: 13,
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
                     ),
+                  _notationMove(
+                    key: ValueKey('variation-${variation.hashCode}-$index'),
+                    san: variation.sanMoves[index],
+                    variation: true,
+                    selected:
+                        identical(_openedVariation, variation) &&
+                        _variationIndex == index + 1,
+                    onTap: () => _openVariation(variation, index + 1),
+                    onLongPress: () =>
+                        _showMoveActions(variation, index + 1, variation: true),
                   ),
-                _notationMove(
-                  key: ValueKey('variation-${variation.hashCode}-$index'),
-                  san: variation.sanMoves[index],
-                  variation: true,
-                  selected:
-                      identical(_openedVariation, variation) &&
-                      _variationIndex == index + 1,
-                  onTap: () => _openVariation(variation, index + 1),
+                ],
+                Text(
+                  ')',
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
                 ),
               ],
-            ],
-          ),
-          for (final child in children) _variationLine(child, depth + 1),
-        ],
-      ),
-    );
-  }
+            ),
+            if (!_collapsedVariationKeys.contains(_variationKey(variation)))
+              for (final child in variation.children)
+                _variationLine(child, depth + 1),
+          ],
+        ),
+      );
 
   Widget _movesNotation() {
+    final rootMainline = _rootMainline;
     final variationsByBase = <int, List<RecordedVariation>>{};
     for (final variation in _variations) {
+      if (identical(variation, rootMainline)) continue;
       variationsByBase.putIfAbsent(variation.basePly, () => []).add(variation);
     }
     final renderedVariations = <RecordedVariation>{};
     final rows = <Widget>[];
-    for (var whiteIndex = 0; whiteIndex < _maximumPly; whiteIndex += 2) {
-      final blackIndex = whiteIndex + 1;
+    final mainlineLength = rootMainline?.sanMoves.length ?? _maximumPly;
+    for (var whiteIndex = 0; whiteIndex < mainlineLength; whiteIndex += 2) {
+      Widget move(int index) => _notationMove(
+        key: ValueKey('mainline-move-$index'),
+        san: rootMainline?.sanMoves[index] ?? widget.sanMoves[index],
+        selected: rootMainline != null
+            ? identical(_openedVariation, rootMainline) &&
+                  _variationIndex == index + 1
+            : !_inVariation && _ply == index + 1,
+        onTap: rootMainline != null
+            ? () => _openVariation(rootMainline, index + 1)
+            : () => setState(() => _showMainPly(index + 1)),
+        onLongPress: rootMainline != null
+            ? () => _showMoveActions(rootMainline, index + 1, variation: false)
+            : null,
+      );
       rows.add(
-        Container(
-          color: (whiteIndex ~/ 2).isOdd
-              ? Theme.of(context).colorScheme.surfaceContainerLow
-              : Colors.transparent,
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              SizedBox(
-                width: 38,
-                child: Text(
-                  '${(whiteIndex ~/ 2) + 1}.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    fontFeatures: const [FontFeature.tabularFigures()],
-                  ),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            SizedBox(
+              width: 34,
+              child: Text(
+                '${(whiteIndex ~/ 2) + 1}.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  fontFeatures: const [FontFeature.tabularFigures()],
                 ),
               ),
-              Expanded(
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: _notationMove(
-                    key: ValueKey('main-move-$whiteIndex'),
-                    san: widget.sanMoves[whiteIndex],
-                    selected: !_inVariation && _ply == whiteIndex + 1,
-                    onTap: () => setState(() => _showMainPly(whiteIndex + 1)),
-                  ),
-                ),
-              ),
-              Expanded(
-                child: blackIndex < _maximumPly
-                    ? Align(
-                        alignment: Alignment.centerLeft,
-                        child: _notationMove(
-                          key: ValueKey('main-move-$blackIndex'),
-                          san: widget.sanMoves[blackIndex],
-                          selected: !_inVariation && _ply == blackIndex + 1,
-                          onTap: () =>
-                              setState(() => _showMainPly(blackIndex + 1)),
-                        ),
-                      )
-                    : const SizedBox.shrink(),
-              ),
-            ],
-          ),
+            ),
+            Expanded(child: move(whiteIndex)),
+            Expanded(
+              child: whiteIndex + 1 < mainlineLength
+                  ? move(whiteIndex + 1)
+                  : const SizedBox.shrink(),
+            ),
+          ],
         ),
       );
-      for (final basePly in [whiteIndex, blackIndex]) {
-        for (final variation in variationsByBase[basePly] ?? const []) {
+      for (final basePly in [whiteIndex, whiteIndex + 1]) {
+        final attachedVariations = <RecordedVariation>[
+          ...variationsByBase[basePly] ?? const [],
+          if (rootMainline != null)
+            ...rootMainline.children.where((child) => child.basePly == basePly),
+        ];
+        for (final variation in attachedVariations) {
           rows.add(_variationLine(variation));
           renderedVariations.add(variation);
         }
@@ -2014,6 +3477,7 @@ class _ReviewPageState extends State<ReviewPage> {
     // A review may begin from a terminal or deliberately truncated main line.
     // Keep analysis branches visible even when there is no corresponding row.
     for (final variation in _variations) {
+      if (identical(variation, rootMainline)) continue;
       if (renderedVariations.add(variation)) {
         rows.add(_variationLine(variation));
       }
@@ -2026,7 +3490,11 @@ class _ReviewPageState extends State<ReviewPage> {
         borderRadius: BorderRadius.circular(6),
       ),
       clipBehavior: Clip.antiAlias,
-      child: Column(children: rows),
+      child: SingleChildScrollView(
+        key: const ValueKey('analysis-move-scroll'),
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: Column(children: rows),
+      ),
     );
   }
 
@@ -2047,6 +3515,7 @@ class _ReviewPageState extends State<ReviewPage> {
         );
       });
       unawaited(_analyzeVariation());
+      _notifySessionChanged();
       return;
     }
     setState(() => _showMainPly(_ply + delta));
@@ -2057,9 +3526,9 @@ class _ReviewPageState extends State<ReviewPage> {
       ClipboardData(
         text: PgnVariationExporter.export(
           widget.pgn,
-          widget.sanMoves,
+          _rootMainline == null ? widget.sanMoves : const [],
           _variations,
-          mainPositions: widget.positions,
+          mainPositions: _rootMainline == null ? widget.positions : null,
         ),
       ),
     );
@@ -2069,21 +3538,182 @@ class _ReviewPageState extends State<ReviewPage> {
     }
   }
 
+  Future<void> _copyFen() async {
+    await Clipboard.setData(ClipboardData(text: _currentFen));
+    if (mounted) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('FEN copied')));
+    }
+  }
+
+  Widget _analysisTabBar() {
+    final colors = Theme.of(context).colorScheme;
+    Widget tab({
+      required bool graph,
+      required IconData icon,
+      required String tooltip,
+    }) {
+      final selected = _showGraph == graph;
+      return Expanded(
+        child: Tooltip(
+          message: tooltip,
+          child: InkWell(
+            key: ValueKey(graph ? 'graph-tab' : 'moves-tab'),
+            onTap: () => setState(() => _showGraph = graph),
+            child: Container(
+              height: 32,
+              decoration: BoxDecoration(
+                border: Border(
+                  bottom: BorderSide(
+                    color: selected ? colors.primary : Colors.transparent,
+                    width: 2,
+                  ),
+                ),
+              ),
+              child: Icon(
+                icon,
+                size: 19,
+                color: selected ? colors.primary : colors.onSurfaceVariant,
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Material(
+      color: colors.surface,
+      child: Row(
+        children: [
+          tab(
+            graph: false,
+            icon: Icons.account_tree_outlined,
+            tooltip: 'Moves',
+          ),
+          tab(
+            graph: true,
+            icon: Icons.area_chart_outlined,
+            tooltip: 'Computer analysis',
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _movesTab() => Column(
+    children: [
+      Expanded(child: _movesNotation()),
+      SizedBox(
+        height: 42,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            IconButton(
+              tooltip: 'Previous move',
+              onPressed: (_inVariation ? _variationIndex == 0 : _ply == 0)
+                  ? null
+                  : () => _step(-1),
+              icon: const Icon(Icons.chevron_left),
+            ),
+            IconButton(
+              tooltip: 'Next move',
+              onPressed:
+                  (_inVariation
+                      ? _variationIndex == _variationSan.length
+                      : _ply == _maximumPly)
+                  ? null
+                  : () => _step(1),
+              icon: const Icon(Icons.chevron_right),
+            ),
+          ],
+        ),
+      ),
+    ],
+  );
+
+  Widget _graphTab() {
+    final scores = _graphScores;
+    if (scores != null) {
+      return SingleChildScrollView(
+        padding: const EdgeInsets.all(8),
+        child: Column(
+          children: [
+            AccuracySummary(scores: scores),
+            const SizedBox(height: 8),
+            AnalysisGraph(
+              scores: scores,
+              selectedPly: _rootMainline == null ? _ply : _variationIndex,
+              onSelected: _showComputerAnalysisPly,
+            ),
+            const SizedBox(height: 8),
+            TextButton.icon(
+              onPressed: _analyzeFullGame,
+              icon: const Icon(Icons.refresh),
+              label: const Text('Run computer analysis again'),
+            ),
+          ],
+        ),
+      );
+    }
+    final total = _computerAnalysisPositions.length;
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (_fullAnalysisRunning) ...[
+              LinearProgressIndicator(
+                value: total == 0 ? null : _fullAnalysisCompleted / total,
+              ),
+              const SizedBox(height: 10),
+              Text('Analyzing $_fullAnalysisCompleted of $total positions…'),
+            ] else ...[
+              const Text(
+                'Run computer analysis to generate the evaluation graph and White/Black accuracy.',
+                textAlign: TextAlign.center,
+              ),
+              if (_analysisError != null) ...[
+                const SizedBox(height: 8),
+                Text(
+                  _analysisError!,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Theme.of(context).colorScheme.error),
+                ),
+              ],
+              const SizedBox(height: 12),
+              FilledButton.icon(
+                key: const ValueKey('run-computer-analysis'),
+                onPressed: _analyzeFullGame,
+                icon: const Icon(Icons.analytics_outlined),
+                label: const Text('Run computer analysis'),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final evaluation = _review?.evaluation;
     final mate = _review?.mate;
-    final moveLabel = _inVariation
-        ? 'Variation: ${_variationSan.take(_variationIndex).join(' ')}'
-        : _ply == 0
-        ? 'Starting position'
-        : '${(_ply + 1) ~/ 2}${_ply.isOdd ? '.' : '…'} ${widget.sanMoves[_ply - 1]}';
+    final openingName = OpeningNames.identifyPositions([
+      ...widget.positions.take(
+        (_inVariation ? (_variationBasePly ?? 0) : _ply) + 1,
+      ),
+      if (_inVariation) ..._variationPositions.skip(1).take(_variationIndex),
+    ]);
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Game review'),
+        title: Text(widget.title),
         actions: [
           IconButton(
-            onPressed: () => setState(() => _flipped = !_flipped),
+            onPressed: () {
+              setState(() => _flipped = !_flipped);
+              _notifySessionChanged();
+            },
             icon: const Icon(Icons.flip_camera_android_outlined),
             tooltip: 'Flip board',
           ),
@@ -2092,6 +3722,61 @@ class _ReviewPageState extends State<ReviewPage> {
             icon: const Icon(Icons.copy),
             tooltip: 'Copy PGN',
           ),
+          if (widget.onLoadFen != null)
+            PopupMenuButton<String>(
+              tooltip: 'Analysis Board actions',
+              onSelected: (value) async {
+                switch (value) {
+                  case 'fen':
+                    await widget.onLoadFen?.call();
+                  case 'pgn':
+                    await widget.onLoadPgn?.call();
+                  case 'edit':
+                    await widget.onEditBoard?.call(_currentFen);
+                  case 'play':
+                    await widget.onPlayFromPosition?.call(_currentFen);
+                  case 'copyFen':
+                    await _copyFen();
+                }
+              },
+              itemBuilder: (_) => const [
+                PopupMenuItem(
+                  value: 'fen',
+                  child: ListTile(
+                    leading: Icon(Icons.content_paste),
+                    title: Text('Load FEN'),
+                  ),
+                ),
+                PopupMenuItem(
+                  value: 'pgn',
+                  child: ListTile(
+                    leading: Icon(Icons.article_outlined),
+                    title: Text('Load PGN'),
+                  ),
+                ),
+                PopupMenuItem(
+                  value: 'edit',
+                  child: ListTile(
+                    leading: Icon(Icons.edit_outlined),
+                    title: Text('Edit Board'),
+                  ),
+                ),
+                PopupMenuItem(
+                  value: 'play',
+                  child: ListTile(
+                    leading: Icon(Icons.play_arrow),
+                    title: Text('Play from here'),
+                  ),
+                ),
+                PopupMenuItem(
+                  value: 'copyFen',
+                  child: ListTile(
+                    leading: Icon(Icons.copy),
+                    title: Text('Copy FEN'),
+                  ),
+                ),
+              ],
+            ),
           IconButton(
             onPressed: () {
               widget.onHome();
@@ -2105,225 +3790,84 @@ class _ReviewPageState extends State<ReviewPage> {
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
-            return SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(12, 8, 12, 24),
-              child: Center(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 600),
-                  child: LayoutBuilder(
-                    builder: (context, contentConstraints) {
-                      // The board row also contains the 24px evaluation bar and
-                      // an 8px gap. Compute from the actual padded content width,
-                      // not the outer viewport width.
-                      final boardSize = max(
-                        0.0,
-                        min(contentConstraints.maxWidth - 32, 560.0),
-                      );
-                      return Column(
+            final contentWidth = min(constraints.maxWidth, 600.0);
+            final boardByWidth = max(0.0, contentWidth - 32);
+            final boardByHeight = max(190.0, constraints.maxHeight - 365);
+            final boardSize = min(boardByWidth, min(boardByHeight, 560.0));
+            return Center(
+              child: SizedBox(
+                width: contentWidth,
+                height: constraints.maxHeight,
+                child: Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(12, 6, 12, 0),
+                      child: _engineLinesPanel(),
+                    ),
+                    const SizedBox(height: 6),
+                    SizedBox(
+                      height: boardSize,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
+                          EvaluationBar(evaluation: evaluation, mate: mate),
+                          const SizedBox(width: 8),
                           SizedBox(
+                            width: boardSize,
                             height: boardSize,
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                EvaluationBar(
-                                  evaluation: evaluation,
-                                  mate: mate,
-                                ),
-                                const SizedBox(width: 8),
-                                SizedBox(
-                                  width: boardSize,
-                                  height: boardSize,
-                                  child: cg.Chessboard(
-                                    controller: _boardController,
-                                    size: boardSize,
-                                    orientation: _flipped
-                                        ? (widget.playerIsWhite
-                                              ? dc.Side.black
-                                              : dc.Side.white)
-                                        : (widget.playerIsWhite
-                                              ? dc.Side.white
-                                              : dc.Side.black),
-                                    onMove: _onAnalysisMove,
-                                    shapes: _arrows,
-                                    settings: const cg.ChessboardSettings(
-                                      colorScheme:
-                                          cg.ChessboardColorScheme.brown,
-                                      pieceAssets: cg.PieceSet.cburnettAssets,
-                                      enableCoordinates: true,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          MaterialDifference(fen: _currentFen),
-                          const SizedBox(height: 8),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              IconButton(
-                                onPressed:
-                                    (_inVariation
-                                        ? _variationIndex == 0
-                                        : _ply == 0)
-                                    ? null
-                                    : () => _step(-1),
-                                icon: const Icon(Icons.chevron_left),
+                            child: cg.Chessboard(
+                              controller: _boardController,
+                              size: boardSize,
+                              orientation: _flipped
+                                  ? (widget.playerIsWhite
+                                        ? dc.Side.black
+                                        : dc.Side.white)
+                                  : (widget.playerIsWhite
+                                        ? dc.Side.white
+                                        : dc.Side.black),
+                              onMove: _onAnalysisMove,
+                              shapes: _arrows,
+                              settings: const cg.ChessboardSettings(
+                                colorScheme: cg.ChessboardColorScheme.brown,
+                                pieceAssets: cg.PieceSet.cburnettAssets,
+                                enableCoordinates: true,
                               ),
-                              Flexible(
-                                child: Text(
-                                  '$moveLabel  ·  ${_inVariation ? '$_variationIndex/${_variationSan.length}' : '$_ply/$_maximumPly'}',
-                                  textAlign: TextAlign.center,
-                                ),
-                              ),
-                              IconButton(
-                                onPressed:
-                                    (_inVariation
-                                        ? _variationIndex ==
-                                              _variationSan.length
-                                        : _ply == _maximumPly)
-                                    ? null
-                                    : () => _step(1),
-                                icon: const Icon(Icons.chevron_right),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          SegmentedButton<bool>(
-                            segments: const [
-                              ButtonSegment(
-                                value: false,
-                                icon: Icon(Icons.list_alt),
-                                label: Text('Moves'),
-                              ),
-                              ButtonSegment(
-                                value: true,
-                                icon: Icon(Icons.show_chart),
-                                label: Text('Graph'),
-                              ),
-                            ],
-                            selected: {_showGraph},
-                            onSelectionChanged: (selection) =>
-                                setState(() => _showGraph = selection.first),
-                          ),
-                          const SizedBox(height: 8),
-                          if (!_showGraph)
-                            _movesNotation()
-                          else if (_graphScores != null) ...[
-                            AccuracySummary(scores: _graphScores!),
-                            const SizedBox(height: 8),
-                            AnalysisGraph(
-                              scores: _graphScores!,
-                              selectedPly: _ply,
-                              onSelected: (ply) {
-                                setState(() => _showMainPly(ply));
-                              },
-                            ),
-                          ] else
-                            const Card(
-                              child: ListTile(
-                                leading: Icon(Icons.info_outline),
-                                title: Text('No full-game analysis yet'),
-                                subtitle: Text(
-                                  'Run computer analysis below to create the graph.',
-                                ),
-                              ),
-                            ),
-                          Card(
-                            child: Column(
-                              children: [
-                                ListTile(
-                                  leading:
-                                      (_inVariation
-                                          ? _variationLoading
-                                          : _loading.contains(_ply))
-                                      ? const SizedBox(
-                                          width: 24,
-                                          height: 24,
-                                          child: CircularProgressIndicator(
-                                            strokeWidth: 2,
-                                          ),
-                                        )
-                                      : const Icon(
-                                          Icons.arrow_upward,
-                                          color: Color(0xff3d9be9),
-                                        ),
-                                  title: const Text('Stockfish best move'),
-                                  subtitle: Text(
-                                    (_inVariation
-                                            ? _variationError
-                                            : _analysisError) ??
-                                        (_review == null
-                                            ? 'Analyzing this position…'
-                                            : 'Depth 12 · ${_formatEvaluation(_review!)}'),
-                                  ),
-                                ),
-                                const Divider(height: 1),
-                                ListTile(
-                                  leading:
-                                      (_inVariation
-                                          ? _variationMaiaLoading
-                                          : _maiaLoading.contains(_ply))
-                                      ? const SizedBox(
-                                          width: 24,
-                                          height: 24,
-                                          child: CircularProgressIndicator(
-                                            strokeWidth: 2,
-                                          ),
-                                        )
-                                      : const Icon(
-                                          Icons.arrow_upward,
-                                          color: Color(0xffe89b3c),
-                                        ),
-                                  title: Text(
-                                    'Maia ${widget.maiaElo} human move',
-                                  ),
-                                  subtitle: Text(
-                                    (_inVariation
-                                                ? _variationMaiaMove
-                                                : _maiaMoves[_ply]) ==
-                                            null
-                                        ? 'Analyzing this position…'
-                                        : (_inVariation
-                                                  ? _variationMaiaMove
-                                                  : _maiaMoves[_ply]) ==
-                                              _review?.bestMove
-                                        ? 'Matches Stockfish'
-                                        : 'Most likely human move',
-                                  ),
-                                ),
-                                const Divider(height: 1),
-                                ListTile(
-                                  leading: _fullAnalysisRunning
-                                      ? const SizedBox(
-                                          width: 24,
-                                          height: 24,
-                                          child: CircularProgressIndicator(
-                                            strokeWidth: 2,
-                                          ),
-                                        )
-                                      : const Icon(Icons.show_chart),
-                                  title: const Text('Computer analysis graph'),
-                                  subtitle: Text(
-                                    _fullAnalysisRunning
-                                        ? '$_fullAnalysisProgress/${_maximumPly + 1} positions'
-                                        : _graphScores == null
-                                        ? 'Analyze the full game on request'
-                                        : 'Tap the graph to jump to a position',
-                                  ),
-                                  onTap: _fullAnalysisRunning
-                                      ? null
-                                      : _analyzeFullGame,
-                                ),
-                              ],
                             ),
                           ),
                         ],
-                      );
-                    },
-                  ),
+                      ),
+                    ),
+                    SizedBox(
+                      height: 28,
+                      child: openingName == null
+                          ? const SizedBox.shrink()
+                          : Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Icon(Icons.menu_book_outlined, size: 16),
+                                const SizedBox(width: 5),
+                                Flexible(
+                                  child: Text(
+                                    openingName,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    textAlign: TextAlign.center,
+                                    style: const TextStyle(fontSize: 13),
+                                  ),
+                                ),
+                              ],
+                            ),
+                    ),
+                    _analysisTabBar(),
+                    Expanded(
+                      child: SizedBox(
+                        key: const ValueKey('analysis-tab-panel'),
+                        width: double.infinity,
+                        child: _showGraph ? _graphTab() : _movesTab(),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             );
@@ -2331,12 +3875,6 @@ class _ReviewPageState extends State<ReviewPage> {
         ),
       ),
     );
-  }
-
-  String _formatEvaluation(StockfishReview review) {
-    if (review.mate != null) return '#${review.mate}';
-    final pawns = review.evaluation / 100;
-    return '${pawns >= 0 ? '+' : ''}${pawns.toStringAsFixed(2)}';
   }
 }
 
@@ -2420,8 +3958,24 @@ class AccuracySummary extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final accuracy = GameAccuracy.fromScores(scores);
-    String label(double? value) =>
-        value == null ? '—' : '${value.clamp(0, 100).toStringAsFixed(1)}%';
+    String label(double? value) => value == null
+        ? 'Not enough moves'
+        : '${value.clamp(0, 100).toStringAsFixed(1)}%';
+    Widget playerAccuracy(String side, double? value) => Expanded(
+      child: Column(
+        children: [
+          Text(side, style: Theme.of(context).textTheme.labelMedium),
+          const SizedBox(height: 2),
+          Text(
+            label(value),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(context).textTheme.titleMedium
+                ?.copyWith(fontWeight: FontWeight.w700),
+          ),
+        ],
+      ),
+    );
     return Semantics(
       label: 'Game accuracy',
       child: Card(
@@ -2440,12 +3994,11 @@ class AccuracySummary extends StatelessWidget {
                       style: TextStyle(fontWeight: FontWeight.w700),
                     ),
                     const SizedBox(height: 4),
-                    Wrap(
-                      spacing: 16,
-                      runSpacing: 4,
+                    Row(
                       children: [
-                        Text('White ${label(accuracy.white)}'),
-                        Text('Black ${label(accuracy.black)}'),
+                        playerAccuracy('White', accuracy.white),
+                        const SizedBox(width: 12),
+                        playerAccuracy('Black', accuracy.black),
                       ],
                     ),
                   ],
@@ -2473,25 +4026,45 @@ class AnalysisGraph extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 130,
-      width: double.infinity,
-      child: LayoutBuilder(
-        builder: (context, constraints) => GestureDetector(
-          onTapDown: (details) {
-            if (scores.length < 2) return;
-            final fraction = (details.localPosition.dx / constraints.maxWidth)
-                .clamp(0.0, 1.0);
-            onSelected((fraction * (scores.length - 1)).round());
-          },
-          child: CustomPaint(
-            painter: AnalysisGraphPainter(
-              scores: scores,
-              selectedPly: selectedPly,
+    final selected = scores[selectedPly.clamp(0, scores.length - 1)];
+    final scoreLabel = selected.mate == null
+        ? '${selected.evaluation >= 0 ? '+' : ''}${(selected.evaluation / 100).toStringAsFixed(1)}'
+        : '#${selected.mate}';
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(bottom: 4),
+          child: Text(
+            'Position ${selectedPly.clamp(0, scores.length - 1)} of ${scores.length - 1}  ·  $scoreLabel',
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.labelMedium,
+          ),
+        ),
+        SizedBox(
+          height: 130,
+          width: double.infinity,
+          child: LayoutBuilder(
+            builder: (context, constraints) => GestureDetector(
+              onTapDown: (details) {
+                if (scores.length < 2) return;
+                final fraction =
+                    (details.localPosition.dx / constraints.maxWidth).clamp(
+                      0.0,
+                      1.0,
+                    );
+                onSelected((fraction * (scores.length - 1)).round());
+              },
+              child: CustomPaint(
+                painter: AnalysisGraphPainter(
+                  scores: scores,
+                  selectedPly: selectedPly,
+                ),
+              ),
             ),
           ),
         ),
-      ),
+      ],
     );
   }
 }
@@ -2685,27 +4258,36 @@ class MaterialDifference extends StatelessWidget {
       }
     }
     final net = whiteScore - blackScore;
+    if (whiteExtras.isEmpty && blackExtras.isEmpty) {
+      return const SizedBox.shrink();
+    }
     return Semantics(
       label: 'Material difference',
-      child: Wrap(
-        alignment: WrapAlignment.center,
-        crossAxisAlignment: WrapCrossAlignment.center,
-        children: [
-          Text(
-            whiteExtras.isEmpty ? '—' : whiteExtras.join(),
-            style: const TextStyle(fontSize: 22),
-          ),
-          if (net > 0) Text(' +$net'),
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 8),
-            child: Text('material', style: TextStyle(color: Colors.white60)),
-          ),
-          Text(
-            blackExtras.isEmpty ? '—' : blackExtras.join(),
-            style: const TextStyle(fontSize: 22),
-          ),
-          if (net < 0) Text(' +${-net}'),
-        ],
+      child: Padding(
+        padding: const EdgeInsets.only(top: 3),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (whiteExtras.isNotEmpty) ...[
+              Text(
+                whiteExtras.join(),
+                style: const TextStyle(fontSize: 15, height: 1),
+              ),
+              if (net > 0) Text(' +$net', style: const TextStyle(fontSize: 12)),
+            ],
+            if (whiteExtras.isNotEmpty && blackExtras.isNotEmpty)
+              const SizedBox(width: 12),
+            if (blackExtras.isNotEmpty) ...[
+              Text(
+                blackExtras.join(),
+                style: const TextStyle(fontSize: 15, height: 1),
+              ),
+              if (net < 0)
+                Text(' +${-net}', style: const TextStyle(fontSize: 12)),
+            ],
+          ],
+        ),
       ),
     );
   }
@@ -2754,6 +4336,7 @@ class StockfishAnalyzer {
     final startup = _startup ??= _engine.start().then((_) async {
       _engine.stdin = 'setoption name Threads value 2';
       _engine.stdin = 'setoption name Hash value 64';
+      _engine.stdin = 'setoption name MultiPV value 2';
       final ready = _engine.stdout.firstWhere((line) => line == 'readyok');
       _engine.stdin = 'isready';
       await ready.timeout(const Duration(seconds: 5));
@@ -2791,17 +4374,42 @@ class StockfishAnalyzer {
     var latest = 0;
     int? latestMate;
     var bestMove = '';
+    final lines = <int, StockfishLine>{};
     late StreamSubscription<String> subscription;
     subscription = _engine.stdout.listen((line) {
       if (line.startsWith('info ') && line.contains(' score ')) {
+        final multiPv =
+            int.tryParse(
+              RegExp(r' multipv (\d+)').firstMatch(line)?.group(1) ?? '1',
+            ) ??
+            1;
         final cp = RegExp(r' score cp (-?\d+)').firstMatch(line);
         final mate = RegExp(r' score mate (-?\d+)').firstMatch(line);
+        final pv = RegExp(r' pv (.+)$')
+            .firstMatch(line)
+            ?.group(1)
+            ?.trim()
+            .split(RegExp(r'\s+'))
+            .where(
+              (move) => RegExp(r'^[a-h][1-8][a-h][1-8][qrbn]?$').hasMatch(move),
+            )
+            .toList(growable: false);
+        final score = cp == null ? 0 : int.parse(cp.group(1)!);
+        final mateScore = mate == null ? null : int.parse(mate.group(1)!);
+        if (pv != null && pv.isNotEmpty) {
+          lines[multiPv] = StockfishLine(
+            evaluation: score,
+            mate: mateScore,
+            moves: pv,
+          );
+        }
+        if (multiPv != 1) return;
         if (cp != null) {
-          latest = int.parse(cp.group(1)!);
+          latest = score;
           latestMate = null;
         }
         if (mate != null) {
-          latestMate = int.parse(mate.group(1)!);
+          latestMate = mateScore;
         }
       }
       if (line.startsWith('bestmove ') && !completer.isCompleted) {
@@ -2825,6 +4433,8 @@ class StockfishAnalyzer {
         const Duration(seconds: 20),
       );
       final blackToMove = fen.split(' ')[1] == 'b';
+      final orderedLines = lines.entries.toList(growable: false)
+        ..sort((a, b) => a.key.compareTo(b.key));
       return StockfishReview(
         blackToMove ? -sideToMoveScore : sideToMoveScore,
         bestMove,
@@ -2833,6 +4443,9 @@ class StockfishAnalyzer {
             : blackToMove
             ? -latestMate!
             : latestMate,
+        lines: orderedLines
+            .map((entry) => entry.value.forWhite(blackToMove))
+            .toList(growable: false),
       );
     } on TimeoutException {
       // Stop and drain the outstanding search before the next queued request.
@@ -2864,11 +4477,17 @@ class StockfishAnalyzer {
 }
 
 class StockfishReview {
-  const StockfishReview(this.evaluation, this.bestMove, {this.mate});
+  const StockfishReview(
+    this.evaluation,
+    this.bestMove, {
+    this.mate,
+    this.lines = const [],
+  });
 
   final int evaluation;
   final String bestMove;
   final int? mate;
+  final List<StockfishLine> lines;
 
   double get whiteWinningChances {
     final value = mate == null
@@ -2878,6 +4497,24 @@ class StockfishReview {
   }
 
   double get whiteWinPercent => 50 + 50 * whiteWinningChances;
+}
+
+class StockfishLine {
+  const StockfishLine({
+    required this.evaluation,
+    required this.moves,
+    this.mate,
+  });
+
+  final int evaluation;
+  final int? mate;
+  final List<String> moves;
+
+  StockfishLine forWhite(bool blackToMove) => StockfishLine(
+    evaluation: blackToMove ? -evaluation : evaluation,
+    mate: mate == null ? null : (blackToMove ? -mate! : mate),
+    moves: moves,
+  );
 }
 
 class MaiaEncoding {

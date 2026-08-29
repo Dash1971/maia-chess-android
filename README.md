@@ -22,6 +22,27 @@ engine developed by the University of Toronto Computational Social Science Lab.
 
 ## User guide
 
+### Analysis Board
+
+Select **Analysis Board** from the home screen to explore a position without
+starting a game. Stockfish continuously supplies the evaluation and blue
+best-move arrow, while Maia supplies its orange human-move recommendation at
+the configured analysis rating.
+
+The actions menu can load FEN or PGN text, copy the current FEN or complete PGN,
+open the graphical board editor, or start a Maia game from the current position
+as White, Black, or a random side. The board editor follows Lichess's toggle
+interaction: select a piece and tap an empty square to add it, or tap the same
+piece already on the board to remove it. It also controls side to move and
+castling rights. The complete Lichess CC0 opening-name dataset is bundled for
+offline ECO codes, detailed variation names, and transposition-aware matching.
+
+Select any earlier move and play a different continuation to create an inline,
+clickable PGN variation without deleting the existing line. Active games,
+reviews, complete analysis trees, the selected position, board orientation,
+and clock state are checkpointed locally and restored after Android process
+death, device restart, or an app update.
+
 ### Start a game
 
 Choose White, Black, or a random side, set Maia's rating, and select a clock.
@@ -110,6 +131,11 @@ Flutter Chessground, Lichess multistockfish, and the bundled licences.
 ## MVP features
 
 - Bundled Maia-3 79M model; no account, server, or network connection required
+- Offline Analysis Board with Stockfish evaluation and Maia move comparison
+- Automatic restoration of active games, reviews, and analysis trees
+- FEN/PGN loading, FEN/PGN copying, and graphical position editing
+- Play against Maia from the current analysis position
+- Complete offline Lichess CC0 opening-name and ECO recognition
 - Play as White, Black, or a random side
 - Unlimited play by default, Lichess-style clock presets, or custom time and increment
 - Easy (800), Medium (1500), Hard (2200), or custom Elo
@@ -206,28 +232,3 @@ APK must comply with those component licences.
 
 This is an independent community project and is not an official Maia Chess,
 University of Toronto CSSLab, Stockfish, or Lichess application.
-
-## Experimental preview and roadmap
-
-New features are developed and tested separately in
-[Mobile Maia Preview](https://github.com/Dash1971/maia-chess-android-preview).
-The preview uses a different Android package ID, so it can be installed beside
-this stable version without replacing it. Preview builds are published as
-GitHub prereleases and must be added to Obtainium separately with **Include
-prereleases** enabled.
-
-The preview currently includes an open-ended **Analysis Board**, Stockfish and
-Maia move comparison, FEN/PGN loading and copying, graphical position editing,
-offline opening-name recognition, and the option to play against Maia from the
-current position.
-
-Planned areas for future development include:
-
-- Broader offline opening identification and opening-book recommendations
-- Stockfish MultiPV analysis
-- Richer PGN importing, browsing, comments, and annotations
-- Optional opening-explorer statistics
-- Endgame tablebase support
-
-These features will move into stable Mobile Maia only after they have been
-tested and polished in the preview channel.
