@@ -676,6 +676,89 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('long press promotes a variation and preserves PGN branches', (
+    tester,
+  ) async {
+    final session = AnalysisSession.fromPgn(
+      '[Event "Analysis"]\n[Result "*"]\n\n1. e4 e5 2. Nf3 *',
+    );
+    final afterE4 = session.positions[1];
+    List<RecordedVariation> saved = const [];
+    await tester.pumpWidget(
+      MaterialApp(
+        home: ReviewPage(
+          positions: session.positions,
+          uciMoves: session.uciMoves,
+          sanMoves: session.sanMoves,
+          playerIsWhite: true,
+          pgn: session.pgn,
+          initialVariations: [
+            RecordedVariation(
+              basePly: 1,
+              baseFen: afterE4,
+              sanMoves: const ['c5', 'Nf3'],
+            ),
+          ],
+          onHome: () {},
+          evaluator: (_) async => const StockfishReview(0, 'a2a3'),
+          onSessionChanged: (_, _, variations) async {
+            saved = variations;
+          },
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.ensureVisible(find.text('c5'));
+    await tester.longPress(find.text('c5'));
+    await tester.pumpAndSettle();
+    expect(find.text('Promote variation'), findsOneWidget);
+    expect(find.text('Make main line'), findsOneWidget);
+    expect(find.text('Delete from here'), findsOneWidget);
+    await tester.tap(find.text('Promote variation'));
+    await tester.pumpAndSettle();
+
+    expect(saved.first.sanMoves, ['e4', 'c5', 'Nf3']);
+    expect(saved.first.children.single.sanMoves, ['e5', 'Nf3']);
+    final exported = PgnVariationExporter.export(session.pgn, const [], saved);
+    expect(exported, contains('1. e4 c5 (1... e5 2. Nf3) 2. Nf3 *'));
+  });
+
+  testWidgets('long press deletes the selected move and continuation', (
+    tester,
+  ) async {
+    final session = AnalysisSession.fromPgn(
+      '[Result "*"]\n\n1. e4 e5 2. Nf3 *',
+    );
+    List<RecordedVariation> saved = const [];
+    await tester.pumpWidget(
+      MaterialApp(
+        home: ReviewPage(
+          positions: session.positions,
+          uciMoves: session.uciMoves,
+          sanMoves: session.sanMoves,
+          playerIsWhite: true,
+          pgn: session.pgn,
+          onHome: () {},
+          evaluator: (_) async => const StockfishReview(0, 'a2a3'),
+          onSessionChanged: (_, _, variations) async {
+            saved = variations;
+          },
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.longPress(find.byKey(const ValueKey('mainline-move-1')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Delete from here'));
+    await tester.pumpAndSettle();
+
+    expect(saved.single.sanMoves, ['e4']);
+    expect(find.text('e5'), findsNothing);
+    expect(find.text('Nf3'), findsNothing);
+  });
+
   testWidgets('full graph awaits an evaluation already in flight', (
     tester,
   ) async {

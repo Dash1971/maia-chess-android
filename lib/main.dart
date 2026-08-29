@@ -2358,6 +2358,7 @@ class _ReviewPageState extends State<ReviewPage> {
   bool _variationLoading = false;
   bool _variationMaiaLoading = false;
   String? _variationError;
+  final Set<String> _collapsedVariationKeys = {};
 
   bool get _inVariation => _variationBasePly != null;
   String get _currentFen => _inVariation
@@ -2374,6 +2375,13 @@ class _ReviewPageState extends State<ReviewPage> {
   );
 
   RecordedVariation? get _rootMainline => _maximumPly == 0
+      ? _variations
+            .where(
+              (variation) =>
+                  variation.basePly == 0 && variation.sanMoves.isNotEmpty,
+            )
+            .firstOrNull
+      : widget.onSessionChanged != null
       ? _variations
             .where(
               (variation) =>
@@ -2408,6 +2416,29 @@ class _ReviewPageState extends State<ReviewPage> {
     super.initState();
     _flipped = widget.initialFlipped;
     _variations = List.of(widget.initialVariations);
+    // The Analysis Board owns a mutable tree. Imported PGN mainlines arrive
+    // as immutable seed positions, so normalize them into the same root-line
+    // representation used by lines played directly on the board. This makes
+    // Lichess-style delete/promote operations possible without special cases.
+    if (widget.onSessionChanged != null &&
+        widget.sanMoves.isNotEmpty &&
+        !_variations.any(
+          (line) => line.basePly == 0 && line.sanMoves.isNotEmpty,
+        )) {
+      final attached = _variations
+          .where((line) => line.basePly > 0)
+          .toList(growable: false);
+      _variations.removeWhere((line) => line.basePly > 0);
+      _variations.insert(
+        0,
+        RecordedVariation(
+          basePly: 0,
+          baseFen: widget.positions.first,
+          sanMoves: List.unmodifiable(widget.sanMoves),
+          children: attached,
+        ),
+      );
+    }
     _boardPosition = dc.Chess.fromSetup(dc.Setup.parseFen(widget.positions[0]));
     _boardController = cg.ChessboardController(game: _boardGameData());
     final initialFen = widget.initialCurrentFen;
@@ -2761,6 +2792,221 @@ class _ReviewPageState extends State<ReviewPage> {
     if (!insert(_variations)) _variations.add(sibling);
   }
 
+  String _variationKey(RecordedVariation line) =>
+      '${line.baseFen}|${line.sanMoves.firstOrNull ?? ''}';
+
+  String _fenAt(RecordedVariation line, int moveIndex) {
+    final game = chess.Chess.fromFEN(line.baseFen);
+    for (final san in line.sanMoves.take(moveIndex)) {
+      if (!game.move(san)) break;
+    }
+    return game.fen;
+  }
+
+  RecordedVariation? _deleteVariationFrom(
+    RecordedVariation target,
+    int moveIndex,
+  ) {
+    RecordedVariation? replacement;
+    bool removeFrom(List<RecordedVariation> lines) {
+      for (var index = 0; index < lines.length; index++) {
+        final current = lines[index];
+        if (identical(current, target)) {
+          if (moveIndex <= 1) {
+            lines.removeAt(index);
+          } else {
+            final deletedPly = current.basePly + moveIndex - 1;
+            replacement = RecordedVariation(
+              basePly: current.basePly,
+              baseFen: current.baseFen,
+              sanMoves: List.unmodifiable(current.sanMoves.take(moveIndex - 1)),
+              children: current.children
+                  .where((child) => child.basePly < deletedPly)
+                  .toList(growable: false),
+            );
+            lines[index] = replacement!;
+          }
+          return true;
+        }
+        final children = List<RecordedVariation>.of(current.children);
+        if (removeFrom(children)) {
+          lines[index] = RecordedVariation(
+            basePly: current.basePly,
+            baseFen: current.baseFen,
+            sanMoves: current.sanMoves,
+            children: children,
+          );
+          return true;
+        }
+      }
+      return false;
+    }
+
+    removeFrom(_variations);
+    return replacement;
+  }
+
+  RecordedVariation _promoteVariationOnce(RecordedVariation target) {
+    final topIndex = _variations.indexWhere((line) => identical(line, target));
+    if (topIndex >= 0) {
+      if (topIndex > 0) {
+        _variations
+          ..removeAt(topIndex)
+          ..insert(0, target);
+      }
+      return target;
+    }
+
+    RecordedVariation? promoted;
+    bool promoteIn(List<RecordedVariation> lines) {
+      for (var index = 0; index < lines.length; index++) {
+        final parent = lines[index];
+        final directIndex = parent.children.indexWhere(
+          (line) => identical(line, target),
+        );
+        if (directIndex >= 0) {
+          final branchPly = target.basePly;
+          final offset = (branchPly - parent.basePly).clamp(
+            0,
+            parent.sanMoves.length,
+          );
+          final oldTail = parent.sanMoves.skip(offset).toList(growable: false);
+          final siblings = parent.children
+              .where(
+                (line) => !identical(line, target) && line.basePly <= branchPly,
+              )
+              .toList();
+          if (oldTail.isNotEmpty) {
+            siblings.add(
+              RecordedVariation(
+                basePly: branchPly,
+                baseFen: target.baseFen,
+                sanMoves: oldTail,
+                children: parent.children
+                    .where((line) => line.basePly > branchPly)
+                    .toList(growable: false),
+              ),
+            );
+          }
+          siblings.addAll(target.children);
+          promoted = RecordedVariation(
+            basePly: parent.basePly,
+            baseFen: parent.baseFen,
+            sanMoves: [...parent.sanMoves.take(offset), ...target.sanMoves],
+            children: siblings,
+          );
+          lines[index] = promoted!;
+          return true;
+        }
+        final children = List<RecordedVariation>.of(parent.children);
+        if (promoteIn(children)) {
+          lines[index] = RecordedVariation(
+            basePly: parent.basePly,
+            baseFen: parent.baseFen,
+            sanMoves: parent.sanMoves,
+            children: children,
+          );
+          return true;
+        }
+      }
+      return false;
+    }
+
+    promoteIn(_variations);
+    return promoted ?? target;
+  }
+
+  bool _isTopLevelVariation(RecordedVariation target) =>
+      _variations.any((line) => identical(line, target));
+
+  Future<void> _showMoveActions(
+    RecordedVariation line,
+    int moveIndex, {
+    required bool variation,
+  }) async {
+    if (widget.onSessionChanged == null) return;
+    final selectedFen = _fenAt(line, moveIndex);
+    final previousFen = _fenAt(line, moveIndex - 1);
+    final action = await showModalBottomSheet<String>(
+      context: context,
+      showDragHandle: true,
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              title: Text(
+                line.sanMoves[moveIndex - 1],
+                style: const TextStyle(fontWeight: FontWeight.w700),
+              ),
+            ),
+            const Divider(height: 1),
+            if (variation) ...[
+              ListTile(
+                leading: const Icon(Icons.subtitles_off),
+                title: Text(
+                  _collapsedVariationKeys.contains(_variationKey(line))
+                      ? 'Expand variations'
+                      : 'Collapse variations',
+                ),
+                onTap: () => Navigator.pop(context, 'collapse'),
+              ),
+              ListTile(
+                leading: const Icon(Icons.expand_less),
+                title: const Text('Promote variation'),
+                onTap: () => Navigator.pop(context, 'promote'),
+              ),
+              ListTile(
+                leading: const Icon(Icons.check),
+                title: const Text('Make main line'),
+                onTap: () => Navigator.pop(context, 'mainline'),
+              ),
+            ],
+            ListTile(
+              leading: const Icon(Icons.delete_outline),
+              title: const Text('Delete from here'),
+              onTap: () => Navigator.pop(context, 'delete'),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (!mounted || action == null) return;
+    setState(() {
+      switch (action) {
+        case 'collapse':
+          final key = _variationKey(line);
+          if (!_collapsedVariationKeys.remove(key)) {
+            _collapsedVariationKeys.add(key);
+          }
+          break;
+        case 'delete':
+          _deleteVariationFrom(line, moveIndex);
+          break;
+        case 'promote':
+          _promoteVariationOnce(line);
+          break;
+        case 'mainline':
+          var promoted = line;
+          while (!_isTopLevelVariation(promoted) ||
+              _variations.indexOf(promoted) > 0) {
+            final next = _promoteVariationOnce(promoted);
+            if (identical(next, promoted) && _variations.indexOf(next) == 0) {
+              break;
+            }
+            promoted = next;
+          }
+          break;
+      }
+    });
+    if (action == 'delete') {
+      _restoreCurrentFen(previousFen);
+    } else if (action == 'promote' || action == 'mainline') {
+      _restoreCurrentFen(selectedFen);
+    }
+    _notifySessionChanged();
+  }
+
   void _openVariation(RecordedVariation variation, [int? selectedIndex]) {
     final sanGame = chess.Chess.fromFEN(variation.baseFen);
     var position = dc.Chess.fromSetup(dc.Setup.parseFen(variation.baseFen));
@@ -3068,6 +3314,7 @@ class _ReviewPageState extends State<ReviewPage> {
     required String san,
     required bool selected,
     required VoidCallback onTap,
+    VoidCallback? onLongPress,
     Key? key,
     bool variation = false,
   }) {
@@ -3079,6 +3326,7 @@ class _ReviewPageState extends State<ReviewPage> {
       child: InkWell(
         borderRadius: BorderRadius.circular(3),
         onTap: onTap,
+        onLongPress: onLongPress,
         child: Padding(
           padding: EdgeInsets.symmetric(
             horizontal: variation ? 3 : 6,
@@ -3146,6 +3394,8 @@ class _ReviewPageState extends State<ReviewPage> {
                         identical(_openedVariation, variation) &&
                         _variationIndex == index + 1,
                     onTap: () => _openVariation(variation, index + 1),
+                    onLongPress: () =>
+                        _showMoveActions(variation, index + 1, variation: true),
                   ),
                 ],
                 Text(
@@ -3156,21 +3406,15 @@ class _ReviewPageState extends State<ReviewPage> {
                 ),
               ],
             ),
-            for (final child in variation.children)
-              _variationLine(child, depth + 1),
+            if (!_collapsedVariationKeys.contains(_variationKey(variation)))
+              for (final child in variation.children)
+                _variationLine(child, depth + 1),
           ],
         ),
       );
 
   Widget _movesNotation() {
-    final rootMainline = _maximumPly == 0
-        ? _variations
-              .where(
-                (variation) =>
-                    variation.basePly == 0 && variation.sanMoves.isNotEmpty,
-              )
-              .firstOrNull
-        : null;
+    final rootMainline = _rootMainline;
     final variationsByBase = <int, List<RecordedVariation>>{};
     for (final variation in _variations) {
       if (identical(variation, rootMainline)) continue;
@@ -3190,6 +3434,9 @@ class _ReviewPageState extends State<ReviewPage> {
         onTap: rootMainline != null
             ? () => _openVariation(rootMainline, index + 1)
             : () => setState(() => _showMainPly(index + 1)),
+        onLongPress: rootMainline != null
+            ? () => _showMoveActions(rootMainline, index + 1, variation: false)
+            : null,
       );
       rows.add(
         Row(
@@ -3279,9 +3526,9 @@ class _ReviewPageState extends State<ReviewPage> {
       ClipboardData(
         text: PgnVariationExporter.export(
           widget.pgn,
-          widget.sanMoves,
+          _rootMainline == null ? widget.sanMoves : const [],
           _variations,
-          mainPositions: widget.positions,
+          mainPositions: _rootMainline == null ? widget.positions : null,
         ),
       ),
     );
