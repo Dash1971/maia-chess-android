@@ -35,9 +35,17 @@ the configured analysis rating.
 
 The actions menu can load FEN or PGN text, copy the current FEN or complete PGN,
 open the graphical board editor, or start a Maia game from the current position
-as White, Black, or a random side. The board editor controls piece placement,
-side to move, and castling rights. Recognized opening names are shown locally
-and offline as the line develops.
+as White, Black, or a random side. The board editor follows Lichess's toggle
+interaction: select a piece and tap an empty square to add it, or tap the same
+piece already on the board to remove it. It also controls side to move and
+castling rights. Recognized opening names are shown locally and offline as the
+line develops.
+
+Select any earlier move and play a different continuation to create an inline,
+clickable PGN variation without deleting the existing line. Active games,
+reviews, complete analysis trees, the selected position, board orientation,
+and clock state are checkpointed locally and restored after Android process
+death, device restart, or an app update.
 
 ### Start a game
 
@@ -128,6 +136,7 @@ Flutter Chessground, Lichess multistockfish, and the bundled licences.
 
 - Bundled Maia-3 79M model; no account, server, or network connection required
 - Offline Analysis Board with Stockfish evaluation and Maia move comparison
+- Automatic restoration of active games, reviews, and analysis trees
 - FEN/PGN loading, FEN/PGN copying, and graphical position editing
 - Play against Maia from the current analysis position
 - Lightweight offline opening-name recognition

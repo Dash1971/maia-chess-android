@@ -49,6 +49,69 @@ void main() {
       'Ruy López',
     );
   });
+
+  test('analysis tree survives persistent JSON round trip', () async {
+    SharedPreferences.setMockInitialValues({});
+    const variation = RecordedVariation(
+      basePly: 0,
+      baseFen: chess.Chess.DEFAULT_POSITION,
+      sanMoves: ['e4', 'e5'],
+      children: [
+        RecordedVariation(
+          basePly: 1,
+          baseFen: 'rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1',
+          sanMoves: ['c5'],
+        ),
+      ],
+    );
+    await ActiveSessionStore.save({
+      'type': 'analysis',
+      'session': AnalysisSession.start().toJson(),
+      'variations': [variation.toJson()],
+      'currentFen': variation.baseFen,
+      'flipped': true,
+    });
+
+    final restored = await ActiveSessionStore.load();
+    final tree = RecordedVariation.fromJson(
+      Map<String, dynamic>.from(
+        (restored!['variations'] as List).single as Map,
+      ),
+    );
+    expect(restored['type'], 'analysis');
+    expect(restored['flipped'], isTrue);
+    expect(tree.sanMoves, ['e4', 'e5']);
+    expect(tree.children.single.sanMoves, ['c5']);
+  });
+
+  testWidgets('board editor uses selected piece as a Lichess-style toggle', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: BoardEditorPage(initialFen: chess.Chess.DEFAULT_POSITION),
+      ),
+    );
+
+    var board = tester.widget<cg.StaticChessboard>(
+      find.byType(cg.StaticChessboard),
+    );
+    expect(board.fen, contains('PPPPPPPP'));
+    board.onTouchedSquare!(dc.Square.e2);
+    await tester.pump();
+    board = tester.widget<cg.StaticChessboard>(
+      find.byType(cg.StaticChessboard),
+    );
+    expect(cg.readFen(board.fen)[dc.Square.e2], isNull);
+
+    board.onTouchedSquare!(dc.Square.e4);
+    await tester.pump();
+    board = tester.widget<cg.StaticChessboard>(
+      find.byType(cg.StaticChessboard),
+    );
+    expect(cg.readFen(board.fen)[dc.Square.e4], isNotNull);
+    expect(find.text('Erase'), findsNothing);
+  });
   test('PGN export preserves takebacks as recursive annotation variations', () {
     const source =
         '[Event "Mobile Maia Game"]\n[Result "*"]\n\n1. e4 e5 2. Nf3 *';

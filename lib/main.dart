@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:math';
 import 'dart:ui' as ui;
 
@@ -273,6 +274,55 @@ class RecordedVariation {
   final String baseFen;
   final List<String> sanMoves;
   final List<RecordedVariation> children;
+
+  Map<String, Object> toJson() => {
+    'basePly': basePly,
+    'baseFen': baseFen,
+    'sanMoves': sanMoves,
+    'children': children.map((item) => item.toJson()).toList(),
+  };
+
+  factory RecordedVariation.fromJson(Map<String, dynamic> json) =>
+      RecordedVariation(
+        basePly: json['basePly'] as int,
+        baseFen: json['baseFen'] as String,
+        sanMoves: (json['sanMoves'] as List).cast<String>(),
+        children: (json['children'] as List? ?? const [])
+            .map(
+              (item) => RecordedVariation.fromJson(
+                Map<String, dynamic>.from(item as Map),
+              ),
+            )
+            .toList(growable: false),
+      );
+}
+
+class ActiveSessionStore {
+  static const _key = 'activeSessionV1';
+
+  static Future<Map<String, dynamic>?> load() async {
+    final source = (await SharedPreferences.getInstance()).getString(_key);
+    if (source == null) return null;
+    try {
+      return Map<String, dynamic>.from(jsonDecode(source) as Map);
+    } catch (error, stackTrace) {
+      unawaited(
+        AppDiagnostics.record('active-session-load', error, stackTrace),
+      );
+      return null;
+    }
+  }
+
+  static Future<void> save(Map<String, Object?> value) async {
+    await (await SharedPreferences.getInstance()).setString(
+      _key,
+      jsonEncode({'schema': 1, ...value}),
+    );
+  }
+
+  static Future<void> clear() async {
+    await (await SharedPreferences.getInstance()).remove(_key);
+  }
 }
 
 class PgnVariationExporter {
@@ -360,6 +410,21 @@ class AnalysisSession {
   final List<String> uciMoves;
   final List<String> sanMoves;
   final String pgn;
+
+  Map<String, Object> toJson() => {
+    'positions': positions,
+    'uciMoves': uciMoves,
+    'sanMoves': sanMoves,
+    'pgn': pgn,
+  };
+
+  factory AnalysisSession.fromJson(Map<String, dynamic> json) =>
+      AnalysisSession(
+        positions: (json['positions'] as List).cast<String>(),
+        uciMoves: (json['uciMoves'] as List).cast<String>(),
+        sanMoves: (json['sanMoves'] as List).cast<String>(),
+        pgn: json['pgn'] as String,
+      );
 
   factory AnalysisSession.fromFen(String fen) {
     final validation = chess.Chess.validate_fen(fen.trim());
@@ -484,7 +549,7 @@ class GamePage extends StatefulWidget {
   State<GamePage> createState() => _GamePageState();
 }
 
-class _GamePageState extends State<GamePage> {
+class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
   chess.Chess _game = chess.Chess();
   final List<String> _positionHistory = [];
   final List<String> _uciMoves = [];
@@ -512,6 +577,7 @@ class _GamePageState extends State<GamePage> {
   Timer? _clockTimer;
   final List<ClockSnapshot> _clockHistory = [];
   int _gameGeneration = 0;
+  bool _reviewOpen = false;
   final Random _timingRandom = Random.secure();
 
   bool get _playerIsWhite => _playerColor == chess.Color.WHITE;
@@ -530,13 +596,233 @@ class _GamePageState extends State<GamePage> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     if (widget.startingSide != null) _sideChoice = widget.startingSide!;
     if (widget.startingElo != null) _elo = widget.startingElo!;
     unawaited(_loadEnginePreferences());
     if (widget.startingFen != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) => _startGame());
+    } else {
+      unawaited(_restoreActiveSession());
     }
   }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.paused ||
+        state == AppLifecycleState.detached ||
+        state == AppLifecycleState.hidden) {
+      if (!_reviewOpen) unawaited(_saveGameState());
+    }
+  }
+
+  Future<void> _restoreActiveSession() async {
+    final saved = await ActiveSessionStore.load();
+    if (!mounted || saved == null) return;
+    if (saved['type'] == 'analysis') {
+      try {
+        final session = AnalysisSession.fromJson(
+          Map<String, dynamic>.from(saved['session'] as Map),
+        );
+        final variations = (saved['variations'] as List? ?? const [])
+            .map(
+              (item) => RecordedVariation.fromJson(
+                Map<String, dynamic>.from(item as Map),
+              ),
+            )
+            .toList(growable: false);
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          Navigator.of(context).push(
+            MaterialPageRoute<void>(
+              builder: (_) => AnalysisBoardPage(
+                initialSession: session,
+                maiaElo: saved['maiaElo'] as int? ?? _analysisElo,
+                initialVariations: variations,
+                initialCurrentFen: saved['currentFen'] as String?,
+                initialFlipped: saved['flipped'] as bool? ?? false,
+              ),
+            ),
+          );
+        });
+      } catch (error, stackTrace) {
+        unawaited(
+          AppDiagnostics.record('analysis-session-restore', error, stackTrace),
+        );
+      }
+      return;
+    }
+    if (saved['type'] == 'review') {
+      try {
+        final session = AnalysisSession.fromJson(
+          Map<String, dynamic>.from(saved['session'] as Map),
+        );
+        final variations = (saved['variations'] as List? ?? const [])
+            .map(
+              (item) => RecordedVariation.fromJson(
+                Map<String, dynamic>.from(item as Map),
+              ),
+            )
+            .toList(growable: false);
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          _reviewOpen = true;
+          Navigator.of(context)
+              .push(
+                MaterialPageRoute<void>(
+                  builder: (_) => ReviewPage(
+                    positions: session.positions,
+                    uciMoves: session.uciMoves,
+                    sanMoves: session.sanMoves,
+                    playerIsWhite: saved['playerIsWhite'] as bool? ?? true,
+                    pgn: session.pgn,
+                    initialVariations: variations,
+                    maiaElo: saved['maiaElo'] as int? ?? _analysisElo,
+                    initialCurrentFen: saved['currentFen'] as String?,
+                    initialFlipped: saved['flipped'] as bool? ?? false,
+                    onSessionChanged: (fen, flipped, updated) =>
+                        _saveReviewState(
+                          session,
+                          saved['playerIsWhite'] as bool? ?? true,
+                          fen,
+                          flipped,
+                          updated,
+                        ),
+                    onHome: () => unawaited(ActiveSessionStore.clear()),
+                  ),
+                ),
+              )
+              .whenComplete(() => _reviewOpen = false);
+        });
+      } catch (error, stackTrace) {
+        unawaited(
+          AppDiagnostics.record('review-session-restore', error, stackTrace),
+        );
+      }
+      return;
+    }
+    if (saved['type'] != 'game') return;
+    try {
+      final restored = chess.Chess();
+      if (!restored.load_pgn(saved['pgn'] as String)) {
+        throw const FormatException('Saved game PGN is invalid.');
+      }
+      final savedAt = DateTime.tryParse(saved['savedAt'] as String? ?? '');
+      var whiteMillis = saved['whiteMillis'] as int? ?? 0;
+      var blackMillis = saved['blackMillis'] as int? ?? 0;
+      final preset = TimePreset.values.byName(
+        saved['timePreset'] as String? ?? TimePreset.unlimited.name,
+      );
+      if (savedAt != null &&
+          preset != TimePreset.unlimited &&
+          saved['forcedResult'] == null &&
+          !restored.game_over) {
+        final elapsed = DateTime.now().difference(savedAt).inMilliseconds;
+        if (restored.turn == chess.Color.WHITE) {
+          whiteMillis = max(0, whiteMillis - elapsed);
+        } else {
+          blackMillis = max(0, blackMillis - elapsed);
+        }
+      }
+      setState(() {
+        _game = restored;
+        _positionHistory
+          ..clear()
+          ..addAll((saved['positions'] as List).cast<String>());
+        _uciMoves
+          ..clear()
+          ..addAll((saved['uciMoves'] as List).cast<String>());
+        _takebackVariations
+          ..clear()
+          ..addAll(
+            (saved['variations'] as List? ?? const []).map(
+              (item) => RecordedVariation.fromJson(
+                Map<String, dynamic>.from(item as Map),
+              ),
+            ),
+          );
+        _playerColor = saved['playerIsWhite'] as bool? ?? true
+            ? chess.Color.WHITE
+            : chess.Color.BLACK;
+        _sideChoice = _playerColor == chess.Color.WHITE
+            ? PlayerSide.white
+            : PlayerSide.black;
+        _elo = saved['elo'] as int? ?? 1500;
+        _timePreset = preset;
+        _customMinutes = saved['customMinutes'] as int? ?? 10;
+        _customIncrement = saved['customIncrement'] as int? ?? 0;
+        _whiteMillis = whiteMillis;
+        _blackMillis = blackMillis;
+        _turnStartedAt = _clockEnabled ? DateTime.now() : null;
+        _clockHistory
+          ..clear()
+          ..addAll(
+            (saved['clockHistory'] as List? ?? const []).map((item) {
+              final values = (item as List).cast<int>();
+              return ClockSnapshot(values[0], values[1]);
+            }),
+          );
+        if (_clockHistory.isEmpty) {
+          _clockHistory.add(ClockSnapshot(whiteMillis, blackMillis));
+        }
+        _forcedResult = saved['forcedResult'] as String?;
+        _status = saved['status'] as String? ?? 'Game restored.';
+        _started = true;
+      });
+      if (_clockEnabled && !_gameFinished) {
+        _clockTimer = Timer.periodic(
+          const Duration(milliseconds: 200),
+          (_) => _tickClock(),
+        );
+      }
+      if (!_gameFinished && !_isPlayerTurn) unawaited(_playMaiaMove());
+    } catch (error, stackTrace) {
+      unawaited(
+        AppDiagnostics.record('game-session-restore', error, stackTrace),
+      );
+    }
+  }
+
+  Future<void> _saveGameState() async {
+    if (!_started) return;
+    await ActiveSessionStore.save({
+      'type': 'game',
+      'pgn': _game.pgn(),
+      'positions': _positionHistory,
+      'uciMoves': _uciMoves,
+      'variations': _takebackVariations.map((item) => item.toJson()).toList(),
+      'playerIsWhite': _playerIsWhite,
+      'elo': _elo,
+      'timePreset': _timePreset.name,
+      'customMinutes': _customMinutes,
+      'customIncrement': _customIncrement,
+      'whiteMillis': _liveMillis(chess.Color.WHITE),
+      'blackMillis': _liveMillis(chess.Color.BLACK),
+      'clockHistory': _clockHistory
+          .map((item) => [item.whiteMillis, item.blackMillis])
+          .toList(),
+      'savedAt': DateTime.now().toIso8601String(),
+      'forcedResult': _forcedResult,
+      'status': _status,
+    });
+  }
+
+  Future<void> _saveReviewState(
+    AnalysisSession session,
+    bool playerIsWhite,
+    String currentFen,
+    bool flipped,
+    List<RecordedVariation> variations,
+  ) => ActiveSessionStore.save({
+    'type': 'review',
+    'session': session.toJson(),
+    'variations': variations.map((item) => item.toJson()).toList(),
+    'currentFen': currentFen,
+    'flipped': flipped,
+    'playerIsWhite': playerIsWhite,
+    'maiaElo': _analysisElo,
+  });
 
   Future<void> _loadEnginePreferences() async {
     final preferences = await SharedPreferences.getInstance();
@@ -690,6 +976,7 @@ class _GamePageState extends State<GamePage> {
       );
     }
     if (!_playerIsWhite) _playMaiaMove();
+    unawaited(_saveGameState());
   }
 
   int _liveMillis(chess.Color color) {
@@ -736,6 +1023,7 @@ class _GamePageState extends State<GamePage> {
             ? 'White ran out of time.'
             : 'Black ran out of time.';
       });
+      unawaited(_saveGameState());
       return;
     }
     setState(() {});
@@ -793,6 +1081,7 @@ class _GamePageState extends State<GamePage> {
       _selectedSquare = null;
       _status = _game.game_over ? _finishNaturalGame() : 'Game in progress.';
     });
+    unawaited(_saveGameState());
     if (!_game.game_over) _playMaiaMove();
   }
 
@@ -921,6 +1210,7 @@ class _GamePageState extends State<GamePage> {
             ? 'Game in progress.'
             : 'Your move.';
       });
+      unawaited(_saveGameState());
       if (shouldRequestMaiaReply(
         premovePlayed: premovePlayed,
         gameOver: _game.game_over,
@@ -998,6 +1288,7 @@ class _GamePageState extends State<GamePage> {
       _game.set_header(['Result', result, 'Termination', 'Player resigned']);
       _status = 'You resigned — Maia wins.';
     });
+    unawaited(_saveGameState());
   }
 
   void _goHome() {
@@ -1011,6 +1302,7 @@ class _GamePageState extends State<GamePage> {
       _premoveTo = null;
       _status = 'Choose your settings and start a game.';
     });
+    unawaited(ActiveSessionStore.clear());
   }
 
   void _takeBack() {
@@ -1069,6 +1361,7 @@ class _GamePageState extends State<GamePage> {
         (_) => _tickClock(),
       );
     }
+    unawaited(_saveGameState());
   }
 
   Future<void> _copyPgn() async {
@@ -1087,20 +1380,47 @@ class _GamePageState extends State<GamePage> {
         .map((move) => move['san'] as String)
         .toList(growable: false);
     final plyCount = min(_uciMoves.length, moves.length);
+    final session = AnalysisSession(
+      positions: List.unmodifiable(_positionHistory.take(plyCount + 1)),
+      uciMoves: List.unmodifiable(_uciMoves.take(plyCount)),
+      sanMoves: List.unmodifiable(moves.take(plyCount)),
+      pgn: _exportPgn(),
+    );
+    final initialVariations = List<RecordedVariation>.unmodifiable(
+      _takebackVariations,
+    );
+    await _saveReviewState(
+      session,
+      _playerIsWhite,
+      session.positions.last,
+      false,
+      initialVariations,
+    );
+    if (!mounted) return;
+    _reviewOpen = true;
     await Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (context) => ReviewPage(
-          positions: List.unmodifiable(_positionHistory.take(plyCount + 1)),
-          uciMoves: List.unmodifiable(_uciMoves.take(plyCount)),
-          sanMoves: List.unmodifiable(moves.take(plyCount)),
+          positions: session.positions,
+          uciMoves: session.uciMoves,
+          sanMoves: session.sanMoves,
           playerIsWhite: _playerIsWhite,
-          pgn: _exportPgn(),
-          initialVariations: List.unmodifiable(_takebackVariations),
+          pgn: session.pgn,
+          initialVariations: initialVariations,
           maiaElo: _analysisElo,
+          initialCurrentFen: session.positions.last,
+          onSessionChanged: (fen, flipped, variations) => _saveReviewState(
+            session,
+            _playerIsWhite,
+            fen,
+            flipped,
+            variations,
+          ),
           onHome: _goHome,
         ),
       ),
     );
+    _reviewOpen = false;
   }
 
   String _exportPgn() {
@@ -1535,6 +1855,7 @@ class _GamePageState extends State<GamePage> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _clockTimer?.cancel();
     super.dispose();
   }
@@ -1544,11 +1865,17 @@ class AnalysisBoardPage extends StatefulWidget {
   const AnalysisBoardPage({
     required this.initialSession,
     required this.maiaElo,
+    this.initialVariations = const [],
+    this.initialCurrentFen,
+    this.initialFlipped = false,
     super.key,
   });
 
   final AnalysisSession initialSession;
   final int maiaElo;
+  final List<RecordedVariation> initialVariations;
+  final String? initialCurrentFen;
+  final bool initialFlipped;
 
   @override
   State<AnalysisBoardPage> createState() => _AnalysisBoardPageState();
@@ -1558,11 +1885,37 @@ class _AnalysisBoardPageState extends State<AnalysisBoardPage> {
   late AnalysisSession _session = widget.initialSession;
   int _revision = 0;
 
+  @override
+  void initState() {
+    super.initState();
+    unawaited(
+      _saveAnalysisState(
+        widget.initialCurrentFen ?? widget.initialSession.positions.first,
+        widget.initialFlipped,
+        widget.initialVariations,
+      ),
+    );
+  }
+
+  Future<void> _saveAnalysisState(
+    String currentFen,
+    bool flipped,
+    List<RecordedVariation> variations,
+  ) => ActiveSessionStore.save({
+    'type': 'analysis',
+    'session': _session.toJson(),
+    'variations': variations.map((item) => item.toJson()).toList(),
+    'currentFen': currentFen,
+    'flipped': flipped,
+    'maiaElo': widget.maiaElo,
+  });
+
   void _replace(AnalysisSession session) {
     setState(() {
       _session = session;
       _revision++;
     });
+    unawaited(_saveAnalysisState(session.positions.first, false, const []));
   }
 
   Future<String?> _textDialog(String title, String hint) async {
@@ -1682,9 +2035,13 @@ class _AnalysisBoardPageState extends State<AnalysisBoardPage> {
     sanMoves: _session.sanMoves,
     playerIsWhite: true,
     pgn: _session.pgn,
+    initialVariations: widget.initialVariations,
+    initialCurrentFen: widget.initialCurrentFen,
+    initialFlipped: widget.initialFlipped,
+    onSessionChanged: _saveAnalysisState,
     maiaElo: widget.maiaElo,
     title: 'Analysis Board',
-    onHome: () {},
+    onHome: () => unawaited(ActiveSessionStore.clear()),
     onLoadFen: _loadFen,
     onLoadPgn: _loadPgn,
     onEditBoard: _editBoard,
@@ -1707,7 +2064,7 @@ class _BoardEditorPageState extends State<BoardEditorPage> {
     check_validity: false,
   );
   chess.Color _color = chess.Color.WHITE;
-  chess.PieceType? _piece = chess.PieceType.PAWN;
+  chess.PieceType _piece = chess.PieceType.PAWN;
   bool _whiteTurn = true;
   bool _wk = false;
   bool _wq = false;
@@ -1730,8 +2087,13 @@ class _BoardEditorPageState extends State<BoardEditorPage> {
 
   void _touch(String square) {
     setState(() {
-      _position.remove(square);
-      if (_piece != null) _position.put(chess.Piece(_piece!, _color), square);
+      final existing = _position.get(square);
+      if (existing?.type == _piece && existing?.color == _color) {
+        _position.remove(square);
+      } else {
+        _position.remove(square);
+        _position.put(chess.Piece(_piece, _color), square);
+      }
     });
   }
 
@@ -1756,16 +2118,15 @@ class _BoardEditorPageState extends State<BoardEditorPage> {
 
   @override
   Widget build(BuildContext context) {
-    const pieces = <chess.PieceType?>[
+    const pieces = <chess.PieceType>[
       chess.PieceType.KING,
       chess.PieceType.QUEEN,
       chess.PieceType.ROOK,
       chess.PieceType.BISHOP,
       chess.PieceType.KNIGHT,
       chess.PieceType.PAWN,
-      null,
     ];
-    const labels = ['K', 'Q', 'R', 'B', 'N', 'P', 'Erase'];
+    const labels = ['K', 'Q', 'R', 'B', 'N', 'P'];
     return Scaffold(
       appBar: AppBar(
         title: const Text('Edit Board'),
@@ -1931,6 +2292,9 @@ class ReviewPage extends StatefulWidget {
     this.onLoadPgn,
     this.onEditBoard,
     this.onPlayFromPosition,
+    this.initialCurrentFen,
+    this.initialFlipped = false,
+    this.onSessionChanged,
     super.key,
   });
 
@@ -1950,6 +2314,14 @@ class ReviewPage extends StatefulWidget {
   final Future<void> Function()? onLoadPgn;
   final Future<void> Function(String fen)? onEditBoard;
   final Future<void> Function(String fen)? onPlayFromPosition;
+  final String? initialCurrentFen;
+  final bool initialFlipped;
+  final Future<void> Function(
+    String currentFen,
+    bool flipped,
+    List<RecordedVariation> variations,
+  )?
+  onSessionChanged;
 
   @override
   State<ReviewPage> createState() => _ReviewPageState();
@@ -2000,11 +2372,27 @@ class _ReviewPageState extends State<ReviewPage> {
   @override
   void initState() {
     super.initState();
+    _flipped = widget.initialFlipped;
     _variations = List.of(widget.initialVariations);
     _boardPosition = dc.Chess.fromSetup(dc.Setup.parseFen(widget.positions[0]));
     _boardController = cg.ChessboardController(game: _boardGameData());
+    final initialFen = widget.initialCurrentFen;
+    if (initialFen != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _restoreCurrentFen(initialFen);
+      });
+    }
     unawaited(_analyzePosition(0));
     unawaited(_analyzeMaiaPosition(0));
+  }
+
+  void _notifySessionChanged() {
+    final callback = widget.onSessionChanged;
+    if (callback != null) {
+      unawaited(
+        callback(_currentFen, _flipped, List.unmodifiable(_variations)),
+      );
+    }
   }
 
   @override
@@ -2047,6 +2435,7 @@ class _ReviewPageState extends State<ReviewPage> {
     );
     unawaited(_analyzePosition(_ply));
     unawaited(_analyzeMaiaPosition(_ply));
+    _notifySessionChanged();
   }
 
   void _onAnalysisMove(dc.Move move, {bool? viaDragAndDrop}) {
@@ -2114,6 +2503,7 @@ class _ReviewPageState extends State<ReviewPage> {
         _variationMaiaMove = null;
       });
       unawaited(_analyzeVariation());
+      _notifySessionChanged();
       return;
     }
     if (_variationBasePly == null) {
@@ -2152,6 +2542,7 @@ class _ReviewPageState extends State<ReviewPage> {
       _variationMaiaMove = null;
     });
     unawaited(_analyzeVariation());
+    _notifySessionChanged();
   }
 
   Future<void> _analyzeMaiaPosition(int ply) async {
@@ -2333,6 +2724,32 @@ class _ReviewPageState extends State<ReviewPage> {
       );
     });
     unawaited(_analyzeVariation());
+    _notifySessionChanged();
+  }
+
+  void _restoreCurrentFen(String fen) {
+    final mainIndex = widget.positions.indexOf(fen);
+    if (mainIndex >= 0) {
+      setState(() => _showMainPly(mainIndex));
+      return;
+    }
+    bool visit(RecordedVariation variation) {
+      final game = chess.Chess.fromFEN(variation.baseFen);
+      if (variation.baseFen == fen) {
+        _openVariation(variation, 0);
+        return true;
+      }
+      for (var index = 0; index < variation.sanMoves.length; index++) {
+        if (!game.move(variation.sanMoves[index])) break;
+        if (game.fen == fen) {
+          _openVariation(variation, index + 1);
+          return true;
+        }
+      }
+      return variation.children.any(visit);
+    }
+
+    _variations.any(visit);
   }
 
   Future<void> _analyzePosition(int ply) async {
@@ -2609,6 +3026,7 @@ class _ReviewPageState extends State<ReviewPage> {
         );
       });
       unawaited(_analyzeVariation());
+      _notifySessionChanged();
       return;
     }
     setState(() => _showMainPly(_ply + delta));
@@ -2657,7 +3075,10 @@ class _ReviewPageState extends State<ReviewPage> {
         title: Text(widget.title),
         actions: [
           IconButton(
-            onPressed: () => setState(() => _flipped = !_flipped),
+            onPressed: () {
+              setState(() => _flipped = !_flipped);
+              _notifySessionChanged();
+            },
             icon: const Icon(Icons.flip_camera_android_outlined),
             tooltip: 'Flip board',
           ),
