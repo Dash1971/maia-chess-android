@@ -30,6 +30,15 @@ repositories.
 
 The game board uses Lichess's default brown colour scheme and Cburnett pieces.
 
+## Lichess chess opening names
+
+- Project: <https://github.com/lichess-org/chess-openings>
+- Pinned source commit: `4b8622759e7ae6f93f011cc6c83a3823401ab45e`
+- Licence: CC0 1.0 Universal / public domain dedication
+
+`assets/openings/lichess_openings.tsv` is generated from the project's ECO
+A–E source files. The bundled CC0 legal text is retained beside the dataset.
+
 ## ONNX Runtime
 
 - Project: <https://github.com/microsoft/onnxruntime>

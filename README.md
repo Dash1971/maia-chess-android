@@ -38,8 +38,8 @@ open the graphical board editor, or start a Maia game from the current position
 as White, Black, or a random side. The board editor follows Lichess's toggle
 interaction: select a piece and tap an empty square to add it, or tap the same
 piece already on the board to remove it. It also controls side to move and
-castling rights. Recognized opening names are shown locally and offline as the
-line develops.
+castling rights. The complete Lichess CC0 opening-name dataset is bundled for
+offline ECO codes, detailed variation names, and transposition-aware matching.
 
 Select any earlier move and play a different continuation to create an inline,
 clickable PGN variation without deleting the existing line. Active games,
@@ -139,7 +139,7 @@ Flutter Chessground, Lichess multistockfish, and the bundled licences.
 - Automatic restoration of active games, reviews, and analysis trees
 - FEN/PGN loading, FEN/PGN copying, and graphical position editing
 - Play against Maia from the current analysis position
-- Lightweight offline opening-name recognition
+- Complete offline Lichess CC0 opening-name and ECO recognition
 - Play as White, Black, or a random side
 - Unlimited play by default, Lichess-style clock presets, or custom time and increment
 - Easy (800), Medium (1500), Hard (2200), or custom Elo

@@ -11,6 +11,8 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
+  setUpAll(OpeningNames.load);
+
   test('analysis session loads FEN and preserves setup headers', () {
     const fen = '8/8/8/8/8/4k3/8/4K3 w - - 0 1';
     final session = AnalysisSession.fromFen(fen);
@@ -46,7 +48,14 @@ void main() {
   test('opening names prefer the longest known sequence', () {
     expect(
       OpeningNames.identify(['e2e4', 'e7e5', 'g1f3', 'b8c6', 'f1b5']),
-      'Ruy López',
+      'C60 · Ruy Lopez',
+    );
+  });
+
+  test('Lichess opening data recognizes the Smith-Morra Gambit', () {
+    expect(
+      OpeningNames.identify(['e2e4', 'c7c5', 'd2d4', 'c5d4', 'c2c3']),
+      'B21 · Sicilian Defense: Smith-Morra Gambit',
     );
   });
 
@@ -366,6 +375,12 @@ void main() {
     await tester.tap(find.text('e4'));
     await tester.pumpAndSettle();
     expect(find.textContaining('Variation: e4  ·  1/2'), findsOneWidget);
+    board = tester.widget<cg.Chessboard>(find.byType(cg.Chessboard));
+    expect(
+      board.controller.interactive,
+      isTrue,
+      reason: 'Earlier variation nodes must remain playable for branching.',
+    );
     await tester.ensureVisible(find.text('e5'));
     await tester.tap(find.text('e5'));
     await tester.pumpAndSettle();

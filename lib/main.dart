@@ -29,6 +29,7 @@ Future<void> main() async {
     return true;
   };
   ErrorWidget.builder = (_) => const DiagnosticsErrorScreen();
+  await OpeningNames.load();
   runApp(const MaiaChessApp());
   unawaited(AppDiagnostics.recordEvent('app-started'));
 }
@@ -496,40 +497,43 @@ class AnalysisSession {
 }
 
 class OpeningNames {
-  static const _byMoves = <String, String>{
-    'e2e4': "King's Pawn Game",
-    'd2d4': "Queen's Pawn Game",
-    'c2c4': 'English Opening',
-    'g1f3': 'Réti Opening',
-    'e2e4 e7e5': 'Open Game',
-    'e2e4 c7c5': 'Sicilian Defense',
-    'e2e4 e7e6': 'French Defense',
-    'e2e4 c7c6': 'Caro-Kann Defense',
-    'e2e4 d7d5': 'Scandinavian Defense',
-    'e2e4 g8f6': 'Alekhine Defense',
-    'd2d4 d7d5': "Queen's Pawn Game",
-    'd2d4 g8f6': 'Indian Game',
-    'd2d4 f7f5': 'Dutch Defense',
-    'c2c4 e7e5': 'English Opening: Reversed Sicilian',
-    'e2e4 e7e5 g1f3 b8c6 f1b5': 'Ruy López',
-    'e2e4 e7e5 g1f3 b8c6 f1c4': 'Italian Game',
-    'e2e4 e7e5 g1f3 g8f6': 'Petrov Defense',
-    'e2e4 c7c5 g1f3 d7d6 d2d4 c5d4 f3d4 g8f6 b1c3 a7a6':
-        'Sicilian Defense: Najdorf Variation',
-    'e2e4 c7c5 g1f3 b8c6 d2d4 c5d4 f3d4': 'Sicilian Defense: Open',
-    'd2d4 d7d5 c2c4': "Queen's Gambit",
-    'd2d4 d7d5 c2c4 e7e6': "Queen's Gambit Declined",
-    'd2d4 d7d5 c2c4 c7c6': 'Slav Defense',
-    'd2d4 g8f6 c2c4 e7e6 b1c3 f8b4': 'Nimzo-Indian Defense',
-    'd2d4 g8f6 c2c4 g7g6 b1c3 f8g7 e2e4 d7d6': "King's Indian Defense",
-  };
+  static final Map<String, ({String eco, String name})> _byEpd = {};
+
+  static Future<void> load() async {
+    if (_byEpd.isNotEmpty) return;
+    final source = await rootBundle.loadString(
+      'assets/openings/lichess_openings.tsv',
+    );
+    for (final line in const LineSplitter().convert(source).skip(1)) {
+      final columns = line.split('\t');
+      if (columns.length != 5) continue;
+      _byEpd[columns[4]] = (eco: columns[0], name: columns[1]);
+    }
+  }
+
+  static String? identifyPositions(Iterable<String> positions) {
+    for (final fen in positions.toList(growable: false).reversed) {
+      final fields = fen.split(RegExp(r'\s+'));
+      if (fields.length < 4) continue;
+      final opening = _byEpd[fields.take(4).join(' ')];
+      if (opening != null) return '${opening.eco} · ${opening.name}';
+    }
+    return null;
+  }
 
   static String? identify(List<String> moves) {
-    String? result;
-    for (var length = 1; length <= moves.length; length++) {
-      result = _byMoves[moves.take(length).join(' ')] ?? result;
+    final game = chess.Chess();
+    final positions = <String>[game.fen];
+    for (final uci in moves) {
+      final candidate = game
+          .moves({'asObjects': true})
+          .cast<chess.Move>()
+          .where((move) => MaiaEncoding.uci(move) == uci)
+          .firstOrNull;
+      if (candidate == null || !game.move(candidate)) break;
+      positions.add(game.fen);
     }
-    return result;
+    return identifyPositions(positions);
   }
 }
 
@@ -2403,9 +2407,7 @@ class _ReviewPageState extends State<ReviewPage> {
 
   cg.GameData _boardGameData() => cg.GameData(
     fen: _boardPosition.fen,
-    playerSide:
-        _boardPosition.isGameOver ||
-            (_inVariation && _variationIndex < _variationSan.length)
+    playerSide: _boardPosition.isGameOver
         ? cg.PlayerSide.none
         : cg.PlayerSide.both,
     sideToMove: _boardPosition.turn,
@@ -3066,9 +3068,11 @@ class _ReviewPageState extends State<ReviewPage> {
         : _ply == 0
         ? 'Starting position'
         : '${(_ply + 1) ~/ 2}${_ply.isOdd ? '.' : '…'} ${widget.sanMoves[_ply - 1]}';
-    final openingName = OpeningNames.identify([
-      ...widget.uciMoves.take(_inVariation ? (_variationBasePly ?? 0) : _ply),
-      if (_inVariation) ..._variationUci.take(_variationIndex),
+    final openingName = OpeningNames.identifyPositions([
+      ...widget.positions.take(
+        (_inVariation ? (_variationBasePly ?? 0) : _ply) + 1,
+      ),
+      if (_inVariation) ..._variationPositions.skip(1).take(_variationIndex),
     ]);
     return Scaffold(
       appBar: AppBar(
