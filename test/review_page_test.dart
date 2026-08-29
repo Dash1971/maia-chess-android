@@ -278,13 +278,10 @@ void main() {
     expect(find.byType(ActionChip), findsNothing);
     expect(find.text('1.'), findsOneWidget);
     expect(find.text('b4'), findsOneWidget);
-    expect(find.text('Computer analysis graph'), findsOneWidget);
+    expect(find.text('Computer analysis graph'), findsNothing);
     expect(find.byTooltip('Flip board'), findsOneWidget);
     expect(find.text('+0.0'), findsWidgets);
 
-    await tester.ensureVisible(find.text('Computer analysis graph'));
-    await tester.tap(find.text('Computer analysis graph'));
-    await tester.pumpAndSettle();
     await tester.ensureVisible(find.text('Graph'));
     await tester.tap(find.text('Graph'));
     await tester.pumpAndSettle();
@@ -607,7 +604,7 @@ void main() {
       ),
     );
     await tester.pump();
-    final graphAction = find.text('Computer analysis graph');
+    final graphAction = find.text('Graph');
     await tester.ensureVisible(graphAction);
     await tester.tap(graphAction);
     await tester.pump();
@@ -615,8 +612,6 @@ void main() {
 
     firstEvaluation.complete(const StockfishReview(120, 'e2e4'));
     await tester.pumpAndSettle();
-    await tester.ensureVisible(find.text('Graph'));
-    await tester.tap(find.text('Graph'));
     await tester.pumpAndSettle();
 
     final paint = tester.widget<CustomPaint>(
@@ -653,9 +648,6 @@ void main() {
         ),
       ),
     );
-    await tester.pumpAndSettle();
-    await tester.ensureVisible(find.text('Computer analysis graph'));
-    await tester.tap(find.text('Computer analysis graph'));
     await tester.pumpAndSettle();
     await tester.ensureVisible(find.text('Graph'));
     await tester.tap(find.text('Graph'));
@@ -729,9 +721,6 @@ void main() {
     expect(find.text('#-1'), findsWidgets);
     expect(tester.takeException(), isNull);
 
-    await tester.ensureVisible(find.text('Computer analysis graph'));
-    await tester.tap(find.text('Computer analysis graph'));
-    await tester.pumpAndSettle();
     await tester.ensureVisible(find.text('Graph'));
     await tester.tap(find.text('Graph'));
     await tester.pumpAndSettle();

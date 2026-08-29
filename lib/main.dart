@@ -2340,7 +2340,6 @@ class _ReviewPageState extends State<ReviewPage> {
   String? _analysisError;
   bool _flipped = false;
   bool _fullAnalysisRunning = false;
-  int _fullAnalysisProgress = 0;
   List<StockfishReview>? _graphScores;
   final Map<int, String> _maiaMoves = {};
   final Set<int> _maiaLoading = {};
@@ -2842,12 +2841,10 @@ class _ReviewPageState extends State<ReviewPage> {
     if (_fullAnalysisRunning) return;
     setState(() {
       _fullAnalysisRunning = true;
-      _fullAnalysisProgress = 0;
       _graphScores = null;
     });
     for (var i = 0; i <= _maximumPly && mounted; i++) {
       await _analyzePosition(i);
-      if (mounted) setState(() => _fullAnalysisProgress = i + 1);
     }
     if (!mounted) return;
     setState(() {
@@ -3399,7 +3396,6 @@ class _ReviewPageState extends State<ReviewPage> {
                             ),
                           ),
                           const SizedBox(height: 12),
-                          MaterialDifference(fen: _currentFen),
                           if (openingName != null)
                             Padding(
                               padding: const EdgeInsets.only(top: 8),
@@ -3435,8 +3431,15 @@ class _ReviewPageState extends State<ReviewPage> {
                               ),
                             ],
                             selected: {_showGraph},
-                            onSelectionChanged: (selection) =>
-                                setState(() => _showGraph = selection.first),
+                            onSelectionChanged: (selection) {
+                              final showGraph = selection.first;
+                              setState(() => _showGraph = showGraph);
+                              if (showGraph &&
+                                  _graphScores == null &&
+                                  !_fullAnalysisRunning) {
+                                _analyzeFullGame();
+                              }
+                            },
                           ),
                           const SizedBox(height: 8),
                           if (!_showGraph)
@@ -3491,28 +3494,6 @@ class _ReviewPageState extends State<ReviewPage> {
                                 ),
                               ),
                             ),
-                          ListTile(
-                            leading: _fullAnalysisRunning
-                                ? const SizedBox(
-                                    width: 24,
-                                    height: 24,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                    ),
-                                  )
-                                : const Icon(Icons.show_chart),
-                            title: const Text('Computer analysis graph'),
-                            subtitle: Text(
-                              _fullAnalysisRunning
-                                  ? '$_fullAnalysisProgress/${_maximumPly + 1} positions'
-                                  : _graphScores == null
-                                  ? 'Analyze the full game on request'
-                                  : 'Tap the graph to jump to a position',
-                            ),
-                            onTap: _fullAnalysisRunning
-                                ? null
-                                : _analyzeFullGame,
-                          ),
                         ],
                       );
                     },
@@ -3872,27 +3853,36 @@ class MaterialDifference extends StatelessWidget {
       }
     }
     final net = whiteScore - blackScore;
+    if (whiteExtras.isEmpty && blackExtras.isEmpty) {
+      return const SizedBox.shrink();
+    }
     return Semantics(
       label: 'Material difference',
-      child: Wrap(
-        alignment: WrapAlignment.center,
-        crossAxisAlignment: WrapCrossAlignment.center,
-        children: [
-          Text(
-            whiteExtras.isEmpty ? '—' : whiteExtras.join(),
-            style: const TextStyle(fontSize: 22),
-          ),
-          if (net > 0) Text(' +$net'),
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 8),
-            child: Text('material', style: TextStyle(color: Colors.white60)),
-          ),
-          Text(
-            blackExtras.isEmpty ? '—' : blackExtras.join(),
-            style: const TextStyle(fontSize: 22),
-          ),
-          if (net < 0) Text(' +${-net}'),
-        ],
+      child: Padding(
+        padding: const EdgeInsets.only(top: 3),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (whiteExtras.isNotEmpty) ...[
+              Text(
+                whiteExtras.join(),
+                style: const TextStyle(fontSize: 15, height: 1),
+              ),
+              if (net > 0) Text(' +$net', style: const TextStyle(fontSize: 12)),
+            ],
+            if (whiteExtras.isNotEmpty && blackExtras.isNotEmpty)
+              const SizedBox(width: 12),
+            if (blackExtras.isNotEmpty) ...[
+              Text(
+                blackExtras.join(),
+                style: const TextStyle(fontSize: 15, height: 1),
+              ),
+              if (net < 0)
+                Text(' +${-net}', style: const TextStyle(fontSize: 12)),
+            ],
+          ],
+        ),
       ),
     );
   }
