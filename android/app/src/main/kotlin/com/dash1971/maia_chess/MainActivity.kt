@@ -2,6 +2,8 @@ package com.dash1971.maia_chess
 
 import android.content.Intent
 import android.net.Uri
+import android.os.Bundle
+import android.view.WindowManager
 import ai.onnxruntime.OnnxTensor
 import ai.onnxruntime.OrtEnvironment
 import ai.onnxruntime.OrtSession
@@ -33,6 +35,11 @@ class MainActivity : FlutterActivity() {
             setMemoryPatternOptimization(false)
         }
         environment.createSession(model.absolutePath, options)
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
     }
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
