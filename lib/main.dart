@@ -3663,8 +3663,24 @@ class AccuracySummary extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final accuracy = GameAccuracy.fromScores(scores);
-    String label(double? value) =>
-        value == null ? '—' : '${value.clamp(0, 100).toStringAsFixed(1)}%';
+    String label(double? value) => value == null
+        ? 'Not enough moves'
+        : '${value.clamp(0, 100).toStringAsFixed(1)}%';
+    Widget playerAccuracy(String side, double? value) => Expanded(
+      child: Column(
+        children: [
+          Text(side, style: Theme.of(context).textTheme.labelMedium),
+          const SizedBox(height: 2),
+          Text(
+            label(value),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(context).textTheme.titleMedium
+                ?.copyWith(fontWeight: FontWeight.w700),
+          ),
+        ],
+      ),
+    );
     return Semantics(
       label: 'Game accuracy',
       child: Card(
@@ -3683,12 +3699,11 @@ class AccuracySummary extends StatelessWidget {
                       style: TextStyle(fontWeight: FontWeight.w700),
                     ),
                     const SizedBox(height: 4),
-                    Wrap(
-                      spacing: 16,
-                      runSpacing: 4,
+                    Row(
                       children: [
-                        Text('White ${label(accuracy.white)}'),
-                        Text('Black ${label(accuracy.black)}'),
+                        playerAccuracy('White', accuracy.white),
+                        const SizedBox(width: 12),
+                        playerAccuracy('Black', accuracy.black),
                       ],
                     ),
                   ],
@@ -3716,25 +3731,45 @@ class AnalysisGraph extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 130,
-      width: double.infinity,
-      child: LayoutBuilder(
-        builder: (context, constraints) => GestureDetector(
-          onTapDown: (details) {
-            if (scores.length < 2) return;
-            final fraction = (details.localPosition.dx / constraints.maxWidth)
-                .clamp(0.0, 1.0);
-            onSelected((fraction * (scores.length - 1)).round());
-          },
-          child: CustomPaint(
-            painter: AnalysisGraphPainter(
-              scores: scores,
-              selectedPly: selectedPly,
+    final selected = scores[selectedPly.clamp(0, scores.length - 1)];
+    final scoreLabel = selected.mate == null
+        ? '${selected.evaluation >= 0 ? '+' : ''}${(selected.evaluation / 100).toStringAsFixed(1)}'
+        : '#${selected.mate}';
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(bottom: 4),
+          child: Text(
+            'Position ${selectedPly.clamp(0, scores.length - 1)} of ${scores.length - 1}  ·  $scoreLabel',
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.labelMedium,
+          ),
+        ),
+        SizedBox(
+          height: 130,
+          width: double.infinity,
+          child: LayoutBuilder(
+            builder: (context, constraints) => GestureDetector(
+              onTapDown: (details) {
+                if (scores.length < 2) return;
+                final fraction =
+                    (details.localPosition.dx / constraints.maxWidth).clamp(
+                      0.0,
+                      1.0,
+                    );
+                onSelected((fraction * (scores.length - 1)).round());
+              },
+              child: CustomPaint(
+                painter: AnalysisGraphPainter(
+                  scores: scores,
+                  selectedPly: selectedPly,
+                ),
+              ),
             ),
           ),
         ),
-      ),
+      ],
     );
   }
 }

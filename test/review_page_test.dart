@@ -288,8 +288,11 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('run-computer-analysis')));
     await tester.pumpAndSettle();
     expect(find.byType(AnalysisGraph), findsOneWidget);
-    expect(find.text('White 100.0%'), findsOneWidget);
-    expect(find.text('Black —'), findsOneWidget);
+    expect(find.text('White'), findsOneWidget);
+    expect(find.text('100.0%'), findsOneWidget);
+    expect(find.text('Black'), findsOneWidget);
+    expect(find.text('Not enough moves'), findsOneWidget);
+    expect(find.text('Position 0 of 1  ·  +0.0'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
@@ -305,6 +308,25 @@ void main() {
     expect(accuracy.black, lessThan(50));
     expect(GameAccuracy.moveAccuracy(50, 50), 100);
     expect(GameAccuracy.moveAccuracy(40, 60), 100);
+  });
+
+  test('multi-move computer analysis produces both accuracy values', () {
+    final accuracy = GameAccuracy.fromScores(const [
+      StockfishReview(20, ''),
+      StockfishReview(-40, ''),
+      StockfishReview(-10, ''),
+      StockfishReview(-180, ''),
+      StockfishReview(-120, ''),
+      StockfishReview(-260, ''),
+      StockfishReview(-220, ''),
+      StockfishReview(-500, ''),
+      StockfishReview(-450, ''),
+    ]);
+
+    expect(accuracy.white, isNotNull);
+    expect(accuracy.black, isNotNull);
+    expect(accuracy.white, inInclusiveRange(0, 100));
+    expect(accuracy.black, inInclusiveRange(0, 100));
   });
 
   testWidgets('evaluation bar uses signed Lichess-style score', (tester) async {
