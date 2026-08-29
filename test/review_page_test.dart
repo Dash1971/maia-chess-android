@@ -329,6 +329,76 @@ void main() {
     expect(accuracy.black, inInclusiveRange(0, 100));
   });
 
+  testWidgets(
+    'computer analysis evaluates the complete Analysis Board root line',
+    (tester) async {
+      tester.view.physicalSize = const Size(1080, 2400);
+      tester.view.devicePixelRatio = 3;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      const start = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
+      const moves = [
+        'e4',
+        'e5',
+        'Nf3',
+        'Nc6',
+        'Bb5',
+        'a6',
+        'Ba4',
+        'Nf6',
+        'O-O',
+        'Be7',
+        'Re1',
+        'b5',
+        'Bb3',
+        'd6',
+        'c3',
+      ];
+      final evaluated = <String>[];
+      await tester.pumpWidget(
+        MaterialApp(
+          home: ReviewPage(
+            positions: const [start],
+            uciMoves: const [],
+            sanMoves: const [],
+            playerIsWhite: true,
+            pgn: '*',
+            initialVariations: const [
+              RecordedVariation(basePly: 0, baseFen: start, sanMoves: moves),
+            ],
+            onHome: () {},
+            evaluator: (fen) async {
+              evaluated.add(fen);
+              return StockfishReview(evaluated.length * 10, 'e2e4');
+            },
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byTooltip('Computer analysis'));
+      await tester.pump();
+      await tester.tap(find.byKey(const ValueKey('run-computer-analysis')));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(AnalysisGraph), findsOneWidget);
+      expect(find.textContaining('Not enough moves'), findsNothing);
+      expect(evaluated.toSet(), hasLength(16));
+      expect(find.textContaining('Position 0 of 15'), findsOneWidget);
+
+      final graph = tester.widget<AnalysisGraph>(find.byType(AnalysisGraph));
+      graph.onSelected(15);
+      await tester.pumpAndSettle();
+      final board = tester.widget<cg.Chessboard>(find.byType(cg.Chessboard));
+      final replay = chess.Chess.fromFEN(start);
+      for (final san in moves) {
+        expect(replay.move(san), isTrue);
+      }
+      expect(board.controller.fen, replay.fen);
+    },
+  );
+
   testWidgets('evaluation bar uses signed Lichess-style score', (tester) async {
     await tester.pumpWidget(
       const MaterialApp(

@@ -2373,6 +2373,36 @@ class _ReviewPageState extends State<ReviewPage> {
     ),
   );
 
+  RecordedVariation? get _rootMainline => _maximumPly == 0
+      ? _variations
+            .where(
+              (variation) =>
+                  variation.basePly == 0 && variation.sanMoves.isNotEmpty,
+            )
+            .firstOrNull
+      : null;
+
+  List<String> get _computerAnalysisPositions {
+    final rootMainline = _rootMainline;
+    if (rootMainline == null) return widget.positions;
+    final game = chess.Chess.fromFEN(rootMainline.baseFen);
+    final positions = <String>[game.fen];
+    for (final san in rootMainline.sanMoves) {
+      if (!game.move(san)) break;
+      positions.add(game.fen);
+    }
+    return positions;
+  }
+
+  void _showComputerAnalysisPly(int ply) {
+    final rootMainline = _rootMainline;
+    if (rootMainline != null) {
+      _openVariation(rootMainline, ply);
+    } else {
+      setState(() => _showMainPly(ply));
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -2840,21 +2870,39 @@ class _ReviewPageState extends State<ReviewPage> {
 
   Future<void> _analyzeFullGame() async {
     if (_fullAnalysisRunning) return;
+    final positions = _computerAnalysisPositions;
     setState(() {
       _fullAnalysisRunning = true;
       _fullAnalysisCompleted = 0;
       _graphScores = null;
       _analysisError = null;
     });
-    for (var i = 0; i <= _maximumPly && mounted; i++) {
-      await _analyzePosition(i);
+    final scores = <StockfishReview>[];
+    final evaluate = widget.evaluator ?? StockfishAnalyzer.instance.evaluate;
+    for (var i = 0; i < positions.length && mounted; i++) {
+      try {
+        final review =
+            i < widget.positions.length && positions[i] == widget.positions[i]
+            ? (_reviews[i] ?? await evaluate(positions[i]))
+            : await evaluate(positions[i]);
+        scores.add(review);
+        if (i < widget.positions.length &&
+            positions[i] == widget.positions[i]) {
+          _reviews[i] = review;
+        }
+      } catch (error, stackTrace) {
+        unawaited(
+          AppDiagnostics.record('stockfish-full-analysis', error, stackTrace),
+        );
+        _analysisError = 'Computer analysis failed: $error';
+        break;
+      }
       if (mounted) setState(() => _fullAnalysisCompleted = i + 1);
     }
     if (!mounted) return;
-    final complete = List.generate(_maximumPly + 1, (index) => _reviews[index]);
     setState(() {
-      if (complete.every((score) => score != null)) {
-        _graphScores = complete.cast<StockfishReview>();
+      if (scores.length == positions.length) {
+        _graphScores = List.unmodifiable(scores);
       } else {
         _analysisError ??= 'Computer analysis did not complete. Try again.';
       }
@@ -3347,8 +3395,8 @@ class _ReviewPageState extends State<ReviewPage> {
             const SizedBox(height: 8),
             AnalysisGraph(
               scores: scores,
-              selectedPly: _ply,
-              onSelected: (ply) => setState(() => _showMainPly(ply)),
+              selectedPly: _rootMainline == null ? _ply : _variationIndex,
+              onSelected: _showComputerAnalysisPly,
             ),
             const SizedBox(height: 8),
             TextButton.icon(
@@ -3360,7 +3408,7 @@ class _ReviewPageState extends State<ReviewPage> {
         ),
       );
     }
-    final total = _maximumPly + 1;
+    final total = _computerAnalysisPositions.length;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(16),
