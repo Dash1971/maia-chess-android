@@ -45,6 +45,27 @@ void main() {
     expect(exported, contains('1. e4 e5 *'));
   });
 
+  test('root alternatives persist as sibling PGN variations', () {
+    final exported = PgnVariationExporter.export(
+      '[Event "Analysis"]\n[Result "*"]\n\n*',
+      const [],
+      const [
+        RecordedVariation(
+          basePly: 0,
+          baseFen: chess.Chess.DEFAULT_POSITION,
+          sanMoves: ['e4', 'e5'],
+        ),
+        RecordedVariation(
+          basePly: 0,
+          baseFen: chess.Chess.DEFAULT_POSITION,
+          sanMoves: ['d4', 'd5'],
+        ),
+      ],
+    );
+
+    expect(exported, contains('1. e4 e5 (1. d4 d5) *'));
+  });
+
   test('opening names prefer the longest known sequence', () {
     expect(
       OpeningNames.identify(['e2e4', 'e7e5', 'g1f3', 'b8c6', 'f1b5']),
@@ -252,14 +273,14 @@ void main() {
 
     expect(tester.takeException(), isNull);
     expect(find.text('Game review'), findsOneWidget);
-    expect(find.text('Starting position  ·  0/1'), findsOneWidget);
+    expect(find.textContaining('Variation:'), findsNothing);
     expect(find.byKey(const ValueKey('analysis-move-list')), findsOneWidget);
     expect(find.byType(ActionChip), findsNothing);
     expect(find.text('1.'), findsOneWidget);
     expect(find.text('b4'), findsOneWidget);
     expect(find.text('Computer analysis graph'), findsOneWidget);
     expect(find.byTooltip('Flip board'), findsOneWidget);
-    expect(find.text('+0.0'), findsOneWidget);
+    expect(find.text('+0.0'), findsWidgets);
 
     await tester.ensureVisible(find.text('Computer analysis graph'));
     await tester.tap(find.text('Computer analysis graph'));
@@ -369,30 +390,37 @@ void main() {
     board.onMove!(dc.NormalMove.fromUci('e7e5'));
     await tester.pumpAndSettle();
 
-    expect(find.textContaining('Variation: e4 e5'), findsOneWidget);
+    expect(find.text('e4'), findsOneWidget);
+    expect(find.text('e5'), findsOneWidget);
+    expect(find.textContaining('Variation:'), findsNothing);
     expect(find.byType(ActionChip), findsNothing);
-    await tester.ensureVisible(find.text('e4'));
-    await tester.tap(find.text('e4'));
+    final moveList = find.byKey(const ValueKey('analysis-move-list'));
+    final e4Move = find.descendant(of: moveList, matching: find.text('e4'));
+    await tester.ensureVisible(e4Move);
+    await tester.tap(e4Move);
     await tester.pumpAndSettle();
-    expect(find.textContaining('Variation: e4  ·  1/2'), findsOneWidget);
     board = tester.widget<cg.Chessboard>(find.byType(cg.Chessboard));
+    expect(board.controller.lastMove?.uci, 'e2e4');
     expect(
       board.controller.interactive,
       isTrue,
       reason: 'Earlier variation nodes must remain playable for branching.',
     );
-    await tester.ensureVisible(find.text('e5'));
-    await tester.tap(find.text('e5'));
+    final e5Move = find.descendant(of: moveList, matching: find.text('e5'));
+    await tester.ensureVisible(e5Move);
+    await tester.tap(e5Move);
     await tester.pumpAndSettle();
-    await tester.ensureVisible(find.byIcon(Icons.chevron_left));
-    await tester.tap(find.byIcon(Icons.chevron_left));
+    await tester.ensureVisible(find.byTooltip('Previous move'));
+    await tester.tap(find.byTooltip('Previous move'));
     await tester.pumpAndSettle();
-    expect(find.textContaining('1/2'), findsOneWidget);
+    board = tester.widget<cg.Chessboard>(find.byType(cg.Chessboard));
+    expect(board.controller.lastMove?.uci, 'e2e4');
     expect(maiaHistoryLengths.last, 2);
-    await tester.ensureVisible(find.byIcon(Icons.chevron_right));
-    await tester.tap(find.byIcon(Icons.chevron_right));
+    await tester.ensureVisible(find.byTooltip('Next move'));
+    await tester.tap(find.byTooltip('Next move'));
     await tester.pumpAndSettle();
-    expect(find.textContaining('Variation: e4 e5'), findsOneWidget);
+    board = tester.widget<cg.Chessboard>(find.byType(cg.Chessboard));
+    expect(board.controller.lastMove?.uci, 'e7e5');
     expect(tester.takeException(), isNull);
   });
 
@@ -438,7 +466,9 @@ void main() {
     await tester.ensureVisible(find.text('c5'));
     await tester.tap(find.text('c5'));
     await tester.pumpAndSettle();
-    expect(find.textContaining('Variation: c5  ·  1/1'), findsOneWidget);
+    board = tester.widget<cg.Chessboard>(find.byType(cg.Chessboard));
+    expect(board.controller.lastMove?.uci, 'c7c5');
+    expect(find.textContaining('Variation:'), findsNothing);
     expect(tester.takeException(), isNull);
   });
 
@@ -523,7 +553,7 @@ void main() {
     await tester.tapAt(Offset(rect.right - 1, rect.center.dy));
     await tester.pumpAndSettle();
 
-    expect(find.textContaining('61/61'), findsOneWidget);
+    expect(tester.widget<AnalysisGraph>(graph).selectedPly, 61);
     expect(tester.takeException(), isNull);
   });
 
@@ -656,11 +686,13 @@ void main() {
     await tester.pumpAndSettle();
 
     for (var ply = 1; ply < positions.length; ply++) {
-      await tester.tap(find.byIcon(Icons.chevron_right));
+      await tester.ensureVisible(find.byTooltip('Next move'));
+      await tester.tap(find.byTooltip('Next move'));
       await tester.pumpAndSettle();
       expect(tester.takeException(), isNull, reason: 'failed at ply $ply');
     }
-    expect(find.textContaining('${positions.length - 1}/'), findsOneWidget);
+    final board = tester.widget<cg.Chessboard>(find.byType(cg.Chessboard));
+    expect(board.controller.fen, positions.last);
   });
 
   test('analysis graph fills black above and white below the curve', () async {

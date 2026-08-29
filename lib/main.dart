@@ -2415,7 +2415,19 @@ class _ReviewPageState extends State<ReviewPage> {
     kingSquareInCheck: _boardPosition.isCheck
         ? _boardPosition.board.kingOf(_boardPosition.turn)
         : null,
+    lastMove: _selectedLastMove,
   );
+
+  dc.Move? get _selectedLastMove {
+    final uci = _inVariation
+        ? (_variationIndex == 0 ? null : _variationUci[_variationIndex - 1])
+        : (_ply == 0 ? null : widget.uciMoves[_ply - 1]);
+    if (uci == null ||
+        !RegExp(r'^[a-h][1-8][a-h][1-8][qrbn]?$').hasMatch(uci)) {
+      return null;
+    }
+    return dc.NormalMove.fromUci(uci);
+  }
 
   void _showMainPly(int ply) {
     _variationBasePly = null;
@@ -2471,21 +2483,28 @@ class _ReviewPageState extends State<ReviewPage> {
         baseFen: fenBefore,
         sanMoves: [san],
       );
-      final siblings = List<RecordedVariation>.of(opened.children)
-        ..removeWhere(
-          (item) =>
-              item.basePly == basePly &&
-              item.sanMoves.isNotEmpty &&
-              item.sanMoves.first == san,
-        )
-        ..add(child);
-      final updatedParent = RecordedVariation(
-        basePly: opened.basePly,
-        baseFen: opened.baseFen,
-        sanMoves: opened.sanMoves,
-        children: siblings,
-      );
-      _replaceVariation(_variations, opened, updatedParent);
+      if (_variationIndex == 0) {
+        // A move from the branch's starting position is a sibling RAV, not a
+        // child of the branch's first move. Keeping this distinction is what
+        // makes the exported PGN tree round-trip correctly.
+        _insertSiblingVariation(opened, child);
+      } else {
+        final siblings = List<RecordedVariation>.of(opened.children)
+          ..removeWhere(
+            (item) =>
+                item.basePly == basePly &&
+                item.sanMoves.isNotEmpty &&
+                item.sanMoves.first == san,
+          )
+          ..add(child);
+        final updatedParent = RecordedVariation(
+          basePly: opened.basePly,
+          baseFen: opened.baseFen,
+          sanMoves: opened.sanMoves,
+          children: siblings,
+        );
+        _replaceVariation(_variations, opened, updatedParent);
+      }
       _openedVariation = child;
       _variationBasePly = basePly;
       _variationSan
@@ -2678,6 +2697,40 @@ class _ReviewPageState extends State<ReviewPage> {
     return false;
   }
 
+  void _insertSiblingVariation(
+    RecordedVariation target,
+    RecordedVariation sibling,
+  ) {
+    bool insert(List<RecordedVariation> lines) {
+      for (var index = 0; index < lines.length; index++) {
+        final current = lines[index];
+        if (identical(current, target)) {
+          lines.removeWhere(
+            (item) =>
+                item.basePly == sibling.basePly &&
+                item.sanMoves.isNotEmpty &&
+                item.sanMoves.first == sibling.sanMoves.first,
+          );
+          lines.add(sibling);
+          return true;
+        }
+        final children = List<RecordedVariation>.of(current.children);
+        if (insert(children)) {
+          lines[index] = RecordedVariation(
+            basePly: current.basePly,
+            baseFen: current.baseFen,
+            sanMoves: current.sanMoves,
+            children: children,
+          );
+          return true;
+        }
+      }
+      return false;
+    }
+
+    if (!insert(_variations)) _variations.add(sibling);
+  }
+
   void _openVariation(RecordedVariation variation, [int? selectedIndex]) {
     final sanGame = chess.Chess.fromFEN(variation.baseFen);
     var position = dc.Chess.fromSetup(dc.Setup.parseFen(variation.baseFen));
@@ -2828,6 +2881,142 @@ class _ReviewPageState extends State<ReviewPage> {
     dest: dc.Square.fromName(uci.substring(2, 4)),
   );
 
+  String _sanForUci(String fen, String uci) {
+    final game = chess.Chess.fromFEN(fen);
+    final candidate = game
+        .moves({'asObjects': true})
+        .cast<chess.Move>()
+        .where((move) => MaiaEncoding.uci(move) == uci)
+        .firstOrNull;
+    if (candidate == null) return uci;
+    game.move(candidate);
+    return game
+        .getHistory({'verbose': true})
+        .cast<Map<String, dynamic>>()
+        .last['san']
+        .toString();
+  }
+
+  String _pvSan(StockfishLine line) {
+    final game = chess.Chess.fromFEN(_currentFen);
+    final san = <String>[];
+    for (final uci in line.moves.take(8)) {
+      final candidate = game
+          .moves({'asObjects': true})
+          .cast<chess.Move>()
+          .where((move) => MaiaEncoding.uci(move) == uci)
+          .firstOrNull;
+      if (candidate == null) break;
+      game.move(candidate);
+      san.add(
+        game
+            .getHistory({'verbose': true})
+            .cast<Map<String, dynamic>>()
+            .last['san']
+            .toString(),
+      );
+    }
+    return san.join(' ');
+  }
+
+  Widget _engineLinesPanel() {
+    final review = _review;
+    final maiaMove = _inVariation ? _variationMaiaMove : _maiaMoves[_ply];
+    final stockfishLines = review?.lines.isNotEmpty == true
+        ? review!.lines.take(2).toList(growable: false)
+        : review == null || review.bestMove == '(none)'
+        ? const <StockfishLine>[]
+        : [
+            StockfishLine(
+              evaluation: review.evaluation,
+              mate: review.mate,
+              moves: [review.bestMove],
+            ),
+          ];
+    final loading = _inVariation ? _variationLoading : _loading.contains(_ply);
+    final error = _inVariation ? _variationError : _analysisError;
+    final maiaLoading = _inVariation
+        ? _variationMaiaLoading
+        : _maiaLoading.contains(_ply);
+    return Container(
+      key: const ValueKey('analysis-engine-lines'),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainer,
+        borderRadius: BorderRadius.circular(6),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+      child: Column(
+        children: [
+          if (error != null)
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                error,
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ),
+            )
+          else if (loading && stockfishLines.isEmpty)
+            const LinearProgressIndicator(minHeight: 2)
+          else
+            for (var index = 0; index < stockfishLines.length; index++)
+              Padding(
+                padding: EdgeInsets.only(top: index == 0 ? 0 : 5),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(
+                      width: 48,
+                      child: Text(
+                        _formatLineEvaluation(stockfishLines[index]),
+                        style: const TextStyle(
+                          color: Color(0xff72b7ee),
+                          fontWeight: FontWeight.w700,
+                          fontFeatures: [FontFeature.tabularFigures()],
+                        ),
+                      ),
+                    ),
+                    Expanded(child: Text(_pvSan(stockfishLines[index]))),
+                  ],
+                ),
+              ),
+          if (maiaMove != null && maiaMove != review?.bestMove)
+            Padding(
+              padding: const EdgeInsets.only(top: 5),
+              child: Row(
+                children: [
+                  SizedBox(
+                    width: 48,
+                    child: Text(
+                      'M${widget.maiaElo}',
+                      style: const TextStyle(
+                        color: Color(0xffe89b3c),
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                  Expanded(child: Text(_sanForUci(_currentFen, maiaMove))),
+                ],
+              ),
+            ),
+          if (maiaLoading && maiaMove == null)
+            const Padding(
+              padding: EdgeInsets.only(top: 5),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text('Maia analyzing…'),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  String _formatLineEvaluation(StockfishLine line) {
+    if (line.mate != null) return '#${line.mate}';
+    final pawns = line.evaluation / 100;
+    return '${pawns >= 0 ? '+' : ''}${pawns.toStringAsFixed(1)}';
+  }
+
   Widget _notationMove({
     required String san,
     required bool selected,
@@ -2864,25 +3053,26 @@ class _ReviewPageState extends State<ReviewPage> {
   Widget _variationLine(RecordedVariation variation, [int depth = 0]) {
     final children = variation.children;
     return Container(
-      margin: EdgeInsets.only(top: 3, left: depth * 14.0),
-      padding: const EdgeInsets.fromLTRB(8, 3, 6, 3),
+      margin: EdgeInsets.only(top: 2, left: depth * 10.0),
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest,
-        border: Border(
-          left: BorderSide(
-            width: 3,
-            color: Theme.of(context).colorScheme.outlineVariant,
-          ),
-        ),
+        color: Theme.of(context).colorScheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(3),
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Wrap(
             spacing: 1,
             runSpacing: 1,
             crossAxisAlignment: WrapCrossAlignment.center,
             children: [
+              Text(
+                '(',
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
               for (
                 var index = 0;
                 index < variation.sanMoves.length;
@@ -2920,6 +3110,12 @@ class _ReviewPageState extends State<ReviewPage> {
                   onTap: () => _openVariation(variation, index + 1),
                 ),
               ],
+              Text(
+                ')',
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
             ],
           ),
           for (final child in children) _variationLine(child, depth + 1),
@@ -2934,69 +3130,40 @@ class _ReviewPageState extends State<ReviewPage> {
       variationsByBase.putIfAbsent(variation.basePly, () => []).add(variation);
     }
     final renderedVariations = <RecordedVariation>{};
-    final rows = <Widget>[];
-    for (var whiteIndex = 0; whiteIndex < _maximumPly; whiteIndex += 2) {
-      final blackIndex = whiteIndex + 1;
-      rows.add(
-        Container(
-          color: (whiteIndex ~/ 2).isOdd
-              ? Theme.of(context).colorScheme.surfaceContainerLow
-              : Colors.transparent,
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              SizedBox(
-                width: 38,
-                child: Text(
-                  '${(whiteIndex ~/ 2) + 1}.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    fontFeatures: const [FontFeature.tabularFigures()],
-                  ),
-                ),
+    final tokens = <Widget>[];
+    for (var index = 0; index < _maximumPly; index++) {
+      if (index.isEven) {
+        tokens.add(
+          Padding(
+            padding: const EdgeInsets.only(left: 4),
+            child: Text(
+              '${(index ~/ 2) + 1}.',
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                fontFeatures: const [FontFeature.tabularFigures()],
               ),
-              Expanded(
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: _notationMove(
-                    key: ValueKey('main-move-$whiteIndex'),
-                    san: widget.sanMoves[whiteIndex],
-                    selected: !_inVariation && _ply == whiteIndex + 1,
-                    onTap: () => setState(() => _showMainPly(whiteIndex + 1)),
-                  ),
-                ),
-              ),
-              Expanded(
-                child: blackIndex < _maximumPly
-                    ? Align(
-                        alignment: Alignment.centerLeft,
-                        child: _notationMove(
-                          key: ValueKey('main-move-$blackIndex'),
-                          san: widget.sanMoves[blackIndex],
-                          selected: !_inVariation && _ply == blackIndex + 1,
-                          onTap: () =>
-                              setState(() => _showMainPly(blackIndex + 1)),
-                        ),
-                      )
-                    : const SizedBox.shrink(),
-              ),
-            ],
+            ),
           ),
+        );
+      }
+      tokens.add(
+        _notationMove(
+          key: ValueKey('main-move-$index'),
+          san: widget.sanMoves[index],
+          selected: !_inVariation && _ply == index + 1,
+          onTap: () => setState(() => _showMainPly(index + 1)),
         ),
       );
-      for (final basePly in [whiteIndex, blackIndex]) {
-        for (final variation in variationsByBase[basePly] ?? const []) {
-          rows.add(_variationLine(variation));
-          renderedVariations.add(variation);
-        }
+      for (final variation in variationsByBase[index] ?? const []) {
+        tokens.add(_variationLine(variation));
+        renderedVariations.add(variation);
       }
     }
     // A review may begin from a terminal or deliberately truncated main line.
     // Keep analysis branches visible even when there is no corresponding row.
     for (final variation in _variations) {
       if (renderedVariations.add(variation)) {
-        rows.add(_variationLine(variation));
+        tokens.add(_variationLine(variation));
       }
     }
     return Container(
@@ -3007,7 +3174,13 @@ class _ReviewPageState extends State<ReviewPage> {
         borderRadius: BorderRadius.circular(6),
       ),
       clipBehavior: Clip.antiAlias,
-      child: Column(children: rows),
+      padding: const EdgeInsets.all(6),
+      child: Wrap(
+        spacing: 1,
+        runSpacing: 2,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        children: tokens,
+      ),
     );
   }
 
@@ -3063,11 +3236,6 @@ class _ReviewPageState extends State<ReviewPage> {
   Widget build(BuildContext context) {
     final evaluation = _review?.evaluation;
     final mate = _review?.mate;
-    final moveLabel = _inVariation
-        ? 'Variation: ${_variationSan.take(_variationIndex).join(' ')}'
-        : _ply == 0
-        ? 'Starting position'
-        : '${(_ply + 1) ~/ 2}${_ply.isOdd ? '.' : '…'} ${widget.sanMoves[_ply - 1]}';
     final openingName = OpeningNames.identifyPositions([
       ...widget.positions.take(
         (_inVariation ? (_variationBasePly ?? 0) : _ply) + 1,
@@ -3175,6 +3343,8 @@ class _ReviewPageState extends State<ReviewPage> {
                       );
                       return Column(
                         children: [
+                          _engineLinesPanel(),
+                          const SizedBox(height: 8),
                           SizedBox(
                             height: boardSize,
                             child: Row(
@@ -3234,37 +3404,6 @@ class _ReviewPageState extends State<ReviewPage> {
                               ),
                             ),
                           const SizedBox(height: 8),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              IconButton(
-                                onPressed:
-                                    (_inVariation
-                                        ? _variationIndex == 0
-                                        : _ply == 0)
-                                    ? null
-                                    : () => _step(-1),
-                                icon: const Icon(Icons.chevron_left),
-                              ),
-                              Flexible(
-                                child: Text(
-                                  '$moveLabel  ·  ${_inVariation ? '$_variationIndex/${_variationSan.length}' : '$_ply/$_maximumPly'}',
-                                  textAlign: TextAlign.center,
-                                ),
-                              ),
-                              IconButton(
-                                onPressed:
-                                    (_inVariation
-                                        ? _variationIndex ==
-                                              _variationSan.length
-                                        : _ply == _maximumPly)
-                                    ? null
-                                    : () => _step(1),
-                                icon: const Icon(Icons.chevron_right),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
                           SegmentedButton<bool>(
                             segments: const [
                               ButtonSegment(
@@ -3284,7 +3423,37 @@ class _ReviewPageState extends State<ReviewPage> {
                           ),
                           const SizedBox(height: 8),
                           if (!_showGraph)
-                            _movesNotation()
+                            Column(
+                              children: [
+                                _movesNotation(),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    IconButton(
+                                      tooltip: 'Previous move',
+                                      onPressed:
+                                          (_inVariation
+                                              ? _variationIndex == 0
+                                              : _ply == 0)
+                                          ? null
+                                          : () => _step(-1),
+                                      icon: const Icon(Icons.chevron_left),
+                                    ),
+                                    IconButton(
+                                      tooltip: 'Next move',
+                                      onPressed:
+                                          (_inVariation
+                                              ? _variationIndex ==
+                                                    _variationSan.length
+                                              : _ply == _maximumPly)
+                                          ? null
+                                          : () => _step(1),
+                                      icon: const Icon(Icons.chevron_right),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            )
                           else if (_graphScores != null) ...[
                             AccuracySummary(scores: _graphScores!),
                             const SizedBox(height: 8),
@@ -3305,94 +3474,27 @@ class _ReviewPageState extends State<ReviewPage> {
                                 ),
                               ),
                             ),
-                          Card(
-                            child: Column(
-                              children: [
-                                ListTile(
-                                  leading:
-                                      (_inVariation
-                                          ? _variationLoading
-                                          : _loading.contains(_ply))
-                                      ? const SizedBox(
-                                          width: 24,
-                                          height: 24,
-                                          child: CircularProgressIndicator(
-                                            strokeWidth: 2,
-                                          ),
-                                        )
-                                      : const Icon(
-                                          Icons.arrow_upward,
-                                          color: Color(0xff3d9be9),
-                                        ),
-                                  title: const Text('Stockfish best move'),
-                                  subtitle: Text(
-                                    (_inVariation
-                                            ? _variationError
-                                            : _analysisError) ??
-                                        (_review == null
-                                            ? 'Analyzing this position…'
-                                            : 'Depth 12 · ${_formatEvaluation(_review!)}'),
-                                  ),
-                                ),
-                                const Divider(height: 1),
-                                ListTile(
-                                  leading:
-                                      (_inVariation
-                                          ? _variationMaiaLoading
-                                          : _maiaLoading.contains(_ply))
-                                      ? const SizedBox(
-                                          width: 24,
-                                          height: 24,
-                                          child: CircularProgressIndicator(
-                                            strokeWidth: 2,
-                                          ),
-                                        )
-                                      : const Icon(
-                                          Icons.arrow_upward,
-                                          color: Color(0xffe89b3c),
-                                        ),
-                                  title: Text(
-                                    'Maia ${widget.maiaElo} human move',
-                                  ),
-                                  subtitle: Text(
-                                    (_inVariation
-                                                ? _variationMaiaMove
-                                                : _maiaMoves[_ply]) ==
-                                            null
-                                        ? 'Analyzing this position…'
-                                        : (_inVariation
-                                                  ? _variationMaiaMove
-                                                  : _maiaMoves[_ply]) ==
-                                              _review?.bestMove
-                                        ? 'Matches Stockfish'
-                                        : 'Most likely human move',
-                                  ),
-                                ),
-                                const Divider(height: 1),
-                                ListTile(
-                                  leading: _fullAnalysisRunning
-                                      ? const SizedBox(
-                                          width: 24,
-                                          height: 24,
-                                          child: CircularProgressIndicator(
-                                            strokeWidth: 2,
-                                          ),
-                                        )
-                                      : const Icon(Icons.show_chart),
-                                  title: const Text('Computer analysis graph'),
-                                  subtitle: Text(
-                                    _fullAnalysisRunning
-                                        ? '$_fullAnalysisProgress/${_maximumPly + 1} positions'
-                                        : _graphScores == null
-                                        ? 'Analyze the full game on request'
-                                        : 'Tap the graph to jump to a position',
-                                  ),
-                                  onTap: _fullAnalysisRunning
-                                      ? null
-                                      : _analyzeFullGame,
-                                ),
-                              ],
+                          ListTile(
+                            leading: _fullAnalysisRunning
+                                ? const SizedBox(
+                                    width: 24,
+                                    height: 24,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : const Icon(Icons.show_chart),
+                            title: const Text('Computer analysis graph'),
+                            subtitle: Text(
+                              _fullAnalysisRunning
+                                  ? '$_fullAnalysisProgress/${_maximumPly + 1} positions'
+                                  : _graphScores == null
+                                  ? 'Analyze the full game on request'
+                                  : 'Tap the graph to jump to a position',
                             ),
+                            onTap: _fullAnalysisRunning
+                                ? null
+                                : _analyzeFullGame,
                           ),
                         ],
                       );
@@ -3405,12 +3507,6 @@ class _ReviewPageState extends State<ReviewPage> {
         ),
       ),
     );
-  }
-
-  String _formatEvaluation(StockfishReview review) {
-    if (review.mate != null) return '#${review.mate}';
-    final pawns = review.evaluation / 100;
-    return '${pawns >= 0 ? '+' : ''}${pawns.toStringAsFixed(2)}';
   }
 }
 
@@ -3828,6 +3924,7 @@ class StockfishAnalyzer {
     final startup = _startup ??= _engine.start().then((_) async {
       _engine.stdin = 'setoption name Threads value 2';
       _engine.stdin = 'setoption name Hash value 64';
+      _engine.stdin = 'setoption name MultiPV value 2';
       final ready = _engine.stdout.firstWhere((line) => line == 'readyok');
       _engine.stdin = 'isready';
       await ready.timeout(const Duration(seconds: 5));
@@ -3865,17 +3962,42 @@ class StockfishAnalyzer {
     var latest = 0;
     int? latestMate;
     var bestMove = '';
+    final lines = <int, StockfishLine>{};
     late StreamSubscription<String> subscription;
     subscription = _engine.stdout.listen((line) {
       if (line.startsWith('info ') && line.contains(' score ')) {
+        final multiPv =
+            int.tryParse(
+              RegExp(r' multipv (\d+)').firstMatch(line)?.group(1) ?? '1',
+            ) ??
+            1;
         final cp = RegExp(r' score cp (-?\d+)').firstMatch(line);
         final mate = RegExp(r' score mate (-?\d+)').firstMatch(line);
+        final pv = RegExp(r' pv (.+)$')
+            .firstMatch(line)
+            ?.group(1)
+            ?.trim()
+            .split(RegExp(r'\s+'))
+            .where(
+              (move) => RegExp(r'^[a-h][1-8][a-h][1-8][qrbn]?$').hasMatch(move),
+            )
+            .toList(growable: false);
+        final score = cp == null ? 0 : int.parse(cp.group(1)!);
+        final mateScore = mate == null ? null : int.parse(mate.group(1)!);
+        if (pv != null && pv.isNotEmpty) {
+          lines[multiPv] = StockfishLine(
+            evaluation: score,
+            mate: mateScore,
+            moves: pv,
+          );
+        }
+        if (multiPv != 1) return;
         if (cp != null) {
-          latest = int.parse(cp.group(1)!);
+          latest = score;
           latestMate = null;
         }
         if (mate != null) {
-          latestMate = int.parse(mate.group(1)!);
+          latestMate = mateScore;
         }
       }
       if (line.startsWith('bestmove ') && !completer.isCompleted) {
@@ -3899,6 +4021,8 @@ class StockfishAnalyzer {
         const Duration(seconds: 20),
       );
       final blackToMove = fen.split(' ')[1] == 'b';
+      final orderedLines = lines.entries.toList(growable: false)
+        ..sort((a, b) => a.key.compareTo(b.key));
       return StockfishReview(
         blackToMove ? -sideToMoveScore : sideToMoveScore,
         bestMove,
@@ -3907,6 +4031,9 @@ class StockfishAnalyzer {
             : blackToMove
             ? -latestMate!
             : latestMate,
+        lines: orderedLines
+            .map((entry) => entry.value.forWhite(blackToMove))
+            .toList(growable: false),
       );
     } on TimeoutException {
       // Stop and drain the outstanding search before the next queued request.
@@ -3938,11 +4065,17 @@ class StockfishAnalyzer {
 }
 
 class StockfishReview {
-  const StockfishReview(this.evaluation, this.bestMove, {this.mate});
+  const StockfishReview(
+    this.evaluation,
+    this.bestMove, {
+    this.mate,
+    this.lines = const [],
+  });
 
   final int evaluation;
   final String bestMove;
   final int? mate;
+  final List<StockfishLine> lines;
 
   double get whiteWinningChances {
     final value = mate == null
@@ -3952,6 +4085,24 @@ class StockfishReview {
   }
 
   double get whiteWinPercent => 50 + 50 * whiteWinningChances;
+}
+
+class StockfishLine {
+  const StockfishLine({
+    required this.evaluation,
+    required this.moves,
+    this.mate,
+  });
+
+  final int evaluation;
+  final int? mate;
+  final List<String> moves;
+
+  StockfishLine forWhite(bool blackToMove) => StockfishLine(
+    evaluation: blackToMove ? -evaluation : evaluation,
+    mate: mate == null ? null : (blackToMove ? -mate! : mate),
+    moves: moves,
+  );
 }
 
 class MaiaEncoding {
