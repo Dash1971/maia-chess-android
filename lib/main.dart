@@ -199,7 +199,7 @@ class MaiaChessApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Mobile Maia',
+      title: 'Mobile Maia Preview',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
@@ -315,6 +315,15 @@ class PgnVariationExporter {
       // branch starting at `ply` belongs after the main-line move at `ply`.
       addVariations(ply);
     }
+    if (mainSan.isEmpty) {
+      final rootLines = byBase[0] ?? const <RecordedVariation>[];
+      if (rootLines.isNotEmpty) {
+        tokens.add(_formatLine(rootLines.first));
+        for (final alternative in rootLines.skip(1)) {
+          tokens.add('(${_formatLine(alternative)})');
+        }
+      }
+    }
     tokens.add(result);
     return '${headers.isEmpty ? '' : '$headers\n\n'}${tokens.join(' ')}';
   }
@@ -339,8 +348,137 @@ class PgnVariationExporter {
   }
 }
 
+class AnalysisSession {
+  const AnalysisSession({
+    required this.positions,
+    required this.uciMoves,
+    required this.sanMoves,
+    required this.pgn,
+  });
+
+  final List<String> positions;
+  final List<String> uciMoves;
+  final List<String> sanMoves;
+  final String pgn;
+
+  factory AnalysisSession.fromFen(String fen) {
+    final validation = chess.Chess.validate_fen(fen.trim());
+    if (validation['valid'] != true) {
+      throw FormatException(validation['error']?.toString() ?? 'Invalid FEN');
+    }
+    final game = chess.Chess.fromFEN(fen.trim());
+    game.set_header([
+      'Event',
+      'Mobile Maia Analysis',
+      'SetUp',
+      '1',
+      'FEN',
+      fen.trim(),
+      'Result',
+      '*',
+    ]);
+    return AnalysisSession(
+      positions: [game.fen],
+      uciMoves: const [],
+      sanMoves: const [],
+      pgn: game.pgn(),
+    );
+  }
+
+  factory AnalysisSession.start() =>
+      AnalysisSession.fromFen(chess.Chess.DEFAULT_POSITION);
+
+  factory AnalysisSession.fromPgn(String source) {
+    final loaded = chess.Chess();
+    if (!loaded.load_pgn(source.trim())) {
+      throw const FormatException('The PGN could not be parsed.');
+    }
+    final verbose = loaded.getHistory({
+      'verbose': true,
+    }).cast<Map<String, dynamic>>();
+    final baseFen =
+        loaded.header['FEN']?.toString() ?? chess.Chess.DEFAULT_POSITION;
+    final replay = chess.Chess.fromFEN(baseFen);
+    final positions = <String>[replay.fen];
+    final uciMoves = <String>[];
+    final sanMoves = <String>[];
+    for (final item in verbose) {
+      final from = item['from']?.toString();
+      final to = item['to']?.toString();
+      if (from == null || to == null) {
+        throw const FormatException('PGN move is incomplete.');
+      }
+      final String? promotion = item.containsKey('promotion')
+          ? item['promotion'].toString()
+          : null;
+      final moveData = <String, String>{'from': from, 'to': to};
+      if (promotion case final value?) moveData['promotion'] = value;
+      final moved = replay.move(moveData);
+      if (!moved) {
+        throw const FormatException('PGN contains an illegal move.');
+      }
+      uciMoves.add('$from$to${promotion ?? ''}');
+      sanMoves.add(item['san'].toString());
+      positions.add(replay.fen);
+    }
+    return AnalysisSession(
+      positions: List.unmodifiable(positions),
+      uciMoves: List.unmodifiable(uciMoves),
+      sanMoves: List.unmodifiable(sanMoves),
+      pgn: loaded.pgn(),
+    );
+  }
+}
+
+class OpeningNames {
+  static const _byMoves = <String, String>{
+    'e2e4': "King's Pawn Game",
+    'd2d4': "Queen's Pawn Game",
+    'c2c4': 'English Opening',
+    'g1f3': 'Réti Opening',
+    'e2e4 e7e5': 'Open Game',
+    'e2e4 c7c5': 'Sicilian Defense',
+    'e2e4 e7e6': 'French Defense',
+    'e2e4 c7c6': 'Caro-Kann Defense',
+    'e2e4 d7d5': 'Scandinavian Defense',
+    'e2e4 g8f6': 'Alekhine Defense',
+    'd2d4 d7d5': "Queen's Pawn Game",
+    'd2d4 g8f6': 'Indian Game',
+    'd2d4 f7f5': 'Dutch Defense',
+    'c2c4 e7e5': 'English Opening: Reversed Sicilian',
+    'e2e4 e7e5 g1f3 b8c6 f1b5': 'Ruy López',
+    'e2e4 e7e5 g1f3 b8c6 f1c4': 'Italian Game',
+    'e2e4 e7e5 g1f3 g8f6': 'Petrov Defense',
+    'e2e4 c7c5 g1f3 d7d6 d2d4 c5d4 f3d4 g8f6 b1c3 a7a6':
+        'Sicilian Defense: Najdorf Variation',
+    'e2e4 c7c5 g1f3 b8c6 d2d4 c5d4 f3d4': 'Sicilian Defense: Open',
+    'd2d4 d7d5 c2c4': "Queen's Gambit",
+    'd2d4 d7d5 c2c4 e7e6': "Queen's Gambit Declined",
+    'd2d4 d7d5 c2c4 c7c6': 'Slav Defense',
+    'd2d4 g8f6 c2c4 e7e6 b1c3 f8b4': 'Nimzo-Indian Defense',
+    'd2d4 g8f6 c2c4 g7g6 b1c3 f8g7 e2e4 d7d6': "King's Indian Defense",
+  };
+
+  static String? identify(List<String> moves) {
+    String? result;
+    for (var length = 1; length <= moves.length; length++) {
+      result = _byMoves[moves.take(length).join(' ')] ?? result;
+    }
+    return result;
+  }
+}
+
 class GamePage extends StatefulWidget {
-  const GamePage({super.key});
+  const GamePage({
+    this.startingFen,
+    this.startingSide,
+    this.startingElo,
+    super.key,
+  });
+
+  final String? startingFen;
+  final PlayerSide? startingSide;
+  final int? startingElo;
 
   @override
   State<GamePage> createState() => _GamePageState();
@@ -392,7 +530,12 @@ class _GamePageState extends State<GamePage> {
   @override
   void initState() {
     super.initState();
+    if (widget.startingSide != null) _sideChoice = widget.startingSide!;
+    if (widget.startingElo != null) _elo = widget.startingElo!;
     unawaited(_loadEnginePreferences());
+    if (widget.startingFen != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _startGame());
+    }
   }
 
   Future<void> _loadEnginePreferences() async {
@@ -429,7 +572,7 @@ class _GamePageState extends State<GamePage> {
     if (!mounted) return;
     showAboutDialog(
       context: context,
-      applicationName: 'Mobile Maia',
+      applicationName: 'Mobile Maia Preview',
       applicationVersion: version,
       children: [
         const Text(
@@ -472,6 +615,17 @@ class _GamePageState extends State<GamePage> {
     );
   }
 
+  Future<void> _openAnalysisBoard() async {
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (context) => AnalysisBoardPage(
+          initialSession: AnalysisSession.start(),
+          maiaElo: _analysisElo,
+        ),
+      ),
+    );
+  }
+
   void _startGame() {
     _gameGeneration++;
     _clockTimer?.cancel();
@@ -482,7 +636,9 @@ class _GamePageState extends State<GamePage> {
       PlayerSide.random => randomWhite ? chess.Color.WHITE : chess.Color.BLACK,
     };
     setState(() {
-      _game = chess.Chess();
+      _game = widget.startingFen == null
+          ? chess.Chess()
+          : chess.Chess.fromFEN(widget.startingFen!);
       _positionHistory
         ..clear()
         ..add(_game.fen);
@@ -522,6 +678,10 @@ class _GamePageState extends State<GamePage> {
         'Result',
         '*',
       ]);
+      if (widget.startingFen != null &&
+          widget.startingFen != chess.Chess.DEFAULT_POSITION) {
+        _game.set_header(['SetUp', '1', 'FEN', widget.startingFen!]);
+      }
     });
     if (_clockEnabled) {
       _clockTimer = Timer.periodic(
@@ -961,7 +1121,7 @@ class _GamePageState extends State<GamePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Mobile Maia'),
+        title: const Text('Mobile Maia Preview'),
         actions: [
           IconButton(
             onPressed: _showAbout,
@@ -1219,6 +1379,12 @@ class _GamePageState extends State<GamePage> {
               icon: const Icon(Icons.play_arrow),
               label: const Text('Start game'),
             ),
+            const SizedBox(height: 12),
+            OutlinedButton.icon(
+              onPressed: _openAnalysisBoard,
+              icon: const Icon(Icons.analytics_outlined),
+              label: const Text('Analysis Board'),
+            ),
           ],
         ),
       ),
@@ -1374,6 +1540,380 @@ class _GamePageState extends State<GamePage> {
   }
 }
 
+class AnalysisBoardPage extends StatefulWidget {
+  const AnalysisBoardPage({
+    required this.initialSession,
+    required this.maiaElo,
+    super.key,
+  });
+
+  final AnalysisSession initialSession;
+  final int maiaElo;
+
+  @override
+  State<AnalysisBoardPage> createState() => _AnalysisBoardPageState();
+}
+
+class _AnalysisBoardPageState extends State<AnalysisBoardPage> {
+  late AnalysisSession _session = widget.initialSession;
+  int _revision = 0;
+
+  void _replace(AnalysisSession session) {
+    setState(() {
+      _session = session;
+      _revision++;
+    });
+  }
+
+  Future<String?> _textDialog(String title, String hint) async {
+    final controller = TextEditingController();
+    final value = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(title),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          minLines: 3,
+          maxLines: 10,
+          decoration: InputDecoration(
+            hintText: hint,
+            border: const OutlineInputBorder(),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, controller.text),
+            child: const Text('Load'),
+          ),
+        ],
+      ),
+    );
+    controller.dispose();
+    return value;
+  }
+
+  void _showError(Object error) {
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(error.toString())));
+  }
+
+  Future<void> _loadFen() async {
+    final value = await _textDialog(
+      'Load FEN',
+      'Paste a complete six-field FEN',
+    );
+    if (value == null || value.trim().isEmpty) return;
+    try {
+      _replace(AnalysisSession.fromFen(value));
+    } catch (error) {
+      _showError(error);
+    }
+  }
+
+  Future<void> _loadPgn() async {
+    final value = await _textDialog('Load PGN', 'Paste a PGN game');
+    if (value == null || value.trim().isEmpty) return;
+    try {
+      _replace(AnalysisSession.fromPgn(value));
+    } catch (error) {
+      _showError(error);
+    }
+  }
+
+  Future<void> _editBoard(String fen) async {
+    final edited = await Navigator.of(context).push<String>(
+      MaterialPageRoute(builder: (_) => BoardEditorPage(initialFen: fen)),
+    );
+    if (edited != null) _replace(AnalysisSession.fromFen(edited));
+  }
+
+  Future<void> _playFrom(String fen) async {
+    final side = await showDialog<PlayerSide>(
+      context: context,
+      builder: (context) => SimpleDialog(
+        title: const Text('Play from this position'),
+        children: [
+          SimpleDialogOption(
+            onPressed: () => Navigator.pop(context, PlayerSide.white),
+            child: const ListTile(
+              leading: Icon(Icons.light_mode),
+              title: Text('Play White'),
+            ),
+          ),
+          SimpleDialogOption(
+            onPressed: () => Navigator.pop(context, PlayerSide.black),
+            child: const ListTile(
+              leading: Icon(Icons.dark_mode),
+              title: Text('Play Black'),
+            ),
+          ),
+          SimpleDialogOption(
+            onPressed: () => Navigator.pop(context, PlayerSide.random),
+            child: const ListTile(
+              leading: Icon(Icons.casino_outlined),
+              title: Text('Random side'),
+            ),
+          ),
+        ],
+      ),
+    );
+    if (side == null || !mounted) return;
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => GamePage(
+          startingFen: fen,
+          startingSide: side,
+          startingElo: widget.maiaElo,
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) => ReviewPage(
+    key: ValueKey(_revision),
+    positions: _session.positions,
+    uciMoves: _session.uciMoves,
+    sanMoves: _session.sanMoves,
+    playerIsWhite: true,
+    pgn: _session.pgn,
+    maiaElo: widget.maiaElo,
+    title: 'Analysis Board',
+    onHome: () {},
+    onLoadFen: _loadFen,
+    onLoadPgn: _loadPgn,
+    onEditBoard: _editBoard,
+    onPlayFromPosition: _playFrom,
+  );
+}
+
+class BoardEditorPage extends StatefulWidget {
+  const BoardEditorPage({required this.initialFen, super.key});
+
+  final String initialFen;
+
+  @override
+  State<BoardEditorPage> createState() => _BoardEditorPageState();
+}
+
+class _BoardEditorPageState extends State<BoardEditorPage> {
+  late chess.Chess _position = chess.Chess.fromFEN(
+    widget.initialFen,
+    check_validity: false,
+  );
+  chess.Color _color = chess.Color.WHITE;
+  chess.PieceType? _piece = chess.PieceType.PAWN;
+  bool _whiteTurn = true;
+  bool _wk = false;
+  bool _wq = false;
+  bool _bk = false;
+  bool _bq = false;
+  String _enPassant = '-';
+
+  @override
+  void initState() {
+    super.initState();
+    final fields = widget.initialFen.split(RegExp(r'\s+'));
+    _whiteTurn = fields.length > 1 ? fields[1] == 'w' : true;
+    final rights = fields.length > 2 ? fields[2] : '-';
+    _wk = rights.contains('K');
+    _wq = rights.contains('Q');
+    _bk = rights.contains('k');
+    _bq = rights.contains('q');
+    _enPassant = fields.length > 3 ? fields[3] : '-';
+  }
+
+  void _touch(String square) {
+    setState(() {
+      _position.remove(square);
+      if (_piece != null) _position.put(chess.Piece(_piece!, _color), square);
+    });
+  }
+
+  String _editedFen() {
+    final board = _position.fen.split(RegExp(r'\s+')).first;
+    final rights =
+        '${_wk ? 'K' : ''}${_wq ? 'Q' : ''}${_bk ? 'k' : ''}${_bq ? 'q' : ''}';
+    return '$board ${_whiteTurn ? 'w' : 'b'} ${rights.isEmpty ? '-' : rights} $_enPassant 0 1';
+  }
+
+  void _finish() {
+    final fen = _editedFen();
+    final validation = chess.Chess.validate_fen(fen);
+    if (validation['valid'] != true) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(validation['error'].toString())));
+      return;
+    }
+    Navigator.pop(context, fen);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    const pieces = <chess.PieceType?>[
+      chess.PieceType.KING,
+      chess.PieceType.QUEEN,
+      chess.PieceType.ROOK,
+      chess.PieceType.BISHOP,
+      chess.PieceType.KNIGHT,
+      chess.PieceType.PAWN,
+      null,
+    ];
+    const labels = ['K', 'Q', 'R', 'B', 'N', 'P', 'Erase'];
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Edit Board'),
+        actions: [TextButton(onPressed: _finish, child: const Text('Done'))],
+      ),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(12),
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 560),
+              child: Column(
+                children: [
+                  AspectRatio(
+                    aspectRatio: 1,
+                    child: LayoutBuilder(
+                      builder: (_, box) => cg.StaticChessboard(
+                        size: box.biggest.shortestSide,
+                        orientation: dc.Side.white,
+                        fen: _position.fen,
+                        settings: const cg.StaticChessboardSettings(
+                          colorScheme: cg.ChessboardColorScheme.brown,
+                          pieceAssets: cg.PieceSet.cburnettAssets,
+                          enableCoordinates: true,
+                        ),
+                        onTouchedSquare: (square) => _touch(square.name),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  SegmentedButton<chess.Color>(
+                    segments: const [
+                      ButtonSegment(
+                        value: chess.Color.WHITE,
+                        label: Text('White pieces'),
+                      ),
+                      ButtonSegment(
+                        value: chess.Color.BLACK,
+                        label: Text('Black pieces'),
+                      ),
+                    ],
+                    selected: {_color},
+                    onSelectionChanged: (value) =>
+                        setState(() => _color = value.first),
+                  ),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 6,
+                    children: List.generate(
+                      pieces.length,
+                      (index) => ChoiceChip(
+                        label: Text(labels[index]),
+                        selected: _piece == pieces[index],
+                        onSelected: (_) =>
+                            setState(() => _piece = pieces[index]),
+                      ),
+                    ),
+                  ),
+                  SwitchListTile(
+                    value: _whiteTurn,
+                    onChanged: (value) => setState(() => _whiteTurn = value),
+                    title: Text(_whiteTurn ? 'White to move' : 'Black to move'),
+                  ),
+                  ExpansionTile(
+                    title: const Text('Castling rights'),
+                    children: [
+                      CheckboxListTile(
+                        value: _wk,
+                        onChanged: (v) => setState(() => _wk = v ?? false),
+                        title: const Text('White kingside'),
+                      ),
+                      CheckboxListTile(
+                        value: _wq,
+                        onChanged: (v) => setState(() => _wq = v ?? false),
+                        title: const Text('White queenside'),
+                      ),
+                      CheckboxListTile(
+                        value: _bk,
+                        onChanged: (v) => setState(() => _bk = v ?? false),
+                        title: const Text('Black kingside'),
+                      ),
+                      CheckboxListTile(
+                        value: _bq,
+                        onChanged: (v) => setState(() => _bq = v ?? false),
+                        title: const Text('Black queenside'),
+                      ),
+                    ],
+                  ),
+                  DropdownButtonFormField<String>(
+                    initialValue: _enPassant,
+                    decoration: const InputDecoration(
+                      labelText: 'En-passant target',
+                      border: OutlineInputBorder(),
+                    ),
+                    items:
+                        [
+                              '-',
+                              for (final rank in [3, 6])
+                                for (final file in 'abcdefgh'.split(''))
+                                  '$file$rank',
+                            ]
+                            .map(
+                              (square) => DropdownMenuItem(
+                                value: square,
+                                child: Text(square),
+                              ),
+                            )
+                            .toList(),
+                    onChanged: (value) =>
+                        setState(() => _enPassant = value ?? '-'),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      TextButton(
+                        onPressed: () => setState(() {
+                          _position = chess.Chess();
+                          _whiteTurn = true;
+                          _wk = _wq = _bk = _bq = true;
+                          _enPassant = '-';
+                        }),
+                        child: const Text('Starting position'),
+                      ),
+                      TextButton(
+                        onPressed: () => setState(() {
+                          _position = chess.Chess.fromFEN(
+                            '8/8/8/8/8/8/8/8 w - - 0 1',
+                            check_validity: false,
+                          );
+                          _whiteTurn = true;
+                          _wk = _wq = _bk = _bq = false;
+                          _enPassant = '-';
+                        }),
+                        child: const Text('Clear board'),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class ReviewPage extends StatefulWidget {
   const ReviewPage({
     required this.positions,
@@ -1386,6 +1926,11 @@ class ReviewPage extends StatefulWidget {
     required this.onHome,
     this.evaluator,
     this.maiaEvaluator,
+    this.title = 'Game review',
+    this.onLoadFen,
+    this.onLoadPgn,
+    this.onEditBoard,
+    this.onPlayFromPosition,
     super.key,
   });
 
@@ -1400,6 +1945,11 @@ class ReviewPage extends StatefulWidget {
   final Future<StockfishReview> Function(String fen)? evaluator;
   final Future<String?> Function(List<String> positions, int elo)?
   maiaEvaluator;
+  final String title;
+  final Future<void> Function()? onLoadFen;
+  final Future<void> Function()? onLoadPgn;
+  final Future<void> Function(String fen)? onEditBoard;
+  final Future<void> Function(String fen)? onPlayFromPosition;
 
   @override
   State<ReviewPage> createState() => _ReviewPageState();
@@ -1425,6 +1975,7 @@ class _ReviewPageState extends State<ReviewPage> {
   int? _variationBasePly;
   int _variationIndex = 0;
   final List<String> _variationSan = [];
+  final List<String> _variationUci = [];
   final List<String> _variationPositions = [];
   StockfishReview? _variationReview;
   String? _variationMaiaMove;
@@ -1481,6 +2032,7 @@ class _ReviewPageState extends State<ReviewPage> {
     _openedVariation = null;
     _variationIndex = 0;
     _variationSan.clear();
+    _variationUci.clear();
     _variationPositions.clear();
     _variationReview = null;
     _variationMaiaMove = null;
@@ -1548,6 +2100,9 @@ class _ReviewPageState extends State<ReviewPage> {
       _variationSan
         ..clear()
         ..add(san);
+      _variationUci
+        ..clear()
+        ..add(uci);
       _variationPositions
         ..clear()
         ..add(fenBefore)
@@ -1564,11 +2119,13 @@ class _ReviewPageState extends State<ReviewPage> {
     if (_variationBasePly == null) {
       _variationBasePly = basePly;
       _variationSan.clear();
+      _variationUci.clear();
       _variationPositions
         ..clear()
         ..add(fenBefore);
     }
     _variationSan.add(san);
+    _variationUci.add(uci);
     _variationPositions.add(_boardPosition.fen);
     _variationIndex = _variationSan.length;
     final updated = RecordedVariation(
@@ -1732,6 +2289,7 @@ class _ReviewPageState extends State<ReviewPage> {
     final sanGame = chess.Chess.fromFEN(variation.baseFen);
     var position = dc.Chess.fromSetup(dc.Setup.parseFen(variation.baseFen));
     final positions = <String>[variation.baseFen];
+    final uciMoves = <String>[];
     for (final san in variation.sanMoves) {
       final sanOptions = sanGame.moves().cast<String>().toList();
       final moveOptions = sanGame
@@ -1741,6 +2299,7 @@ class _ReviewPageState extends State<ReviewPage> {
       final index = sanOptions.indexOf(san);
       if (index < 0) return;
       final uci = MaiaEncoding.uci(moveOptions[index]);
+      uciMoves.add(uci);
       final move = dc.NormalMove.fromUci(uci);
       if (!position.isLegal(move) || !sanGame.move(moveOptions[index])) return;
       position = position.playUnchecked(move) as dc.Chess;
@@ -1756,6 +2315,9 @@ class _ReviewPageState extends State<ReviewPage> {
       _variationSan
         ..clear()
         ..addAll(variation.sanMoves);
+      _variationUci
+        ..clear()
+        ..addAll(uciMoves);
       _variationPositions
         ..clear()
         ..addAll(positions);
@@ -2069,6 +2631,14 @@ class _ReviewPageState extends State<ReviewPage> {
     }
   }
 
+  Future<void> _copyFen() async {
+    await Clipboard.setData(ClipboardData(text: _currentFen));
+    if (mounted) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('FEN copied')));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final evaluation = _review?.evaluation;
@@ -2078,9 +2648,13 @@ class _ReviewPageState extends State<ReviewPage> {
         : _ply == 0
         ? 'Starting position'
         : '${(_ply + 1) ~/ 2}${_ply.isOdd ? '.' : '…'} ${widget.sanMoves[_ply - 1]}';
+    final openingName = OpeningNames.identify([
+      ...widget.uciMoves.take(_inVariation ? (_variationBasePly ?? 0) : _ply),
+      if (_inVariation) ..._variationUci.take(_variationIndex),
+    ]);
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Game review'),
+        title: Text(widget.title),
         actions: [
           IconButton(
             onPressed: () => setState(() => _flipped = !_flipped),
@@ -2092,6 +2666,61 @@ class _ReviewPageState extends State<ReviewPage> {
             icon: const Icon(Icons.copy),
             tooltip: 'Copy PGN',
           ),
+          if (widget.onLoadFen != null)
+            PopupMenuButton<String>(
+              tooltip: 'Analysis Board actions',
+              onSelected: (value) async {
+                switch (value) {
+                  case 'fen':
+                    await widget.onLoadFen?.call();
+                  case 'pgn':
+                    await widget.onLoadPgn?.call();
+                  case 'edit':
+                    await widget.onEditBoard?.call(_currentFen);
+                  case 'play':
+                    await widget.onPlayFromPosition?.call(_currentFen);
+                  case 'copyFen':
+                    await _copyFen();
+                }
+              },
+              itemBuilder: (_) => const [
+                PopupMenuItem(
+                  value: 'fen',
+                  child: ListTile(
+                    leading: Icon(Icons.content_paste),
+                    title: Text('Load FEN'),
+                  ),
+                ),
+                PopupMenuItem(
+                  value: 'pgn',
+                  child: ListTile(
+                    leading: Icon(Icons.article_outlined),
+                    title: Text('Load PGN'),
+                  ),
+                ),
+                PopupMenuItem(
+                  value: 'edit',
+                  child: ListTile(
+                    leading: Icon(Icons.edit_outlined),
+                    title: Text('Edit Board'),
+                  ),
+                ),
+                PopupMenuItem(
+                  value: 'play',
+                  child: ListTile(
+                    leading: Icon(Icons.play_arrow),
+                    title: Text('Play from here'),
+                  ),
+                ),
+                PopupMenuItem(
+                  value: 'copyFen',
+                  child: ListTile(
+                    leading: Icon(Icons.copy),
+                    title: Text('Copy FEN'),
+                  ),
+                ),
+              ],
+            ),
           IconButton(
             onPressed: () {
               widget.onHome();
@@ -2159,6 +2788,26 @@ class _ReviewPageState extends State<ReviewPage> {
                           ),
                           const SizedBox(height: 12),
                           MaterialDifference(fen: _currentFen),
+                          if (openingName != null)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 8),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Icon(
+                                    Icons.menu_book_outlined,
+                                    size: 18,
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Flexible(
+                                    child: Text(
+                                      openingName,
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
                           const SizedBox(height: 8),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,

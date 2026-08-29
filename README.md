@@ -1,4 +1,8 @@
-# Mobile Maia
+# Mobile Maia Preview
+
+> **Prerelease channel:** This repository contains experimental Mobile Maia
+> builds. The Android package ID is separate from the stable app, so **Mobile
+> Maia Preview** can be installed beside **Mobile Maia** without replacing it.
 
 An offline-first Android chess app for playing against Maia-3, reviewing games
 with Maia and Stockfish, and exporting PGN.
@@ -21,6 +25,19 @@ engine developed by the University of Toronto Computational Social Science Lab.
 </p>
 
 ## User guide
+
+### Analysis Board
+
+Select **Analysis Board** from the home screen to explore a position without
+starting a game. Stockfish continuously supplies the evaluation and blue
+best-move arrow, while Maia supplies its orange human-move recommendation at
+the configured analysis rating.
+
+The actions menu can load FEN or PGN text, copy the current FEN or complete PGN,
+open the graphical board editor, or start a Maia game from the current position
+as White, Black, or a random side. The board editor controls piece placement,
+side to move, and castling rights. Recognized opening names are shown locally
+and offline as the line develops.
 
 ### Start a game
 
@@ -110,6 +127,10 @@ Flutter Chessground, Lichess multistockfish, and the bundled licences.
 ## MVP features
 
 - Bundled Maia-3 79M model; no account, server, or network connection required
+- Offline Analysis Board with Stockfish evaluation and Maia move comparison
+- FEN/PGN loading, FEN/PGN copying, and graphical position editing
+- Play against Maia from the current analysis position
+- Lightweight offline opening-name recognition
 - Play as White, Black, or a random side
 - Unlimited play by default, Lichess-style clock presets, or custom time and increment
 - Easy (800), Medium (1500), Hard (2200), or custom Elo
@@ -140,15 +161,15 @@ from their official release pages and can notify you when updates are available.
 2. Open Obtainium, select **Add App**, and paste this URL into **App Source URL**:
 
    ```text
-   https://github.com/Dash1971/maia-chess-android
+   https://github.com/Dash1971/maia-chess-android-preview
    ```
 
-3. Confirm that Obtainium detects **GitHub** as the source. Leave
-   **Include prereleases** disabled to receive stable versions only.
-4. Select **Add**, open **Mobile Maia** in Obtainium, and select
+3. Confirm that Obtainium detects **GitHub** as the source and enable
+   **Include prereleases**.
+4. Select **Add**, open **Mobile Maia Preview** in Obtainium, and select
    **Install**.
 5. If Android asks, allow Obtainium to install unknown apps, then approve the
-   Mobile Maia APK installation.
+   Mobile Maia Preview APK installation.
 
 After setup, use Obtainium's update check to download and install future Maia
 Chess releases. Android may ask you to confirm each update.

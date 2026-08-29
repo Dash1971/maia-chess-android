@@ -11,6 +11,44 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
+  test('analysis session loads FEN and preserves setup headers', () {
+    const fen = '8/8/8/8/8/4k3/8/4K3 w - - 0 1';
+    final session = AnalysisSession.fromFen(fen);
+    expect(session.positions, [fen]);
+    expect(session.pgn, contains('[SetUp "1"]'));
+    expect(session.pgn, contains('[FEN "$fen"]'));
+  });
+
+  test('analysis session reconstructs PGN position history', () {
+    final session = AnalysisSession.fromPgn(
+      '[Event "Test"]\n[Result "*"]\n\n1. e4 e5 2. Nf3 *',
+    );
+    expect(session.uciMoves, ['e2e4', 'e7e5', 'g1f3']);
+    expect(session.sanMoves, ['e4', 'e5', 'Nf3']);
+    expect(session.positions, hasLength(4));
+  });
+
+  test('root analysis line exports as playable PGN mainline', () {
+    final exported = PgnVariationExporter.export(
+      '[Event "Analysis"]\n[Result "*"]\n\n*',
+      const [],
+      const [
+        RecordedVariation(
+          basePly: 0,
+          baseFen: chess.Chess.DEFAULT_POSITION,
+          sanMoves: ['e4', 'e5'],
+        ),
+      ],
+    );
+    expect(exported, contains('1. e4 e5 *'));
+  });
+
+  test('opening names prefer the longest known sequence', () {
+    expect(
+      OpeningNames.identify(['e2e4', 'e7e5', 'g1f3', 'b8c6', 'f1b5']),
+      'Ruy López',
+    );
+  });
   test('PGN export preserves takebacks as recursive annotation variations', () {
     const source =
         '[Event "Mobile Maia Game"]\n[Result "*"]\n\n1. e4 e5 2. Nf3 *';
