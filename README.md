@@ -201,6 +201,18 @@ The ARM64 APK is written to
 build from a neutral staging path so generated source URIs do not disclose a
 local account or workspace name.
 
+Official releases are signed with the dedicated Mobile Maia app-signing key.
+The build reads `MOBILE_MAIA_KEYSTORE`, `MOBILE_MAIA_STORE_PASSWORD`, and
+`MOBILE_MAIA_KEY_PASSWORD` from the environment; no signing secrets belong in
+this repository. When those variables are absent, Gradle produces an unsigned
+release suitable for independent F-Droid rebuilding.
+
+The official signing certificate SHA-256 digest is:
+
+```text
+cd6c07c4efacf52bcccb83009b522c1dcad4a171197505a486f0a58edb6f172e
+```
+
 ## Re-export Maia-3
 
 The checked-in ONNX model was exported from the official Maia-3 79M checkpoint.
