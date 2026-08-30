@@ -122,11 +122,12 @@ explore a branch; analysis variations are retained in exported PGN.
 
 ### About and licensing
 
-The About screen shows the installed version and links to Maia-3, Lichess
-Flutter Chessground, Lichess multistockfish, and the bundled licences.
+The About screen shows the installed version, AGPL-3.0-only terms, warranty
+notice, complete source and licence links, and credits for Maia-3 and Lichess
+components.
 
 <p align="center">
-  <img src="docs/screenshots/20260828_v0_about.jpg" width="38%" alt="Mobile Maia version, project credits, and licence links">
+  <img src="docs/screenshots/20260830_v0_about_licensing.jpg" width="38%" alt="Mobile Maia v1.7.1 About screen with AGPL terms, source and licence links, and Maia and Lichess credits">
 </p>
 
 ## MVP features
