@@ -30,6 +30,15 @@ repositories.
 
 The game board uses Lichess's default brown colour scheme and Cburnett pieces.
 
+## dartchess
+
+- Project: <https://github.com/lichess-org/dartchess>
+- Copyright: Lichess contributors
+- Licence: GNU General Public License v3.0
+
+Mobile Maia uses dartchess directly for chess positions, move generation, and
+game-tree operations.
+
 ## Lichess chess opening names
 
 - Project: <https://github.com/lichess-org/chess-openings>
