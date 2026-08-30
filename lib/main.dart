@@ -40,6 +40,8 @@ const lichessChessgroundUrl =
     'https://github.com/lichess-org/flutter-chessground';
 const lichessMultistockfishUrl =
     'https://github.com/lichess-org/dart-multistockfish';
+const mobileMaiaSourceUrl = 'https://github.com/Dash1971/maia-chess-android';
+const mobileMaiaLicenseUrl = '$mobileMaiaSourceUrl/blob/main/LICENSE';
 
 class MaiaInferenceQueue {
   static Future<void> _tail = Future<void>.value();
@@ -896,6 +898,27 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
           }),
           icon: const Icon(Icons.open_in_new),
           label: const Text('Lichess multistockfish'),
+        ),
+        const SizedBox(height: 8),
+        const Text(
+          'Mobile Maia is free software distributed under AGPL-3.0-only, '
+          'without any warranty. You may redistribute and modify it under '
+          'the terms of that licence. The complete source code is available '
+          'from the project repository.',
+        ),
+        TextButton.icon(
+          onPressed: () => maiaEngineChannel.invokeMethod<void>('openUrl', {
+            'url': mobileMaiaLicenseUrl,
+          }),
+          icon: const Icon(Icons.description_outlined),
+          label: const Text('Licence'),
+        ),
+        TextButton.icon(
+          onPressed: () => maiaEngineChannel.invokeMethod<void>('openUrl', {
+            'url': mobileMaiaSourceUrl,
+          }),
+          icon: const Icon(Icons.code),
+          label: const Text('Mobile Maia source code'),
         ),
         const Text(
           'This independent community app is not an official Maia-3 or '

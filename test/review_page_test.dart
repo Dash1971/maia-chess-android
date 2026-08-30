@@ -234,6 +234,11 @@ void main() {
     expect(find.text('1.6.6'), findsOneWidget);
     expect(find.text('1.6.4'), findsNothing);
     expect(find.text('Copy diagnostics'), findsNothing);
+    expect(find.text('Licence'), findsOneWidget);
+    expect(find.text('Mobile Maia source code'), findsOneWidget);
+    expect(find.textContaining('AGPL-3.0-only'), findsOneWidget);
+    expect(find.textContaining('without any warranty'), findsOneWidget);
+    expect(find.textContaining('redistribute and modify'), findsOneWidget);
   });
 
   testWidgets('Copy diagnostics is in Advanced settings', (tester) async {
