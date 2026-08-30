@@ -5,7 +5,7 @@ Mobile Maia to F-Droid. The Preview package is not part of the submission.
 
 ## Source and binary audit
 
-- F-Droid's source scanner reports no problems for version code 38 when run
+- F-Droid's source scanner reports no problems when run
   against a clean checkout and a pinned Flutter 3.47.1 source library.
 - Dependencies are resolved from `pubspec.lock` with
   `flutter pub get --enforce-lockfile`.
@@ -19,8 +19,8 @@ Mobile Maia to F-Droid. The Preview package is not part of the submission.
 
 ## Clean build
 
-Version 1.7.2 (`versionCode 38`) builds from commit
-`1645db478774ef04bb0a23e4f7f3efde638d8608` using Flutter 3.47.1 and Java 17.
+Version 1.7.3 (`versionCode 39`) builds from commit
+`989d6a3e606362a089fc442070ea37121776bf15` using Flutter 3.47.1 and Java 17.
 The build recipe replaces the Git LFS model pointer from an immutable commit
 URL and verifies SHA-256
 `3454b03ae78baa64a87b345fdb1a457265d912caec531039b074f07eda0d8010`
@@ -28,17 +28,13 @@ before compilation.
 
 ## Reproducibility status
 
-The clean unsigned build and the developer-signed v1.7.2 APK contain the same
-2,228 non-signature ZIP entries, but 12 native libraries differ:
+Version 1.7.3 deliberately disables Dart release obfuscation. Two independent
+clean unsigned builds were byte-for-byte identical. Copying the signature from
+the developer-signed release onto an independent unsigned build reconstructed
+the published APK byte-for-byte.
 
-- The three architecture-specific `libapp.so` files differ materially. The
-  release uses Dart obfuscation, whose generated symbols are not reproducible
-  across independent builds.
-- The nine multistockfish libraries have identical sizes and differ only in
-  their 20-byte linker build IDs.
-
-Consequently v1.7.2 is suitable for a normal F-Droid build signed by F-Droid,
-but it cannot yet use F-Droid's developer-signed reproducible-build path.
-A future release must make the Dart and native linker outputs deterministic,
-then be rebuilt and compared before adding `Binaries` and
-`AllowedAPKSigningKeys` to the fdroiddata recipe.
+The release therefore supports F-Droid's developer-signed reproducible-build
+path using `Binaries` and `AllowedAPKSigningKeys`. The published APK SHA-256 is
+`6939f2fcfd5599a6a5e39a0a98f7576633054b7193db89be871751ec01de9e46` and
+the allowed signing-certificate SHA-256 is
+`cd6c07c4efacf52bcccb83009b522c1dcad4a171197505a486f0a58edb6f172e`.
