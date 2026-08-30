@@ -29,7 +29,13 @@ Future<void> main() async {
     return true;
   };
   ErrorWidget.builder = (_) => const DiagnosticsErrorScreen();
-  await OpeningNames.load();
+  try {
+    await OpeningNames.load();
+  } catch (error, stackTrace) {
+    // Opening labels are useful but not required for playing or analysis.
+    // A damaged optional asset must not prevent the entire app from starting.
+    await AppDiagnostics.record('opening-names-load', error, stackTrace);
+  }
   runApp(const MaiaChessApp());
   unawaited(AppDiagnostics.recordEvent('app-started'));
 }
@@ -310,9 +316,9 @@ class ActiveSessionStore {
     try {
       return Map<String, dynamic>.from(jsonDecode(source) as Map);
     } catch (error, stackTrace) {
-      unawaited(
-        AppDiagnostics.record('active-session-load', error, stackTrace),
-      );
+      await AppDiagnostics.record('active-session-load', error, stackTrace);
+      // Do not retry a permanently malformed session on every app launch.
+      await clear();
       return null;
     }
   }
@@ -654,9 +660,12 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
           );
         });
       } catch (error, stackTrace) {
-        unawaited(
-          AppDiagnostics.record('analysis-session-restore', error, stackTrace),
+        await AppDiagnostics.record(
+          'analysis-session-restore',
+          error,
+          stackTrace,
         );
+        await ActiveSessionStore.clear();
       }
       return;
     }
@@ -703,9 +712,12 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
               .whenComplete(() => _reviewOpen = false);
         });
       } catch (error, stackTrace) {
-        unawaited(
-          AppDiagnostics.record('review-session-restore', error, stackTrace),
+        await AppDiagnostics.record(
+          'review-session-restore',
+          error,
+          stackTrace,
         );
+        await ActiveSessionStore.clear();
       }
       return;
     }
@@ -785,9 +797,8 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
       }
       if (!_gameFinished && !_isPlayerTurn) unawaited(_playMaiaMove());
     } catch (error, stackTrace) {
-      unawaited(
-        AppDiagnostics.record('game-session-restore', error, stackTrace),
-      );
+      await AppDiagnostics.record('game-session-restore', error, stackTrace);
+      await ActiveSessionStore.clear();
     }
   }
 
@@ -1202,6 +1213,7 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
         'selfElo': _elo,
         'opponentElo': _elo,
       });
+      if (!mounted || generation != _gameGeneration || _gameFinished) return;
       if (response == null || response.length != 4352) {
         throw StateError('Maia returned an invalid policy vector.');
       }
@@ -1245,8 +1257,9 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
       )) {
         unawaited(_playMaiaMove());
       }
-    } catch (error) {
-      if (!mounted) return;
+    } catch (error, stackTrace) {
+      if (!mounted || generation != _gameGeneration) return;
+      unawaited(AppDiagnostics.record('maia-game', error, stackTrace));
       setState(() {
         _engineThinking = false;
         _status = 'Maia error: $error';
@@ -1889,6 +1902,51 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
   }
 }
 
+class _TextInputDialog extends StatefulWidget {
+  const _TextInputDialog({required this.title, required this.hint});
+
+  final String title;
+  final String hint;
+
+  @override
+  State<_TextInputDialog> createState() => _TextInputDialogState();
+}
+
+class _TextInputDialogState extends State<_TextInputDialog> {
+  final _controller = TextEditingController();
+
+  @override
+  Widget build(BuildContext context) => AlertDialog(
+    title: Text(widget.title),
+    content: TextField(
+      controller: _controller,
+      autofocus: true,
+      minLines: 3,
+      maxLines: 10,
+      decoration: InputDecoration(
+        hintText: widget.hint,
+        border: const OutlineInputBorder(),
+      ),
+    ),
+    actions: [
+      TextButton(
+        onPressed: () => Navigator.pop(context),
+        child: const Text('Cancel'),
+      ),
+      FilledButton(
+        onPressed: () => Navigator.pop(context, _controller.text),
+        child: const Text('Load'),
+      ),
+    ],
+  );
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+}
+
 class AnalysisBoardPage extends StatefulWidget {
   const AnalysisBoardPage({
     required this.initialSession,
@@ -1896,6 +1954,8 @@ class AnalysisBoardPage extends StatefulWidget {
     this.initialVariations = const [],
     this.initialCurrentFen,
     this.initialFlipped = false,
+    this.evaluator,
+    this.maiaEvaluator,
     super.key,
   });
 
@@ -1904,6 +1964,9 @@ class AnalysisBoardPage extends StatefulWidget {
   final List<RecordedVariation> initialVariations;
   final String? initialCurrentFen;
   final bool initialFlipped;
+  final Future<StockfishReview> Function(String fen)? evaluator;
+  final Future<String?> Function(List<String> positions, int elo)?
+  maiaEvaluator;
 
   @override
   State<AnalysisBoardPage> createState() => _AnalysisBoardPageState();
@@ -1911,6 +1974,9 @@ class AnalysisBoardPage extends StatefulWidget {
 
 class _AnalysisBoardPageState extends State<AnalysisBoardPage> {
   late AnalysisSession _session = widget.initialSession;
+  late List<RecordedVariation> _initialVariations = widget.initialVariations;
+  late String? _initialCurrentFen = widget.initialCurrentFen;
+  late bool _initialFlipped = widget.initialFlipped;
   int _revision = 0;
 
   @override
@@ -1918,9 +1984,9 @@ class _AnalysisBoardPageState extends State<AnalysisBoardPage> {
     super.initState();
     unawaited(
       _saveAnalysisState(
-        widget.initialCurrentFen ?? widget.initialSession.positions.first,
-        widget.initialFlipped,
-        widget.initialVariations,
+        _initialCurrentFen ?? widget.initialSession.positions.first,
+        _initialFlipped,
+        _initialVariations,
       ),
     );
   }
@@ -1941,41 +2007,19 @@ class _AnalysisBoardPageState extends State<AnalysisBoardPage> {
   void _replace(AnalysisSession session) {
     setState(() {
       _session = session;
+      _initialVariations = const [];
+      _initialCurrentFen = session.positions.first;
+      _initialFlipped = false;
       _revision++;
     });
     unawaited(_saveAnalysisState(session.positions.first, false, const []));
   }
 
   Future<String?> _textDialog(String title, String hint) async {
-    final controller = TextEditingController();
-    final value = await showDialog<String>(
+    return showDialog<String>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(title),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          minLines: 3,
-          maxLines: 10,
-          decoration: InputDecoration(
-            hintText: hint,
-            border: const OutlineInputBorder(),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, controller.text),
-            child: const Text('Load'),
-          ),
-        ],
-      ),
+      builder: (context) => _TextInputDialog(title: title, hint: hint),
     );
-    controller.dispose();
-    return value;
   }
 
   void _showError(Object error) {
@@ -2063,11 +2107,13 @@ class _AnalysisBoardPageState extends State<AnalysisBoardPage> {
     sanMoves: _session.sanMoves,
     playerIsWhite: true,
     pgn: _session.pgn,
-    initialVariations: widget.initialVariations,
-    initialCurrentFen: widget.initialCurrentFen,
-    initialFlipped: widget.initialFlipped,
+    initialVariations: _initialVariations,
+    initialCurrentFen: _initialCurrentFen,
+    initialFlipped: _initialFlipped,
     onSessionChanged: _saveAnalysisState,
     maiaElo: widget.maiaElo,
+    evaluator: widget.evaluator,
+    maiaEvaluator: widget.maiaEvaluator,
     title: 'Analysis Board',
     onHome: () => unawaited(ActiveSessionStore.clear()),
     onLoadFen: _loadFen,

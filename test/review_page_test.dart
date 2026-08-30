@@ -114,6 +114,68 @@ void main() {
     expect(tree.children.single.sanMoves, ['c5']);
   });
 
+  test('malformed active session is discarded after one failed load', () async {
+    SharedPreferences.setMockInitialValues({
+      'activeSessionV1': '{not valid json',
+    });
+
+    expect(await ActiveSessionStore.load(), isNull);
+    final preferences = await SharedPreferences.getInstance();
+    expect(preferences.getString('activeSessionV1'), isNull);
+    expect(await AppDiagnostics.report(), contains('[active-session-load]'));
+  });
+
+  testWidgets('loading a FEN replaces restored Analysis Board state', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues({});
+    const afterE4 =
+        'rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1';
+    const replacement = '8/8/8/8/8/4k3/8/4K3 w - - 0 1';
+    await tester.pumpWidget(
+      MaterialApp(
+        home: AnalysisBoardPage(
+          initialSession: AnalysisSession.start(),
+          maiaElo: 1600,
+          initialVariations: const [
+            RecordedVariation(
+              basePly: 0,
+              baseFen: chess.Chess.DEFAULT_POSITION,
+              sanMoves: ['e4'],
+            ),
+          ],
+          initialCurrentFen: afterE4,
+          initialFlipped: true,
+          evaluator: (_) async => const StockfishReview(0, 'e2e4'),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final moveList = find.byKey(const ValueKey('analysis-move-list'));
+    expect(
+      find.descendant(of: moveList, matching: find.text('e4')),
+      findsOneWidget,
+    );
+
+    await tester.tap(find.byTooltip('Analysis Board actions'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Load FEN'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField), replacement);
+    await tester.tap(find.text('Load'));
+    await tester.pumpAndSettle();
+
+    final board = tester.widget<cg.Chessboard>(find.byType(cg.Chessboard));
+    expect(board.controller.fen, replacement);
+    expect(
+      find.descendant(of: moveList, matching: find.text('e4')),
+      findsNothing,
+    );
+    final saved = await ActiveSessionStore.load();
+    expect(saved?['currentFen'], replacement);
+    expect(saved?['variations'], isEmpty);
+  });
+
   testWidgets('board editor uses selected piece as a Lichess-style toggle', (
     tester,
   ) async {
