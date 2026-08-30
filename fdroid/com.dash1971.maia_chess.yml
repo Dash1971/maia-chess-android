@@ -1,0 +1,51 @@
+Categories:
+  - Games
+License: AGPL-3.0-only
+AuthorName: Dash1971
+WebSite: https://github.com/Dash1971/maia-chess-android
+SourceCode: https://github.com/Dash1971/maia-chess-android
+IssueTracker: https://github.com/Dash1971/maia-chess-android/issues
+Changelog: https://github.com/Dash1971/maia-chess-android/releases
+
+AutoName: Mobile Maia
+
+RepoType: git
+Repo: https://github.com/Dash1971/maia-chess-android.git
+Binaries: https://github.com/Dash1971/maia-chess-android/releases/download/v%v/Mobile-Maia-v%v.apk
+
+Builds:
+  - versionName: 1.7.3
+    versionCode: 39
+    commit: 989d6a3e606362a089fc442070ea37121776bf15
+    output: build/app/outputs/flutter-apk/app-release.apk
+    srclibs:
+      - flutter@3.47.1
+    prebuild:
+      - rm assets/models/maia3-79m.onnx
+      - wget -O assets/models/maia3-79m.onnx https://media.githubusercontent.com/media/Dash1971/maia-chess-android/989d6a3e606362a089fc442070ea37121776bf15/assets/models/maia3-79m.onnx
+      - echo '3454b03ae78baa64a87b345fdb1a457265d912caec531039b074f07eda0d8010  assets/models/maia3-79m.onnx' | sha256sum -c -
+      - export PUB_CACHE=$(pwd)/.pub-cache
+      - $$flutter$$/bin/flutter config --no-analytics
+      - $$flutter$$/bin/flutter pub get --enforce-lockfile
+    scanignore:
+      - assets/models/maia3-79m.onnx
+    scandelete:
+      - .pub-cache
+    build:
+      - export PUB_CACHE=$(pwd)/.pub-cache
+      - export SOURCE_DATE_EPOCH=$(git log -1 --format=%ct)
+      - $$flutter$$/bin/flutter build apk --release
+
+AllowedAPKSigningKeys: cd6c07c4efacf52bcccb83009b522c1dcad4a171197505a486f0a58edb6f172e
+
+AutoUpdateMode: Version
+UpdateCheckMode: Tags
+UpdateCheckData: pubspec.yaml|version:\s.+\+(\d+)|.|version:\s(.+)\+
+CurrentVersion: 1.7.3
+CurrentVersionCode: 39
+
+MaintainerNotes: |-
+  The bundled Maia-3 ONNX model is AGPL-3.0 licensed. Its immutable source,
+  checkpoint, conversion procedure, size, and hashes are documented upstream
+  in MODEL_PROVENANCE.md. The Git LFS pointer is replaced from the immutable
+  release commit and verified before building.

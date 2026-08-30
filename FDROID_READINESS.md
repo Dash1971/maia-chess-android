@@ -5,8 +5,11 @@ Mobile Maia to F-Droid. The Preview package is not part of the submission.
 
 ## Source and binary audit
 
-- F-Droid's source scanner reports no problems when run
-  against a clean checkout and a pinned Flutter 3.47.1 source library.
+- F-Droid's source scanner reports no problems when run against a clean
+  checkout and a pinned Flutter 3.47.1 source library. The documented,
+  AGPL-3.0-licensed Maia-3 ONNX model is explicitly listed in `scanignore`
+  because it is a large binary model; its provenance and reproducibility are
+  documented in `MODEL_PROVENANCE.md`.
 - Dependencies are resolved from `pubspec.lock` with
   `flutter pub get --enforce-lockfile`.
 - The multistockfish Android libraries are compiled from bundled upstream C++
@@ -38,3 +41,9 @@ path using `Binaries` and `AllowedAPKSigningKeys`. The published APK SHA-256 is
 `6939f2fcfd5599a6a5e39a0a98f7576633054b7193db89be871751ec01de9e46` and
 the allowed signing-certificate SHA-256 is
 `cd6c07c4efacf52bcccb83009b522c1dcad4a171197505a486f0a58edb6f172e`.
+
+## Submission recipe
+
+A review copy of the proposed fdroiddata recipe is maintained at
+`fdroid/com.dash1971.maia_chess.yml`. The canonical copy for publication will
+be the version reviewed and merged into F-Droid's fdroiddata repository.
