@@ -1,0 +1,21 @@
+<p>Mobile Maia is an offline-first chess app built around Maia-3, a human-like chess model developed by the University of Toronto Computational Social Science Lab.</p>
+
+<p>Play against Maia at a selected rating without creating an account or connecting to a server. The Maia-3 model and Stockfish are bundled with the app, so games and analysis remain on your device.</p>
+
+<p>Features include:</p>
+
+<ul>
+<li>Play as White, Black, or a random side</li>
+<li>Maia ratings from 800 to 2200, plus a custom rating</li>
+<li>Unlimited play, clock presets, and custom time controls</li>
+<li>Human-like move timing and adjustable Temperature and Top-P</li>
+<li>Premoves, takebacks, rematches, and automatic game restoration</li>
+<li>An analysis board with FEN and PGN import and export</li>
+<li>A graphical position editor and persistent analysis variations</li>
+<li>Offline Stockfish evaluation and Maia move comparison</li>
+<li>Full-game accuracy scores and a navigable evaluation graph</li>
+<li>Offline opening names and ECO codes from the Lichess opening database</li>
+<li>PGN export with variations and game metadata</li>
+</ul>
+
+<p>Mobile Maia is independently developed free software. Its source code is available under the GNU Affero General Public License v3.0 only.</p>

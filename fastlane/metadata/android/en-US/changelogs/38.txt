@@ -1,0 +1,3 @@
+Mobile Maia now uses its dedicated long-term Android release-signing key.
+
+This release requires a one-time reinstall because earlier versions used a different signing certificate. Export any important games before uninstalling an earlier version.

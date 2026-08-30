@@ -1,0 +1,5 @@
+huggingface-hub==1.28.0
+numpy==1.26.4
+onnx==1.16.2
+onnxruntime==1.18.1
+torch==2.2.2

@@ -1,0 +1,1 @@
+Offline chess against Maia-3 with local Stockfish analysis

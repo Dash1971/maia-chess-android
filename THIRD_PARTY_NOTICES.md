@@ -10,7 +10,9 @@
 `assets/models/maia3-79m.onnx` is a converted form of the released Maia-3 79M
 checkpoint. The corresponding architecture, original checkpoint, inference
 source, and licence are available from the links above. The conversion tool is
-included in `tool/export_maia3_onnx.py`.
+included in `tool/export_maia3_onnx.py`. Exact source revisions, checkpoint and
+conversion hashes, and reproduction instructions are recorded in
+`MODEL_PROVENANCE.md`.
 
 ## Stockfish and multistockfish
 
