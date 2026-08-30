@@ -233,11 +233,15 @@ Mobile Maia is independently implemented and is not affiliated with Lichess.
 
 ## Licensing
 
-Original application code in this repository is licensed under MIT. The bundled
-application also contains separately licensed third-party components, notably
-Maia-3 (AGPL-3.0) and Stockfish/multistockfish (GPL-3.0). See
+Copyright (c) 2026 Dash. Original application code in this repository is
+licensed under the [GNU Affero General Public License v3.0 only](LICENSE)
+(`AGPL-3.0-only`). Contributions are accepted under the same licence.
+
+The bundled application also contains separately licensed third-party
+components, notably Maia-3 (AGPL-3.0) and Stockfish/multistockfish (GPL-3.0).
+Their licences are not replaced by the Mobile Maia licence. See
 [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md). Distribution of the combined
-APK must comply with those component licences.
+APK must comply with all applicable component licences.
 
 This is an independent community project and is not an official Maia Chess,
 University of Toronto CSSLab, Stockfish, or Lichess application.
