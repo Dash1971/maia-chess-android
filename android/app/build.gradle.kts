@@ -4,6 +4,20 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
+val releaseKeystorePath = System.getenv("MOBILE_MAIA_KEYSTORE")
+val releaseStorePassword = System.getenv("MOBILE_MAIA_STORE_PASSWORD")
+val releaseKeyPassword = System.getenv("MOBILE_MAIA_KEY_PASSWORD")
+val releaseSigningValues = listOf(
+    releaseKeystorePath,
+    releaseStorePassword,
+    releaseKeyPassword,
+)
+
+require(releaseSigningValues.all { it == null } || releaseSigningValues.all { it != null }) {
+    "Set MOBILE_MAIA_KEYSTORE, MOBILE_MAIA_STORE_PASSWORD, and " +
+        "MOBILE_MAIA_KEY_PASSWORD together."
+}
+
 dependencies {
     implementation("com.microsoft.onnxruntime:onnxruntime-android:1.23.2")
     androidTestImplementation("androidx.test.ext:junit:1.2.1")
@@ -35,11 +49,22 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    signingConfigs {
+        if (releaseKeystorePath != null) {
+            create("mobileMaiaRelease") {
+                storeFile = file(releaseKeystorePath)
+                storePassword = releaseStorePassword
+                keyAlias = "mobile-maia"
+                keyPassword = releaseKeyPassword
+            }
+        }
+    }
+
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            // F-Droid can build an unsigned release when signing credentials are
+            // absent. Official Mobile Maia releases provide all three variables.
+            signingConfig = signingConfigs.findByName("mobileMaiaRelease")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
