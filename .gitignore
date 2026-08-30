@@ -44,5 +44,18 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
+# Android signing credentials (never commit)
+*.jks
+*.keystore
+*.p12
+*.pfx
+key.properties
+keystore.properties
+signing.properties
+mobile_maia_android_signing_password
+.env
+.env.*
+!.env.example
+
 # Widget Preview related
 .widget_preview/
