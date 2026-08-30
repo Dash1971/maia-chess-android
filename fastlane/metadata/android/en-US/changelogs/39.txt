@@ -1,0 +1,1 @@
+Makes Android release builds reproducible and improves crash diagnostics. No gameplay or interface behavior changed.

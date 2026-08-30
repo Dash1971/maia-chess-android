@@ -190,15 +190,14 @@ Requirements: Flutter 3.47+, JDK 17, and Android SDK 36.
 flutter pub get
 flutter analyze
 flutter test
-flutter build apk --release --split-per-abi --target-platform android-arm64 \
-  --obfuscate --split-debug-info=build/symbols \
-  --extra-gen-snapshot-options=--strip
+tool/build_android_release.sh
 ```
 
-The ARM64 APK is written to
-`build/app/outputs/flutter-apk/app-arm64-v8a-release.apk`. For public builds,
-build from a neutral staging path so generated source URIs do not disclose a
-local account or workspace name.
+The APK is written to `build/app/outputs/flutter-apk/app-release.apk`. Release
+builds intentionally keep readable Dart symbols: Mobile Maia is open source,
+readable crash traces are more useful than obfuscation, and deterministic
+symbols allow independent reproducibility checks. See
+[`REPRODUCIBLE_BUILDS.md`](REPRODUCIBLE_BUILDS.md).
 
 Official releases are signed with the dedicated Mobile Maia app-signing key.
 The build reads `MOBILE_MAIA_KEYSTORE`, `MOBILE_MAIA_STORE_PASSWORD`, and
