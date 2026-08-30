@@ -9,15 +9,14 @@ engine developed by the University of Toronto Computational Social Science Lab.
 ## Screenshots
 
 <p align="center">
-  <img src="docs/screenshots/20260828_v0_completed_game.jpg" width="30%" alt="Completed offline game against Maia-3">
-  <img src="docs/screenshots/20260828_v0_review_moves.jpg" width="30%" alt="Clickable Lichess-style analysis move list">
-  <img src="docs/screenshots/20260828_v0_review_graph.jpg" width="30%" alt="Stockfish evaluation graph with White and Black accuracy">
+  <img src="docs/screenshots/20260830_v0_setup_analysis_board.jpg" width="30%" alt="Mobile Maia setup with side, rating, clock, and Analysis Board controls">
+  <img src="docs/screenshots/20260830_v0_review_opening_early.jpg" width="30%" alt="Stockfish and Maia review with Lichess opening identification">
+  <img src="docs/screenshots/20260830_v0_review_accuracy_graph.jpg" width="30%" alt="Stockfish evaluation graph with White and Black accuracy">
 </p>
 
 <p align="center">
-  <img src="docs/screenshots/20260828_v0_review_variation.jpg" width="30%" alt="Inline nested analysis variation">
-  <img src="docs/screenshots/20260828_v0_review_graph_opening.jpg" width="30%" alt="Opening position with Stockfish and Maia analysis arrows">
-  <img src="docs/screenshots/20260828_v0_about.jpg" width="30%" alt="Mobile Maia version and open-source project credits">
+  <img src="docs/screenshots/20260830_v0_review_opening_late.jpg" width="30%" alt="Clickable move review with Stockfish and Maia analysis arrows">
+  <img src="docs/screenshots/20260830_v0_completed_game.jpg" width="30%" alt="Completed offline game with PGN export, review, and rematch actions">
 </p>
 
 ## User guide
@@ -38,7 +37,9 @@ castling rights. The complete Lichess CC0 opening-name dataset is bundled for
 offline ECO codes, detailed variation names, and transposition-aware matching.
 
 Select any earlier move and play a different continuation to create an inline,
-clickable PGN variation without deleting the existing line. Active games,
+clickable PGN variation without deleting the existing line. Long-press a move
+to delete its continuation; variation moves can also be collapsed, expanded,
+promoted one level, or made the main line. Active games,
 reviews, complete analysis trees, the selected position, board orientation,
 and clock state are checkpointed locally and restored after Android process
 death, device restart, or an app update.
@@ -50,7 +51,7 @@ Mobile Maia works entirely offline: the Maia-3 model and Stockfish are bundled
 with the app, and no account is required.
 
 <p align="center">
-  <img src="docs/screenshots/setup.jpg" width="38%" alt="Choose a side, Maia rating, and time control">
+  <img src="docs/screenshots/20260830_v0_setup_analysis_board.jpg" width="38%" alt="Choose a side, Maia rating, time control, or Analysis Board">
   <img src="docs/screenshots/advanced.jpg" width="38%" alt="Advanced Maia timing and sampling controls">
 </p>
 
@@ -93,7 +94,7 @@ line is retained as a variation when the PGN is copied.
 
 <p align="center">
   <img src="docs/screenshots/gameplay.jpg" width="38%" alt="Game board, material balance, move list, and takeback control">
-  <img src="docs/screenshots/20260828_v0_completed_game.jpg" width="38%" alt="Completed game with PGN and review actions">
+  <img src="docs/screenshots/20260830_v0_completed_game.jpg" width="38%" alt="Completed game with PGN, review, and rematch actions">
 </p>
 
 ### Review with Stockfish and Maia
@@ -110,13 +111,13 @@ tap-to-navigate evaluation graph. Move the pieces from any reviewed position to
 explore a branch; analysis variations are retained in exported PGN.
 
 <p align="center">
-  <img src="docs/screenshots/20260828_v0_review_moves.jpg" width="30%" alt="Clickable main-line moves in compact chess notation">
+  <img src="docs/screenshots/20260830_v0_review_opening_early.jpg" width="30%" alt="Clickable main-line moves with offline Lichess opening identification">
   <img src="docs/screenshots/20260828_v0_review_variation.jpg" width="30%" alt="Inline nested variation in the move list">
-  <img src="docs/screenshots/20260828_v0_review_graph.jpg" width="30%" alt="Stockfish review with evaluation, accuracy, and graph">
+  <img src="docs/screenshots/20260830_v0_review_accuracy_graph.jpg" width="30%" alt="Stockfish review with evaluation, accuracy, and graph">
 </p>
 
 <p align="center">
-  <img src="docs/screenshots/20260828_v0_review_graph_opening.jpg" width="38%" alt="Stockfish and Maia suggestions shown as different colored arrows">
+  <img src="docs/screenshots/20260830_v0_review_opening_late.jpg" width="38%" alt="Stockfish and Maia suggestions shown as different colored arrows">
 </p>
 
 ### About and licensing
@@ -152,6 +153,7 @@ Flutter Chessground, Lichess multistockfish, and the bundled licences.
 - Switchable clickable Moves and Computer graph views below a persistent board
 - Optional full-game computer analysis graph with tap-to-navigate positions
 - Analysis variations and takebacks preserved as PGN recursive annotation variations
+- Long-press variation editing: collapse/expand, promote, make main line, or delete from a move
 - Flip-board control during analysis
 - Lichess-style material imbalance display, including bishop-versus-knight trades
 - Tagged PGN export with players, event, date, result, and termination
@@ -220,7 +222,14 @@ The board interface is provided by
 including the default Lichess brown theme and Cburnett pieces. Local Stockfish
 support uses
 [Lichess multistockfish](https://github.com/lichess-org/dart-multistockfish).
-Both Lichess projects are credited and linked in the app's About screen.
+Opening names and ECO codes come from the CC0
+[Lichess chess-openings dataset](https://github.com/lichess-org/chess-openings),
+pinned to the source revision recorded in
+[`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md). The Analysis Board's move
+tree, navigation, variation actions, fixed analysis panel, board editor, and
+last-move presentation are also informed by the open-source
+[Lichess Mobile analysis experience](https://github.com/lichess-org/mobile).
+Mobile Maia is independently implemented and is not affiliated with Lichess.
 
 ## Licensing
 
