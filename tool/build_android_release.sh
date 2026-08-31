@@ -18,6 +18,9 @@ export SOURCE_DATE_EPOCH
 
 "$flutter_bin" clean
 "$flutter_bin" pub get --enforce-lockfile
+# Run Flutter's release configuration pass before changing package_config.json.
+# This filters test-only native plugins from the generated release registrant.
+"$flutter_bin" build apk --release --config-only
 # Flutter 3.47.1 otherwise embeds the absolute path to its generated Dart
 # plugin registrant in libapp.so. Give that generated source a stable package
 # URI before compiling so release artifacts remain private and reproducible

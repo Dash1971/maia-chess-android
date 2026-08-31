@@ -27,6 +27,8 @@ plugin registrant to the generated package configuration under the stable URI
 absolute checkout path from being embedded in `libapp.so` and allows builds
 made from different directories to match. The tracked dependency lockfile is
 unchanged; only the generated `.dart_tool/package_config.json` is adjusted.
+Flutter's release configuration pass runs first so test-only native plugins
+are still excluded from the generated Android registrant.
 
 ## Verification
 
