@@ -30,6 +30,12 @@ unchanged; only the generated `.dart_tool/package_config.json` is adjusted.
 Flutter's release configuration pass runs first so test-only native plugins
 are still excluded from the generated Android registrant.
 
+The Android build disables linker build IDs for the three bundled Stockfish
+libraries because the NDK otherwise gives byte-identical native code different
+20-byte IDs. The release commit timestamp is also passed into their CMake task
+inputs, preventing a stale native cache from retaining an older `__DATE__`
+value.
+
 ## Verification
 
 For version `1.7.0-beta.16`, two clean unsigned builds from the same revision

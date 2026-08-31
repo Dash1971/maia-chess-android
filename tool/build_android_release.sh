@@ -27,4 +27,5 @@ export SOURCE_DATE_EPOCH
 # across different checkout paths. --no-pub preserves the prepared config.
 "$dart_bin" tool/prepare_reproducible_package_config.dart \
   .dart_tool/package_config.json
-"$flutter_bin" build apk --release --no-pub
+"$flutter_bin" build apk --release --no-pub \
+  --android-project-arg="mobileMaiaSourceDateEpoch=$SOURCE_DATE_EPOCH"
