@@ -16,4 +16,9 @@ export SOURCE_DATE_EPOCH
 
 "$flutter_bin" clean
 "$flutter_bin" pub get --enforce-lockfile
-"$flutter_bin" build apk --release
+# Flutter otherwise embeds the absolute path to its generated Dart plugin
+# registrant in libapp.so. Compile through a virtual filesystem root so release
+# artifacts are private and reproducible across different checkout paths.
+"$flutter_bin" build apk --release \
+  --android-project-arg="filesystem-roots=$repo_root" \
+  --android-project-arg=filesystem-scheme=org-dartlang-root

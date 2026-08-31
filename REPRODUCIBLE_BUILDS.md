@@ -20,6 +20,11 @@ no useful source secrecy for this AGPL-licensed application, makes crash traces
 less useful, and uses randomized symbol mappings that prevent independent
 builds from matching.
 
+The release script also maps Flutter's generated plugin registrant through a
+virtual filesystem URI. This prevents an absolute checkout path from being
+embedded in `libapp.so` and allows builds made from different directories to
+match.
+
 ## Verification
 
 For version `1.7.0-beta.16`, two clean unsigned builds from the same revision
