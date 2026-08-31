@@ -20,10 +20,13 @@ no useful source secrecy for this AGPL-licensed application, makes crash traces
 less useful, and uses randomized symbol mappings that prevent independent
 builds from matching.
 
-The release script also maps Flutter's generated plugin registrant through a
-virtual filesystem URI. This prevents an absolute checkout path from being
-embedded in `libapp.so` and allows builds made from different directories to
-match.
+Flutter 3.47.1 does not forward its filesystem-root settings through the
+Android Gradle task. The release script therefore adds the generated Dart
+plugin registrant to the generated package configuration under the stable URI
+`package:mobile_maia_generated/dart_plugin_registrant.dart`. This prevents an
+absolute checkout path from being embedded in `libapp.so` and allows builds
+made from different directories to match. The tracked dependency lockfile is
+unchanged; only the generated `.dart_tool/package_config.json` is adjusted.
 
 ## Verification
 

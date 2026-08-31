@@ -4,6 +4,8 @@ set -eu
 
 repo_root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 flutter_bin=${FLUTTER_BIN:-flutter}
+flutter_path=$(command -v "$flutter_bin")
+dart_bin=${DART_BIN:-$(dirname -- "$flutter_path")/dart}
 
 cd "$repo_root"
 
@@ -16,9 +18,10 @@ export SOURCE_DATE_EPOCH
 
 "$flutter_bin" clean
 "$flutter_bin" pub get --enforce-lockfile
-# Flutter otherwise embeds the absolute path to its generated Dart plugin
-# registrant in libapp.so. Compile through a virtual filesystem root so release
-# artifacts are private and reproducible across different checkout paths.
-"$flutter_bin" build apk --release \
-  --android-project-arg="filesystem-roots=$repo_root" \
-  --android-project-arg=filesystem-scheme=org-dartlang-root
+# Flutter 3.47.1 otherwise embeds the absolute path to its generated Dart
+# plugin registrant in libapp.so. Give that generated source a stable package
+# URI before compiling so release artifacts remain private and reproducible
+# across different checkout paths. --no-pub preserves the prepared config.
+"$dart_bin" tool/prepare_reproducible_package_config.dart \
+  .dart_tool/package_config.json
+"$flutter_bin" build apk --release --no-pub
