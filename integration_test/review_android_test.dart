@@ -10,7 +10,12 @@ void main() {
   Future<void> waitForRealEvaluation(WidgetTester tester) async {
     for (var i = 0; i < 240; i++) {
       await tester.pump(const Duration(milliseconds: 100));
-      if (find.textContaining('Depth 12').evaluate().isNotEmpty) return;
+      final panel = find.byKey(const ValueKey('analysis-engine-lines'));
+      final analyzing = find.descendant(
+        of: panel,
+        matching: find.text('Analyzing…'),
+      );
+      if (panel.evaluate().isNotEmpty && analyzing.evaluate().isEmpty) return;
     }
     fail('real Stockfish evaluation did not finish within 24 seconds');
   }
@@ -34,6 +39,7 @@ void main() {
           playerIsWhite: true,
           pgn: '1. f3 e5 2. g4 Qh4#',
           onHome: () {},
+          maiaEvaluator: (_, _) async => null,
         ),
       ),
     );
@@ -58,11 +64,14 @@ void main() {
           playerIsWhite: true,
           pgn: '1. f3 e5 2. g4 Qh4#',
           onHome: () {},
+          maiaEvaluator: (_, _) async => null,
         ),
       ),
     );
     await tester.pump();
-    await tester.tap(find.text('Graph'));
+    await tester.tap(find.byTooltip('Computer analysis'));
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('run-computer-analysis')));
     for (var i = 0; i < 600; i++) {
       await tester.pump(const Duration(milliseconds: 100));
       if (find.byType(AnalysisGraph).evaluate().isNotEmpty) break;
@@ -137,7 +146,9 @@ void main() {
       expect(tester.takeException(), isNull, reason: 'failed at ply $ply');
     }
 
-    await tester.tap(find.text('Graph'));
+    await tester.tap(find.byTooltip('Computer analysis'));
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('run-computer-analysis')));
     await tester.pumpAndSettle();
     expect(find.byType(AnalysisGraph), findsOneWidget);
     await tester.tapAt(tester.getCenter(find.byType(AnalysisGraph)));

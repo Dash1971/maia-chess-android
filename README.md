@@ -97,18 +97,21 @@ line is retained as a variation when the PGN is copied.
   <img src="docs/screenshots/20260830_v0_completed_game.jpg" width="38%" alt="Completed game with PGN, review, and rematch actions">
 </p>
 
-### Review with Stockfish and Maia
+### Game Review
 
-After a game, select **Review with Stockfish**. The board remains fixed at the
+After a game, select **Game Review**. The board remains fixed at the
 top while **Moves** and **Graph** switch the panel below it. Select any move to
 jump directly to that position. The evaluation bar and blue arrow show
-Stockfish's assessment and best move. Maia also suggests the most likely human
-move at the configured rating; when it differs from Stockfish it is shown with
-an orange arrow, and when it agrees only the shared blue arrow is shown.
+Stockfish's assessment and two leading moves. Maia also suggests the most
+likely human move at the configured rating. Agreement between Maia and
+Stockfish is shown by a two-tone arrow.
 
 Full-game analysis adds separate White and Black accuracy percentages and a
-tap-to-navigate evaluation graph. Move the pieces from any reviewed position to
-explore a branch; analysis variations are retained in exported PGN.
+tap-to-navigate evaluation graph, opening/middlegame/endgame separators, and
+colour-coded Brilliant, Good, Interesting, Dubious, Mistake, and Blunder move
+classifications. The current move's annotation also appears on the board. Move
+the pieces from any reviewed position to explore a branch; analysis is cached
+for responsive navigation and variations are retained in exported PGN.
 
 <p align="center">
   <img src="docs/screenshots/20260830_v0_review_opening_early.jpg" width="30%" alt="Clickable main-line moves with offline Lichess opening identification">
@@ -149,10 +152,11 @@ components.
 - Legal move handling, checkmate/draw detection, move list, and rematches
 - Resignation and post-game Home/Rematch actions
 - Move-by-move Stockfish and Maia review, starting from the initial position
-- Configurable Maia human-move suggestion (default 1600) with a distinct arrow when it differs from Stockfish
+- Configurable Maia human-move suggestion (default 1600), two Stockfish choices, and two-tone agreement arrows
 - Evaluation bar with Lichess-style numeric score and blue Stockfish best-move arrow
 - Switchable clickable Moves and Computer graph views below a persistent board
-- Optional full-game computer analysis graph with tap-to-navigate positions
+- Optional full-game computer analysis graph with tap-to-navigate positions and game-phase separators
+- Brilliant, Good, Interesting, Dubious, Mistake, and Blunder classifications on the graph, move list, and board
 - Analysis variations and takebacks preserved as PGN recursive annotation variations
 - Long-press variation editing: collapse/expand, promote, make main line, or delete from a move
 - Flip-board control during analysis
@@ -250,9 +254,10 @@ licensed under the [GNU Affero General Public License v3.0 only](LICENSE)
 (`AGPL-3.0-only`). Contributions are accepted under the same licence.
 
 Mobile Maia as a combined application is distributed under AGPL-3.0-only.
-Individual third-party components retain their respective copyright notices
-and licences, notably Maia-3 (AGPL-3.0), Stockfish/multistockfish (GPL-3.0), and
-dartchess (GPL-3.0). See [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).
+Individual third-party components retain their respective
+copyright notices and licences, notably Maia-3 (AGPL-3.0),
+Stockfish/multistockfish (GPL-3.0), and dartchess (GPL-3.0). See
+[`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).
 
 This is an independent community project and is not an official Maia Chess,
 University of Toronto CSSLab, Stockfish, or Lichess application.

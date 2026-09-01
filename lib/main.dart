@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:isolate';
 import 'dart:math';
 import 'dart:ui' as ui;
 
@@ -29,7 +30,13 @@ Future<void> main() async {
     return true;
   };
   ErrorWidget.builder = (_) => const DiagnosticsErrorScreen();
-  await OpeningNames.load();
+  try {
+    await OpeningNames.load();
+  } catch (error, stackTrace) {
+    // Opening labels are useful but not required for playing or analysis.
+    // A damaged optional asset must not prevent the entire app from starting.
+    await AppDiagnostics.record('opening-names-load', error, stackTrace);
+  }
   runApp(const MaiaChessApp());
   unawaited(AppDiagnostics.recordEvent('app-started'));
 }
@@ -40,7 +47,8 @@ const lichessChessgroundUrl =
     'https://github.com/lichess-org/flutter-chessground';
 const lichessMultistockfishUrl =
     'https://github.com/lichess-org/dart-multistockfish';
-const mobileMaiaSourceUrl = 'https://github.com/Dash1971/maia-chess-android';
+const mobileMaiaSourceUrl =
+    'https://github.com/Dash1971/maia-chess-android';
 const mobileMaiaLicenseUrl = '$mobileMaiaSourceUrl/blob/main/LICENSE';
 
 class MaiaInferenceQueue {
@@ -309,9 +317,9 @@ class ActiveSessionStore {
     try {
       return Map<String, dynamic>.from(jsonDecode(source) as Map);
     } catch (error, stackTrace) {
-      unawaited(
-        AppDiagnostics.record('active-session-load', error, stackTrace),
-      );
+      await AppDiagnostics.record('active-session-load', error, stackTrace);
+      // Do not retry a permanently malformed session on every app launch.
+      await clear();
       return null;
     }
   }
@@ -329,6 +337,28 @@ class ActiveSessionStore {
 }
 
 class PgnVariationExporter {
+  static List<RecordedVariation> annotationsForMainline(
+    List<String> mainSan,
+    List<RecordedVariation> reviewTree,
+  ) {
+    final rootIndex = reviewTree.indexWhere(
+      (line) =>
+          line.basePly == 0 &&
+          line.sanMoves.length == mainSan.length &&
+          List.generate(
+            mainSan.length,
+            (index) => line.sanMoves[index] == mainSan[index],
+          ).every((matches) => matches),
+    );
+    if (rootIndex < 0) return List.unmodifiable(reviewTree);
+    final root = reviewTree[rootIndex];
+    return List.unmodifiable([
+      ...root.children,
+      for (var index = 0; index < reviewTree.length; index++)
+        if (index != rootIndex) reviewTree[index],
+    ]);
+  }
+
   static String export(
     String pgn,
     List<String> mainSan,
@@ -584,6 +614,8 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
   final List<ClockSnapshot> _clockHistory = [];
   int _gameGeneration = 0;
   bool _reviewOpen = false;
+  List<RecordedVariation>? _reviewVariationSnapshot;
+  bool _advancedExpanded = false;
   final Random _timingRandom = Random.secure();
 
   bool get _playerIsWhite => _playerColor == chess.Color.WHITE;
@@ -653,9 +685,12 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
           );
         });
       } catch (error, stackTrace) {
-        unawaited(
-          AppDiagnostics.record('analysis-session-restore', error, stackTrace),
+        await AppDiagnostics.record(
+          'analysis-session-restore',
+          error,
+          stackTrace,
         );
+        await ActiveSessionStore.clear();
       }
       return;
     }
@@ -688,7 +723,7 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
                     initialCurrentFen: saved['currentFen'] as String?,
                     initialFlipped: saved['flipped'] as bool? ?? false,
                     onSessionChanged: (fen, flipped, updated) =>
-                        _saveReviewState(
+                        _handleReviewSessionChanged(
                           session,
                           saved['playerIsWhite'] as bool? ?? true,
                           fen,
@@ -702,9 +737,12 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
               .whenComplete(() => _reviewOpen = false);
         });
       } catch (error, stackTrace) {
-        unawaited(
-          AppDiagnostics.record('review-session-restore', error, stackTrace),
+        await AppDiagnostics.record(
+          'review-session-restore',
+          error,
+          stackTrace,
         );
+        await ActiveSessionStore.clear();
       }
       return;
     }
@@ -784,9 +822,8 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
       }
       if (!_gameFinished && !_isPlayerTurn) unawaited(_playMaiaMove());
     } catch (error, stackTrace) {
-      unawaited(
-        AppDiagnostics.record('game-session-restore', error, stackTrace),
-      );
+      await AppDiagnostics.record('game-session-restore', error, stackTrace);
+      await ActiveSessionStore.clear();
     }
   }
 
@@ -830,6 +867,43 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
     'maiaElo': _analysisElo,
   });
 
+  Future<void> _handleReviewSessionChanged(
+    AnalysisSession session,
+    bool playerIsWhite,
+    String currentFen,
+    bool flipped,
+    List<RecordedVariation> variations,
+  ) {
+    final previous = _reviewVariationSnapshot;
+    var variationsChanged =
+        previous == null || previous.length != variations.length;
+    if (!variationsChanged) {
+      for (var index = 0; index < variations.length; index++) {
+        if (!identical(previous[index], variations[index])) {
+          variationsChanged = true;
+          break;
+        }
+      }
+    }
+    if (variationsChanged) {
+      final annotations = PgnVariationExporter.annotationsForMainline(
+        session.sanMoves,
+        variations,
+      );
+      _takebackVariations
+        ..clear()
+        ..addAll(annotations);
+      _reviewVariationSnapshot = List.unmodifiable(variations);
+    }
+    return _saveReviewState(
+      session,
+      playerIsWhite,
+      currentFen,
+      flipped,
+      variations,
+    );
+  }
+
   Future<void> _loadEnginePreferences() async {
     final preferences = await SharedPreferences.getInstance();
     if (!mounted) return;
@@ -853,6 +927,43 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
       preferences.setInt('analysisElo', _analysisElo),
     ]);
   }
+
+  Future<void> _showSamplingHelp() => showDialog<void>(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: const Text('Temperature and Top-P'),
+      content: const SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Temperature controls how adventurous Maia is. At 0, Maia '
+              'always chooses its most likely human move. Higher values make '
+              'less likely moves more common.',
+            ),
+            SizedBox(height: 14),
+            Text(
+              'Top-P limits Maia to the smallest group of moves whose '
+              'combined probability reaches this value. Lower values narrow '
+              'the choice to more likely moves; 1.00 keeps every legal move.',
+            ),
+            SizedBox(height: 14),
+            Text(
+              'The defaults (Temperature 0.50 and Top-P 0.90) give some '
+              'variety while keeping Maia close to its rating model.',
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Close'),
+        ),
+      ],
+    ),
+  );
 
   Future<void> _showAbout() async {
     String version;
@@ -957,6 +1068,7 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
         ..add(_game.fen);
       _uciMoves.clear();
       _takebackVariations.clear();
+      _reviewVariationSnapshot = null;
       _selectedSquare = null;
       _premoveFrom = null;
       _premoveTo = null;
@@ -1201,6 +1313,7 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
         'selfElo': _elo,
         'opponentElo': _elo,
       });
+      if (!mounted || generation != _gameGeneration || _gameFinished) return;
       if (response == null || response.length != 4352) {
         throw StateError('Maia returned an invalid policy vector.');
       }
@@ -1244,8 +1357,9 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
       )) {
         unawaited(_playMaiaMove());
       }
-    } catch (error) {
-      if (!mounted) return;
+    } catch (error, stackTrace) {
+      if (!mounted || generation != _gameGeneration) return;
+      unawaited(AppDiagnostics.record('maia-game', error, stackTrace));
       setState(() {
         _engineThinking = false;
         _status = 'Maia error: $error';
@@ -1330,6 +1444,39 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
       _status = 'Choose your settings and start a game.';
     });
     unawaited(ActiveSessionStore.clear());
+  }
+
+  Future<bool> _confirmEraseCurrentGame() async =>
+      await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Erase current game?'),
+          content: const Text(
+            'This will erase the current game. Are you sure?',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Erase'),
+            ),
+          ],
+        ),
+      ) ??
+      false;
+
+  Future<void> _requestHome() async {
+    if (!await _confirmEraseCurrentGame() || !mounted) return;
+    _goHome();
+    Navigator.of(context).popUntil((route) => route.isFirst);
+  }
+
+  Future<void> _requestNewGame() async {
+    if (!await _confirmEraseCurrentGame() || !mounted) return;
+    _startGame();
   }
 
   void _takeBack() {
@@ -1436,18 +1583,20 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
           initialVariations: initialVariations,
           maiaElo: _analysisElo,
           initialCurrentFen: session.positions.last,
-          onSessionChanged: (fen, flipped, variations) => _saveReviewState(
-            session,
-            _playerIsWhite,
-            fen,
-            flipped,
-            variations,
-          ),
+          onSessionChanged: (fen, flipped, variations) =>
+              _handleReviewSessionChanged(
+                session,
+                _playerIsWhite,
+                fen,
+                flipped,
+                variations,
+              ),
           onHome: _goHome,
         ),
       ),
     );
     _reviewOpen = false;
+    unawaited(_saveGameState());
   }
 
   String _exportPgn() {
@@ -1470,13 +1619,21 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
       appBar: AppBar(
         title: const Text('Mobile Maia'),
         actions: [
+          if (_started)
+            IconButton(
+              key: const ValueKey('game-home-button'),
+              onPressed: _requestHome,
+              icon: const Icon(Icons.home_outlined),
+              tooltip: 'Home',
+            ),
           IconButton(
             onPressed: _showAbout,
             icon: const Icon(Icons.info_outline),
             tooltip: 'About',
           ),
           IconButton(
-            onPressed: _started ? _startGame : null,
+            key: const ValueKey('new-game-button'),
+            onPressed: _started ? _requestNewGame : null,
             icon: const Icon(Icons.refresh),
             tooltip: 'New game',
           ),
@@ -1498,25 +1655,20 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
                       if (_started) ...[
                         _statusCard(),
                         const SizedBox(height: 12),
-                        if (_clockEnabled) ...[
-                          _clockTile(
-                            _playerIsWhite
-                                ? chess.Color.BLACK
-                                : chess.Color.WHITE,
-                            'Maia',
-                          ),
-                          const SizedBox(height: 6),
-                        ],
+                        _playerInfoRow(
+                          _playerIsWhite
+                              ? chess.Color.BLACK
+                              : chess.Color.WHITE,
+                          'Maia',
+                        ),
+                        const SizedBox(height: 4),
                         SizedBox(
                           width: boardSize,
                           height: boardSize,
                           child: _board(),
                         ),
-                        if (_clockEnabled) ...[
-                          const SizedBox(height: 6),
-                          _clockTile(_playerColor, 'You'),
-                        ],
-                        MaterialDifference(fen: _game.fen),
+                        const SizedBox(height: 4),
+                        _playerInfoRow(_playerColor, 'You'),
                         const SizedBox(height: 12),
                         _gameInfoCard(),
                       ],
@@ -1632,7 +1784,20 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
             ExpansionTile(
               tilePadding: EdgeInsets.zero,
               childrenPadding: EdgeInsets.zero,
-              title: const Text('Advanced'),
+              onExpansionChanged: (expanded) =>
+                  setState(() => _advancedExpanded = expanded),
+              title: Row(
+                children: [
+                  const Expanded(child: Text('Advanced')),
+                  if (_advancedExpanded)
+                    IconButton(
+                      key: const ValueKey('sampling-help'),
+                      tooltip: 'About Temperature and Top-P',
+                      onPressed: _showSamplingHelp,
+                      icon: const Icon(Icons.help_outline),
+                    ),
+                ],
+              ),
               subtitle: const Text('Timing and move sampling'),
               children: [
                 SwitchListTile(
@@ -1748,31 +1913,44 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
     );
   }
 
-  Widget _clockTile(chess.Color color, String label) {
+  Widget _playerInfoRow(chess.Color color, String label) {
+    return SizedBox(
+      height: _clockEnabled ? 44 : 24,
+      child: Row(
+        children: [
+          Text(label, style: const TextStyle(fontWeight: FontWeight.w600)),
+          const SizedBox(width: 8),
+          Expanded(
+            child: MaterialDifference(fen: _game.fen, side: color),
+          ),
+          if (_clockEnabled) _clockTile(color),
+        ],
+      ),
+    );
+  }
+
+  Widget _clockTile(chess.Color color) {
     final milliseconds = _liveMillis(color);
     final urgent = milliseconds < 10000;
-    return Align(
-      alignment: Alignment.centerRight,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        decoration: BoxDecoration(
-          color: _game.turn == color && !_gameFinished
-              ? const Color(0xfff0f0f0)
-              : const Color(0xff343735),
-          borderRadius: BorderRadius.circular(6),
-        ),
-        child: Text(
-          '$label  ${_formatClock(milliseconds)}',
-          style: TextStyle(
-            color: urgent
-                ? Colors.redAccent
-                : _game.turn == color && !_gameFinished
-                ? Colors.black
-                : Colors.white70,
-            fontSize: 20,
-            fontWeight: FontWeight.w700,
-            fontFeatures: const [FontFeature.tabularFigures()],
-          ),
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: _game.turn == color && !_gameFinished
+            ? const Color(0xfff0f0f0)
+            : const Color(0xff343735),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Text(
+        _formatClock(milliseconds),
+        style: TextStyle(
+          color: urgent
+              ? Colors.redAccent
+              : _game.turn == color && !_gameFinished
+              ? Colors.black
+              : Colors.white70,
+          fontSize: 20,
+          fontWeight: FontWeight.w700,
+          fontFeatures: const [FontFeature.tabularFigures()],
         ),
       ),
     );
@@ -1848,7 +2026,7 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
               FilledButton.tonalIcon(
                 onPressed: _analyzeGame,
                 icon: const Icon(Icons.analytics_outlined),
-                label: const Text('Review with Stockfish'),
+                label: const Text('Game Review'),
               ),
             if (!_gameFinished)
               TextButton.icon(
@@ -1868,11 +2046,6 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
                 icon: const Icon(Icons.replay),
                 label: const Text('Rematch'),
               ),
-              TextButton.icon(
-                onPressed: _goHome,
-                icon: const Icon(Icons.home_outlined),
-                label: const Text('Home'),
-              ),
             ],
           ],
         ),
@@ -1888,6 +2061,51 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
   }
 }
 
+class _TextInputDialog extends StatefulWidget {
+  const _TextInputDialog({required this.title, required this.hint});
+
+  final String title;
+  final String hint;
+
+  @override
+  State<_TextInputDialog> createState() => _TextInputDialogState();
+}
+
+class _TextInputDialogState extends State<_TextInputDialog> {
+  final _controller = TextEditingController();
+
+  @override
+  Widget build(BuildContext context) => AlertDialog(
+    title: Text(widget.title),
+    content: TextField(
+      controller: _controller,
+      autofocus: true,
+      minLines: 3,
+      maxLines: 10,
+      decoration: InputDecoration(
+        hintText: widget.hint,
+        border: const OutlineInputBorder(),
+      ),
+    ),
+    actions: [
+      TextButton(
+        onPressed: () => Navigator.pop(context),
+        child: const Text('Cancel'),
+      ),
+      FilledButton(
+        onPressed: () => Navigator.pop(context, _controller.text),
+        child: const Text('Load'),
+      ),
+    ],
+  );
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+}
+
 class AnalysisBoardPage extends StatefulWidget {
   const AnalysisBoardPage({
     required this.initialSession,
@@ -1895,6 +2113,8 @@ class AnalysisBoardPage extends StatefulWidget {
     this.initialVariations = const [],
     this.initialCurrentFen,
     this.initialFlipped = false,
+    this.evaluator,
+    this.maiaEvaluator,
     super.key,
   });
 
@@ -1903,6 +2123,9 @@ class AnalysisBoardPage extends StatefulWidget {
   final List<RecordedVariation> initialVariations;
   final String? initialCurrentFen;
   final bool initialFlipped;
+  final Future<StockfishReview> Function(String fen)? evaluator;
+  final Future<String?> Function(List<String> positions, int elo)?
+  maiaEvaluator;
 
   @override
   State<AnalysisBoardPage> createState() => _AnalysisBoardPageState();
@@ -1910,6 +2133,9 @@ class AnalysisBoardPage extends StatefulWidget {
 
 class _AnalysisBoardPageState extends State<AnalysisBoardPage> {
   late AnalysisSession _session = widget.initialSession;
+  late List<RecordedVariation> _initialVariations = widget.initialVariations;
+  late String? _initialCurrentFen = widget.initialCurrentFen;
+  late bool _initialFlipped = widget.initialFlipped;
   int _revision = 0;
 
   @override
@@ -1917,9 +2143,9 @@ class _AnalysisBoardPageState extends State<AnalysisBoardPage> {
     super.initState();
     unawaited(
       _saveAnalysisState(
-        widget.initialCurrentFen ?? widget.initialSession.positions.first,
-        widget.initialFlipped,
-        widget.initialVariations,
+        _initialCurrentFen ?? widget.initialSession.positions.first,
+        _initialFlipped,
+        _initialVariations,
       ),
     );
   }
@@ -1940,41 +2166,19 @@ class _AnalysisBoardPageState extends State<AnalysisBoardPage> {
   void _replace(AnalysisSession session) {
     setState(() {
       _session = session;
+      _initialVariations = const [];
+      _initialCurrentFen = session.positions.first;
+      _initialFlipped = false;
       _revision++;
     });
     unawaited(_saveAnalysisState(session.positions.first, false, const []));
   }
 
   Future<String?> _textDialog(String title, String hint) async {
-    final controller = TextEditingController();
-    final value = await showDialog<String>(
+    return showDialog<String>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(title),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          minLines: 3,
-          maxLines: 10,
-          decoration: InputDecoration(
-            hintText: hint,
-            border: const OutlineInputBorder(),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, controller.text),
-            child: const Text('Load'),
-          ),
-        ],
-      ),
+      builder: (context) => _TextInputDialog(title: title, hint: hint),
     );
-    controller.dispose();
-    return value;
   }
 
   void _showError(Object error) {
@@ -2062,11 +2266,13 @@ class _AnalysisBoardPageState extends State<AnalysisBoardPage> {
     sanMoves: _session.sanMoves,
     playerIsWhite: true,
     pgn: _session.pgn,
-    initialVariations: widget.initialVariations,
-    initialCurrentFen: widget.initialCurrentFen,
-    initialFlipped: widget.initialFlipped,
+    initialVariations: _initialVariations,
+    initialCurrentFen: _initialCurrentFen,
+    initialFlipped: _initialFlipped,
     onSessionChanged: _saveAnalysisState,
     maiaElo: widget.maiaElo,
+    evaluator: widget.evaluator,
+    maiaEvaluator: widget.maiaEvaluator,
     title: 'Analysis Board',
     onHome: () => unawaited(ActiveSessionStore.clear()),
     onLoadFen: _loadFen,
@@ -2302,6 +2508,12 @@ class _BoardEditorPageState extends State<BoardEditorPage> {
   }
 }
 
+typedef MoveClassificationRunner = Future<List<ClassifiedMove>> Function({
+  required List<StockfishReview> scores,
+  required List<String> positions,
+  required List<String> uciMoves,
+});
+
 class ReviewPage extends StatefulWidget {
   const ReviewPage({
     required this.positions,
@@ -2314,6 +2526,7 @@ class ReviewPage extends StatefulWidget {
     required this.onHome,
     this.evaluator,
     this.maiaEvaluator,
+    this.classifier,
     this.title = 'Game review',
     this.onLoadFen,
     this.onLoadPgn,
@@ -2336,6 +2549,7 @@ class ReviewPage extends StatefulWidget {
   final Future<StockfishReview> Function(String fen)? evaluator;
   final Future<String?> Function(List<String> positions, int elo)?
   maiaEvaluator;
+  final MoveClassificationRunner? classifier;
   final String title;
   final Future<void> Function()? onLoadFen;
   final Future<void> Function()? onLoadPgn;
@@ -2363,8 +2577,13 @@ class _ReviewPageState extends State<ReviewPage> {
   String? _analysisError;
   bool _flipped = false;
   bool _fullAnalysisRunning = false;
+  bool _fullAnalysisClassifying = false;
   int _fullAnalysisCompleted = 0;
+  int _fullAnalysisGeneration = 0;
   List<StockfishReview>? _graphScores;
+  List<String> _graphPositions = const [];
+  List<String> _graphMoves = const [];
+  List<ClassifiedMove> _graphClassifications = const [];
   final Map<int, String> _maiaMoves = {};
   final Set<int> _maiaLoading = {};
   late final cg.ChessboardController _boardController;
@@ -2381,6 +2600,11 @@ class _ReviewPageState extends State<ReviewPage> {
   bool _variationLoading = false;
   bool _variationMaiaLoading = false;
   String? _variationError;
+  final Map<String, StockfishReview> _variationReviewCache = {};
+  final Map<String, Future<StockfishReview>> _pendingVariationReviews = {};
+  final Map<String, String> _variationMaiaCache = {};
+  final Map<String, Future<String?>> _pendingVariationMaia = {};
+  bool _sessionNotificationScheduled = false;
   final Set<String> _collapsedVariationKeys = {};
 
   bool get _inVariation => _variationBasePly != null;
@@ -2413,16 +2637,34 @@ class _ReviewPageState extends State<ReviewPage> {
             .firstOrNull
       : null;
 
-  List<String> get _computerAnalysisPositions {
+  ComputerAnalysisLine get _computerAnalysisLine {
     final rootMainline = _rootMainline;
-    if (rootMainline == null) return widget.positions;
+    if (rootMainline == null) {
+      final count = min(
+        widget.uciMoves.length,
+        max(0, widget.positions.length - 1),
+      );
+      return ComputerAnalysisLine(
+        positions: widget.positions,
+        uciMoves: widget.uciMoves.take(count).toList(growable: false),
+      );
+    }
     final game = chess.Chess.fromFEN(rootMainline.baseFen);
     final positions = <String>[game.fen];
+    final uciMoves = <String>[];
     for (final san in rootMainline.sanMoves) {
       if (!game.move(san)) break;
+      final move = game
+          .getHistory({'verbose': true})
+          .cast<Map<String, dynamic>>()
+          .last;
+      uciMoves.add('${move['from']}${move['to']}${move['promotion'] ?? ''}');
       positions.add(game.fen);
     }
-    return positions;
+    return ComputerAnalysisLine(
+      positions: List.unmodifiable(positions),
+      uciMoves: List.unmodifiable(uciMoves),
+    );
   }
 
   void _showComputerAnalysisPly(int ply) {
@@ -2476,11 +2718,19 @@ class _ReviewPageState extends State<ReviewPage> {
 
   void _notifySessionChanged() {
     final callback = widget.onSessionChanged;
-    if (callback != null) {
+    if (callback == null || _sessionNotificationScheduled) return;
+    _sessionNotificationScheduled = true;
+    // Persist the potentially large review tree only after Flutter has painted
+    // the move. Game Review also derives export annotations here, so doing the
+    // work synchronously made a played variation feel heavier than the same
+    // move on a short Analysis Board session.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _sessionNotificationScheduled = false;
+      if (!mounted) return;
       unawaited(
         callback(_currentFen, _flipped, List.unmodifiable(_variations)),
       );
-    }
+    });
   }
 
   @override
@@ -2538,6 +2788,9 @@ class _ReviewPageState extends State<ReviewPage> {
 
   void _onAnalysisMove(dc.Move move, {bool? viaDragAndDrop}) {
     if (!_boardPosition.isLegal(move)) return;
+    final analysisMovesBefore = widget.onSessionChanged == null
+        ? null
+        : List<String>.of(_computerAnalysisLine.uciMoves);
     final fenBefore = _boardPosition.fen;
     final uci = move.uci;
     final sanGame = chess.Chess.fromFEN(fenBefore);
@@ -2604,6 +2857,7 @@ class _ReviewPageState extends State<ReviewPage> {
       _variationIndex = 1;
       _boardController.updatePosition(_boardGameData());
       setState(() {
+        _invalidateGraphAnalysisIfLineChanged(analysisMovesBefore);
         _variationReview = null;
         _variationMaiaMove = null;
       });
@@ -2633,16 +2887,40 @@ class _ReviewPageState extends State<ReviewPage> {
       _replaceVariation(_variations, opened, updated);
       _openedVariation = updated;
     } else {
-      _variations.removeWhere(
-        (item) =>
-            item.basePly == basePly &&
-            item.sanMoves.isNotEmpty &&
-            item.sanMoves.first == _variationSan.first,
-      );
-      _variations.add(updated);
+      final rootMainline = _rootMainline;
+      if (rootMainline != null && basePly > rootMainline.basePly) {
+        final children = List<RecordedVariation>.of(rootMainline.children)
+          ..removeWhere(
+            (item) =>
+                item.basePly == basePly &&
+                item.sanMoves.isNotEmpty &&
+                item.sanMoves.first == _variationSan.first,
+          )
+          ..add(updated);
+        _replaceVariation(
+          _variations,
+          rootMainline,
+          RecordedVariation(
+            basePly: rootMainline.basePly,
+            baseFen: rootMainline.baseFen,
+            sanMoves: rootMainline.sanMoves,
+            children: children,
+          ),
+        );
+        _openedVariation = updated;
+      } else {
+        _variations.removeWhere(
+          (item) =>
+              item.basePly == basePly &&
+              item.sanMoves.isNotEmpty &&
+              item.sanMoves.first == _variationSan.first,
+        );
+        _variations.add(updated);
+      }
     }
     _boardController.updatePosition(_boardGameData());
     setState(() {
+      _invalidateGraphAnalysisIfLineChanged(analysisMovesBefore);
       _variationReview = null;
       _variationMaiaMove = null;
     });
@@ -2686,15 +2964,91 @@ class _ReviewPageState extends State<ReviewPage> {
     }
   }
 
+  Future<StockfishReview> _stockfishForVariation(String fen) {
+    final cached = _variationReviewCache[fen];
+    if (cached != null) return Future.value(cached);
+    final pending = _pendingVariationReviews[fen];
+    if (pending != null) return pending;
+    final evaluate = widget.evaluator ?? StockfishAnalyzer.instance.evaluate;
+    late Future<StockfishReview> operation;
+    operation = evaluate(fen)
+        .then((review) {
+          _variationReviewCache[fen] = review;
+          return review;
+        })
+        .whenComplete(() {
+          if (identical(_pendingVariationReviews[fen], operation)) {
+            _pendingVariationReviews.remove(fen);
+          }
+        });
+    _pendingVariationReviews[fen] = operation;
+    return operation;
+  }
+
+  List<String> _variationHistory() => [
+    ...widget.positions.take((_variationBasePly ?? 0) + 1),
+    ..._variationPositions.skip(1).take(_variationIndex),
+  ];
+
+  String _variationHistoryKey(List<String> positions) => positions.join('\n');
+
+  Future<String?> _maiaForVariation(List<String> positions, String fen) {
+    final key = _variationHistoryKey(positions);
+    final cached = _variationMaiaCache[key];
+    if (cached != null) return Future.value(cached);
+    final pending = _pendingVariationMaia[key];
+    if (pending != null) return pending;
+    late Future<String?> operation;
+    operation = _runVariationMaia(positions, fen)
+        .then((move) {
+          if (move != null) _variationMaiaCache[key] = move;
+          return move;
+        })
+        .whenComplete(() {
+          if (identical(_pendingVariationMaia[key], operation)) {
+            _pendingVariationMaia.remove(key);
+          }
+        });
+    _pendingVariationMaia[key] = operation;
+    return operation;
+  }
+
+  Future<String?> _runVariationMaia(List<String> positions, String fen) async {
+    final injected = widget.maiaEvaluator;
+    if (injected != null) return injected(positions, widget.maiaElo);
+    if (widget.evaluator != null) return null;
+    final response = await MaiaInferenceQueue.predict({
+      'tokens': MaiaEncoding.historicalTokens(positions),
+      'selfElo': widget.maiaElo,
+      'opponentElo': widget.maiaElo,
+    }, replaceable: true);
+    if (response == null || response.length != 4352) return null;
+    final game = chess.Chess.fromFEN(fen);
+    if (game.game_over) return null;
+    final move = MaiaEncoding.sampleLegalMove(
+      game,
+      game.moves({'asObjects': true}).cast<chess.Move>().toList(),
+      response.cast<num>().map((value) => value.toDouble()).toList(),
+      temperature: 0,
+    );
+    return MaiaEncoding.uci(move);
+  }
+
   Future<void> _analyzeVariation() async {
     final fen = _currentFen;
+    final history = _variationHistory();
+    final historyKey = _variationHistoryKey(history);
+    final cachedReview = _variationReviewCache[fen];
+    final cachedMaia = _variationMaiaCache[historyKey];
     setState(() {
-      _variationLoading = true;
+      _variationReview = cachedReview;
+      _variationMaiaMove = cachedMaia;
+      _variationLoading = cachedReview == null;
+      _variationMaiaLoading = false;
       _variationError = null;
     });
     try {
-      final evaluate = widget.evaluator ?? StockfishAnalyzer.instance.evaluate;
-      final review = await evaluate(fen);
+      final review = cachedReview ?? await _stockfishForVariation(fen);
       if (!mounted || fen != _currentFen) return;
       setState(() => _variationReview = review);
     } catch (error, stackTrace) {
@@ -2709,43 +3063,14 @@ class _ReviewPageState extends State<ReviewPage> {
         setState(() => _variationLoading = false);
       }
     }
+    if (cachedMaia != null) return;
     if (mounted && fen == _currentFen) {
       setState(() => _variationMaiaLoading = true);
     }
     try {
-      final injected = widget.maiaEvaluator;
-      if (injected != null) {
-        final move = await injected([
-          ...widget.positions.take((_variationBasePly ?? 0) + 1),
-          ..._variationPositions.skip(1).take(_variationIndex),
-        ], widget.maiaElo);
-        if (move != null && mounted && fen == _currentFen) {
-          setState(() => _variationMaiaMove = move);
-        }
-        return;
-      }
-      if (widget.evaluator != null) return;
-      final response = await MaiaInferenceQueue.predict({
-        'tokens': MaiaEncoding.historicalTokens([
-          ...widget.positions.take((_variationBasePly ?? 0) + 1),
-          ..._variationPositions.skip(1).take(_variationIndex),
-        ]),
-        'selfElo': widget.maiaElo,
-        'opponentElo': widget.maiaElo,
-      }, replaceable: true);
-      if (response == null || response.length != 4352 || fen != _currentFen) {
-        return;
-      }
-      final game = chess.Chess.fromFEN(fen);
-      if (game.game_over) return;
-      final move = MaiaEncoding.sampleLegalMove(
-        game,
-        game.moves({'asObjects': true}).cast<chess.Move>().toList(),
-        response.cast<num>().map((value) => value.toDouble()).toList(),
-        temperature: 0,
-      );
-      if (mounted && fen == _currentFen) {
-        setState(() => _variationMaiaMove = MaiaEncoding.uci(move));
+      final move = await _maiaForVariation(history, fen);
+      if (move != null && mounted && fen == _currentFen) {
+        setState(() => _variationMaiaMove = move);
       }
     } catch (error, stackTrace) {
       unawaited(AppDiagnostics.record('maia-variation', error, stackTrace));
@@ -2995,6 +3320,7 @@ class _ReviewPageState extends State<ReviewPage> {
       ),
     );
     if (!mounted || action == null) return;
+    final analysisMovesBefore = List<String>.of(_computerAnalysisLine.uciMoves);
     setState(() {
       switch (action) {
         case 'collapse':
@@ -3020,6 +3346,9 @@ class _ReviewPageState extends State<ReviewPage> {
             promoted = next;
           }
           break;
+      }
+      if (action != 'collapse') {
+        _invalidateGraphAnalysisIfLineChanged(analysisMovesBefore);
       }
     });
     if (action == 'delete') {
@@ -3137,29 +3466,70 @@ class _ReviewPageState extends State<ReviewPage> {
     }
   }
 
+  void _invalidateGraphAnalysisState() {
+    _fullAnalysisGeneration++;
+    _fullAnalysisRunning = false;
+    _fullAnalysisClassifying = false;
+    _fullAnalysisCompleted = 0;
+    _graphScores = null;
+    _graphPositions = const [];
+    _graphMoves = const [];
+    _graphClassifications = const [];
+  }
+
+  void _invalidateGraphAnalysisIfLineChanged(List<String>? previousMoves) {
+    if (previousMoves == null) return;
+    final currentMoves = _computerAnalysisLine.uciMoves;
+    if (previousMoves.length == currentMoves.length) {
+      var unchanged = true;
+      for (var index = 0; index < previousMoves.length; index++) {
+        if (previousMoves[index] != currentMoves[index]) {
+          unchanged = false;
+          break;
+        }
+      }
+      if (unchanged) return;
+    }
+    _invalidateGraphAnalysisState();
+  }
+
   Future<void> _analyzeFullGame() async {
     if (_fullAnalysisRunning) return;
-    final positions = _computerAnalysisPositions;
+    final line = _computerAnalysisLine;
+    final positions = line.positions;
+    final generation = ++_fullAnalysisGeneration;
     setState(() {
       _fullAnalysisRunning = true;
+      _fullAnalysisClassifying = false;
       _fullAnalysisCompleted = 0;
       _graphScores = null;
+      _graphPositions = const [];
+      _graphMoves = const [];
+      _graphClassifications = const [];
       _analysisError = null;
     });
     final scores = <StockfishReview>[];
     final evaluate = widget.evaluator ?? StockfishAnalyzer.instance.evaluate;
-    for (var i = 0; i < positions.length && mounted; i++) {
+    for (var i = 0; i < positions.length; i++) {
+      if (!mounted || generation != _fullAnalysisGeneration) return;
       try {
-        final review =
-            i < widget.positions.length && positions[i] == widget.positions[i]
+        final matchesFixedMainline =
+            i < widget.positions.length && positions[i] == widget.positions[i];
+        if (matchesFixedMainline) {
+          await _pendingAnalyses[i];
+        }
+        if (!mounted || generation != _fullAnalysisGeneration) return;
+        final review = matchesFixedMainline
             ? (_reviews[i] ?? await evaluate(positions[i]))
             : await evaluate(positions[i]);
+        if (!mounted || generation != _fullAnalysisGeneration) return;
         scores.add(review);
         if (i < widget.positions.length &&
             positions[i] == widget.positions[i]) {
           _reviews[i] = review;
         }
       } catch (error, stackTrace) {
+        if (!mounted || generation != _fullAnalysisGeneration) return;
         unawaited(
           AppDiagnostics.record('stockfish-full-analysis', error, stackTrace),
         );
@@ -3168,31 +3538,117 @@ class _ReviewPageState extends State<ReviewPage> {
       }
       if (mounted) setState(() => _fullAnalysisCompleted = i + 1);
     }
-    if (!mounted) return;
-    setState(() {
-      if (scores.length == positions.length) {
-        _graphScores = List.unmodifiable(scores);
-      } else {
+    if (!mounted || generation != _fullAnalysisGeneration) return;
+    if (scores.length != positions.length) {
+      setState(() {
         _analysisError ??= 'Computer analysis did not complete. Try again.';
-      }
+        _fullAnalysisRunning = false;
+      });
+      return;
+    }
+
+    // Stockfish's complete graph and accuracy are already useful. Publish
+    // them immediately instead of making the user wait for the separate
+    // annotation heuristic, which can take a few more seconds on a phone.
+    setState(() {
+      _analysisError = null;
+      _graphScores = List.unmodifiable(scores);
+      _graphPositions = List.unmodifiable(positions);
+      _graphMoves = List.unmodifiable(line.uciMoves);
+      _fullAnalysisClassifying = true;
+    });
+    try {
+      final classify =
+          widget.classifier ?? MoveClassifier.classifyOffMainIsolate;
+      final classifications = await classify(
+        scores: scores,
+        positions: positions,
+        uciMoves: line.uciMoves,
+      );
+      if (!mounted || generation != _fullAnalysisGeneration) return;
+      setState(() => _graphClassifications = classifications);
+    } catch (error, stackTrace) {
+      if (!mounted || generation != _fullAnalysisGeneration) return;
+      unawaited(
+        AppDiagnostics.record('move-classification', error, stackTrace),
+      );
+      setState(() => _analysisError = 'Move classification failed: $error');
+    }
+    if (!mounted || generation != _fullAnalysisGeneration) return;
+    setState(() {
       _fullAnalysisRunning = false;
+      _fullAnalysisClassifying = false;
     });
   }
 
   Set<cg.Shape> get _arrows {
-    final move = _review?.bestMove ?? '';
+    final stockfishMoves = _stockfishMoves;
     final maiaMove = _inVariation
         ? _variationMaiaMove ?? ''
         : _maiaMoves[_ply] ?? '';
     final valid = RegExp(r'^[a-h][1-8][a-h][1-8][qrbn]?$');
     final arrows = <cg.Shape>{};
-    if (valid.hasMatch(move)) {
-      arrows.add(_arrow(move, const Color(0xff3d9be9)));
+    const stockfishColors = [Color(0xff3d9be9), Color(0xff8ac8f5)];
+    for (var index = 0; index < stockfishMoves.length; index++) {
+      final move = stockfishMoves[index];
+      if (move != maiaMove) {
+        arrows.add(_arrow(move, stockfishColors[index]));
+      }
     }
-    if (valid.hasMatch(maiaMove) && maiaMove != move) {
+    if (valid.hasMatch(maiaMove) && !stockfishMoves.contains(maiaMove)) {
       arrows.add(_arrow(maiaMove, const Color(0xffe89b3c)));
     }
     return arrows;
+  }
+
+  List<String> get _stockfishMoves {
+    final review = _review;
+    if (review == null) return const [];
+    final valid = RegExp(r'^[a-h][1-8][a-h][1-8][qrbn]?$');
+    final candidates = <String>[
+      if (review.lines.isNotEmpty && review.lines.first.moves.isNotEmpty)
+        review.lines.first.moves.first
+      else
+        review.bestMove,
+      if (review.lines.length > 1 && review.lines[1].moves.isNotEmpty)
+        review.lines[1].moves.first,
+    ];
+    return candidates
+        .where(valid.hasMatch)
+        .toSet()
+        .take(2)
+        .toList(growable: false);
+  }
+
+  ({String uci, Color tailColor})? get _agreementArrow {
+    final maiaMove = _inVariation
+        ? _variationMaiaMove ?? ''
+        : _maiaMoves[_ply] ?? '';
+    final index = _stockfishMoves.indexOf(maiaMove);
+    if (index < 0) return null;
+    return (
+      uci: maiaMove,
+      tailColor: index == 0 ? const Color(0xff3d9be9) : const Color(0xff8ac8f5),
+    );
+  }
+
+  MoveClassification? _classificationAt(int graphPly) => _graphClassifications
+      .where((move) => move.ply == graphPly)
+      .firstOrNull
+      ?.classification;
+
+  ({String square, MoveClassification classification})?
+  get _currentBoardAnnotation {
+    if (_inVariation && !identical(_openedVariation, _rootMainline)) {
+      return null;
+    }
+    final graphPly = _inVariation ? _variationIndex : _ply;
+    if (graphPly <= 0 || graphPly > _graphMoves.length) return null;
+    final classification = _classificationAt(graphPly);
+    if (classification == null) return null;
+    final uci = _graphMoves[graphPly - 1];
+    if (uci.length < 4) return null;
+    return (square: uci.substring(2, 4), classification: classification);
   }
 
   cg.Arrow _arrow(String uci, Color color) => cg.Arrow(
@@ -3258,6 +3714,9 @@ class _ReviewPageState extends State<ReviewPage> {
     final maiaLoading = _inVariation
         ? _variationMaiaLoading
         : _maiaLoading.contains(_ply);
+    final maiaStockfishIndex = maiaMove == null
+        ? -1
+        : _stockfishMoves.indexOf(maiaMove);
     Widget engineRow({
       required String label,
       required Color color,
@@ -3318,8 +3777,8 @@ class _ReviewPageState extends State<ReviewPage> {
                 ? maiaLoading
                       ? 'Analyzing…'
                       : '—'
-                : maiaMove == review?.bestMove
-                ? '${_sanForUci(_currentFen, maiaMove)} · Matches Stockfish'
+                : maiaStockfishIndex >= 0
+                ? '${_sanForUci(_currentFen, maiaMove)} · Matches Stockfish${maiaStockfishIndex == 0 ? '' : ' #2'}'
                 : _sanForUci(_currentFen, maiaMove),
           ),
         ],
@@ -3340,6 +3799,7 @@ class _ReviewPageState extends State<ReviewPage> {
     VoidCallback? onLongPress,
     Key? key,
     bool variation = false,
+    MoveClassification? classification,
   }) {
     final colors = Theme.of(context).colorScheme;
     return Material(
@@ -3356,11 +3816,13 @@ class _ReviewPageState extends State<ReviewPage> {
             vertical: variation ? 3 : 7,
           ),
           child: Text(
-            san,
+            '$san${classification?.symbol ?? ''}',
             style: TextStyle(
               fontSize: variation ? 14 : 16,
               fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-              color: selected ? colors.onPrimaryContainer : null,
+              color: selected
+                  ? colors.onPrimaryContainer
+                  : classification?.color,
             ),
           ),
         ),
@@ -3450,6 +3912,7 @@ class _ReviewPageState extends State<ReviewPage> {
       Widget move(int index) => _notationMove(
         key: ValueKey('mainline-move-$index'),
         san: rootMainline?.sanMoves[index] ?? widget.sanMoves[index],
+        classification: _classificationAt(index + 1),
         selected: rootMainline != null
             ? identical(_openedVariation, rootMainline) &&
                   _variationIndex == index + 1
@@ -3580,23 +4043,28 @@ class _ReviewPageState extends State<ReviewPage> {
       return Expanded(
         child: Tooltip(
           message: tooltip,
-          child: InkWell(
-            key: ValueKey(graph ? 'graph-tab' : 'moves-tab'),
-            onTap: () => setState(() => _showGraph = graph),
-            child: Container(
-              height: 32,
-              decoration: BoxDecoration(
-                border: Border(
-                  bottom: BorderSide(
-                    color: selected ? colors.primary : Colors.transparent,
-                    width: 2,
+          child: Semantics(
+            button: true,
+            selected: selected,
+            label: tooltip,
+            child: InkWell(
+              key: ValueKey(graph ? 'graph-tab' : 'moves-tab'),
+              onTap: () => setState(() => _showGraph = graph),
+              child: Container(
+                height: 48,
+                decoration: BoxDecoration(
+                  border: Border(
+                    bottom: BorderSide(
+                      color: selected ? colors.primary : Colors.transparent,
+                      width: 2,
+                    ),
                   ),
                 ),
-              ),
-              child: Icon(
-                icon,
-                size: 19,
-                color: selected ? colors.primary : colors.onSurfaceVariant,
+                child: Icon(
+                  icon,
+                  size: 21,
+                  color: selected ? colors.primary : colors.onSurfaceVariant,
+                ),
               ),
             ),
           ),
@@ -3627,19 +4095,23 @@ class _ReviewPageState extends State<ReviewPage> {
     children: [
       Expanded(child: _movesNotation()),
       SizedBox(
-        height: 42,
+        height: 52,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             IconButton(
+              key: const ValueKey('previous-move-button'),
               tooltip: 'Previous move',
+              constraints: const BoxConstraints(minWidth: 80, minHeight: 48),
               onPressed: (_inVariation ? _variationIndex == 0 : _ply == 0)
                   ? null
                   : () => _step(-1),
               icon: const Icon(Icons.chevron_left),
             ),
             IconButton(
+              key: const ValueKey('next-move-button'),
               tooltip: 'Next move',
+              constraints: const BoxConstraints(minWidth: 80, minHeight: 48),
               onPressed:
                   (_inVariation
                       ? _variationIndex == _variationSan.length
@@ -3665,12 +4137,36 @@ class _ReviewPageState extends State<ReviewPage> {
             const SizedBox(height: 8),
             AnalysisGraph(
               scores: scores,
+              positions: _graphPositions,
+              classifications: _graphClassifications,
               selectedPly: _rootMainline == null ? _ply : _variationIndex,
               onSelected: _showComputerAnalysisPly,
             ),
             const SizedBox(height: 8),
+            if (_fullAnalysisClassifying) ...[
+              const LinearProgressIndicator(),
+              const SizedBox(height: 8),
+              const Text(
+                'Graph ready · classifying moves…',
+                textAlign: TextAlign.center,
+              ),
+            ] else
+              MoveClassificationSummary(
+                moves: _graphClassifications,
+                selectedPly: _rootMainline == null ? _ply : _variationIndex,
+                onSelected: _showComputerAnalysisPly,
+              ),
+            if (_analysisError != null) ...[
+              const SizedBox(height: 8),
+              Text(
+                _analysisError!,
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ),
+            ],
+            const SizedBox(height: 8),
             TextButton.icon(
-              onPressed: _analyzeFullGame,
+              onPressed: _fullAnalysisRunning ? null : _analyzeFullGame,
               icon: const Icon(Icons.refresh),
               label: const Text('Run computer analysis again'),
             ),
@@ -3678,7 +4174,7 @@ class _ReviewPageState extends State<ReviewPage> {
         ),
       );
     }
-    final total = _computerAnalysisPositions.length;
+    final total = _computerAnalysisLine.positions.length;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -3687,10 +4183,18 @@ class _ReviewPageState extends State<ReviewPage> {
           children: [
             if (_fullAnalysisRunning) ...[
               LinearProgressIndicator(
-                value: total == 0 ? null : _fullAnalysisCompleted / total,
+                value: _fullAnalysisClassifying
+                    ? null
+                    : total == 0
+                    ? null
+                    : _fullAnalysisCompleted / total,
               ),
               const SizedBox(height: 10),
-              Text('Analyzing $_fullAnalysisCompleted of $total positions…'),
+              Text(
+                _fullAnalysisClassifying
+                    ? 'Classifying moves…'
+                    : 'Analyzing $_fullAnalysisCompleted of $total positions…',
+              ),
             ] else ...[
               const Text(
                 'Run computer analysis to generate the evaluation graph and White/Black accuracy.',
@@ -3728,6 +4232,11 @@ class _ReviewPageState extends State<ReviewPage> {
       ),
       if (_inVariation) ..._variationPositions.skip(1).take(_variationIndex),
     ]);
+    final boardOrientation = _flipped
+        ? (widget.playerIsWhite ? dc.Side.black : dc.Side.white)
+        : (widget.playerIsWhite ? dc.Side.white : dc.Side.black);
+    final agreement = _agreementArrow;
+    final boardAnnotation = _currentBoardAnnotation;
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
@@ -3839,23 +4348,42 @@ class _ReviewPageState extends State<ReviewPage> {
                           SizedBox(
                             width: boardSize,
                             height: boardSize,
-                            child: cg.Chessboard(
-                              controller: _boardController,
-                              size: boardSize,
-                              orientation: _flipped
-                                  ? (widget.playerIsWhite
-                                        ? dc.Side.black
-                                        : dc.Side.white)
-                                  : (widget.playerIsWhite
-                                        ? dc.Side.white
-                                        : dc.Side.black),
-                              onMove: _onAnalysisMove,
-                              shapes: _arrows,
-                              settings: const cg.ChessboardSettings(
-                                colorScheme: cg.ChessboardColorScheme.brown,
-                                pieceAssets: cg.PieceSet.cburnettAssets,
-                                enableCoordinates: true,
-                              ),
+                            child: Stack(
+                              children: [
+                                cg.Chessboard(
+                                  controller: _boardController,
+                                  size: boardSize,
+                                  orientation: boardOrientation,
+                                  onMove: _onAnalysisMove,
+                                  shapes: _arrows,
+                                  settings: const cg.ChessboardSettings(
+                                    colorScheme: cg.ChessboardColorScheme.brown,
+                                    pieceAssets: cg.PieceSet.cburnettAssets,
+                                    enableCoordinates: true,
+                                  ),
+                                ),
+                                if (agreement != null ||
+                                    boardAnnotation != null)
+                                  Positioned.fill(
+                                    child: IgnorePointer(
+                                      child: CustomPaint(
+                                        key: const ValueKey(
+                                          'review-board-overlay',
+                                        ),
+                                        painter: ReviewBoardOverlayPainter(
+                                          orientation: boardOrientation,
+                                          agreementUci: agreement?.uci,
+                                          agreementTailColor:
+                                              agreement?.tailColor,
+                                          annotationSquare:
+                                              boardAnnotation?.square,
+                                          classification:
+                                              boardAnnotation?.classification,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                              ],
                             ),
                           ),
                         ],
@@ -3899,6 +4427,570 @@ class _ReviewPageState extends State<ReviewPage> {
       ),
     );
   }
+}
+
+class ComputerAnalysisLine {
+  const ComputerAnalysisLine({required this.positions, required this.uciMoves});
+
+  final List<String> positions;
+  final List<String> uciMoves;
+}
+
+enum MoveClassification {
+  brilliant('!!', 'Brilliant', Color(0xff15aabf)),
+  good('!', 'Good', Color(0xff12b886)),
+  interesting('!?', 'Interesting', Color(0xff82c91e)),
+  dubious('?!', 'Dubious', Color(0xfffab005)),
+  mistake('?', 'Mistake', Color(0xfffd7e14)),
+  blunder('??', 'Blunder', Color(0xfffa5252));
+
+  const MoveClassification(this.symbol, this.label, this.color);
+
+  final String symbol;
+  final String label;
+  final Color color;
+}
+
+class ClassifiedMove {
+  const ClassifiedMove({required this.ply, required this.classification});
+
+  final int ply;
+  final MoveClassification classification;
+  bool get whiteMoved => ply.isOdd;
+}
+
+class MoveClassifier {
+  // This is a visual annotation heuristic, not the engine evaluation. Keep the
+  // quiescence probe deliberately small so a long review can never monopolize
+  // the UI; classification itself also runs outside the main isolate.
+  static const _captureSearchNodeLimit = 64;
+
+  static Future<List<ClassifiedMove>> classifyOffMainIsolate({
+    required List<StockfishReview> scores,
+    required List<String> positions,
+    required List<String> uciMoves,
+  }) {
+    // Threshold-only classification is cheap and common in injected tests or
+    // engines without MultiPV. The sacrifice heuristic is the expensive part.
+    if (!scores.any((score) => score.lines.length > 1)) {
+      return Future.value(
+        classify(scores: scores, positions: positions, uciMoves: uciMoves),
+      );
+    }
+    return Isolate.run(
+      () => classify(scores: scores, positions: positions, uciMoves: uciMoves),
+    );
+  }
+
+  static List<ClassifiedMove> classify({
+    required List<StockfishReview> scores,
+    required List<String> positions,
+    required List<String> uciMoves,
+  }) {
+    final count = min(
+      uciMoves.length,
+      min(max(0, scores.length - 1), max(0, positions.length - 1)),
+    );
+    final result = <ClassifiedMove>[];
+    final materialEvaluator = _NaiveMaterialEvaluator(
+      nodeLimit: _captureSearchNodeLimit,
+    );
+    for (var ply = 1; ply <= count; ply++) {
+      final whiteMoved = ply.isOdd;
+      final previous = _normalized(scores[ply - 1], whiteMoved);
+      final next = _normalized(scores[ply], whiteMoved);
+      final loss = _winChance(previous) - _winChance(next);
+      MoveClassification? classification;
+      if (loss > 20) {
+        classification = MoveClassification.blunder;
+      } else if (loss > 10) {
+        classification = MoveClassification.mistake;
+      } else if (loss > 5) {
+        classification = MoveClassification.dubious;
+      } else {
+        final previousReview = scores[ply - 1];
+        final lines = previousReview.lines;
+        if (lines.length > 1 &&
+            lines[0].moves.isNotEmpty &&
+            lines[1].moves.isNotEmpty) {
+          final best = _normalizedLine(lines[0], whiteMoved);
+          final second = _normalizedLine(lines[1], whiteMoved);
+          final isSacrifice = _isSacrifice(
+            positions[ply - 1],
+            positions[ply],
+            materialEvaluator,
+          );
+          if (_winChance(best) - _winChance(second) > 10 &&
+              uciMoves[ply - 1] == lines[0].moves.first) {
+            if (isSacrifice) {
+              classification = MoveClassification.brilliant;
+            } else {
+              final beforePrevious = ply > 1
+                  ? _normalized(scores[ply - 2], whiteMoved)
+                  : 0;
+              if (_winChance(best) - _winChance(beforePrevious) > 5) {
+                classification = MoveClassification.good;
+              }
+            }
+          } else if (isSacrifice && next > -200) {
+            classification = MoveClassification.interesting;
+          }
+        }
+      }
+      if (classification != null) {
+        result.add(ClassifiedMove(ply: ply, classification: classification));
+      }
+    }
+    return List.unmodifiable(result);
+  }
+
+  static int _normalized(StockfishReview review, bool whiteMoved) {
+    final value = review.mate == null
+        ? review.evaluation.clamp(-1000, 1000)
+        : 1000 * review.mate!.sign;
+    return whiteMoved ? value : -value;
+  }
+
+  static int _normalizedLine(StockfishLine line, bool whiteMoved) {
+    final value = line.mate == null
+        ? line.evaluation.clamp(-1000, 1000)
+        : 1000 * line.mate!.sign;
+    return whiteMoved ? value : -value;
+  }
+
+  static double _winChance(int centipawns) =>
+      50 + 50 * (2 / (1 + exp(-0.00368208 * centipawns)) - 1);
+
+  static bool _isSacrifice(
+    String beforeFen,
+    String afterFen,
+    _NaiveMaterialEvaluator evaluator,
+  ) {
+    final before = evaluator.evaluate(beforeFen);
+    final after = -evaluator.evaluate(afterFen);
+    return before > after + 100;
+  }
+
+  static int _materialForTurn(String fen) {
+    const values = {'p': 90, 'n': 300, 'b': 300, 'r': 500, 'q': 1000};
+    var white = 0;
+    var black = 0;
+    for (final rune in fen.split(' ').first.runes) {
+      final piece = String.fromCharCode(rune);
+      final value = values[piece.toLowerCase()] ?? 0;
+      if (piece == piece.toUpperCase()) {
+        white += value;
+      } else {
+        black += value;
+      }
+    }
+    final score = white - black;
+    return fen.split(' ')[1] == 'w' ? score : -score;
+  }
+
+  static int _pieceValue(chess.PieceType piece) => switch (piece.name) {
+    'p' => 90,
+    'n' || 'b' => 300,
+    'r' => 500,
+    'q' => 1000,
+    _ => 0,
+  };
+}
+
+class _NaiveMaterialEvaluator {
+  _NaiveMaterialEvaluator({required this.nodeLimit});
+
+  final int nodeLimit;
+  final Map<String, int> _cache = {};
+
+  int evaluate(String fen) => _cache.putIfAbsent(fen, () {
+    final position = chess.Chess.fromFEN(fen);
+    final moves = position
+        .moves({'asObjects': true})
+        .cast<chess.Move>()
+        .toList(growable: false);
+    if (moves.isEmpty) return position.in_checkmate ? -10000 : 0;
+    final budget = _CaptureSearchBudget(nodeLimit);
+    var best = -10000;
+    for (final move in moves) {
+      final next = chess.Chess.fromFEN(position.fen)..move(move);
+      best = max(best, -_captureSearch(next, -10000, 10000, budget));
+      if (budget.exhausted) break;
+    }
+    return best;
+  });
+
+  int _captureSearch(
+    chess.Chess position,
+    int alpha,
+    int beta,
+    _CaptureSearchBudget budget,
+  ) {
+    var lower = alpha;
+    final standPat = MoveClassifier._materialForTurn(position.fen);
+    if (!budget.takeNode()) return standPat;
+    if (standPat >= beta) return beta;
+    lower = max(lower, standPat);
+    final captures =
+        position
+            .moves({'asObjects': true})
+            .cast<chess.Move>()
+            .where((move) => move.captured != null)
+            .toList(growable: false)
+          ..sort(
+            (a, b) =>
+                MoveClassifier._pieceValue(b.captured!)
+                    .compareTo(MoveClassifier._pieceValue(a.captured!)),
+          );
+    for (final capture in captures) {
+      final next = chess.Chess.fromFEN(position.fen)..move(capture);
+      final value = -_captureSearch(next, -beta, -lower, budget);
+      if (value >= beta) return beta;
+      lower = max(lower, value);
+      if (budget.exhausted) break;
+    }
+    return lower;
+  }
+}
+
+class _CaptureSearchBudget {
+  _CaptureSearchBudget(this.remaining);
+
+  int remaining;
+  bool get exhausted => remaining <= 0;
+
+  bool takeNode() {
+    if (remaining <= 0) return false;
+    remaining--;
+    return true;
+  }
+}
+
+class MoveClassificationSummary extends StatelessWidget {
+  const MoveClassificationSummary({
+    required this.moves,
+    required this.selectedPly,
+    required this.onSelected,
+    super.key,
+  });
+
+  final List<ClassifiedMove> moves;
+  final int selectedPly;
+  final ValueChanged<int> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    Widget countButton(
+      List<ClassifiedMove> matches,
+      String side,
+      MoveClassification classification,
+    ) {
+      final selected = matches.any((move) => move.ply == selectedPly);
+      final next =
+          matches.where((move) => move.ply > selectedPly).firstOrNull ??
+          matches.firstOrNull;
+      final label = '${matches.length} $side ${classification.label} moves';
+      return SizedBox(
+        width: 48,
+        height: 48,
+        child: Semantics(
+          button: matches.isNotEmpty,
+          selected: selected,
+          label: label,
+          hint: matches.isEmpty ? null : 'Go to next',
+          child: Tooltip(
+            message: matches.isEmpty ? label : '$label · tap for next',
+            child: InkWell(
+              borderRadius: BorderRadius.circular(4),
+              onTap: next == null ? null : () => onSelected(next.ply),
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: selected
+                      ? classification.color.withValues(alpha: 0.18)
+                      : Colors.transparent,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Center(child: Text('${matches.length}')),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Card(
+      key: const ValueKey('move-classification-summary'),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        child: Column(
+          children: [
+            const Row(
+              children: [
+                SizedBox(
+                  width: 48,
+                  child: Text('W', textAlign: TextAlign.center),
+                ),
+                Expanded(child: SizedBox.shrink()),
+                SizedBox(
+                  width: 48,
+                  child: Text('B', textAlign: TextAlign.center),
+                ),
+              ],
+            ),
+            for (final classification in MoveClassification.values)
+              Builder(
+                builder: (context) {
+                  final white = moves
+                      .where(
+                        (move) =>
+                            move.whiteMoved &&
+                            move.classification == classification,
+                      )
+                      .toList(growable: false);
+                  final black = moves
+                      .where(
+                        (move) =>
+                            !move.whiteMoved &&
+                            move.classification == classification,
+                      )
+                      .toList(growable: false);
+                  return DefaultTextStyle.merge(
+                    style: TextStyle(color: classification.color),
+                    child: Row(
+                      children: [
+                        countButton(white, 'White', classification),
+                        SizedBox(
+                          width: 42,
+                          child: Text(
+                            classification.symbol,
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(fontWeight: FontWeight.w800),
+                          ),
+                        ),
+                        Expanded(
+                          child: Text(
+                            classification.label,
+                            style: const TextStyle(fontWeight: FontWeight.w600),
+                          ),
+                        ),
+                        countButton(black, 'Black', classification),
+                      ],
+                    ),
+                  );
+                },
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class GamePhases {
+  const GamePhases({this.middlegamePly, this.endgamePly});
+
+  final int? middlegamePly;
+  final int? endgamePly;
+}
+
+class GamePhaseDetector {
+  static GamePhases detect(List<String> positions) {
+    int? middlegame;
+    int? endgame;
+    for (var ply = 0; ply < positions.length; ply++) {
+      final board = _pieces(positions[ply]);
+      final majorMinorCount = board
+          .where((piece) => 'qrbn'.contains(piece.piece.toLowerCase()))
+          .length;
+      if (middlegame == null &&
+          (majorMinorCount <= 10 ||
+              _backrankSparse(board) ||
+              _mixedness(board) > 150)) {
+        middlegame = ply;
+      }
+      if (middlegame != null && endgame == null && majorMinorCount <= 6) {
+        endgame = ply;
+      }
+    }
+    return GamePhases(middlegamePly: middlegame, endgamePly: endgame);
+  }
+
+  static List<({String piece, int file, int rank})> _pieces(String fen) {
+    final result = <({String piece, int file, int rank})>[];
+    final ranks = fen.split(' ').first.split('/');
+    for (var row = 0; row < ranks.length; row++) {
+      var file = 0;
+      for (final rune in ranks[row].runes) {
+        final value = String.fromCharCode(rune);
+        final empty = int.tryParse(value);
+        if (empty != null) {
+          file += empty;
+        } else {
+          result.add((piece: value, file: file, rank: 7 - row));
+          file++;
+        }
+      }
+    }
+    return result;
+  }
+
+  static bool _backrankSparse(
+    List<({String piece, int file, int rank})> board,
+  ) {
+    final white = board
+        .where(
+          (piece) =>
+              piece.rank == 0 && piece.piece == piece.piece.toUpperCase(),
+        )
+        .length;
+    final black = board
+        .where(
+          (piece) =>
+              piece.rank == 7 && piece.piece == piece.piece.toLowerCase(),
+        )
+        .length;
+    return white < 4 || black < 4;
+  }
+
+  static int _mixedness(List<({String piece, int file, int rank})> board) {
+    var total = 0;
+    for (var y = 0; y <= 6; y++) {
+      for (var x = 0; x <= 6; x++) {
+        final region = board.where(
+          (piece) =>
+              piece.file >= x &&
+              piece.file <= x + 1 &&
+              piece.rank >= y &&
+              piece.rank <= y + 1,
+        );
+        final white = region
+            .where((piece) => piece.piece == piece.piece.toUpperCase())
+            .length;
+        final black = region.length - white;
+        total += _regionScore(y + 1, white, black);
+      }
+    }
+    return total;
+  }
+
+  static int _regionScore(int y, int white, int black) {
+    if (white == 0 && black == 0) return 0;
+    if (white == 1 && black == 0) return 1 + (8 - y);
+    if (white == 2 && black == 0) return y > 2 ? 2 + (y - 2) : 0;
+    if (white == 3 && black == 0) return y > 1 ? 3 + (y - 1) : 0;
+    if (white == 4 && black == 0) return y > 1 ? 3 + (y - 1) : 0;
+    if (white == 0 && black == 1) return 1 + y;
+    if (white == 1 && black == 1) return 5 + (4 - y).abs();
+    if (white == 2 && black == 1) return 4 + (y - 1);
+    if (white == 3 && black == 1) return 5 + (y - 1);
+    if (white == 0 && black == 2) return y < 6 ? 2 + (6 - y) : 0;
+    if (white == 1 && black == 2) return 4 + (7 - y);
+    if (white == 2 && black == 2) return 7;
+    if (white == 0 && black == 3) return y < 7 ? 3 + (7 - y) : 0;
+    if (white == 1 && black == 3) return 5 + (7 - y);
+    if (white == 0 && black == 4) return y < 7 ? 3 + (7 - y) : 0;
+    return 0;
+  }
+}
+
+class ReviewBoardOverlayPainter extends CustomPainter {
+  const ReviewBoardOverlayPainter({
+    required this.orientation,
+    this.agreementUci,
+    this.agreementTailColor,
+    this.annotationSquare,
+    this.classification,
+  });
+
+  final dc.Side orientation;
+  final String? agreementUci;
+  final Color? agreementTailColor;
+  final String? annotationSquare;
+  final MoveClassification? classification;
+
+  Offset _squareCenter(String square, double squareSize) {
+    final file = square.codeUnitAt(0) - 'a'.codeUnitAt(0);
+    final rank = int.parse(square[1]) - 1;
+    final x = orientation == dc.Side.white ? file : 7 - file;
+    final y = orientation == dc.Side.white ? 7 - rank : rank;
+    return Offset((x + 0.5) * squareSize, (y + 0.5) * squareSize);
+  }
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final squareSize = size.width / 8;
+    final agreement = agreementUci;
+    if (agreement != null && agreement.length >= 4) {
+      final from = _squareCenter(agreement.substring(0, 2), squareSize);
+      final to = _squareCenter(agreement.substring(2, 4), squareSize);
+      final angle = atan2(to.dy - from.dy, to.dx - from.dx);
+      final start = from + Offset(cos(angle), sin(angle)) * (squareSize / 3);
+      final arrowSize = squareSize * 0.48;
+      const arrowAngle = pi / 5;
+      final arrowHeight = arrowSize * sin((pi - arrowAngle * 2) / 2);
+      final headOffset = Offset(cos(angle), sin(angle)) * arrowHeight;
+      canvas.drawLine(
+        start,
+        to - headOffset,
+        Paint()
+          ..color = agreementTailColor ?? const Color(0xff3d9be9)
+          ..strokeWidth = squareSize / 4
+          ..strokeCap = StrokeCap.butt,
+      );
+      final head = Path()
+        ..moveTo(
+          to.dx - arrowSize * cos(angle - arrowAngle),
+          to.dy - arrowSize * sin(angle - arrowAngle),
+        )
+        ..lineTo(to.dx, to.dy)
+        ..lineTo(
+          to.dx - arrowSize * cos(angle + arrowAngle),
+          to.dy - arrowSize * sin(angle + arrowAngle),
+        )
+        ..close();
+      canvas.drawPath(head, Paint()..color = const Color(0xffe89b3c));
+    }
+
+    final square = annotationSquare;
+    final moveClass = classification;
+    if (square == null || moveClass == null) return;
+    final center = _squareCenter(square, squareSize);
+    canvas.drawRect(
+      Rect.fromCenter(center: center, width: squareSize, height: squareSize),
+      Paint()..color = moveClass.color.withValues(alpha: 0.22),
+    );
+    final badgeCenter = center + Offset(squareSize * 0.34, -squareSize * 0.34);
+    canvas.drawCircle(
+      badgeCenter + const Offset(0, 1),
+      squareSize * 0.24,
+      Paint()..color = Colors.black38,
+    );
+    canvas.drawCircle(
+      badgeCenter,
+      squareSize * 0.23,
+      Paint()..color = moveClass.color,
+    );
+    final text = TextPainter(
+      text: TextSpan(
+        text: moveClass.symbol,
+        style: TextStyle(
+          color: Colors.white,
+          fontSize: squareSize * (moveClass.symbol.length > 1 ? 0.25 : 0.32),
+          fontWeight: FontWeight.w900,
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+    )..layout();
+    text.paint(canvas, badgeCenter - Offset(text.width / 2, text.height / 2));
+  }
+
+  @override
+  bool shouldRepaint(covariant ReviewBoardOverlayPainter oldDelegate) =>
+      oldDelegate.orientation != orientation ||
+      oldDelegate.agreementUci != agreementUci ||
+      oldDelegate.agreementTailColor != agreementTailColor ||
+      oldDelegate.annotationSquare != annotationSquare ||
+      oldDelegate.classification != classification;
 }
 
 class GameAccuracy {
@@ -4038,12 +5130,16 @@ class AccuracySummary extends StatelessWidget {
 class AnalysisGraph extends StatelessWidget {
   const AnalysisGraph({
     required this.scores,
+    required this.positions,
+    required this.classifications,
     required this.selectedPly,
     required this.onSelected,
     super.key,
   });
 
   final List<StockfishReview> scores;
+  final List<String> positions;
+  final List<ClassifiedMove> classifications;
   final int selectedPly;
   final ValueChanged<int> onSelected;
 
@@ -4053,49 +5149,72 @@ class AnalysisGraph extends StatelessWidget {
     final scoreLabel = selected.mate == null
         ? '${selected.evaluation >= 0 ? '+' : ''}${(selected.evaluation / 100).toStringAsFixed(1)}'
         : '#${selected.mate}';
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(bottom: 4),
-          child: Text(
-            'Position ${selectedPly.clamp(0, scores.length - 1)} of ${scores.length - 1}  ·  $scoreLabel',
-            textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.labelMedium,
+    final boundedPly = selectedPly.clamp(0, scores.length - 1);
+    return Semantics(
+      label: 'Computer analysis graph',
+      value: 'Position $boundedPly of ${scores.length - 1}, $scoreLabel',
+      increasedValue: boundedPly < scores.length - 1
+          ? 'Position ${boundedPly + 1}'
+          : null,
+      decreasedValue: boundedPly > 0 ? 'Position ${boundedPly - 1}' : null,
+      onIncrease: boundedPly < scores.length - 1
+          ? () => onSelected(boundedPly + 1)
+          : null,
+      onDecrease: boundedPly > 0 ? () => onSelected(boundedPly - 1) : null,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(bottom: 4),
+            child: Text(
+              'Position $boundedPly of ${scores.length - 1}  ·  $scoreLabel',
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.labelMedium,
+            ),
           ),
-        ),
-        SizedBox(
-          height: 130,
-          width: double.infinity,
-          child: LayoutBuilder(
-            builder: (context, constraints) => GestureDetector(
-              onTapDown: (details) {
-                if (scores.length < 2) return;
-                final fraction =
-                    (details.localPosition.dx / constraints.maxWidth).clamp(
-                      0.0,
-                      1.0,
-                    );
-                onSelected((fraction * (scores.length - 1)).round());
-              },
-              child: CustomPaint(
-                painter: AnalysisGraphPainter(
-                  scores: scores,
-                  selectedPly: selectedPly,
+          SizedBox(
+            height: 130,
+            width: double.infinity,
+            child: LayoutBuilder(
+              builder: (context, constraints) => GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTapDown: (details) {
+                  if (scores.length < 2) return;
+                  final fraction =
+                      (details.localPosition.dx / constraints.maxWidth).clamp(
+                        0.0,
+                        1.0,
+                      );
+                  onSelected((fraction * (scores.length - 1)).round());
+                },
+                child: CustomPaint(
+                  painter: AnalysisGraphPainter(
+                    scores: scores,
+                    positions: positions,
+                    classifications: classifications,
+                    selectedPly: selectedPly,
+                  ),
                 ),
               ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
 
 class AnalysisGraphPainter extends CustomPainter {
-  AnalysisGraphPainter({required this.scores, required this.selectedPly});
+  AnalysisGraphPainter({
+    required this.scores,
+    this.positions = const [],
+    this.classifications = const [],
+    required this.selectedPly,
+  });
 
   final List<StockfishReview> scores;
+  final List<String> positions;
+  final List<ClassifiedMove> classifications;
   final int selectedPly;
 
   @override
@@ -4154,9 +5273,79 @@ class AnalysisGraphPainter extends CustomPainter {
         ..strokeWidth = 2
         ..style = PaintingStyle.stroke,
     );
+    final phases = GamePhaseDetector.detect(positions);
+    void phaseLine(int ply, String label) {
+      if (scores.length < 2 || ply <= 0 || ply >= scores.length) return;
+      final x = ply * size.width / (scores.length - 1);
+      final paint = Paint()
+        ..color = const Color(0xffa0a0a0)
+        ..strokeWidth = 1;
+      for (var y = 0.0; y < size.height; y += 8) {
+        canvas.drawLine(
+          Offset(x, y),
+          Offset(x, min(y + 4, size.height)),
+          paint,
+        );
+      }
+      final text = TextPainter(
+        text: TextSpan(
+          text: label,
+          style: const TextStyle(
+            color: Color(0xffd0d0d0),
+            fontSize: 10,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        textDirection: TextDirection.ltr,
+      )..layout(maxWidth: max(0.0, size.width - x - 4));
+      text.paint(canvas, Offset(min(x + 4, size.width - text.width), 4));
+    }
+
+    final initialPhase = phases.endgamePly == 0
+        ? 'Endgame'
+        : phases.middlegamePly == 0
+        ? 'Middlegame'
+        : 'Opening';
+    final opening = TextPainter(
+      text: TextSpan(
+        text: initialPhase,
+        style: const TextStyle(
+          color: Color(0xffd0d0d0),
+          fontSize: 10,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+    )..layout();
+    opening.paint(canvas, const Offset(5, 4));
+    if (phases.middlegamePly != null) {
+      phaseLine(phases.middlegamePly!, 'Middlegame');
+    }
+    if (phases.endgamePly != null) {
+      phaseLine(phases.endgamePly!, 'Endgame');
+    }
+    for (final move in classifications) {
+      if (move.ply < 0 || move.ply >= points.length) continue;
+      canvas.drawCircle(
+        points[move.ply],
+        4,
+        Paint()
+          ..color = move.classification.color
+          ..style = PaintingStyle.fill,
+      );
+      canvas.drawCircle(
+        points[move.ply],
+        4,
+        Paint()
+          ..color = const Color(0xffeeeeee)
+          ..strokeWidth = 1
+          ..style = PaintingStyle.stroke,
+      );
+    }
+    final boundedSelectedPly = selectedPly.clamp(0, scores.length - 1);
     final selectedX = scores.length == 1
         ? 0.0
-        : selectedPly * size.width / (scores.length - 1);
+        : boundedSelectedPly * size.width / (scores.length - 1);
     canvas.drawLine(
       Offset(selectedX, 0),
       Offset(selectedX, size.height),
@@ -4169,7 +5358,10 @@ class AnalysisGraphPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant AnalysisGraphPainter oldDelegate) =>
-      oldDelegate.selectedPly != selectedPly || oldDelegate.scores != scores;
+      oldDelegate.selectedPly != selectedPly ||
+      oldDelegate.scores != scores ||
+      oldDelegate.positions != positions ||
+      oldDelegate.classifications != classifications;
 }
 
 class EvaluationBar extends StatelessWidget {
@@ -4246,69 +5438,135 @@ class EvaluationBar extends StatelessWidget {
   }
 }
 
-class MaterialDifference extends StatelessWidget {
-  const MaterialDifference({required this.fen, super.key});
+class MaterialDifferenceSide {
+  const MaterialDifferenceSide({required this.pieces, required this.score});
 
-  final String fen;
+  final Map<String, int> pieces;
+  final int score;
+}
 
-  @override
-  Widget build(BuildContext context) {
-    final white = <String, int>{};
-    final black = <String, int>{};
+class MaterialDifferenceData {
+  const MaterialDifferenceData({required this.white, required this.black});
+
+  factory MaterialDifferenceData.fromFen(String fen) {
+    final whiteCount = <String, int>{};
+    final blackCount = <String, int>{};
     for (final rune in fen.split(' ').first.runes) {
       final piece = String.fromCharCode(rune);
       if (!'prnbqPRNBQ'.contains(piece)) continue;
-      final target = piece == piece.toUpperCase() ? white : black;
-      final key = piece.toLowerCase();
-      target[key] = (target[key] ?? 0) + 1;
+      final target = piece == piece.toUpperCase() ? whiteCount : blackCount;
+      final role = piece.toLowerCase();
+      target[role] = (target[role] ?? 0) + 1;
     }
     const values = {'p': 1, 'n': 3, 'b': 3, 'r': 5, 'q': 9};
-    const whiteGlyphs = {'q': '♕', 'r': '♖', 'b': '♗', 'n': '♘', 'p': '♙'};
-    const blackGlyphs = {'q': '♛', 'r': '♜', 'b': '♝', 'n': '♞', 'p': '♟'};
-    const order = ['q', 'r', 'b', 'n', 'p'];
-    final whiteExtras = <String>[];
-    final blackExtras = <String>[];
+    final whitePieces = <String, int>{};
+    final blackPieces = <String, int>{};
     var whiteScore = 0;
-    var blackScore = 0;
-    for (final piece in order) {
-      final difference = (white[piece] ?? 0) - (black[piece] ?? 0);
+    for (final role in values.keys) {
+      final difference = (whiteCount[role] ?? 0) - (blackCount[role] ?? 0);
+      whiteScore += values[role]! * difference;
       if (difference > 0) {
-        whiteExtras.addAll(List.filled(difference, blackGlyphs[piece]!));
-        whiteScore += values[piece]! * difference;
+        whitePieces[role] = difference;
       } else if (difference < 0) {
-        blackExtras.addAll(List.filled(-difference, whiteGlyphs[piece]!));
-        blackScore += values[piece]! * -difference;
+        blackPieces[role] = -difference;
       }
     }
-    final net = whiteScore - blackScore;
-    if (whiteExtras.isEmpty && blackExtras.isEmpty) {
-      return const SizedBox.shrink();
+    return MaterialDifferenceData(
+      white: MaterialDifferenceSide(
+        pieces: Map.unmodifiable(whitePieces),
+        score: whiteScore,
+      ),
+      black: MaterialDifferenceSide(
+        pieces: Map.unmodifiable(blackPieces),
+        score: -whiteScore,
+      ),
+    );
+  }
+
+  final MaterialDifferenceSide white;
+  final MaterialDifferenceSide black;
+
+  MaterialDifferenceSide byColor(chess.Color color) =>
+      color == chess.Color.WHITE ? white : black;
+}
+
+class MaterialDifference extends StatelessWidget {
+  const MaterialDifference({required this.fen, required this.side, super.key});
+
+  final String fen;
+  final chess.Color side;
+
+  // These are the exact private-use glyphs used by Lichess Mobile's
+  // MaterialDifferenceDisplay with its bundled LichessIcons font.
+  static const _icons = {
+    'b': IconData(0xf43a, fontFamily: 'LichessIcons'),
+    'n': IconData(0xf441, fontFamily: 'LichessIcons'),
+    'p': IconData(0xf443, fontFamily: 'LichessIcons'),
+    'q': IconData(0xf445, fontFamily: 'LichessIcons'),
+    'r': IconData(0xf447, fontFamily: 'LichessIcons'),
+  };
+  static const _names = {
+    'q': 'queen',
+    'r': 'rook',
+    'b': 'bishop',
+    'n': 'knight',
+    'p': 'pawn',
+  };
+  // Match dartchess Role.values as used by Lichess Mobile: low-value pieces
+  // first, then queen (king is omitted because it cannot be a material extra).
+  static const _order = ['p', 'n', 'b', 'r', 'q'];
+
+  @override
+  Widget build(BuildContext context) {
+    final difference = MaterialDifferenceData.fromFen(fen).byColor(side);
+    final pieces = <Icon>[];
+    final spoken = <String>[];
+    final mediaQuery = MediaQueryData.fromView(View.of(context));
+    final remainingHeight =
+        mediaQuery.size.height -
+        mediaQuery.viewPadding.vertical -
+        mediaQuery.size.width -
+        kToolbarHeight -
+        56;
+    final isShortScreen = remainingHeight < 200;
+    final iconSize = isShortScreen ? 11.0 : 13.0;
+    final textSize = isShortScreen ? 12.0 : 14.0;
+    final shade =
+        DefaultTextStyle.of(context).style.color?.withValues(alpha: 0.5) ??
+        Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5);
+    for (final role in _order) {
+      final count = difference.pieces[role] ?? 0;
+      pieces.addAll(
+        List.generate(
+          count,
+          (_) => Icon(_icons[role], size: iconSize, color: shade),
+        ),
+      );
+      if (count > 0) {
+        spoken.add('$count ${_names[role]}${count == 1 ? '' : 's'}');
+      }
     }
+    final sideName = side == chess.Color.WHITE ? 'White' : 'Black';
+    final score = difference.score > 0 ? '+${difference.score}' : '';
+    final description = [
+      if (spoken.isNotEmpty) spoken.join(', '),
+      if (score.isNotEmpty) '$score material advantage',
+    ].join(', ');
     return Semantics(
-      label: 'Material difference',
-      child: Padding(
-        padding: const EdgeInsets.only(top: 3),
+      key: ValueKey(
+        side == chess.Color.WHITE ? 'white-material' : 'black-material',
+      ),
+      label: '$sideName material${description.isEmpty ? '' : ': $description'}',
+      child: ExcludeSemantics(
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
           mainAxisSize: MainAxisSize.min,
           children: [
-            if (whiteExtras.isNotEmpty) ...[
-              Text(
-                whiteExtras.join(),
-                style: const TextStyle(fontSize: 15, height: 1),
-              ),
-              if (net > 0) Text(' +$net', style: const TextStyle(fontSize: 12)),
-            ],
-            if (whiteExtras.isNotEmpty && blackExtras.isNotEmpty)
-              const SizedBox(width: 12),
-            if (blackExtras.isNotEmpty) ...[
-              Text(
-                blackExtras.join(),
-                style: const TextStyle(fontSize: 15, height: 1),
-              ),
-              if (net < 0)
-                Text(' +${-net}', style: const TextStyle(fontSize: 12)),
-            ],
+            ...pieces,
+            const SizedBox(width: 3),
+            Text(
+              score,
+              style: TextStyle(color: shade, fontSize: textSize),
+            ),
           ],
         ),
       ),

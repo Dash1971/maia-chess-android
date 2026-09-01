@@ -14,6 +14,9 @@
 <li>A graphical position editor and persistent analysis variations</li>
 <li>Offline Stockfish evaluation and Maia move comparison</li>
 <li>Full-game accuracy scores and a navigable evaluation graph</li>
+<li>Brilliant, Good, Interesting, Dubious, Mistake, and Blunder move classifications</li>
+<li>Two Stockfish suggestions and visible Maia/Stockfish agreement</li>
+<li>Lichess-style material difference beside each player</li>
 <li>Offline opening names and ECO codes from the Lichess opening database</li>
 <li>PGN export with variations and game metadata</li>
 </ul>

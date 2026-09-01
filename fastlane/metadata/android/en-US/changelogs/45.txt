@@ -1,0 +1,1 @@
+Adds a richer, faster Game Review with move classifications, graph phase markers, two Stockfish choices, Maia agreement arrows, persistent analysis variations, and Lichess-style material display.
