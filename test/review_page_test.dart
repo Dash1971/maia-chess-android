@@ -339,6 +339,55 @@ void main() {
     expect(classify(-250), MoveClassification.blunder);
   });
 
+  test('move classification is symmetric and mate-aware', () {
+    const position = chess.Chess.DEFAULT_POSITION;
+    final blackBlunder = MoveClassifier.classify(
+      scores: const [
+        StockfishReview(0, ''),
+        StockfishReview(0, ''),
+        StockfishReview(250, ''),
+      ],
+      positions: const [position, position, position],
+      uciMoves: const ['e2e4', 'e7e5'],
+    );
+    final whiteMated = MoveClassifier.classify(
+      scores: const [StockfishReview(0, ''), StockfishReview(0, '', mate: -1)],
+      positions: const [position, position],
+      uciMoves: const ['f2f3'],
+    );
+
+    expect(blackBlunder.single.classification, MoveClassification.blunder);
+    expect(whiteMated.single.classification, MoveClassification.blunder);
+  });
+
+  test('a unique best material sacrifice is classified as brilliant', () {
+    const before = '6k1/7p/8/7Q/8/8/8/6K1 w - - 0 1';
+    final game = chess.Chess.fromFEN(before);
+    final move = game
+        .moves({'asObjects': true})
+        .cast<chess.Move>()
+        .firstWhere((candidate) => MaiaEncoding.uci(candidate) == 'h5h7');
+    expect(game.move(move), isTrue);
+
+    final classifications = MoveClassifier.classify(
+      scores: const [
+        StockfishReview(
+          300,
+          'h5h7',
+          lines: [
+            StockfishLine(evaluation: 300, moves: ['h5h7']),
+            StockfishLine(evaluation: -300, moves: ['h5h3']),
+          ],
+        ),
+        StockfishReview(300, ''),
+      ],
+      positions: [before, game.fen],
+      uciMoves: const ['h5h7'],
+    );
+
+    expect(classifications.single.classification, MoveClassification.brilliant);
+  });
+
   test('game phases use position features instead of fixed move numbers', () {
     const opening = chess.Chess.DEFAULT_POSITION;
     const middlegame = 'rn1qk1nr/pppppppp/8/8/8/8/PPPPPPPP/RN1QK1NR w - - 0 1';
@@ -351,6 +400,39 @@ void main() {
     ]);
     expect(phases.middlegamePly, 1);
     expect(phases.endgamePly, 2);
+  });
+
+  testWidgets('classification counts cycle through matching moves', (
+    tester,
+  ) async {
+    final selected = <int>[];
+    Future<void> pump(int selectedPly) => tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: MoveClassificationSummary(
+            moves: const [
+              ClassifiedMove(
+                ply: 1,
+                classification: MoveClassification.blunder,
+              ),
+              ClassifiedMove(
+                ply: 5,
+                classification: MoveClassification.blunder,
+              ),
+            ],
+            selectedPly: selectedPly,
+            onSelected: selected.add,
+          ),
+        ),
+      ),
+    );
+
+    await pump(1);
+    await tester.tap(find.text('2'));
+    expect(selected, [5]);
+    await pump(5);
+    await tester.tap(find.text('2'));
+    expect(selected, [5, 1]);
   });
 
   testWidgets('review page uses a fixed internally scrolling tab panel', (
@@ -390,6 +472,10 @@ void main() {
     expect(
       tester.getSize(find.byKey(const ValueKey('next-move-button'))).width,
       greaterThanOrEqualTo(80),
+    );
+    expect(
+      tester.getSize(find.byKey(const ValueKey('graph-tab'))).height,
+      greaterThanOrEqualTo(48),
     );
     expect(find.byType(ActionChip), findsNothing);
     expect(find.text('1.'), findsOneWidget);
@@ -560,6 +646,53 @@ void main() {
       expect(board.controller.fen, replay.fen);
     },
   );
+
+  testWidgets('editing an analyzed root line clears stale graph annotations', (
+    tester,
+  ) async {
+    final game = chess.Chess()..move('f3');
+    final afterF3 = game.fen;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: ReviewPage(
+          positions: const [chess.Chess.DEFAULT_POSITION],
+          uciMoves: const [],
+          sanMoves: const [],
+          playerIsWhite: true,
+          pgn: '*',
+          initialVariations: const [
+            RecordedVariation(
+              basePly: 0,
+              baseFen: chess.Chess.DEFAULT_POSITION,
+              sanMoves: ['f3'],
+            ),
+          ],
+          onHome: () {},
+          onSessionChanged: (_, _, _) async {},
+          evaluator: (fen) async => fen == afterF3
+              ? const StockfishReview(-250, 'e7e5')
+              : const StockfishReview(0, 'e2e4'),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Computer analysis'));
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('run-computer-analysis')));
+    await tester.pumpAndSettle();
+    expect(find.byType(AnalysisGraph), findsOneWidget);
+
+    tester.widget<AnalysisGraph>(find.byType(AnalysisGraph)).onSelected(1);
+    await tester.pumpAndSettle();
+    final board = tester.widget<cg.Chessboard>(find.byType(cg.Chessboard));
+    board.onMove!(dc.NormalMove.fromUci('e7e5'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(AnalysisGraph), findsNothing);
+    expect(find.text('Run computer analysis'), findsOneWidget);
+    expect(find.byKey(const ValueKey('review-board-overlay')), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
 
   testWidgets('evaluation bar uses signed Lichess-style score', (tester) async {
     await tester.pumpWidget(
@@ -975,6 +1108,7 @@ void main() {
     const start = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
     const after = 'rnbqkbnr/pppp1ppp/8/4p3/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 2';
     final firstEvaluation = Completer<StockfishReview>();
+    var startEvaluations = 0;
     await tester.pumpWidget(
       MaterialApp(
         home: ReviewPage(
@@ -984,9 +1118,13 @@ void main() {
           playerIsWhite: true,
           pgn: '1... e5',
           onHome: () {},
-          evaluator: (fen) => fen == start
-              ? firstEvaluation.future
-              : Future.value(const StockfishReview(-40, 'g1f3')),
+          evaluator: (fen) {
+            if (fen == start) {
+              startEvaluations++;
+              return firstEvaluation.future;
+            }
+            return Future.value(const StockfishReview(-40, 'g1f3'));
+          },
         ),
       ),
     );
@@ -1009,6 +1147,7 @@ void main() {
     );
     final painter = paint.painter! as AnalysisGraphPainter;
     expect(painter.scores.first.evaluation, 120);
+    expect(startEvaluations, 1);
   });
 
   testWidgets('graph selection is bounded by per-ply SAN labels', (

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:isolate';
 import 'dart:math';
 import 'dart:ui' as ui;
 
@@ -2457,7 +2458,9 @@ class _ReviewPageState extends State<ReviewPage> {
   String? _analysisError;
   bool _flipped = false;
   bool _fullAnalysisRunning = false;
+  bool _fullAnalysisClassifying = false;
   int _fullAnalysisCompleted = 0;
+  int _fullAnalysisGeneration = 0;
   List<StockfishReview>? _graphScores;
   List<String> _graphPositions = const [];
   List<String> _graphMoves = const [];
@@ -2653,6 +2656,9 @@ class _ReviewPageState extends State<ReviewPage> {
 
   void _onAnalysisMove(dc.Move move, {bool? viaDragAndDrop}) {
     if (!_boardPosition.isLegal(move)) return;
+    final analysisMovesBefore = widget.onSessionChanged == null
+        ? null
+        : List<String>.of(_computerAnalysisLine.uciMoves);
     final fenBefore = _boardPosition.fen;
     final uci = move.uci;
     final sanGame = chess.Chess.fromFEN(fenBefore);
@@ -2719,6 +2725,7 @@ class _ReviewPageState extends State<ReviewPage> {
       _variationIndex = 1;
       _boardController.updatePosition(_boardGameData());
       setState(() {
+        _invalidateGraphAnalysisIfLineChanged(analysisMovesBefore);
         _variationReview = null;
         _variationMaiaMove = null;
       });
@@ -2758,6 +2765,7 @@ class _ReviewPageState extends State<ReviewPage> {
     }
     _boardController.updatePosition(_boardGameData());
     setState(() {
+      _invalidateGraphAnalysisIfLineChanged(analysisMovesBefore);
       _variationReview = null;
       _variationMaiaMove = null;
     });
@@ -3110,6 +3118,7 @@ class _ReviewPageState extends State<ReviewPage> {
       ),
     );
     if (!mounted || action == null) return;
+    final analysisMovesBefore = List<String>.of(_computerAnalysisLine.uciMoves);
     setState(() {
       switch (action) {
         case 'collapse':
@@ -3135,6 +3144,9 @@ class _ReviewPageState extends State<ReviewPage> {
             promoted = next;
           }
           break;
+      }
+      if (action != 'collapse') {
+        _invalidateGraphAnalysisIfLineChanged(analysisMovesBefore);
       }
     });
     if (action == 'delete') {
@@ -3252,12 +3264,41 @@ class _ReviewPageState extends State<ReviewPage> {
     }
   }
 
+  void _invalidateGraphAnalysisState() {
+    _fullAnalysisGeneration++;
+    _fullAnalysisRunning = false;
+    _fullAnalysisClassifying = false;
+    _fullAnalysisCompleted = 0;
+    _graphScores = null;
+    _graphPositions = const [];
+    _graphMoves = const [];
+    _graphClassifications = const [];
+  }
+
+  void _invalidateGraphAnalysisIfLineChanged(List<String>? previousMoves) {
+    if (previousMoves == null) return;
+    final currentMoves = _computerAnalysisLine.uciMoves;
+    if (previousMoves.length == currentMoves.length) {
+      var unchanged = true;
+      for (var index = 0; index < previousMoves.length; index++) {
+        if (previousMoves[index] != currentMoves[index]) {
+          unchanged = false;
+          break;
+        }
+      }
+      if (unchanged) return;
+    }
+    _invalidateGraphAnalysisState();
+  }
+
   Future<void> _analyzeFullGame() async {
     if (_fullAnalysisRunning) return;
     final line = _computerAnalysisLine;
     final positions = line.positions;
+    final generation = ++_fullAnalysisGeneration;
     setState(() {
       _fullAnalysisRunning = true;
+      _fullAnalysisClassifying = false;
       _fullAnalysisCompleted = 0;
       _graphScores = null;
       _graphPositions = const [];
@@ -3267,18 +3308,26 @@ class _ReviewPageState extends State<ReviewPage> {
     });
     final scores = <StockfishReview>[];
     final evaluate = widget.evaluator ?? StockfishAnalyzer.instance.evaluate;
-    for (var i = 0; i < positions.length && mounted; i++) {
+    for (var i = 0; i < positions.length; i++) {
+      if (!mounted || generation != _fullAnalysisGeneration) return;
       try {
-        final review =
-            i < widget.positions.length && positions[i] == widget.positions[i]
+        final matchesFixedMainline =
+            i < widget.positions.length && positions[i] == widget.positions[i];
+        if (matchesFixedMainline) {
+          await _pendingAnalyses[i];
+        }
+        if (!mounted || generation != _fullAnalysisGeneration) return;
+        final review = matchesFixedMainline
             ? (_reviews[i] ?? await evaluate(positions[i]))
             : await evaluate(positions[i]);
+        if (!mounted || generation != _fullAnalysisGeneration) return;
         scores.add(review);
         if (i < widget.positions.length &&
             positions[i] == widget.positions[i]) {
           _reviews[i] = review;
         }
       } catch (error, stackTrace) {
+        if (!mounted || generation != _fullAnalysisGeneration) return;
         unawaited(
           AppDiagnostics.record('stockfish-full-analysis', error, stackTrace),
         );
@@ -3287,21 +3336,36 @@ class _ReviewPageState extends State<ReviewPage> {
       }
       if (mounted) setState(() => _fullAnalysisCompleted = i + 1);
     }
-    if (!mounted) return;
-    setState(() {
-      if (scores.length == positions.length) {
-        _graphScores = List.unmodifiable(scores);
-        _graphPositions = List.unmodifiable(positions);
-        _graphMoves = List.unmodifiable(line.uciMoves);
-        _graphClassifications = MoveClassifier.classify(
+    if (!mounted || generation != _fullAnalysisGeneration) return;
+    var classifications = const <ClassifiedMove>[];
+    if (scores.length == positions.length) {
+      setState(() => _fullAnalysisClassifying = true);
+      try {
+        classifications = await MoveClassifier.classifyOffMainIsolate(
           scores: scores,
           positions: positions,
           uciMoves: line.uciMoves,
         );
+      } catch (error, stackTrace) {
+        if (!mounted || generation != _fullAnalysisGeneration) return;
+        unawaited(
+          AppDiagnostics.record('move-classification', error, stackTrace),
+        );
+        _analysisError = 'Move classification failed: $error';
+      }
+    }
+    if (!mounted || generation != _fullAnalysisGeneration) return;
+    setState(() {
+      if (scores.length == positions.length && _analysisError == null) {
+        _graphScores = List.unmodifiable(scores);
+        _graphPositions = List.unmodifiable(positions);
+        _graphMoves = List.unmodifiable(line.uciMoves);
+        _graphClassifications = classifications;
       } else {
         _analysisError ??= 'Computer analysis did not complete. Try again.';
       }
       _fullAnalysisRunning = false;
+      _fullAnalysisClassifying = false;
     });
   }
 
@@ -3767,23 +3831,28 @@ class _ReviewPageState extends State<ReviewPage> {
       return Expanded(
         child: Tooltip(
           message: tooltip,
-          child: InkWell(
-            key: ValueKey(graph ? 'graph-tab' : 'moves-tab'),
-            onTap: () => setState(() => _showGraph = graph),
-            child: Container(
-              height: 32,
-              decoration: BoxDecoration(
-                border: Border(
-                  bottom: BorderSide(
-                    color: selected ? colors.primary : Colors.transparent,
-                    width: 2,
+          child: Semantics(
+            button: true,
+            selected: selected,
+            label: tooltip,
+            child: InkWell(
+              key: ValueKey(graph ? 'graph-tab' : 'moves-tab'),
+              onTap: () => setState(() => _showGraph = graph),
+              child: Container(
+                height: 48,
+                decoration: BoxDecoration(
+                  border: Border(
+                    bottom: BorderSide(
+                      color: selected ? colors.primary : Colors.transparent,
+                      width: 2,
+                    ),
                   ),
                 ),
-              ),
-              child: Icon(
-                icon,
-                size: 19,
-                color: selected ? colors.primary : colors.onSurfaceVariant,
+                child: Icon(
+                  icon,
+                  size: 21,
+                  color: selected ? colors.primary : colors.onSurfaceVariant,
+                ),
               ),
             ),
           ),
@@ -3864,6 +3933,7 @@ class _ReviewPageState extends State<ReviewPage> {
             const SizedBox(height: 8),
             MoveClassificationSummary(
               moves: _graphClassifications,
+              selectedPly: _rootMainline == null ? _ply : _variationIndex,
               onSelected: _showComputerAnalysisPly,
             ),
             const SizedBox(height: 8),
@@ -3885,10 +3955,18 @@ class _ReviewPageState extends State<ReviewPage> {
           children: [
             if (_fullAnalysisRunning) ...[
               LinearProgressIndicator(
-                value: total == 0 ? null : _fullAnalysisCompleted / total,
+                value: _fullAnalysisClassifying
+                    ? null
+                    : total == 0
+                    ? null
+                    : _fullAnalysisCompleted / total,
               ),
               const SizedBox(height: 10),
-              Text('Analyzing $_fullAnalysisCompleted of $total positions…'),
+              Text(
+                _fullAnalysisClassifying
+                    ? 'Classifying moves…'
+                    : 'Analyzing $_fullAnalysisCompleted of $total positions…',
+              ),
             ] else ...[
               const Text(
                 'Run computer analysis to generate the evaluation graph and White/Black accuracy.',
@@ -4154,6 +4232,28 @@ class ClassifiedMove {
 }
 
 class MoveClassifier {
+  // This is a visual annotation heuristic, not the engine evaluation. Keep the
+  // quiescence probe deliberately small so a long review can never monopolize
+  // the UI; classification itself also runs outside the main isolate.
+  static const _captureSearchNodeLimit = 64;
+
+  static Future<List<ClassifiedMove>> classifyOffMainIsolate({
+    required List<StockfishReview> scores,
+    required List<String> positions,
+    required List<String> uciMoves,
+  }) {
+    // Threshold-only classification is cheap and common in injected tests or
+    // engines without MultiPV. The sacrifice heuristic is the expensive part.
+    if (!scores.any((score) => score.lines.length > 1)) {
+      return Future.value(
+        classify(scores: scores, positions: positions, uciMoves: uciMoves),
+      );
+    }
+    return Isolate.run(
+      () => classify(scores: scores, positions: positions, uciMoves: uciMoves),
+    );
+  }
+
   static List<ClassifiedMove> classify({
     required List<StockfishReview> scores,
     required List<String> positions,
@@ -4164,6 +4264,9 @@ class MoveClassifier {
       min(max(0, scores.length - 1), max(0, positions.length - 1)),
     );
     final result = <ClassifiedMove>[];
+    final materialEvaluator = _NaiveMaterialEvaluator(
+      nodeLimit: _captureSearchNodeLimit,
+    );
     for (var ply = 1; ply <= count; ply++) {
       final whiteMoved = ply.isOdd;
       final previous = _normalized(scores[ply - 1], whiteMoved);
@@ -4184,7 +4287,11 @@ class MoveClassifier {
             lines[1].moves.isNotEmpty) {
           final best = _normalizedLine(lines[0], whiteMoved);
           final second = _normalizedLine(lines[1], whiteMoved);
-          final isSacrifice = _isSacrifice(positions[ply - 1], positions[ply]);
+          final isSacrifice = _isSacrifice(
+            positions[ply - 1],
+            positions[ply],
+            materialEvaluator,
+          );
           if (_winChance(best) - _winChance(second) > 10 &&
               uciMoves[ply - 1] == lines[0].moves.first) {
             if (isSacrifice) {
@@ -4226,48 +4333,14 @@ class MoveClassifier {
   static double _winChance(int centipawns) =>
       50 + 50 * (2 / (1 + exp(-0.00368208 * centipawns)) - 1);
 
-  static bool _isSacrifice(String beforeFen, String afterFen) {
-    final before = _naiveEvaluation(chess.Chess.fromFEN(beforeFen));
-    final after = -_naiveEvaluation(chess.Chess.fromFEN(afterFen));
+  static bool _isSacrifice(
+    String beforeFen,
+    String afterFen,
+    _NaiveMaterialEvaluator evaluator,
+  ) {
+    final before = evaluator.evaluate(beforeFen);
+    final after = -evaluator.evaluate(afterFen);
     return before > after + 100;
-  }
-
-  static int _naiveEvaluation(chess.Chess position) {
-    final moves = position
-        .moves({'asObjects': true})
-        .cast<chess.Move>()
-        .toList(growable: false);
-    if (moves.isEmpty) return position.in_checkmate ? -10000 : 0;
-    var best = -10000;
-    for (final move in moves) {
-      final next = chess.Chess.fromFEN(position.fen)..move(move);
-      best = max(best, -_captureSearch(next, -10000, 10000));
-    }
-    return best;
-  }
-
-  static int _captureSearch(chess.Chess position, int alpha, int beta) {
-    var lower = alpha;
-    final standPat = _materialForTurn(position.fen);
-    if (standPat >= beta) return beta;
-    lower = max(lower, standPat);
-    final captures =
-        position
-            .moves({'asObjects': true})
-            .cast<chess.Move>()
-            .where((move) => move.captured != null)
-            .toList(growable: false)
-          ..sort(
-            (a, b) =>
-                _pieceValue(b.captured!).compareTo(_pieceValue(a.captured!)),
-          );
-    for (final capture in captures) {
-      final next = chess.Chess.fromFEN(position.fen)..move(capture);
-      final value = -_captureSearch(next, -beta, -lower);
-      if (value >= beta) return beta;
-      lower = max(lower, value);
-    }
-    return lower;
   }
 
   static int _materialForTurn(String fen) {
@@ -4296,27 +4369,127 @@ class MoveClassifier {
   };
 }
 
+class _NaiveMaterialEvaluator {
+  _NaiveMaterialEvaluator({required this.nodeLimit});
+
+  final int nodeLimit;
+  final Map<String, int> _cache = {};
+
+  int evaluate(String fen) => _cache.putIfAbsent(fen, () {
+    final position = chess.Chess.fromFEN(fen);
+    final moves = position
+        .moves({'asObjects': true})
+        .cast<chess.Move>()
+        .toList(growable: false);
+    if (moves.isEmpty) return position.in_checkmate ? -10000 : 0;
+    final budget = _CaptureSearchBudget(nodeLimit);
+    var best = -10000;
+    for (final move in moves) {
+      final next = chess.Chess.fromFEN(position.fen)..move(move);
+      best = max(best, -_captureSearch(next, -10000, 10000, budget));
+      if (budget.exhausted) break;
+    }
+    return best;
+  });
+
+  int _captureSearch(
+    chess.Chess position,
+    int alpha,
+    int beta,
+    _CaptureSearchBudget budget,
+  ) {
+    var lower = alpha;
+    final standPat = MoveClassifier._materialForTurn(position.fen);
+    if (!budget.takeNode()) return standPat;
+    if (standPat >= beta) return beta;
+    lower = max(lower, standPat);
+    final captures =
+        position
+            .moves({'asObjects': true})
+            .cast<chess.Move>()
+            .where((move) => move.captured != null)
+            .toList(growable: false)
+          ..sort(
+            (a, b) =>
+                MoveClassifier._pieceValue(b.captured!)
+                    .compareTo(MoveClassifier._pieceValue(a.captured!)),
+          );
+    for (final capture in captures) {
+      final next = chess.Chess.fromFEN(position.fen)..move(capture);
+      final value = -_captureSearch(next, -beta, -lower, budget);
+      if (value >= beta) return beta;
+      lower = max(lower, value);
+      if (budget.exhausted) break;
+    }
+    return lower;
+  }
+}
+
+class _CaptureSearchBudget {
+  _CaptureSearchBudget(this.remaining);
+
+  int remaining;
+  bool get exhausted => remaining <= 0;
+
+  bool takeNode() {
+    if (remaining <= 0) return false;
+    remaining--;
+    return true;
+  }
+}
+
 class MoveClassificationSummary extends StatelessWidget {
   const MoveClassificationSummary({
     required this.moves,
+    required this.selectedPly,
     required this.onSelected,
     super.key,
   });
 
   final List<ClassifiedMove> moves;
+  final int selectedPly;
   final ValueChanged<int> onSelected;
 
   @override
   Widget build(BuildContext context) {
-    Widget countButton(List<ClassifiedMove> matches) => SizedBox(
-      width: 48,
-      height: 30,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(4),
-        onTap: matches.isEmpty ? null : () => onSelected(matches.first.ply),
-        child: Center(child: Text('${matches.length}')),
-      ),
-    );
+    Widget countButton(
+      List<ClassifiedMove> matches,
+      String side,
+      MoveClassification classification,
+    ) {
+      final selected = matches.any((move) => move.ply == selectedPly);
+      final next =
+          matches.where((move) => move.ply > selectedPly).firstOrNull ??
+          matches.firstOrNull;
+      final label = '${matches.length} $side ${classification.label} moves';
+      return SizedBox(
+        width: 48,
+        height: 48,
+        child: Semantics(
+          button: matches.isNotEmpty,
+          selected: selected,
+          label: label,
+          hint: matches.isEmpty ? null : 'Go to next',
+          child: Tooltip(
+            message: matches.isEmpty ? label : '$label · tap for next',
+            child: InkWell(
+              borderRadius: BorderRadius.circular(4),
+              onTap: next == null ? null : () => onSelected(next.ply),
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: selected
+                      ? classification.color.withValues(alpha: 0.18)
+                      : Colors.transparent,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Center(child: Text('${matches.length}')),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
     return Card(
       key: const ValueKey('move-classification-summary'),
       child: Padding(
@@ -4357,7 +4530,7 @@ class MoveClassificationSummary extends StatelessWidget {
                     style: TextStyle(color: classification.color),
                     child: Row(
                       children: [
-                        countButton(white),
+                        countButton(white, 'White', classification),
                         SizedBox(
                           width: 42,
                           child: Text(
@@ -4372,7 +4545,7 @@ class MoveClassificationSummary extends StatelessWidget {
                             style: const TextStyle(fontWeight: FontWeight.w600),
                           ),
                         ),
-                        countButton(black),
+                        countButton(black, 'Black', classification),
                       ],
                     ),
                   );
@@ -4748,43 +4921,57 @@ class AnalysisGraph extends StatelessWidget {
     final scoreLabel = selected.mate == null
         ? '${selected.evaluation >= 0 ? '+' : ''}${(selected.evaluation / 100).toStringAsFixed(1)}'
         : '#${selected.mate}';
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(bottom: 4),
-          child: Text(
-            'Position ${selectedPly.clamp(0, scores.length - 1)} of ${scores.length - 1}  ·  $scoreLabel',
-            textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.labelMedium,
+    final boundedPly = selectedPly.clamp(0, scores.length - 1);
+    return Semantics(
+      label: 'Computer analysis graph',
+      value: 'Position $boundedPly of ${scores.length - 1}, $scoreLabel',
+      increasedValue: boundedPly < scores.length - 1
+          ? 'Position ${boundedPly + 1}'
+          : null,
+      decreasedValue: boundedPly > 0 ? 'Position ${boundedPly - 1}' : null,
+      onIncrease: boundedPly < scores.length - 1
+          ? () => onSelected(boundedPly + 1)
+          : null,
+      onDecrease: boundedPly > 0 ? () => onSelected(boundedPly - 1) : null,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(bottom: 4),
+            child: Text(
+              'Position $boundedPly of ${scores.length - 1}  ·  $scoreLabel',
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.labelMedium,
+            ),
           ),
-        ),
-        SizedBox(
-          height: 130,
-          width: double.infinity,
-          child: LayoutBuilder(
-            builder: (context, constraints) => GestureDetector(
-              onTapDown: (details) {
-                if (scores.length < 2) return;
-                final fraction =
-                    (details.localPosition.dx / constraints.maxWidth).clamp(
-                      0.0,
-                      1.0,
-                    );
-                onSelected((fraction * (scores.length - 1)).round());
-              },
-              child: CustomPaint(
-                painter: AnalysisGraphPainter(
-                  scores: scores,
-                  positions: positions,
-                  classifications: classifications,
-                  selectedPly: selectedPly,
+          SizedBox(
+            height: 130,
+            width: double.infinity,
+            child: LayoutBuilder(
+              builder: (context, constraints) => GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTapDown: (details) {
+                  if (scores.length < 2) return;
+                  final fraction =
+                      (details.localPosition.dx / constraints.maxWidth).clamp(
+                        0.0,
+                        1.0,
+                      );
+                  onSelected((fraction * (scores.length - 1)).round());
+                },
+                child: CustomPaint(
+                  painter: AnalysisGraphPainter(
+                    scores: scores,
+                    positions: positions,
+                    classifications: classifications,
+                    selectedPly: selectedPly,
+                  ),
                 ),
               ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
@@ -4927,9 +5114,10 @@ class AnalysisGraphPainter extends CustomPainter {
           ..style = PaintingStyle.stroke,
       );
     }
+    final boundedSelectedPly = selectedPly.clamp(0, scores.length - 1);
     final selectedX = scores.length == 1
         ? 0.0
-        : selectedPly * size.width / (scores.length - 1);
+        : boundedSelectedPly * size.width / (scores.length - 1);
     canvas.drawLine(
       Offset(selectedX, 0),
       Offset(selectedX, size.height),
