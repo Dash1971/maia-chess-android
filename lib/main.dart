@@ -337,6 +337,28 @@ class ActiveSessionStore {
 }
 
 class PgnVariationExporter {
+  static List<RecordedVariation> annotationsForMainline(
+    List<String> mainSan,
+    List<RecordedVariation> reviewTree,
+  ) {
+    final rootIndex = reviewTree.indexWhere(
+      (line) =>
+          line.basePly == 0 &&
+          line.sanMoves.length == mainSan.length &&
+          List.generate(
+            mainSan.length,
+            (index) => line.sanMoves[index] == mainSan[index],
+          ).every((matches) => matches),
+    );
+    if (rootIndex < 0) return List.unmodifiable(reviewTree);
+    final root = reviewTree[rootIndex];
+    return List.unmodifiable([
+      ...root.children,
+      for (var index = 0; index < reviewTree.length; index++)
+        if (index != rootIndex) reviewTree[index],
+    ]);
+  }
+
   static String export(
     String pgn,
     List<String> mainSan,
@@ -592,6 +614,7 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
   final List<ClockSnapshot> _clockHistory = [];
   int _gameGeneration = 0;
   bool _reviewOpen = false;
+  bool _advancedExpanded = false;
   final Random _timingRandom = Random.secure();
 
   bool get _playerIsWhite => _playerColor == chess.Color.WHITE;
@@ -699,7 +722,7 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
                     initialCurrentFen: saved['currentFen'] as String?,
                     initialFlipped: saved['flipped'] as bool? ?? false,
                     onSessionChanged: (fen, flipped, updated) =>
-                        _saveReviewState(
+                        _handleReviewSessionChanged(
                           session,
                           saved['playerIsWhite'] as bool? ?? true,
                           fen,
@@ -842,6 +865,29 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
     'playerIsWhite': playerIsWhite,
     'maiaElo': _analysisElo,
   });
+
+  Future<void> _handleReviewSessionChanged(
+    AnalysisSession session,
+    bool playerIsWhite,
+    String currentFen,
+    bool flipped,
+    List<RecordedVariation> variations,
+  ) {
+    final annotations = PgnVariationExporter.annotationsForMainline(
+      session.sanMoves,
+      variations,
+    );
+    _takebackVariations
+      ..clear()
+      ..addAll(annotations);
+    return _saveReviewState(
+      session,
+      playerIsWhite,
+      currentFen,
+      flipped,
+      variations,
+    );
+  }
 
   Future<void> _loadEnginePreferences() async {
     final preferences = await SharedPreferences.getInstance();
@@ -1384,6 +1430,39 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
     unawaited(ActiveSessionStore.clear());
   }
 
+  Future<bool> _confirmEraseCurrentGame() async =>
+      await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Erase current game?'),
+          content: const Text(
+            'This will erase the current game. Are you sure?',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Erase'),
+            ),
+          ],
+        ),
+      ) ??
+      false;
+
+  Future<void> _requestHome() async {
+    if (!await _confirmEraseCurrentGame() || !mounted) return;
+    _goHome();
+    Navigator.of(context).popUntil((route) => route.isFirst);
+  }
+
+  Future<void> _requestNewGame() async {
+    if (!await _confirmEraseCurrentGame() || !mounted) return;
+    _startGame();
+  }
+
   void _takeBack() {
     if (!_started || !_canTakeBack) return;
     _gameGeneration++;
@@ -1488,18 +1567,20 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
           initialVariations: initialVariations,
           maiaElo: _analysisElo,
           initialCurrentFen: session.positions.last,
-          onSessionChanged: (fen, flipped, variations) => _saveReviewState(
-            session,
-            _playerIsWhite,
-            fen,
-            flipped,
-            variations,
-          ),
+          onSessionChanged: (fen, flipped, variations) =>
+              _handleReviewSessionChanged(
+                session,
+                _playerIsWhite,
+                fen,
+                flipped,
+                variations,
+              ),
           onHome: _goHome,
         ),
       ),
     );
     _reviewOpen = false;
+    unawaited(_saveGameState());
   }
 
   String _exportPgn() {
@@ -1522,13 +1603,21 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
       appBar: AppBar(
         title: const Text('Mobile Maia Preview'),
         actions: [
+          if (_started)
+            IconButton(
+              key: const ValueKey('game-home-button'),
+              onPressed: _requestHome,
+              icon: const Icon(Icons.home_outlined),
+              tooltip: 'Home',
+            ),
           IconButton(
             onPressed: _showAbout,
             icon: const Icon(Icons.info_outline),
             tooltip: 'About',
           ),
           IconButton(
-            onPressed: _started ? _startGame : null,
+            key: const ValueKey('new-game-button'),
+            onPressed: _started ? _requestNewGame : null,
             icon: const Icon(Icons.refresh),
             tooltip: 'New game',
           ),
@@ -1684,15 +1773,18 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
             ExpansionTile(
               tilePadding: EdgeInsets.zero,
               childrenPadding: EdgeInsets.zero,
+              onExpansionChanged: (expanded) =>
+                  setState(() => _advancedExpanded = expanded),
               title: Row(
                 children: [
                   const Expanded(child: Text('Advanced')),
-                  IconButton(
-                    key: const ValueKey('sampling-help'),
-                    tooltip: 'About Temperature and Top-P',
-                    onPressed: _showSamplingHelp,
-                    icon: const Icon(Icons.help_outline),
-                  ),
+                  if (_advancedExpanded)
+                    IconButton(
+                      key: const ValueKey('sampling-help'),
+                      tooltip: 'About Temperature and Top-P',
+                      onPressed: _showSamplingHelp,
+                      icon: const Icon(Icons.help_outline),
+                    ),
                 ],
               ),
               subtitle: const Text('Timing and move sampling'),
@@ -1929,11 +2021,6 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
                 onPressed: _startGame,
                 icon: const Icon(Icons.replay),
                 label: const Text('Rematch'),
-              ),
-              TextButton.icon(
-                onPressed: _goHome,
-                icon: const Icon(Icons.home_outlined),
-                label: const Text('Home'),
               ),
             ],
           ],
@@ -2397,6 +2484,12 @@ class _BoardEditorPageState extends State<BoardEditorPage> {
   }
 }
 
+typedef MoveClassificationRunner = Future<List<ClassifiedMove>> Function({
+  required List<StockfishReview> scores,
+  required List<String> positions,
+  required List<String> uciMoves,
+});
+
 class ReviewPage extends StatefulWidget {
   const ReviewPage({
     required this.positions,
@@ -2409,6 +2502,7 @@ class ReviewPage extends StatefulWidget {
     required this.onHome,
     this.evaluator,
     this.maiaEvaluator,
+    this.classifier,
     this.title = 'Game review',
     this.onLoadFen,
     this.onLoadPgn,
@@ -2431,6 +2525,7 @@ class ReviewPage extends StatefulWidget {
   final Future<StockfishReview> Function(String fen)? evaluator;
   final Future<String?> Function(List<String> positions, int elo)?
   maiaEvaluator;
+  final MoveClassificationRunner? classifier;
   final String title;
   final Future<void> Function()? onLoadFen;
   final Future<void> Function()? onLoadPgn;
@@ -2755,13 +2850,36 @@ class _ReviewPageState extends State<ReviewPage> {
       _replaceVariation(_variations, opened, updated);
       _openedVariation = updated;
     } else {
-      _variations.removeWhere(
-        (item) =>
-            item.basePly == basePly &&
-            item.sanMoves.isNotEmpty &&
-            item.sanMoves.first == _variationSan.first,
-      );
-      _variations.add(updated);
+      final rootMainline = _rootMainline;
+      if (rootMainline != null && basePly > rootMainline.basePly) {
+        final children = List<RecordedVariation>.of(rootMainline.children)
+          ..removeWhere(
+            (item) =>
+                item.basePly == basePly &&
+                item.sanMoves.isNotEmpty &&
+                item.sanMoves.first == _variationSan.first,
+          )
+          ..add(updated);
+        _replaceVariation(
+          _variations,
+          rootMainline,
+          RecordedVariation(
+            basePly: rootMainline.basePly,
+            baseFen: rootMainline.baseFen,
+            sanMoves: rootMainline.sanMoves,
+            children: children,
+          ),
+        );
+        _openedVariation = updated;
+      } else {
+        _variations.removeWhere(
+          (item) =>
+              item.basePly == basePly &&
+              item.sanMoves.isNotEmpty &&
+              item.sanMoves.first == _variationSan.first,
+        );
+        _variations.add(updated);
+      }
     }
     _boardController.updatePosition(_boardGameData());
     setState(() {
@@ -3337,33 +3455,43 @@ class _ReviewPageState extends State<ReviewPage> {
       if (mounted) setState(() => _fullAnalysisCompleted = i + 1);
     }
     if (!mounted || generation != _fullAnalysisGeneration) return;
-    var classifications = const <ClassifiedMove>[];
-    if (scores.length == positions.length) {
-      setState(() => _fullAnalysisClassifying = true);
-      try {
-        classifications = await MoveClassifier.classifyOffMainIsolate(
-          scores: scores,
-          positions: positions,
-          uciMoves: line.uciMoves,
-        );
-      } catch (error, stackTrace) {
-        if (!mounted || generation != _fullAnalysisGeneration) return;
-        unawaited(
-          AppDiagnostics.record('move-classification', error, stackTrace),
-        );
-        _analysisError = 'Move classification failed: $error';
-      }
+    if (scores.length != positions.length) {
+      setState(() {
+        _analysisError ??= 'Computer analysis did not complete. Try again.';
+        _fullAnalysisRunning = false;
+      });
+      return;
+    }
+
+    // Stockfish's complete graph and accuracy are already useful. Publish
+    // them immediately instead of making the user wait for the separate
+    // annotation heuristic, which can take a few more seconds on a phone.
+    setState(() {
+      _analysisError = null;
+      _graphScores = List.unmodifiable(scores);
+      _graphPositions = List.unmodifiable(positions);
+      _graphMoves = List.unmodifiable(line.uciMoves);
+      _fullAnalysisClassifying = true;
+    });
+    try {
+      final classify =
+          widget.classifier ?? MoveClassifier.classifyOffMainIsolate;
+      final classifications = await classify(
+        scores: scores,
+        positions: positions,
+        uciMoves: line.uciMoves,
+      );
+      if (!mounted || generation != _fullAnalysisGeneration) return;
+      setState(() => _graphClassifications = classifications);
+    } catch (error, stackTrace) {
+      if (!mounted || generation != _fullAnalysisGeneration) return;
+      unawaited(
+        AppDiagnostics.record('move-classification', error, stackTrace),
+      );
+      setState(() => _analysisError = 'Move classification failed: $error');
     }
     if (!mounted || generation != _fullAnalysisGeneration) return;
     setState(() {
-      if (scores.length == positions.length && _analysisError == null) {
-        _graphScores = List.unmodifiable(scores);
-        _graphPositions = List.unmodifiable(positions);
-        _graphMoves = List.unmodifiable(line.uciMoves);
-        _graphClassifications = classifications;
-      } else {
-        _analysisError ??= 'Computer analysis did not complete. Try again.';
-      }
       _fullAnalysisRunning = false;
       _fullAnalysisClassifying = false;
     });
@@ -3931,14 +4059,30 @@ class _ReviewPageState extends State<ReviewPage> {
               onSelected: _showComputerAnalysisPly,
             ),
             const SizedBox(height: 8),
-            MoveClassificationSummary(
-              moves: _graphClassifications,
-              selectedPly: _rootMainline == null ? _ply : _variationIndex,
-              onSelected: _showComputerAnalysisPly,
-            ),
+            if (_fullAnalysisClassifying) ...[
+              const LinearProgressIndicator(),
+              const SizedBox(height: 8),
+              const Text(
+                'Graph ready · classifying moves…',
+                textAlign: TextAlign.center,
+              ),
+            ] else
+              MoveClassificationSummary(
+                moves: _graphClassifications,
+                selectedPly: _rootMainline == null ? _ply : _variationIndex,
+                onSelected: _showComputerAnalysisPly,
+              ),
+            if (_analysisError != null) ...[
+              const SizedBox(height: 8),
+              Text(
+                _analysisError!,
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ),
+            ],
             const SizedBox(height: 8),
             TextButton.icon(
-              onPressed: _analyzeFullGame,
+              onPressed: _fullAnalysisRunning ? null : _analyzeFullGame,
               icon: const Icon(Icons.refresh),
               label: const Text('Run computer analysis again'),
             ),
