@@ -1025,6 +1025,56 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('variation analysis is reused when navigating an explored line', (
+    tester,
+  ) async {
+    const start = chess.Chess.DEFAULT_POSITION;
+    var stockfishCalls = 0;
+    var maiaCalls = 0;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: ReviewPage(
+          positions: const [start],
+          uciMoves: const [],
+          sanMoves: const [],
+          playerIsWhite: true,
+          pgn: '[Result "*"]\n\n*',
+          onHome: () {},
+          evaluator: (fen) async {
+            stockfishCalls++;
+            final turn = fen.split(' ')[1];
+            return StockfishReview(0, turn == 'w' ? 'g1f3' : 'e7e5');
+          },
+          maiaEvaluator: (positions, _) async {
+            maiaCalls++;
+            final turn = positions.last.split(' ')[1];
+            return turn == 'w' ? 'g1f3' : 'e7e5';
+          },
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    var board = tester.widget<cg.Chessboard>(find.byType(cg.Chessboard));
+    board.onMove!(dc.NormalMove.fromUci('e2e4'));
+    await tester.pumpAndSettle();
+    board = tester.widget<cg.Chessboard>(find.byType(cg.Chessboard));
+    board.onMove!(dc.NormalMove.fromUci('e7e5'));
+    await tester.pumpAndSettle();
+    final stockfishAfterPlaying = stockfishCalls;
+    final maiaAfterPlaying = maiaCalls;
+
+    await tester.ensureVisible(find.byTooltip('Previous move'));
+    await tester.tap(find.byTooltip('Previous move'));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.byTooltip('Next move'));
+    await tester.tap(find.byTooltip('Next move'));
+    await tester.pumpAndSettle();
+
+    expect(stockfishCalls, stockfishAfterPlaying);
+    expect(maiaCalls, maiaAfterPlaying);
+  });
+
   testWidgets('Maia engine row is stable when Maia matches Stockfish', (
     tester,
   ) async {
@@ -1578,17 +1628,85 @@ void main() {
     expect(review.whiteWinningChances, lessThan(-0.99));
   });
 
+  test('material arithmetic matches Lichess side-relative scoring', () {
+    const fen = 'r5k1/3Q1pp1/2p4p/4P1b1/p3R3/3P4/6PP/R5K1 w - - 0 1';
+    final difference = MaterialDifferenceData.fromFen(fen);
+
+    expect(difference.white.score, 10);
+    expect(difference.black.score, -10);
+    expect(difference.white.pieces, {'q': 1, 'r': 1});
+    expect(difference.black.pieces, {'p': 1, 'b': 1});
+  });
+
+  testWidgets('material icons use Lichess role order and positive-side score', (
+    tester,
+  ) async {
+    const fen = 'r5k1/3Q1pp1/2p4p/4P1b1/p3R3/3P4/6PP/R5K1 w - - 0 1';
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: Column(
+            children: [
+              MaterialDifference(fen: fen, side: chess.Color.WHITE),
+              MaterialDifference(fen: fen, side: chess.Color.BLACK),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('♜♛'), findsOneWidget);
+    expect(find.text('♟♝'), findsOneWidget);
+    expect(find.text('+10'), findsOneWidget);
+  });
+
   testWidgets('material display preserves bishop versus knight imbalance', (
     tester,
   ) async {
     const fen = '4k3/8/8/8/8/8/8/2B1K1n1 w - - 0 1';
     await tester.pumpWidget(
       const MaterialApp(
-        home: Scaffold(body: MaterialDifference(fen: fen)),
+        home: Scaffold(
+          body: Column(
+            children: [
+              MaterialDifference(fen: fen, side: chess.Color.WHITE),
+              MaterialDifference(fen: fen, side: chess.Color.BLACK),
+            ],
+          ),
+        ),
       ),
     );
 
     expect(find.text('♝'), findsOneWidget);
-    expect(find.text('♘'), findsOneWidget);
+    expect(find.text('♞'), findsOneWidget);
+    expect(find.textContaining('+'), findsNothing);
+  });
+
+  testWidgets('material rows stay on the matching side of the board', (
+    tester,
+  ) async {
+    const fen = 'rnbqk1nr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: GamePage(
+          startingFen: fen,
+          startingSide: PlayerSide.white,
+          startingElo: 1600,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+
+    final board = tester.getRect(find.byType(cg.StaticChessboard));
+    final blackMaterial = tester.getRect(
+      find.byKey(const ValueKey('black-material')),
+    );
+    final whiteMaterial = tester.getRect(
+      find.byKey(const ValueKey('white-material')),
+    );
+    expect(blackMaterial.bottom, lessThanOrEqualTo(board.top));
+    expect(whiteMaterial.top, greaterThanOrEqualTo(board.bottom));
+    expect(find.text('+3'), findsOneWidget);
   });
 }

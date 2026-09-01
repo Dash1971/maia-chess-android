@@ -614,6 +614,7 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
   final List<ClockSnapshot> _clockHistory = [];
   int _gameGeneration = 0;
   bool _reviewOpen = false;
+  List<RecordedVariation>? _reviewVariationSnapshot;
   bool _advancedExpanded = false;
   final Random _timingRandom = Random.secure();
 
@@ -873,13 +874,27 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
     bool flipped,
     List<RecordedVariation> variations,
   ) {
-    final annotations = PgnVariationExporter.annotationsForMainline(
-      session.sanMoves,
-      variations,
-    );
-    _takebackVariations
-      ..clear()
-      ..addAll(annotations);
+    final previous = _reviewVariationSnapshot;
+    var variationsChanged =
+        previous == null || previous.length != variations.length;
+    if (!variationsChanged) {
+      for (var index = 0; index < variations.length; index++) {
+        if (!identical(previous[index], variations[index])) {
+          variationsChanged = true;
+          break;
+        }
+      }
+    }
+    if (variationsChanged) {
+      final annotations = PgnVariationExporter.annotationsForMainline(
+        session.sanMoves,
+        variations,
+      );
+      _takebackVariations
+        ..clear()
+        ..addAll(annotations);
+      _reviewVariationSnapshot = List.unmodifiable(variations);
+    }
     return _saveReviewState(
       session,
       playerIsWhite,
@@ -1053,6 +1068,7 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
         ..add(_game.fen);
       _uciMoves.clear();
       _takebackVariations.clear();
+      _reviewVariationSnapshot = null;
       _selectedSquare = null;
       _premoveFrom = null;
       _premoveTo = null;
@@ -1639,25 +1655,20 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
                       if (_started) ...[
                         _statusCard(),
                         const SizedBox(height: 12),
-                        if (_clockEnabled) ...[
-                          _clockTile(
-                            _playerIsWhite
-                                ? chess.Color.BLACK
-                                : chess.Color.WHITE,
-                            'Maia',
-                          ),
-                          const SizedBox(height: 6),
-                        ],
+                        _playerInfoRow(
+                          _playerIsWhite
+                              ? chess.Color.BLACK
+                              : chess.Color.WHITE,
+                          'Maia',
+                        ),
+                        const SizedBox(height: 4),
                         SizedBox(
                           width: boardSize,
                           height: boardSize,
                           child: _board(),
                         ),
-                        if (_clockEnabled) ...[
-                          const SizedBox(height: 6),
-                          _clockTile(_playerColor, 'You'),
-                        ],
-                        MaterialDifference(fen: _game.fen),
+                        const SizedBox(height: 4),
+                        _playerInfoRow(_playerColor, 'You'),
                         const SizedBox(height: 12),
                         _gameInfoCard(),
                       ],
@@ -1902,31 +1913,44 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
     );
   }
 
-  Widget _clockTile(chess.Color color, String label) {
+  Widget _playerInfoRow(chess.Color color, String label) {
+    return SizedBox(
+      height: _clockEnabled ? 44 : 24,
+      child: Row(
+        children: [
+          Text(label, style: const TextStyle(fontWeight: FontWeight.w600)),
+          const SizedBox(width: 8),
+          Expanded(
+            child: MaterialDifference(fen: _game.fen, side: color),
+          ),
+          if (_clockEnabled) _clockTile(color),
+        ],
+      ),
+    );
+  }
+
+  Widget _clockTile(chess.Color color) {
     final milliseconds = _liveMillis(color);
     final urgent = milliseconds < 10000;
-    return Align(
-      alignment: Alignment.centerRight,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        decoration: BoxDecoration(
-          color: _game.turn == color && !_gameFinished
-              ? const Color(0xfff0f0f0)
-              : const Color(0xff343735),
-          borderRadius: BorderRadius.circular(6),
-        ),
-        child: Text(
-          '$label  ${_formatClock(milliseconds)}',
-          style: TextStyle(
-            color: urgent
-                ? Colors.redAccent
-                : _game.turn == color && !_gameFinished
-                ? Colors.black
-                : Colors.white70,
-            fontSize: 20,
-            fontWeight: FontWeight.w700,
-            fontFeatures: const [FontFeature.tabularFigures()],
-          ),
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: _game.turn == color && !_gameFinished
+            ? const Color(0xfff0f0f0)
+            : const Color(0xff343735),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Text(
+        _formatClock(milliseconds),
+        style: TextStyle(
+          color: urgent
+              ? Colors.redAccent
+              : _game.turn == color && !_gameFinished
+              ? Colors.black
+              : Colors.white70,
+          fontSize: 20,
+          fontWeight: FontWeight.w700,
+          fontFeatures: const [FontFeature.tabularFigures()],
         ),
       ),
     );
@@ -2576,6 +2600,11 @@ class _ReviewPageState extends State<ReviewPage> {
   bool _variationLoading = false;
   bool _variationMaiaLoading = false;
   String? _variationError;
+  final Map<String, StockfishReview> _variationReviewCache = {};
+  final Map<String, Future<StockfishReview>> _pendingVariationReviews = {};
+  final Map<String, String> _variationMaiaCache = {};
+  final Map<String, Future<String?>> _pendingVariationMaia = {};
+  bool _sessionNotificationScheduled = false;
   final Set<String> _collapsedVariationKeys = {};
 
   bool get _inVariation => _variationBasePly != null;
@@ -2689,11 +2718,19 @@ class _ReviewPageState extends State<ReviewPage> {
 
   void _notifySessionChanged() {
     final callback = widget.onSessionChanged;
-    if (callback != null) {
+    if (callback == null || _sessionNotificationScheduled) return;
+    _sessionNotificationScheduled = true;
+    // Persist the potentially large review tree only after Flutter has painted
+    // the move. Game Review also derives export annotations here, so doing the
+    // work synchronously made a played variation feel heavier than the same
+    // move on a short Analysis Board session.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _sessionNotificationScheduled = false;
+      if (!mounted) return;
       unawaited(
         callback(_currentFen, _flipped, List.unmodifiable(_variations)),
       );
-    }
+    });
   }
 
   @override
@@ -2927,15 +2964,91 @@ class _ReviewPageState extends State<ReviewPage> {
     }
   }
 
+  Future<StockfishReview> _stockfishForVariation(String fen) {
+    final cached = _variationReviewCache[fen];
+    if (cached != null) return Future.value(cached);
+    final pending = _pendingVariationReviews[fen];
+    if (pending != null) return pending;
+    final evaluate = widget.evaluator ?? StockfishAnalyzer.instance.evaluate;
+    late Future<StockfishReview> operation;
+    operation = evaluate(fen)
+        .then((review) {
+          _variationReviewCache[fen] = review;
+          return review;
+        })
+        .whenComplete(() {
+          if (identical(_pendingVariationReviews[fen], operation)) {
+            _pendingVariationReviews.remove(fen);
+          }
+        });
+    _pendingVariationReviews[fen] = operation;
+    return operation;
+  }
+
+  List<String> _variationHistory() => [
+    ...widget.positions.take((_variationBasePly ?? 0) + 1),
+    ..._variationPositions.skip(1).take(_variationIndex),
+  ];
+
+  String _variationHistoryKey(List<String> positions) => positions.join('\n');
+
+  Future<String?> _maiaForVariation(List<String> positions, String fen) {
+    final key = _variationHistoryKey(positions);
+    final cached = _variationMaiaCache[key];
+    if (cached != null) return Future.value(cached);
+    final pending = _pendingVariationMaia[key];
+    if (pending != null) return pending;
+    late Future<String?> operation;
+    operation = _runVariationMaia(positions, fen)
+        .then((move) {
+          if (move != null) _variationMaiaCache[key] = move;
+          return move;
+        })
+        .whenComplete(() {
+          if (identical(_pendingVariationMaia[key], operation)) {
+            _pendingVariationMaia.remove(key);
+          }
+        });
+    _pendingVariationMaia[key] = operation;
+    return operation;
+  }
+
+  Future<String?> _runVariationMaia(List<String> positions, String fen) async {
+    final injected = widget.maiaEvaluator;
+    if (injected != null) return injected(positions, widget.maiaElo);
+    if (widget.evaluator != null) return null;
+    final response = await MaiaInferenceQueue.predict({
+      'tokens': MaiaEncoding.historicalTokens(positions),
+      'selfElo': widget.maiaElo,
+      'opponentElo': widget.maiaElo,
+    }, replaceable: true);
+    if (response == null || response.length != 4352) return null;
+    final game = chess.Chess.fromFEN(fen);
+    if (game.game_over) return null;
+    final move = MaiaEncoding.sampleLegalMove(
+      game,
+      game.moves({'asObjects': true}).cast<chess.Move>().toList(),
+      response.cast<num>().map((value) => value.toDouble()).toList(),
+      temperature: 0,
+    );
+    return MaiaEncoding.uci(move);
+  }
+
   Future<void> _analyzeVariation() async {
     final fen = _currentFen;
+    final history = _variationHistory();
+    final historyKey = _variationHistoryKey(history);
+    final cachedReview = _variationReviewCache[fen];
+    final cachedMaia = _variationMaiaCache[historyKey];
     setState(() {
-      _variationLoading = true;
+      _variationReview = cachedReview;
+      _variationMaiaMove = cachedMaia;
+      _variationLoading = cachedReview == null;
+      _variationMaiaLoading = false;
       _variationError = null;
     });
     try {
-      final evaluate = widget.evaluator ?? StockfishAnalyzer.instance.evaluate;
-      final review = await evaluate(fen);
+      final review = cachedReview ?? await _stockfishForVariation(fen);
       if (!mounted || fen != _currentFen) return;
       setState(() => _variationReview = review);
     } catch (error, stackTrace) {
@@ -2950,43 +3063,14 @@ class _ReviewPageState extends State<ReviewPage> {
         setState(() => _variationLoading = false);
       }
     }
+    if (cachedMaia != null) return;
     if (mounted && fen == _currentFen) {
       setState(() => _variationMaiaLoading = true);
     }
     try {
-      final injected = widget.maiaEvaluator;
-      if (injected != null) {
-        final move = await injected([
-          ...widget.positions.take((_variationBasePly ?? 0) + 1),
-          ..._variationPositions.skip(1).take(_variationIndex),
-        ], widget.maiaElo);
-        if (move != null && mounted && fen == _currentFen) {
-          setState(() => _variationMaiaMove = move);
-        }
-        return;
-      }
-      if (widget.evaluator != null) return;
-      final response = await MaiaInferenceQueue.predict({
-        'tokens': MaiaEncoding.historicalTokens([
-          ...widget.positions.take((_variationBasePly ?? 0) + 1),
-          ..._variationPositions.skip(1).take(_variationIndex),
-        ]),
-        'selfElo': widget.maiaElo,
-        'opponentElo': widget.maiaElo,
-      }, replaceable: true);
-      if (response == null || response.length != 4352 || fen != _currentFen) {
-        return;
-      }
-      final game = chess.Chess.fromFEN(fen);
-      if (game.game_over) return;
-      final move = MaiaEncoding.sampleLegalMove(
-        game,
-        game.moves({'asObjects': true}).cast<chess.Move>().toList(),
-        response.cast<num>().map((value) => value.toDouble()).toList(),
-        temperature: 0,
-      );
-      if (mounted && fen == _currentFen) {
-        setState(() => _variationMaiaMove = MaiaEncoding.uci(move));
+      final move = await _maiaForVariation(history, fen);
+      if (move != null && mounted && fen == _currentFen) {
+        setState(() => _variationMaiaMove = move);
       }
     } catch (error, stackTrace) {
       unawaited(AppDiagnostics.record('maia-variation', error, stackTrace));
@@ -5354,69 +5438,119 @@ class EvaluationBar extends StatelessWidget {
   }
 }
 
-class MaterialDifference extends StatelessWidget {
-  const MaterialDifference({required this.fen, super.key});
+class MaterialDifferenceSide {
+  const MaterialDifferenceSide({required this.pieces, required this.score});
 
-  final String fen;
+  final Map<String, int> pieces;
+  final int score;
+}
 
-  @override
-  Widget build(BuildContext context) {
-    final white = <String, int>{};
-    final black = <String, int>{};
+class MaterialDifferenceData {
+  const MaterialDifferenceData({required this.white, required this.black});
+
+  factory MaterialDifferenceData.fromFen(String fen) {
+    final whiteCount = <String, int>{};
+    final blackCount = <String, int>{};
     for (final rune in fen.split(' ').first.runes) {
       final piece = String.fromCharCode(rune);
       if (!'prnbqPRNBQ'.contains(piece)) continue;
-      final target = piece == piece.toUpperCase() ? white : black;
-      final key = piece.toLowerCase();
-      target[key] = (target[key] ?? 0) + 1;
+      final target = piece == piece.toUpperCase() ? whiteCount : blackCount;
+      final role = piece.toLowerCase();
+      target[role] = (target[role] ?? 0) + 1;
     }
     const values = {'p': 1, 'n': 3, 'b': 3, 'r': 5, 'q': 9};
-    const whiteGlyphs = {'q': '♕', 'r': '♖', 'b': '♗', 'n': '♘', 'p': '♙'};
-    const blackGlyphs = {'q': '♛', 'r': '♜', 'b': '♝', 'n': '♞', 'p': '♟'};
-    const order = ['q', 'r', 'b', 'n', 'p'];
-    final whiteExtras = <String>[];
-    final blackExtras = <String>[];
+    final whitePieces = <String, int>{};
+    final blackPieces = <String, int>{};
     var whiteScore = 0;
-    var blackScore = 0;
-    for (final piece in order) {
-      final difference = (white[piece] ?? 0) - (black[piece] ?? 0);
+    for (final role in values.keys) {
+      final difference = (whiteCount[role] ?? 0) - (blackCount[role] ?? 0);
+      whiteScore += values[role]! * difference;
       if (difference > 0) {
-        whiteExtras.addAll(List.filled(difference, blackGlyphs[piece]!));
-        whiteScore += values[piece]! * difference;
+        whitePieces[role] = difference;
       } else if (difference < 0) {
-        blackExtras.addAll(List.filled(-difference, whiteGlyphs[piece]!));
-        blackScore += values[piece]! * -difference;
+        blackPieces[role] = -difference;
       }
     }
-    final net = whiteScore - blackScore;
-    if (whiteExtras.isEmpty && blackExtras.isEmpty) {
-      return const SizedBox.shrink();
+    return MaterialDifferenceData(
+      white: MaterialDifferenceSide(
+        pieces: Map.unmodifiable(whitePieces),
+        score: whiteScore,
+      ),
+      black: MaterialDifferenceSide(
+        pieces: Map.unmodifiable(blackPieces),
+        score: -whiteScore,
+      ),
+    );
+  }
+
+  final MaterialDifferenceSide white;
+  final MaterialDifferenceSide black;
+
+  MaterialDifferenceSide byColor(chess.Color color) =>
+      color == chess.Color.WHITE ? white : black;
+}
+
+class MaterialDifference extends StatelessWidget {
+  const MaterialDifference({required this.fen, required this.side, super.key});
+
+  final String fen;
+  final chess.Color side;
+
+  static const _glyphs = {'q': '♛', 'r': '♜', 'b': '♝', 'n': '♞', 'p': '♟'};
+  static const _names = {
+    'q': 'queen',
+    'r': 'rook',
+    'b': 'bishop',
+    'n': 'knight',
+    'p': 'pawn',
+  };
+  // Match dartchess Role.values as used by Lichess Mobile: low-value pieces
+  // first, then queen (king is omitted because it cannot be a material extra).
+  static const _order = ['p', 'n', 'b', 'r', 'q'];
+
+  @override
+  Widget build(BuildContext context) {
+    final difference = MaterialDifferenceData.fromFen(fen).byColor(side);
+    final glyphs = <String>[];
+    final spoken = <String>[];
+    for (final role in _order) {
+      final count = difference.pieces[role] ?? 0;
+      glyphs.addAll(List.filled(count, _glyphs[role]!));
+      if (count > 0) {
+        spoken.add('$count ${_names[role]}${count == 1 ? '' : 's'}');
+      }
     }
+    final sideName = side == chess.Color.WHITE ? 'White' : 'Black';
+    final score = difference.score > 0 ? '+${difference.score}' : '';
+    final description = [
+      if (spoken.isNotEmpty) spoken.join(', '),
+      if (score.isNotEmpty) '$score material advantage',
+    ].join(', ');
     return Semantics(
-      label: 'Material difference',
-      child: Padding(
-        padding: const EdgeInsets.only(top: 3),
+      key: ValueKey(
+        side == chess.Color.WHITE ? 'white-material' : 'black-material',
+      ),
+      label: '$sideName material${description.isEmpty ? '' : ': $description'}',
+      child: ExcludeSemantics(
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
           mainAxisSize: MainAxisSize.min,
           children: [
-            if (whiteExtras.isNotEmpty) ...[
-              Text(
-                whiteExtras.join(),
-                style: const TextStyle(fontSize: 15, height: 1),
+            Text(
+              glyphs.join(),
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                fontSize: 15,
+                height: 1,
               ),
-              if (net > 0) Text(' +$net', style: const TextStyle(fontSize: 12)),
-            ],
-            if (whiteExtras.isNotEmpty && blackExtras.isNotEmpty)
-              const SizedBox(width: 12),
-            if (blackExtras.isNotEmpty) ...[
-              Text(
-                blackExtras.join(),
-                style: const TextStyle(fontSize: 15, height: 1),
+            ),
+            const SizedBox(width: 3),
+            Text(
+              score,
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                fontSize: 13,
               ),
-              if (net < 0)
-                Text(' +${-net}', style: const TextStyle(fontSize: 12)),
-            ],
+            ),
           ],
         ),
       ),
