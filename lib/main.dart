@@ -866,6 +866,43 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
     ]);
   }
 
+  Future<void> _showSamplingHelp() => showDialog<void>(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: const Text('Temperature and Top-P'),
+      content: const SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Temperature controls how adventurous Maia is. At 0, Maia '
+              'always chooses its most likely human move. Higher values make '
+              'less likely moves more common.',
+            ),
+            SizedBox(height: 14),
+            Text(
+              'Top-P limits Maia to the smallest group of moves whose '
+              'combined probability reaches this value. Lower values narrow '
+              'the choice to more likely moves; 1.00 keeps every legal move.',
+            ),
+            SizedBox(height: 14),
+            Text(
+              'The defaults (Temperature 0.50 and Top-P 0.90) give some '
+              'variety while keeping Maia close to its rating model.',
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Close'),
+        ),
+      ],
+    ),
+  );
+
   Future<void> _showAbout() async {
     String version;
     try {
@@ -1646,7 +1683,17 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
             ExpansionTile(
               tilePadding: EdgeInsets.zero,
               childrenPadding: EdgeInsets.zero,
-              title: const Text('Advanced'),
+              title: Row(
+                children: [
+                  const Expanded(child: Text('Advanced')),
+                  IconButton(
+                    key: const ValueKey('sampling-help'),
+                    tooltip: 'About Temperature and Top-P',
+                    onPressed: _showSamplingHelp,
+                    icon: const Icon(Icons.help_outline),
+                  ),
+                ],
+              ),
               subtitle: const Text('Timing and move sampling'),
               children: [
                 SwitchListTile(
@@ -1862,7 +1909,7 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
               FilledButton.tonalIcon(
                 onPressed: _analyzeGame,
                 icon: const Icon(Icons.analytics_outlined),
-                label: const Text('Review with Stockfish'),
+                label: const Text('Game Review'),
               ),
             if (!_gameFinished)
               TextButton.icon(
@@ -2412,6 +2459,9 @@ class _ReviewPageState extends State<ReviewPage> {
   bool _fullAnalysisRunning = false;
   int _fullAnalysisCompleted = 0;
   List<StockfishReview>? _graphScores;
+  List<String> _graphPositions = const [];
+  List<String> _graphMoves = const [];
+  List<ClassifiedMove> _graphClassifications = const [];
   final Map<int, String> _maiaMoves = {};
   final Set<int> _maiaLoading = {};
   late final cg.ChessboardController _boardController;
@@ -2460,16 +2510,34 @@ class _ReviewPageState extends State<ReviewPage> {
             .firstOrNull
       : null;
 
-  List<String> get _computerAnalysisPositions {
+  ComputerAnalysisLine get _computerAnalysisLine {
     final rootMainline = _rootMainline;
-    if (rootMainline == null) return widget.positions;
+    if (rootMainline == null) {
+      final count = min(
+        widget.uciMoves.length,
+        max(0, widget.positions.length - 1),
+      );
+      return ComputerAnalysisLine(
+        positions: widget.positions,
+        uciMoves: widget.uciMoves.take(count).toList(growable: false),
+      );
+    }
     final game = chess.Chess.fromFEN(rootMainline.baseFen);
     final positions = <String>[game.fen];
+    final uciMoves = <String>[];
     for (final san in rootMainline.sanMoves) {
       if (!game.move(san)) break;
+      final move = game
+          .getHistory({'verbose': true})
+          .cast<Map<String, dynamic>>()
+          .last;
+      uciMoves.add('${move['from']}${move['to']}${move['promotion'] ?? ''}');
       positions.add(game.fen);
     }
-    return positions;
+    return ComputerAnalysisLine(
+      positions: List.unmodifiable(positions),
+      uciMoves: List.unmodifiable(uciMoves),
+    );
   }
 
   void _showComputerAnalysisPly(int ply) {
@@ -3186,11 +3254,15 @@ class _ReviewPageState extends State<ReviewPage> {
 
   Future<void> _analyzeFullGame() async {
     if (_fullAnalysisRunning) return;
-    final positions = _computerAnalysisPositions;
+    final line = _computerAnalysisLine;
+    final positions = line.positions;
     setState(() {
       _fullAnalysisRunning = true;
       _fullAnalysisCompleted = 0;
       _graphScores = null;
+      _graphPositions = const [];
+      _graphMoves = const [];
+      _graphClassifications = const [];
       _analysisError = null;
     });
     final scores = <StockfishReview>[];
@@ -3219,6 +3291,13 @@ class _ReviewPageState extends State<ReviewPage> {
     setState(() {
       if (scores.length == positions.length) {
         _graphScores = List.unmodifiable(scores);
+        _graphPositions = List.unmodifiable(positions);
+        _graphMoves = List.unmodifiable(line.uciMoves);
+        _graphClassifications = MoveClassifier.classify(
+          scores: scores,
+          positions: positions,
+          uciMoves: line.uciMoves,
+        );
       } else {
         _analysisError ??= 'Computer analysis did not complete. Try again.';
       }
@@ -3227,19 +3306,73 @@ class _ReviewPageState extends State<ReviewPage> {
   }
 
   Set<cg.Shape> get _arrows {
-    final move = _review?.bestMove ?? '';
+    final stockfishMoves = _stockfishMoves;
     final maiaMove = _inVariation
         ? _variationMaiaMove ?? ''
         : _maiaMoves[_ply] ?? '';
     final valid = RegExp(r'^[a-h][1-8][a-h][1-8][qrbn]?$');
     final arrows = <cg.Shape>{};
-    if (valid.hasMatch(move)) {
-      arrows.add(_arrow(move, const Color(0xff3d9be9)));
+    const stockfishColors = [Color(0xff3d9be9), Color(0xff8ac8f5)];
+    for (var index = 0; index < stockfishMoves.length; index++) {
+      final move = stockfishMoves[index];
+      if (move != maiaMove) {
+        arrows.add(_arrow(move, stockfishColors[index]));
+      }
     }
-    if (valid.hasMatch(maiaMove) && maiaMove != move) {
+    if (valid.hasMatch(maiaMove) && !stockfishMoves.contains(maiaMove)) {
       arrows.add(_arrow(maiaMove, const Color(0xffe89b3c)));
     }
     return arrows;
+  }
+
+  List<String> get _stockfishMoves {
+    final review = _review;
+    if (review == null) return const [];
+    final valid = RegExp(r'^[a-h][1-8][a-h][1-8][qrbn]?$');
+    final candidates = <String>[
+      if (review.lines.isNotEmpty && review.lines.first.moves.isNotEmpty)
+        review.lines.first.moves.first
+      else
+        review.bestMove,
+      if (review.lines.length > 1 && review.lines[1].moves.isNotEmpty)
+        review.lines[1].moves.first,
+    ];
+    return candidates
+        .where(valid.hasMatch)
+        .toSet()
+        .take(2)
+        .toList(growable: false);
+  }
+
+  ({String uci, Color tailColor})? get _agreementArrow {
+    final maiaMove = _inVariation
+        ? _variationMaiaMove ?? ''
+        : _maiaMoves[_ply] ?? '';
+    final index = _stockfishMoves.indexOf(maiaMove);
+    if (index < 0) return null;
+    return (
+      uci: maiaMove,
+      tailColor: index == 0 ? const Color(0xff3d9be9) : const Color(0xff8ac8f5),
+    );
+  }
+
+  MoveClassification? _classificationAt(int graphPly) => _graphClassifications
+      .where((move) => move.ply == graphPly)
+      .firstOrNull
+      ?.classification;
+
+  ({String square, MoveClassification classification})?
+  get _currentBoardAnnotation {
+    if (_inVariation && !identical(_openedVariation, _rootMainline)) {
+      return null;
+    }
+    final graphPly = _inVariation ? _variationIndex : _ply;
+    if (graphPly <= 0 || graphPly > _graphMoves.length) return null;
+    final classification = _classificationAt(graphPly);
+    if (classification == null) return null;
+    final uci = _graphMoves[graphPly - 1];
+    if (uci.length < 4) return null;
+    return (square: uci.substring(2, 4), classification: classification);
   }
 
   cg.Arrow _arrow(String uci, Color color) => cg.Arrow(
@@ -3305,6 +3438,9 @@ class _ReviewPageState extends State<ReviewPage> {
     final maiaLoading = _inVariation
         ? _variationMaiaLoading
         : _maiaLoading.contains(_ply);
+    final maiaStockfishIndex = maiaMove == null
+        ? -1
+        : _stockfishMoves.indexOf(maiaMove);
     Widget engineRow({
       required String label,
       required Color color,
@@ -3365,8 +3501,8 @@ class _ReviewPageState extends State<ReviewPage> {
                 ? maiaLoading
                       ? 'Analyzing…'
                       : '—'
-                : maiaMove == review?.bestMove
-                ? '${_sanForUci(_currentFen, maiaMove)} · Matches Stockfish'
+                : maiaStockfishIndex >= 0
+                ? '${_sanForUci(_currentFen, maiaMove)} · Matches Stockfish${maiaStockfishIndex == 0 ? '' : ' #2'}'
                 : _sanForUci(_currentFen, maiaMove),
           ),
         ],
@@ -3387,6 +3523,7 @@ class _ReviewPageState extends State<ReviewPage> {
     VoidCallback? onLongPress,
     Key? key,
     bool variation = false,
+    MoveClassification? classification,
   }) {
     final colors = Theme.of(context).colorScheme;
     return Material(
@@ -3403,11 +3540,13 @@ class _ReviewPageState extends State<ReviewPage> {
             vertical: variation ? 3 : 7,
           ),
           child: Text(
-            san,
+            '$san${classification?.symbol ?? ''}',
             style: TextStyle(
               fontSize: variation ? 14 : 16,
               fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-              color: selected ? colors.onPrimaryContainer : null,
+              color: selected
+                  ? colors.onPrimaryContainer
+                  : classification?.color,
             ),
           ),
         ),
@@ -3497,6 +3636,7 @@ class _ReviewPageState extends State<ReviewPage> {
       Widget move(int index) => _notationMove(
         key: ValueKey('mainline-move-$index'),
         san: rootMainline?.sanMoves[index] ?? widget.sanMoves[index],
+        classification: _classificationAt(index + 1),
         selected: rootMainline != null
             ? identical(_openedVariation, rootMainline) &&
                   _variationIndex == index + 1
@@ -3674,19 +3814,23 @@ class _ReviewPageState extends State<ReviewPage> {
     children: [
       Expanded(child: _movesNotation()),
       SizedBox(
-        height: 42,
+        height: 52,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             IconButton(
+              key: const ValueKey('previous-move-button'),
               tooltip: 'Previous move',
+              constraints: const BoxConstraints(minWidth: 80, minHeight: 48),
               onPressed: (_inVariation ? _variationIndex == 0 : _ply == 0)
                   ? null
                   : () => _step(-1),
               icon: const Icon(Icons.chevron_left),
             ),
             IconButton(
+              key: const ValueKey('next-move-button'),
               tooltip: 'Next move',
+              constraints: const BoxConstraints(minWidth: 80, minHeight: 48),
               onPressed:
                   (_inVariation
                       ? _variationIndex == _variationSan.length
@@ -3712,7 +3856,14 @@ class _ReviewPageState extends State<ReviewPage> {
             const SizedBox(height: 8),
             AnalysisGraph(
               scores: scores,
+              positions: _graphPositions,
+              classifications: _graphClassifications,
               selectedPly: _rootMainline == null ? _ply : _variationIndex,
+              onSelected: _showComputerAnalysisPly,
+            ),
+            const SizedBox(height: 8),
+            MoveClassificationSummary(
+              moves: _graphClassifications,
               onSelected: _showComputerAnalysisPly,
             ),
             const SizedBox(height: 8),
@@ -3725,7 +3876,7 @@ class _ReviewPageState extends State<ReviewPage> {
         ),
       );
     }
-    final total = _computerAnalysisPositions.length;
+    final total = _computerAnalysisLine.positions.length;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -3775,6 +3926,11 @@ class _ReviewPageState extends State<ReviewPage> {
       ),
       if (_inVariation) ..._variationPositions.skip(1).take(_variationIndex),
     ]);
+    final boardOrientation = _flipped
+        ? (widget.playerIsWhite ? dc.Side.black : dc.Side.white)
+        : (widget.playerIsWhite ? dc.Side.white : dc.Side.black);
+    final agreement = _agreementArrow;
+    final boardAnnotation = _currentBoardAnnotation;
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
@@ -3886,23 +4042,42 @@ class _ReviewPageState extends State<ReviewPage> {
                           SizedBox(
                             width: boardSize,
                             height: boardSize,
-                            child: cg.Chessboard(
-                              controller: _boardController,
-                              size: boardSize,
-                              orientation: _flipped
-                                  ? (widget.playerIsWhite
-                                        ? dc.Side.black
-                                        : dc.Side.white)
-                                  : (widget.playerIsWhite
-                                        ? dc.Side.white
-                                        : dc.Side.black),
-                              onMove: _onAnalysisMove,
-                              shapes: _arrows,
-                              settings: const cg.ChessboardSettings(
-                                colorScheme: cg.ChessboardColorScheme.brown,
-                                pieceAssets: cg.PieceSet.cburnettAssets,
-                                enableCoordinates: true,
-                              ),
+                            child: Stack(
+                              children: [
+                                cg.Chessboard(
+                                  controller: _boardController,
+                                  size: boardSize,
+                                  orientation: boardOrientation,
+                                  onMove: _onAnalysisMove,
+                                  shapes: _arrows,
+                                  settings: const cg.ChessboardSettings(
+                                    colorScheme: cg.ChessboardColorScheme.brown,
+                                    pieceAssets: cg.PieceSet.cburnettAssets,
+                                    enableCoordinates: true,
+                                  ),
+                                ),
+                                if (agreement != null ||
+                                    boardAnnotation != null)
+                                  Positioned.fill(
+                                    child: IgnorePointer(
+                                      child: CustomPaint(
+                                        key: const ValueKey(
+                                          'review-board-overlay',
+                                        ),
+                                        painter: ReviewBoardOverlayPainter(
+                                          orientation: boardOrientation,
+                                          agreementUci: agreement?.uci,
+                                          agreementTailColor:
+                                              agreement?.tailColor,
+                                          annotationSquare:
+                                              boardAnnotation?.square,
+                                          classification:
+                                              boardAnnotation?.classification,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                              ],
                             ),
                           ),
                         ],
@@ -3946,6 +4121,475 @@ class _ReviewPageState extends State<ReviewPage> {
       ),
     );
   }
+}
+
+class ComputerAnalysisLine {
+  const ComputerAnalysisLine({required this.positions, required this.uciMoves});
+
+  final List<String> positions;
+  final List<String> uciMoves;
+}
+
+enum MoveClassification {
+  brilliant('!!', 'Brilliant', Color(0xff15aabf)),
+  good('!', 'Good', Color(0xff12b886)),
+  interesting('!?', 'Interesting', Color(0xff82c91e)),
+  dubious('?!', 'Dubious', Color(0xfffab005)),
+  mistake('?', 'Mistake', Color(0xfffd7e14)),
+  blunder('??', 'Blunder', Color(0xfffa5252));
+
+  const MoveClassification(this.symbol, this.label, this.color);
+
+  final String symbol;
+  final String label;
+  final Color color;
+}
+
+class ClassifiedMove {
+  const ClassifiedMove({required this.ply, required this.classification});
+
+  final int ply;
+  final MoveClassification classification;
+  bool get whiteMoved => ply.isOdd;
+}
+
+class MoveClassifier {
+  static List<ClassifiedMove> classify({
+    required List<StockfishReview> scores,
+    required List<String> positions,
+    required List<String> uciMoves,
+  }) {
+    final count = min(
+      uciMoves.length,
+      min(max(0, scores.length - 1), max(0, positions.length - 1)),
+    );
+    final result = <ClassifiedMove>[];
+    for (var ply = 1; ply <= count; ply++) {
+      final whiteMoved = ply.isOdd;
+      final previous = _normalized(scores[ply - 1], whiteMoved);
+      final next = _normalized(scores[ply], whiteMoved);
+      final loss = _winChance(previous) - _winChance(next);
+      MoveClassification? classification;
+      if (loss > 20) {
+        classification = MoveClassification.blunder;
+      } else if (loss > 10) {
+        classification = MoveClassification.mistake;
+      } else if (loss > 5) {
+        classification = MoveClassification.dubious;
+      } else {
+        final previousReview = scores[ply - 1];
+        final lines = previousReview.lines;
+        if (lines.length > 1 &&
+            lines[0].moves.isNotEmpty &&
+            lines[1].moves.isNotEmpty) {
+          final best = _normalizedLine(lines[0], whiteMoved);
+          final second = _normalizedLine(lines[1], whiteMoved);
+          final isSacrifice = _isSacrifice(positions[ply - 1], positions[ply]);
+          if (_winChance(best) - _winChance(second) > 10 &&
+              uciMoves[ply - 1] == lines[0].moves.first) {
+            if (isSacrifice) {
+              classification = MoveClassification.brilliant;
+            } else {
+              final beforePrevious = ply > 1
+                  ? _normalized(scores[ply - 2], whiteMoved)
+                  : 0;
+              if (_winChance(best) - _winChance(beforePrevious) > 5) {
+                classification = MoveClassification.good;
+              }
+            }
+          } else if (isSacrifice && next > -200) {
+            classification = MoveClassification.interesting;
+          }
+        }
+      }
+      if (classification != null) {
+        result.add(ClassifiedMove(ply: ply, classification: classification));
+      }
+    }
+    return List.unmodifiable(result);
+  }
+
+  static int _normalized(StockfishReview review, bool whiteMoved) {
+    final value = review.mate == null
+        ? review.evaluation.clamp(-1000, 1000)
+        : 1000 * review.mate!.sign;
+    return whiteMoved ? value : -value;
+  }
+
+  static int _normalizedLine(StockfishLine line, bool whiteMoved) {
+    final value = line.mate == null
+        ? line.evaluation.clamp(-1000, 1000)
+        : 1000 * line.mate!.sign;
+    return whiteMoved ? value : -value;
+  }
+
+  static double _winChance(int centipawns) =>
+      50 + 50 * (2 / (1 + exp(-0.00368208 * centipawns)) - 1);
+
+  static bool _isSacrifice(String beforeFen, String afterFen) {
+    final before = _naiveEvaluation(chess.Chess.fromFEN(beforeFen));
+    final after = -_naiveEvaluation(chess.Chess.fromFEN(afterFen));
+    return before > after + 100;
+  }
+
+  static int _naiveEvaluation(chess.Chess position) {
+    final moves = position
+        .moves({'asObjects': true})
+        .cast<chess.Move>()
+        .toList(growable: false);
+    if (moves.isEmpty) return position.in_checkmate ? -10000 : 0;
+    var best = -10000;
+    for (final move in moves) {
+      final next = chess.Chess.fromFEN(position.fen)..move(move);
+      best = max(best, -_captureSearch(next, -10000, 10000));
+    }
+    return best;
+  }
+
+  static int _captureSearch(chess.Chess position, int alpha, int beta) {
+    var lower = alpha;
+    final standPat = _materialForTurn(position.fen);
+    if (standPat >= beta) return beta;
+    lower = max(lower, standPat);
+    final captures =
+        position
+            .moves({'asObjects': true})
+            .cast<chess.Move>()
+            .where((move) => move.captured != null)
+            .toList(growable: false)
+          ..sort(
+            (a, b) =>
+                _pieceValue(b.captured!).compareTo(_pieceValue(a.captured!)),
+          );
+    for (final capture in captures) {
+      final next = chess.Chess.fromFEN(position.fen)..move(capture);
+      final value = -_captureSearch(next, -beta, -lower);
+      if (value >= beta) return beta;
+      lower = max(lower, value);
+    }
+    return lower;
+  }
+
+  static int _materialForTurn(String fen) {
+    const values = {'p': 90, 'n': 300, 'b': 300, 'r': 500, 'q': 1000};
+    var white = 0;
+    var black = 0;
+    for (final rune in fen.split(' ').first.runes) {
+      final piece = String.fromCharCode(rune);
+      final value = values[piece.toLowerCase()] ?? 0;
+      if (piece == piece.toUpperCase()) {
+        white += value;
+      } else {
+        black += value;
+      }
+    }
+    final score = white - black;
+    return fen.split(' ')[1] == 'w' ? score : -score;
+  }
+
+  static int _pieceValue(chess.PieceType piece) => switch (piece.name) {
+    'p' => 90,
+    'n' || 'b' => 300,
+    'r' => 500,
+    'q' => 1000,
+    _ => 0,
+  };
+}
+
+class MoveClassificationSummary extends StatelessWidget {
+  const MoveClassificationSummary({
+    required this.moves,
+    required this.onSelected,
+    super.key,
+  });
+
+  final List<ClassifiedMove> moves;
+  final ValueChanged<int> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    Widget countButton(List<ClassifiedMove> matches) => SizedBox(
+      width: 48,
+      height: 30,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(4),
+        onTap: matches.isEmpty ? null : () => onSelected(matches.first.ply),
+        child: Center(child: Text('${matches.length}')),
+      ),
+    );
+    return Card(
+      key: const ValueKey('move-classification-summary'),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        child: Column(
+          children: [
+            const Row(
+              children: [
+                SizedBox(
+                  width: 48,
+                  child: Text('W', textAlign: TextAlign.center),
+                ),
+                Expanded(child: SizedBox.shrink()),
+                SizedBox(
+                  width: 48,
+                  child: Text('B', textAlign: TextAlign.center),
+                ),
+              ],
+            ),
+            for (final classification in MoveClassification.values)
+              Builder(
+                builder: (context) {
+                  final white = moves
+                      .where(
+                        (move) =>
+                            move.whiteMoved &&
+                            move.classification == classification,
+                      )
+                      .toList(growable: false);
+                  final black = moves
+                      .where(
+                        (move) =>
+                            !move.whiteMoved &&
+                            move.classification == classification,
+                      )
+                      .toList(growable: false);
+                  return DefaultTextStyle.merge(
+                    style: TextStyle(color: classification.color),
+                    child: Row(
+                      children: [
+                        countButton(white),
+                        SizedBox(
+                          width: 42,
+                          child: Text(
+                            classification.symbol,
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(fontWeight: FontWeight.w800),
+                          ),
+                        ),
+                        Expanded(
+                          child: Text(
+                            classification.label,
+                            style: const TextStyle(fontWeight: FontWeight.w600),
+                          ),
+                        ),
+                        countButton(black),
+                      ],
+                    ),
+                  );
+                },
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class GamePhases {
+  const GamePhases({this.middlegamePly, this.endgamePly});
+
+  final int? middlegamePly;
+  final int? endgamePly;
+}
+
+class GamePhaseDetector {
+  static GamePhases detect(List<String> positions) {
+    int? middlegame;
+    int? endgame;
+    for (var ply = 0; ply < positions.length; ply++) {
+      final board = _pieces(positions[ply]);
+      final majorMinorCount = board
+          .where((piece) => 'qrbn'.contains(piece.piece.toLowerCase()))
+          .length;
+      if (middlegame == null &&
+          (majorMinorCount <= 10 ||
+              _backrankSparse(board) ||
+              _mixedness(board) > 150)) {
+        middlegame = ply;
+      }
+      if (middlegame != null && endgame == null && majorMinorCount <= 6) {
+        endgame = ply;
+      }
+    }
+    return GamePhases(middlegamePly: middlegame, endgamePly: endgame);
+  }
+
+  static List<({String piece, int file, int rank})> _pieces(String fen) {
+    final result = <({String piece, int file, int rank})>[];
+    final ranks = fen.split(' ').first.split('/');
+    for (var row = 0; row < ranks.length; row++) {
+      var file = 0;
+      for (final rune in ranks[row].runes) {
+        final value = String.fromCharCode(rune);
+        final empty = int.tryParse(value);
+        if (empty != null) {
+          file += empty;
+        } else {
+          result.add((piece: value, file: file, rank: 7 - row));
+          file++;
+        }
+      }
+    }
+    return result;
+  }
+
+  static bool _backrankSparse(
+    List<({String piece, int file, int rank})> board,
+  ) {
+    final white = board
+        .where(
+          (piece) =>
+              piece.rank == 0 && piece.piece == piece.piece.toUpperCase(),
+        )
+        .length;
+    final black = board
+        .where(
+          (piece) =>
+              piece.rank == 7 && piece.piece == piece.piece.toLowerCase(),
+        )
+        .length;
+    return white < 4 || black < 4;
+  }
+
+  static int _mixedness(List<({String piece, int file, int rank})> board) {
+    var total = 0;
+    for (var y = 0; y <= 6; y++) {
+      for (var x = 0; x <= 6; x++) {
+        final region = board.where(
+          (piece) =>
+              piece.file >= x &&
+              piece.file <= x + 1 &&
+              piece.rank >= y &&
+              piece.rank <= y + 1,
+        );
+        final white = region
+            .where((piece) => piece.piece == piece.piece.toUpperCase())
+            .length;
+        final black = region.length - white;
+        total += _regionScore(y + 1, white, black);
+      }
+    }
+    return total;
+  }
+
+  static int _regionScore(int y, int white, int black) {
+    if (white == 0 && black == 0) return 0;
+    if (white == 1 && black == 0) return 1 + (8 - y);
+    if (white == 2 && black == 0) return y > 2 ? 2 + (y - 2) : 0;
+    if (white == 3 && black == 0) return y > 1 ? 3 + (y - 1) : 0;
+    if (white == 4 && black == 0) return y > 1 ? 3 + (y - 1) : 0;
+    if (white == 0 && black == 1) return 1 + y;
+    if (white == 1 && black == 1) return 5 + (4 - y).abs();
+    if (white == 2 && black == 1) return 4 + (y - 1);
+    if (white == 3 && black == 1) return 5 + (y - 1);
+    if (white == 0 && black == 2) return y < 6 ? 2 + (6 - y) : 0;
+    if (white == 1 && black == 2) return 4 + (7 - y);
+    if (white == 2 && black == 2) return 7;
+    if (white == 0 && black == 3) return y < 7 ? 3 + (7 - y) : 0;
+    if (white == 1 && black == 3) return 5 + (7 - y);
+    if (white == 0 && black == 4) return y < 7 ? 3 + (7 - y) : 0;
+    return 0;
+  }
+}
+
+class ReviewBoardOverlayPainter extends CustomPainter {
+  const ReviewBoardOverlayPainter({
+    required this.orientation,
+    this.agreementUci,
+    this.agreementTailColor,
+    this.annotationSquare,
+    this.classification,
+  });
+
+  final dc.Side orientation;
+  final String? agreementUci;
+  final Color? agreementTailColor;
+  final String? annotationSquare;
+  final MoveClassification? classification;
+
+  Offset _squareCenter(String square, double squareSize) {
+    final file = square.codeUnitAt(0) - 'a'.codeUnitAt(0);
+    final rank = int.parse(square[1]) - 1;
+    final x = orientation == dc.Side.white ? file : 7 - file;
+    final y = orientation == dc.Side.white ? 7 - rank : rank;
+    return Offset((x + 0.5) * squareSize, (y + 0.5) * squareSize);
+  }
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final squareSize = size.width / 8;
+    final agreement = agreementUci;
+    if (agreement != null && agreement.length >= 4) {
+      final from = _squareCenter(agreement.substring(0, 2), squareSize);
+      final to = _squareCenter(agreement.substring(2, 4), squareSize);
+      final angle = atan2(to.dy - from.dy, to.dx - from.dx);
+      final start = from + Offset(cos(angle), sin(angle)) * (squareSize / 3);
+      final arrowSize = squareSize * 0.48;
+      const arrowAngle = pi / 5;
+      final arrowHeight = arrowSize * sin((pi - arrowAngle * 2) / 2);
+      final headOffset = Offset(cos(angle), sin(angle)) * arrowHeight;
+      canvas.drawLine(
+        start,
+        to - headOffset,
+        Paint()
+          ..color = agreementTailColor ?? const Color(0xff3d9be9)
+          ..strokeWidth = squareSize / 4
+          ..strokeCap = StrokeCap.butt,
+      );
+      final head = Path()
+        ..moveTo(
+          to.dx - arrowSize * cos(angle - arrowAngle),
+          to.dy - arrowSize * sin(angle - arrowAngle),
+        )
+        ..lineTo(to.dx, to.dy)
+        ..lineTo(
+          to.dx - arrowSize * cos(angle + arrowAngle),
+          to.dy - arrowSize * sin(angle + arrowAngle),
+        )
+        ..close();
+      canvas.drawPath(head, Paint()..color = const Color(0xffe89b3c));
+    }
+
+    final square = annotationSquare;
+    final moveClass = classification;
+    if (square == null || moveClass == null) return;
+    final center = _squareCenter(square, squareSize);
+    canvas.drawRect(
+      Rect.fromCenter(center: center, width: squareSize, height: squareSize),
+      Paint()..color = moveClass.color.withValues(alpha: 0.22),
+    );
+    final badgeCenter = center + Offset(squareSize * 0.34, -squareSize * 0.34);
+    canvas.drawCircle(
+      badgeCenter + const Offset(0, 1),
+      squareSize * 0.24,
+      Paint()..color = Colors.black38,
+    );
+    canvas.drawCircle(
+      badgeCenter,
+      squareSize * 0.23,
+      Paint()..color = moveClass.color,
+    );
+    final text = TextPainter(
+      text: TextSpan(
+        text: moveClass.symbol,
+        style: TextStyle(
+          color: Colors.white,
+          fontSize: squareSize * (moveClass.symbol.length > 1 ? 0.25 : 0.32),
+          fontWeight: FontWeight.w900,
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+    )..layout();
+    text.paint(canvas, badgeCenter - Offset(text.width / 2, text.height / 2));
+  }
+
+  @override
+  bool shouldRepaint(covariant ReviewBoardOverlayPainter oldDelegate) =>
+      oldDelegate.orientation != orientation ||
+      oldDelegate.agreementUci != agreementUci ||
+      oldDelegate.agreementTailColor != agreementTailColor ||
+      oldDelegate.annotationSquare != annotationSquare ||
+      oldDelegate.classification != classification;
 }
 
 class GameAccuracy {
@@ -4085,12 +4729,16 @@ class AccuracySummary extends StatelessWidget {
 class AnalysisGraph extends StatelessWidget {
   const AnalysisGraph({
     required this.scores,
+    required this.positions,
+    required this.classifications,
     required this.selectedPly,
     required this.onSelected,
     super.key,
   });
 
   final List<StockfishReview> scores;
+  final List<String> positions;
+  final List<ClassifiedMove> classifications;
   final int selectedPly;
   final ValueChanged<int> onSelected;
 
@@ -4128,6 +4776,8 @@ class AnalysisGraph extends StatelessWidget {
               child: CustomPaint(
                 painter: AnalysisGraphPainter(
                   scores: scores,
+                  positions: positions,
+                  classifications: classifications,
                   selectedPly: selectedPly,
                 ),
               ),
@@ -4140,9 +4790,16 @@ class AnalysisGraph extends StatelessWidget {
 }
 
 class AnalysisGraphPainter extends CustomPainter {
-  AnalysisGraphPainter({required this.scores, required this.selectedPly});
+  AnalysisGraphPainter({
+    required this.scores,
+    this.positions = const [],
+    this.classifications = const [],
+    required this.selectedPly,
+  });
 
   final List<StockfishReview> scores;
+  final List<String> positions;
+  final List<ClassifiedMove> classifications;
   final int selectedPly;
 
   @override
@@ -4201,6 +4858,75 @@ class AnalysisGraphPainter extends CustomPainter {
         ..strokeWidth = 2
         ..style = PaintingStyle.stroke,
     );
+    final phases = GamePhaseDetector.detect(positions);
+    void phaseLine(int ply, String label) {
+      if (scores.length < 2 || ply <= 0 || ply >= scores.length) return;
+      final x = ply * size.width / (scores.length - 1);
+      final paint = Paint()
+        ..color = const Color(0xffa0a0a0)
+        ..strokeWidth = 1;
+      for (var y = 0.0; y < size.height; y += 8) {
+        canvas.drawLine(
+          Offset(x, y),
+          Offset(x, min(y + 4, size.height)),
+          paint,
+        );
+      }
+      final text = TextPainter(
+        text: TextSpan(
+          text: label,
+          style: const TextStyle(
+            color: Color(0xffd0d0d0),
+            fontSize: 10,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        textDirection: TextDirection.ltr,
+      )..layout(maxWidth: max(0.0, size.width - x - 4));
+      text.paint(canvas, Offset(min(x + 4, size.width - text.width), 4));
+    }
+
+    final initialPhase = phases.endgamePly == 0
+        ? 'Endgame'
+        : phases.middlegamePly == 0
+        ? 'Middlegame'
+        : 'Opening';
+    final opening = TextPainter(
+      text: TextSpan(
+        text: initialPhase,
+        style: const TextStyle(
+          color: Color(0xffd0d0d0),
+          fontSize: 10,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+    )..layout();
+    opening.paint(canvas, const Offset(5, 4));
+    if (phases.middlegamePly != null) {
+      phaseLine(phases.middlegamePly!, 'Middlegame');
+    }
+    if (phases.endgamePly != null) {
+      phaseLine(phases.endgamePly!, 'Endgame');
+    }
+    for (final move in classifications) {
+      if (move.ply < 0 || move.ply >= points.length) continue;
+      canvas.drawCircle(
+        points[move.ply],
+        4,
+        Paint()
+          ..color = move.classification.color
+          ..style = PaintingStyle.fill,
+      );
+      canvas.drawCircle(
+        points[move.ply],
+        4,
+        Paint()
+          ..color = const Color(0xffeeeeee)
+          ..strokeWidth = 1
+          ..style = PaintingStyle.stroke,
+      );
+    }
     final selectedX = scores.length == 1
         ? 0.0
         : selectedPly * size.width / (scores.length - 1);
@@ -4216,7 +4942,10 @@ class AnalysisGraphPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant AnalysisGraphPainter oldDelegate) =>
-      oldDelegate.selectedPly != selectedPly || oldDelegate.scores != scores;
+      oldDelegate.selectedPly != selectedPly ||
+      oldDelegate.scores != scores ||
+      oldDelegate.positions != positions ||
+      oldDelegate.classifications != classifications;
 }
 
 class EvaluationBar extends StatelessWidget {

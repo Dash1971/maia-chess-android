@@ -312,6 +312,47 @@ void main() {
     expect(find.text('Copy diagnostics'), findsOneWidget);
   });
 
+  testWidgets('sampling help explains Temperature and Top-P', (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    await tester.pumpWidget(const MaiaChessApp());
+    await tester.tap(find.byKey(const ValueKey('sampling-help')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Temperature and Top-P'), findsOneWidget);
+    expect(find.textContaining('how adventurous Maia is'), findsOneWidget);
+    expect(find.textContaining('smallest group of moves'), findsOneWidget);
+  });
+
+  test('move classification uses En Croissant win-chance thresholds', () {
+    const position = chess.Chess.DEFAULT_POSITION;
+    MoveClassification classify(int evaluation) => MoveClassifier.classify(
+      scores: [
+        const StockfishReview(0, 'e2e4'),
+        StockfishReview(evaluation, ''),
+      ],
+      positions: const [position, position],
+      uciMoves: const ['e2e4'],
+    ).single.classification;
+
+    expect(classify(-60), MoveClassification.dubious);
+    expect(classify(-130), MoveClassification.mistake);
+    expect(classify(-250), MoveClassification.blunder);
+  });
+
+  test('game phases use position features instead of fixed move numbers', () {
+    const opening = chess.Chess.DEFAULT_POSITION;
+    const middlegame = 'rn1qk1nr/pppppppp/8/8/8/8/PPPPPPPP/RN1QK1NR w - - 0 1';
+    const endgame = '3qk3/pppppppp/8/8/8/8/PPPPPPPP/3QK3 w - - 0 1';
+
+    final phases = GamePhaseDetector.detect(const [
+      opening,
+      middlegame,
+      endgame,
+    ]);
+    expect(phases.middlegamePly, 1);
+    expect(phases.endgamePly, 2);
+  });
+
   testWidgets('review page uses a fixed internally scrolling tab panel', (
     tester,
   ) async {
@@ -342,6 +383,14 @@ void main() {
     expect(find.text('Game review'), findsOneWidget);
     expect(find.textContaining('Variation:'), findsNothing);
     expect(find.byKey(const ValueKey('analysis-move-list')), findsOneWidget);
+    expect(
+      tester.getSize(find.byKey(const ValueKey('previous-move-button'))).width,
+      greaterThanOrEqualTo(80),
+    );
+    expect(
+      tester.getSize(find.byKey(const ValueKey('next-move-button'))).width,
+      greaterThanOrEqualTo(80),
+    );
     expect(find.byType(ActionChip), findsNothing);
     expect(find.text('1.'), findsOneWidget);
     expect(find.text('b4'), findsOneWidget);
@@ -394,6 +443,52 @@ void main() {
     expect(accuracy.black, isNotNull);
     expect(accuracy.white, inInclusiveRange(0, 100));
     expect(accuracy.black, inInclusiveRange(0, 100));
+  });
+
+  testWidgets('classified move is clickable and renders a board badge', (
+    tester,
+  ) async {
+    final game = chess.Chess()..move('f3');
+    final afterF3 = game.fen;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: ReviewPage(
+          positions: [chess.Chess.DEFAULT_POSITION, afterF3],
+          uciMoves: const ['f2f3'],
+          sanMoves: const ['f3'],
+          playerIsWhite: true,
+          pgn: '1. f3',
+          onHome: () {},
+          evaluator: (fen) async => fen == afterF3
+              ? const StockfishReview(-250, 'e7e5')
+              : const StockfishReview(0, 'e2e4'),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Computer analysis'));
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('run-computer-analysis')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Blunder'), findsOneWidget);
+    final graph = tester.widget<AnalysisGraph>(find.byType(AnalysisGraph));
+    expect(
+      graph.classifications.single.classification,
+      MoveClassification.blunder,
+    );
+    graph.onSelected(1);
+    await tester.pumpAndSettle();
+
+    final overlay = tester.widget<CustomPaint>(
+      find.byKey(const ValueKey('review-board-overlay')),
+    );
+    final painter = overlay.painter! as ReviewBoardOverlayPainter;
+    expect(painter.annotationSquare, 'f3');
+    expect(painter.classification, MoveClassification.blunder);
+    await tester.tap(find.byTooltip('Moves'));
+    await tester.pump();
+    expect(find.text('f3??'), findsOneWidget);
   });
 
   testWidgets(
@@ -613,7 +708,55 @@ void main() {
 
     expect(tester.getSize(panel), before);
     expect(find.text('e4 · Matches Stockfish'), findsOneWidget);
+    final overlay = tester.widget<CustomPaint>(
+      find.byKey(const ValueKey('review-board-overlay')),
+    );
+    final painter = overlay.painter! as ReviewBoardOverlayPainter;
+    expect(painter.agreementUci, 'e2e4');
+    expect(painter.agreementTailColor, const Color(0xff3d9be9));
   });
+
+  testWidgets(
+    'Stockfish second choice is light blue and Maia agreement is two-tone',
+    (tester) async {
+      const start = chess.Chess.DEFAULT_POSITION;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: ReviewPage(
+            positions: const [start],
+            uciMoves: const [],
+            sanMoves: const [],
+            playerIsWhite: true,
+            pgn: '*',
+            onHome: () {},
+            evaluator: (_) async => const StockfishReview(
+              20,
+              'e2e4',
+              lines: [
+                StockfishLine(evaluation: 20, moves: ['e2e4']),
+                StockfishLine(evaluation: 10, moves: ['d2d4']),
+              ],
+            ),
+            maiaEvaluator: (_, _) async => 'd2d4',
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final board = tester.widget<cg.Chessboard>(find.byType(cg.Chessboard));
+      final arrows = board.shapes.whereType<cg.Arrow>().toList();
+      expect(arrows, hasLength(1));
+      expect(arrows.single.orig.name, 'e2');
+      expect(arrows.single.dest.name, 'e4');
+      final overlay = tester.widget<CustomPaint>(
+        find.byKey(const ValueKey('review-board-overlay')),
+      );
+      final painter = overlay.painter! as ReviewBoardOverlayPainter;
+      expect(painter.agreementUci, 'd2d4');
+      expect(painter.agreementTailColor, const Color(0xff8ac8f5));
+      expect(find.text('d4 · Matches Stockfish #2'), findsOneWidget);
+    },
+  );
 
   testWidgets(
     'analysis root is an unbracketed mainline and paths survive branching',
