@@ -1641,6 +1641,10 @@ void main() {
   testWidgets('material icons use Lichess role order and positive-side score', (
     tester,
   ) async {
+    tester.view.physicalSize = const Size(1080, 2400);
+    tester.view.devicePixelRatio = 3;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
     const fen = 'r5k1/3Q1pp1/2p4p/4P1b1/p3R3/3P4/6PP/R5K1 w - - 0 1';
     await tester.pumpWidget(
       const MaterialApp(
@@ -1655,9 +1659,35 @@ void main() {
       ),
     );
 
-    expect(find.text('♜♛'), findsOneWidget);
-    expect(find.text('♟♝'), findsOneWidget);
-    expect(find.text('+10'), findsOneWidget);
+    final whiteIcons = tester
+        .widgetList<Icon>(
+          find.descendant(
+            of: find.byKey(const ValueKey('white-material')),
+            matching: find.byType(Icon),
+          ),
+        )
+        .toList();
+    final blackIcons = tester
+        .widgetList<Icon>(
+          find.descendant(
+            of: find.byKey(const ValueKey('black-material')),
+            matching: find.byType(Icon),
+          ),
+        )
+        .toList();
+    expect(whiteIcons.map((icon) => icon.icon?.codePoint), [0xf447, 0xf445]);
+    expect(blackIcons.map((icon) => icon.icon?.codePoint), [0xf443, 0xf43a]);
+    expect(
+      [...whiteIcons, ...blackIcons].map((icon) => icon.icon?.fontFamily),
+      everyElement('LichessIcons'),
+    );
+    expect(
+      [...whiteIcons, ...blackIcons].map((icon) => icon.size),
+      everyElement(13.0),
+    );
+    final score = tester.widget<Text>(find.text('+10'));
+    expect(score.style?.fontSize, 14.0);
+    expect(score.style?.color?.a, closeTo(0.5, 0.01));
   });
 
   testWidgets('material display preserves bishop versus knight imbalance', (
@@ -1677,8 +1707,22 @@ void main() {
       ),
     );
 
-    expect(find.text('♝'), findsOneWidget);
-    expect(find.text('♞'), findsOneWidget);
+    expect(
+      find.byWidgetPredicate(
+        (widget) =>
+            widget is Icon &&
+            widget.icon == const IconData(0xf43a, fontFamily: 'LichessIcons'),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.byWidgetPredicate(
+        (widget) =>
+            widget is Icon &&
+            widget.icon == const IconData(0xf441, fontFamily: 'LichessIcons'),
+      ),
+      findsOneWidget,
+    );
     expect(find.textContaining('+'), findsNothing);
   });
 

@@ -5496,7 +5496,15 @@ class MaterialDifference extends StatelessWidget {
   final String fen;
   final chess.Color side;
 
-  static const _glyphs = {'q': '♛', 'r': '♜', 'b': '♝', 'n': '♞', 'p': '♟'};
+  // These are the exact private-use glyphs used by Lichess Mobile's
+  // MaterialDifferenceDisplay with its bundled LichessIcons font.
+  static const _icons = {
+    'b': IconData(0xf43a, fontFamily: 'LichessIcons'),
+    'n': IconData(0xf441, fontFamily: 'LichessIcons'),
+    'p': IconData(0xf443, fontFamily: 'LichessIcons'),
+    'q': IconData(0xf445, fontFamily: 'LichessIcons'),
+    'r': IconData(0xf447, fontFamily: 'LichessIcons'),
+  };
   static const _names = {
     'q': 'queen',
     'r': 'rook',
@@ -5511,11 +5519,29 @@ class MaterialDifference extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final difference = MaterialDifferenceData.fromFen(fen).byColor(side);
-    final glyphs = <String>[];
+    final pieces = <Icon>[];
     final spoken = <String>[];
+    final mediaQuery = MediaQueryData.fromView(View.of(context));
+    final remainingHeight =
+        mediaQuery.size.height -
+        mediaQuery.viewPadding.vertical -
+        mediaQuery.size.width -
+        kToolbarHeight -
+        56;
+    final isShortScreen = remainingHeight < 200;
+    final iconSize = isShortScreen ? 11.0 : 13.0;
+    final textSize = isShortScreen ? 12.0 : 14.0;
+    final shade =
+        DefaultTextStyle.of(context).style.color?.withValues(alpha: 0.5) ??
+        Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5);
     for (final role in _order) {
       final count = difference.pieces[role] ?? 0;
-      glyphs.addAll(List.filled(count, _glyphs[role]!));
+      pieces.addAll(
+        List.generate(
+          count,
+          (_) => Icon(_icons[role], size: iconSize, color: shade),
+        ),
+      );
       if (count > 0) {
         spoken.add('$count ${_names[role]}${count == 1 ? '' : 's'}');
       }
@@ -5535,21 +5561,11 @@ class MaterialDifference extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
-              glyphs.join(),
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-                fontSize: 15,
-                height: 1,
-              ),
-            ),
+            ...pieces,
             const SizedBox(width: 3),
             Text(
               score,
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-                fontSize: 13,
-              ),
+              style: TextStyle(color: shade, fontSize: textSize),
             ),
           ],
         ),

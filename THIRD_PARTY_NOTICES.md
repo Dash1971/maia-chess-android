@@ -30,6 +30,20 @@ repositories.
 
 The game board uses Lichess's default brown colour scheme and Cburnett pieces.
 
+## Lichess icon font
+
+- Project: <https://github.com/lichess-org/mobile>
+- Pinned source commit: `a98315df95ca7dade9afe3bc826072ee159a60a0`
+- Font source: `assets/fonts/LichessIcons.ttf`
+- Copyright: Lichess contributors and the original FlutterIcon/Fontello icon authors
+- Licences: GNU General Public License v3.0 for Lichess Mobile; component icons
+  include Font Awesome and Entypo glyphs under the SIL Open Font License
+
+`assets/fonts/LichessIcons.ttf` is the unmodified upstream font. Mobile Maia
+uses its Font Awesome chess-piece glyphs for the Lichess-style material
+difference display. The upstream generated icon declaration records the
+component authors and licence links.
+
 ## dartchess
 
 - Project: <https://github.com/lichess-org/dartchess>
