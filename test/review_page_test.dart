@@ -357,6 +357,23 @@ void main() {
     expect(find.textContaining('smallest group of moves'), findsOneWidget);
   });
 
+  testWidgets('Maia play rating persists across app restarts', (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    await tester.pumpWidget(const MaiaChessApp());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Hard 2200'));
+    await tester.pumpAndSettle();
+    final preferences = await SharedPreferences.getInstance();
+    expect(preferences.getInt(maiaPlayEloPreferenceKey), 2200);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
+    await tester.pumpWidget(const MaiaChessApp());
+    await tester.pumpAndSettle();
+    expect(find.text('Maia rating: 2200'), findsOneWidget);
+  });
+
   testWidgets('home and new game require confirmation while a game is active', (
     tester,
   ) async {

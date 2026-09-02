@@ -47,9 +47,9 @@ const lichessChessgroundUrl =
     'https://github.com/lichess-org/flutter-chessground';
 const lichessMultistockfishUrl =
     'https://github.com/lichess-org/dart-multistockfish';
-const mobileMaiaSourceUrl =
-    'https://github.com/Dash1971/maia-chess-android';
+const mobileMaiaSourceUrl = 'https://github.com/Dash1971/maia-chess-android';
 const mobileMaiaLicenseUrl = '$mobileMaiaSourceUrl/blob/main/LICENSE';
+const maiaPlayEloPreferenceKey = 'maiaPlayEloV1';
 
 class MaiaInferenceQueue {
   static Future<void> _tail = Future<void>.value();
@@ -616,6 +616,7 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
   bool _reviewOpen = false;
   List<RecordedVariation>? _reviewVariationSnapshot;
   bool _advancedExpanded = false;
+  bool _playEloChangedSinceLoad = false;
   final Random _timingRandom = Random.secure();
 
   bool get _playerIsWhite => _playerColor == chess.Color.WHITE;
@@ -907,7 +908,11 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
   Future<void> _loadEnginePreferences() async {
     final preferences = await SharedPreferences.getInstance();
     if (!mounted) return;
+    final savedPlayElo = preferences.getInt(maiaPlayEloPreferenceKey);
     setState(() {
+      if (widget.startingElo == null && !_playEloChangedSinceLoad) {
+        _elo = (savedPlayElo ?? 1500).clamp(500, 2500);
+      }
       _humanTiming = preferences.getBool('humanTiming') ?? false;
       _temperature = (preferences.getDouble('temperatureV2') ?? 0.5).clamp(
         0.0,
@@ -916,6 +921,20 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
       _topP = (preferences.getDouble('topPV2') ?? 0.9).clamp(0.0, 1.0);
       _analysisElo = preferences.getInt('analysisElo') ?? 1600;
     });
+  }
+
+  void _changePlayElo(int elo, {required bool persist}) {
+    final normalized = elo.clamp(500, 2500);
+    _playEloChangedSinceLoad = true;
+    setState(() => _elo = normalized);
+    if (persist) {
+      unawaited(_persistPlayElo(normalized));
+    }
+  }
+
+  Future<void> _persistPlayElo(int elo) async {
+    final preferences = await SharedPreferences.getInstance();
+    await preferences.setInt(maiaPlayEloPreferenceKey, elo);
   }
 
   Future<void> _saveEnginePreferences() async {
@@ -1719,21 +1738,24 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
               divisions: 20,
               value: _elo.toDouble(),
               label: '$_elo',
-              onChanged: (value) => setState(() => _elo = value.round()),
+              onChanged: (value) =>
+                  _changePlayElo(value.round(), persist: false),
+              onChangeEnd: (value) =>
+                  _changePlayElo(value.round(), persist: true),
             ),
             Wrap(
               alignment: WrapAlignment.spaceBetween,
               children: [
                 TextButton(
-                  onPressed: () => setState(() => _elo = 800),
+                  onPressed: () => _changePlayElo(800, persist: true),
                   child: const Text('Easy 800'),
                 ),
                 TextButton(
-                  onPressed: () => setState(() => _elo = 1500),
+                  onPressed: () => _changePlayElo(1500, persist: true),
                   child: const Text('Medium 1500'),
                 ),
                 TextButton(
-                  onPressed: () => setState(() => _elo = 2200),
+                  onPressed: () => _changePlayElo(2200, persist: true),
                   child: const Text('Hard 2200'),
                 ),
               ],
@@ -3900,6 +3922,7 @@ class _ReviewPageState extends State<ReviewPage> {
 
   Widget _movesNotation() {
     final rootMainline = _rootMainline;
+    final mainlineMoves = rootMainline?.sanMoves ?? widget.sanMoves;
     final variationsByBase = <int, List<RecordedVariation>>{};
     for (final variation in _variations) {
       if (identical(variation, rootMainline)) continue;
@@ -3907,23 +3930,10 @@ class _ReviewPageState extends State<ReviewPage> {
     }
     final renderedVariations = <RecordedVariation>{};
     final rows = <Widget>[];
-    final mainlineLength = rootMainline?.sanMoves.length ?? _maximumPly;
+    final mainlineLength = rootMainline == null
+        ? min(_maximumPly, mainlineMoves.length)
+        : mainlineMoves.length;
     for (var whiteIndex = 0; whiteIndex < mainlineLength; whiteIndex += 2) {
-      Widget move(int index) => _notationMove(
-        key: ValueKey('mainline-move-$index'),
-        san: rootMainline?.sanMoves[index] ?? widget.sanMoves[index],
-        classification: _classificationAt(index + 1),
-        selected: rootMainline != null
-            ? identical(_openedVariation, rootMainline) &&
-                  _variationIndex == index + 1
-            : !_inVariation && _ply == index + 1,
-        onTap: rootMainline != null
-            ? () => _openVariation(rootMainline, index + 1)
-            : () => setState(() => _showMainPly(index + 1)),
-        onLongPress: rootMainline != null
-            ? () => _showMoveActions(rootMainline, index + 1, variation: false)
-            : null,
-      );
       rows.add(
         Row(
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -3939,10 +3949,20 @@ class _ReviewPageState extends State<ReviewPage> {
                 ),
               ),
             ),
-            Expanded(child: move(whiteIndex)),
+            Expanded(
+              child: _mainlineNotationMove(
+                rootMainline: rootMainline,
+                moves: mainlineMoves,
+                index: whiteIndex,
+              ),
+            ),
             Expanded(
               child: whiteIndex + 1 < mainlineLength
-                  ? move(whiteIndex + 1)
+                  ? _mainlineNotationMove(
+                      rootMainline: rootMainline,
+                      moves: mainlineMoves,
+                      index: whiteIndex + 1,
+                    )
                   : const SizedBox.shrink(),
             ),
           ],
@@ -3983,6 +4003,26 @@ class _ReviewPageState extends State<ReviewPage> {
       ),
     );
   }
+
+  Widget _mainlineNotationMove({
+    required RecordedVariation? rootMainline,
+    required List<String> moves,
+    required int index,
+  }) => _notationMove(
+    key: ValueKey('mainline-move-$index'),
+    san: moves[index],
+    classification: _classificationAt(index + 1),
+    selected: rootMainline != null
+        ? identical(_openedVariation, rootMainline) &&
+              _variationIndex == index + 1
+        : !_inVariation && _ply == index + 1,
+    onTap: rootMainline != null
+        ? () => _openVariation(rootMainline, index + 1)
+        : () => setState(() => _showMainPly(index + 1)),
+    onLongPress: rootMainline != null
+        ? () => _showMoveActions(rootMainline, index + 1, variation: false)
+        : null,
+  );
 
   void _step(int delta) {
     if (_inVariation) {

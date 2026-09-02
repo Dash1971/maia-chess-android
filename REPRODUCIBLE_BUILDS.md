@@ -38,7 +38,7 @@ value.
 
 ## Verification
 
-For version `1.8.0`, two clean unsigned builds from the same revision
+For version `1.8.1`, two clean unsigned builds from the same revision
 must have identical SHA-256 hashes. To verify a developer-signed APK, use
 [`apksigcopier`](https://github.com/obfusk/apksigcopier) to extract its
 signature, apply that signature to the independently built unsigned APK, and

@@ -1,0 +1,1 @@
+Remembers the selected Maia playing strength across app restarts and hardens Analysis Board move-list rendering against a rare native crash.
