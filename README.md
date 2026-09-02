@@ -6,17 +6,33 @@ with Maia and Stockfish, and exporting PGN.
 Built around [Maia-3](https://github.com/CSSLab/maia3), the human-like chess
 engine developed by the University of Toronto Computational Social Science Lab.
 
+## Latest release — v1.8.1
+
+[Mobile Maia v1.8.1](https://github.com/Dash1971/maia-chess-android/releases/tag/v1.8.1)
+is a bug-fix update to the 1.8 Game Review release:
+
+- Maia's selected playing strength is now remembered across app restarts.
+- Analysis Board and Game Review move-list rendering is hardened around the
+  exact Dart AOT path identified in a rare, one-off Android native crash.
+- Mainline rendering is bounded to available move data if restored analysis
+  state is incomplete or mismatched.
+
+The crash could not be reproduced, so this is targeted hardening rather than a
+claim that every possible native crash has been eliminated. See the
+[complete release notes and APK](https://github.com/Dash1971/maia-chess-android/releases/tag/v1.8.1).
+
 ## Screenshots
 
 <p align="center">
-  <img src="docs/screenshots/20260830_v0_setup_analysis_board.jpg" width="30%" alt="Mobile Maia setup with side, rating, clock, and Analysis Board controls">
-  <img src="docs/screenshots/20260830_v0_review_opening_early.jpg" width="30%" alt="Stockfish and Maia review with Lichess opening identification">
-  <img src="docs/screenshots/20260830_v0_review_accuracy_graph.jpg" width="30%" alt="Stockfish evaluation graph with White and Black accuracy">
+  <img src="docs/screenshots/20260902_v0_setup.jpg" width="30%" alt="Mobile Maia setup with side, remembered rating, clock, and Analysis Board controls">
+  <img src="docs/screenshots/20260902_v0_analysis_variation.jpg" width="30%" alt="Analysis Board with Stockfish and Maia arrows and an inline PGN variation">
+  <img src="docs/screenshots/20260902_v0_review_graph.jpg" width="30%" alt="Game Review evaluation graph with colour-coded move classifications">
 </p>
 
 <p align="center">
-  <img src="docs/screenshots/20260830_v0_review_opening_late.jpg" width="30%" alt="Clickable move review with Stockfish and Maia analysis arrows">
-  <img src="docs/screenshots/20260830_v0_completed_game.jpg" width="30%" alt="Completed offline game with PGN export, review, and rematch actions">
+  <img src="docs/screenshots/20260902_v0_review_moves.jpg" width="30%" alt="Clickable Game Review move list with Stockfish and Maia analysis arrows">
+  <img src="docs/screenshots/20260902_v0_review_classifications.jpg" width="30%" alt="Game Review summary of Brilliant, Good, Interesting, Dubious, Mistake, and Blunder moves">
+  <img src="docs/screenshots/20260902_v0_completed_game.jpg" width="30%" alt="Completed offline game with PGN export, Game Review, and rematch actions">
 </p>
 
 ## User guide
@@ -44,15 +60,22 @@ reviews, complete analysis trees, the selected position, board orientation,
 and clock state are checkpointed locally and restored after Android process
 death, device restart, or an app update.
 
+<p align="center">
+  <img src="docs/screenshots/20260902_v0_analysis_variation.jpg" width="38%" alt="Analysis Board preserving a clickable inline variation">
+  <img src="docs/screenshots/20260902_v0_analysis_two_choices.jpg" width="38%" alt="Analysis Board showing Stockfish's first and second choices and Maia agreement">
+</p>
+
 ### Start a game
 
 Choose White, Black, or a random side, set Maia's rating, and select a clock.
 Mobile Maia works entirely offline: the Maia-3 model and Stockfish are bundled
-with the app, and no account is required.
+with the app, and no account is required. The selected Maia rating is stored
+locally and reused the next time the app starts.
 
 <p align="center">
-  <img src="docs/screenshots/20260830_v0_setup_analysis_board.jpg" width="38%" alt="Choose a side, Maia rating, time control, or Analysis Board">
-  <img src="docs/screenshots/advanced.jpg" width="38%" alt="Advanced Maia timing and sampling controls">
+  <img src="docs/screenshots/20260902_v0_setup.jpg" width="30%" alt="Choose a side, Maia rating, time control, or Analysis Board">
+  <img src="docs/screenshots/20260902_v0_advanced_settings.jpg" width="30%" alt="Advanced Maia timing, sampling, and analysis-rating controls">
+  <img src="docs/screenshots/20260902_v0_sampling_help.jpg" width="30%" alt="In-app explanation of Maia Temperature and Top-P">
 </p>
 
 Advanced settings control human-like move timing, Temperature, Top-P, and the
@@ -94,7 +117,7 @@ line is retained as a variation when the PGN is copied.
 
 <p align="center">
   <img src="docs/screenshots/gameplay.jpg" width="38%" alt="Game board, material balance, move list, and takeback control">
-  <img src="docs/screenshots/20260830_v0_completed_game.jpg" width="38%" alt="Completed game with PGN, review, and rematch actions">
+  <img src="docs/screenshots/20260902_v0_completed_game.jpg" width="38%" alt="Completed game with PGN, Game Review, and rematch actions">
 </p>
 
 ### Game Review
@@ -114,13 +137,14 @@ the pieces from any reviewed position to explore a branch; analysis is cached
 for responsive navigation and variations are retained in exported PGN.
 
 <p align="center">
-  <img src="docs/screenshots/20260830_v0_review_opening_early.jpg" width="30%" alt="Clickable main-line moves with offline Lichess opening identification">
-  <img src="docs/screenshots/20260828_v0_review_variation.jpg" width="30%" alt="Inline nested variation in the move list">
-  <img src="docs/screenshots/20260830_v0_review_accuracy_graph.jpg" width="30%" alt="Stockfish review with evaluation, accuracy, and graph">
+  <img src="docs/screenshots/20260902_v0_review_moves.jpg" width="30%" alt="Clickable main-line moves with offline Lichess opening identification and engine arrows">
+  <img src="docs/screenshots/20260902_v0_review_dubious_move.jpg" width="30%" alt="Colour-coded move classification shown on the board and in notation">
+  <img src="docs/screenshots/20260902_v0_review_graph.jpg" width="30%" alt="Stockfish review graph with clickable classification markers">
 </p>
 
 <p align="center">
-  <img src="docs/screenshots/20260830_v0_review_opening_late.jpg" width="38%" alt="Stockfish and Maia suggestions shown as different colored arrows">
+  <img src="docs/screenshots/20260902_v0_review_accuracy.jpg" width="38%" alt="White and Black accuracy above the opening and middlegame graph">
+  <img src="docs/screenshots/20260902_v0_review_classifications.jpg" width="38%" alt="Per-side totals for Brilliant, Good, Interesting, Dubious, Mistake, and Blunder moves">
 </p>
 
 ### About and licensing
@@ -130,7 +154,7 @@ notice, complete source and licence links, and credits for Maia-3 and Lichess
 components.
 
 <p align="center">
-  <img src="docs/screenshots/20260830_v0_about_licensing.jpg" width="38%" alt="Mobile Maia v1.7.1 About screen with AGPL terms, source and licence links, and Maia and Lichess credits">
+  <img src="docs/screenshots/20260902_v0_about_licensing.jpg" width="38%" alt="Mobile Maia About screen with AGPL terms, source and licence links, and Maia and Lichess credits">
 </p>
 
 ## MVP features
