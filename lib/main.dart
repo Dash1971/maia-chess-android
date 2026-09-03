@@ -47,6 +47,8 @@ const lichessChessgroundUrl =
     'https://github.com/lichess-org/flutter-chessground';
 const lichessMultistockfishUrl =
     'https://github.com/lichess-org/dart-multistockfish';
+const enCroissantProjectUrl =
+    'https://github.com/franciscoBSalgueiro/en-croissant';
 const mobileMaiaSourceUrl = 'https://github.com/Dash1971/maia-chess-android';
 const mobileMaiaLicenseUrl = '$mobileMaiaSourceUrl/blob/main/LICENSE';
 const maiaPlayEloPreferenceKey = 'maiaPlayEloV1';
@@ -1031,6 +1033,18 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
         ),
         const SizedBox(height: 8),
         const Text(
+          'Game Review move classification and sacrifice-detection heuristics '
+          'are adapted from the En Croissant open-source chess GUI.',
+        ),
+        TextButton.icon(
+          onPressed: () => maiaEngineChannel.invokeMethod<void>('openUrl', {
+            'url': enCroissantProjectUrl,
+          }),
+          icon: const Icon(Icons.open_in_new),
+          label: const Text('En Croissant project and source code'),
+        ),
+        const SizedBox(height: 8),
+        const Text(
           'Mobile Maia is free software distributed under AGPL-3.0-only, '
           'without any warranty. You may redistribute and modify it under '
           'the terms of that licence. The complete source code is available '
@@ -1052,7 +1066,7 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
         ),
         const Text(
           'This independent community app is not an official Maia-3 or '
-          'University of Toronto or Lichess application.',
+          'University of Toronto, Lichess, or En Croissant application.',
         ),
       ],
     );
@@ -4500,6 +4514,11 @@ class ClassifiedMove {
 }
 
 class MoveClassifier {
+  // Adapted and translated to Dart from En Croissant v0.15.0's GPL-3.0
+  // move-annotation and sacrifice-detection code:
+  // https://github.com/franciscoBSalgueiro/en-croissant
+  // Mobile Maia adds bounded search, background-isolate execution, and its
+  // own review data/UI integration. See THIRD_PARTY_NOTICES.md.
   // This is a visual annotation heuristic, not the engine evaluation. Keep the
   // quiescence probe deliberately small so a long review can never monopolize
   // the UI; classification itself also runs outside the main isolate.
