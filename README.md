@@ -1,10 +1,85 @@
 # Mobile Maia
 
-An offline-first Android chess app for playing against Maia-3, reviewing games
-with Maia and Stockfish, and exporting PGN.
+Mobile Maia is a free and open-source Android app for playing against
+[Maia-3](https://github.com/CSSLab/maia3), reviewing games with Maia and
+Stockfish, and exploring the difference between the best computer move and the
+move a human is actually likely to play. Everything runs locally on the phone.
 
-Built around [Maia-3](https://github.com/CSSLab/maia3), the human-like chess
-engine developed by the University of Toronto Computational Social Science Lab.
+Maia-3 is the latest generation of the human-like chess model developed by the
+University of Toronto Computational Social Science Lab. Published as part of
+the [Chessformer paper at ICLR 2026](https://openreview.net/forum?id=2ltBRzEHyd),
+its largest model achieved 57.1% human move-matching accuracy—a new state of the
+art in the paper's evaluation.
+
+That may not sound extraordinary until you consider how many reasonable moves
+there can be in a chess position. Maia is not trying to calculate the
+objectively best move. It is trying to predict what a person will actually
+play. That difference is the reason Mobile Maia exists.
+
+### A patient, human-like sparring partner
+
+Choose a Maia rating from 500 to 2500 and play as White, Black, or a random
+side. The aim is not to imitate a weakened superhuman engine that plays
+perfectly and then drops a piece for no human reason. It is to provide a
+level-appropriate opponent whose choices resemble human choices.
+
+Maia will never rage quit, cheat, send abuse in chat, or become impatient while
+you think. If you want to spend ten minutes working through a position, it will
+still be there when you are ready.
+
+### Complete game review on your phone
+
+[Free Chess.com accounts have a daily Game Review limit](https://support.chess.com/en/articles/8584089-how-does-game-review-work).
+If you have used that allowance, or played anonymously on Lichess without a
+server-side computer report, Mobile Maia provides another route: copy the PGN,
+paste it into the app, and run the review locally.
+
+The review includes separate White and Black accuracy scores, a
+tap-to-navigate evaluation graph, opening, middlegame, and endgame sections,
+and move classifications including Brilliant, Good, Interesting, Dubious,
+Mistake, and Blunder. You can step through Stockfish's preferred lines and
+export the reviewed game as annotated PGN.
+
+There is no review quota because there is no server to ration. Stockfish runs
+on the phone.
+
+### Analysis that asks what a human will play
+
+Mobile Maia answers two different questions on the same board:
+
+- What is the best move according to Stockfish?
+- What is the move a human at this rating is most likely to play?
+
+Blue arrows show Stockfish's leading choices and the orange arrow shows Maia's
+likely human move at the selected rating. When they agree, the app combines
+them into a two-tone arrow.
+
+This is especially useful in opening preparation. An engine can tell you that
+an idea is refuted by perfect play, but your real opponent will not have an
+evaluation bar. Maia helps you explore the replies that players at your level
+are actually likely to find—and the positions in which a natural move may lead
+them into trouble.
+
+Maia does not replace Stockfish. It makes Stockfish's answer more useful by
+placing it beside a model of human behaviour.
+
+### Built in the spirit of Lichess
+
+Mobile Maia follows Lichess in both design and philosophy: simple, clean,
+useful, and free of commercial clutter. There are no accounts, ads,
+subscriptions, coins, streaks, leagues, or other gamification. The app is 100%
+free and open-source software under AGPL-3.0-only.
+
+The Maia-3 79M model, Stockfish, and Lichess's opening-name data are bundled
+with the app. Games and analysis stay on the device, and everything continues
+to work without an internet connection.
+
+The tradeoff is size: the APK is about 525 MiB. That is the cost of making the
+app genuinely local rather than putting a mobile interface in front of
+somebody else's server.
+
+Mobile Maia is an independent community project, not an official Maia Chess,
+University of Toronto CSSLab, Stockfish, or Lichess app.
 
 ## Latest release — v1.8.1
 
