@@ -96,6 +96,29 @@ The crash could not be reproduced, so this is targeted hardening rather than a
 claim that every possible native crash has been eliminated. See the
 [complete release notes and APK](https://github.com/Dash1971/maia-chess-android/releases/tag/v1.8.1).
 
+## Preview channel — active development
+
+Active development continues in the separate
+[Mobile Maia Preview repository](https://github.com/Dash1971/maia-chess-android-preview).
+Preview builds use a yellow/gold app icon and a separate Android package, so
+they can be installed beside the stable blue Mobile Maia app without replacing
+it.
+
+The [current Preview release, v1.7.0-beta.27](https://github.com/Dash1971/maia-chess-android-preview/releases/tag/v1.7.0-beta.27)
+is testing:
+
+- Lichess-app-style tap and drag across live play, Analysis Board, and Game
+  Review, including touch magnification, finger offset, and the drop shadow,
+  while keeping the board fixed during a drag.
+- Reliable **Play from here** from custom positions with either side to move.
+- Lower-overhead clocks and Maia inference, plus safer model loading and engine
+  lifecycle handling.
+- More reliable nested analysis variations, graph navigation, and PGN export,
+  with the option to stop a full-game analysis in progress.
+
+Preview releases are prerelease software and may change before promotion to
+the stable app. Follow the Preview repository to see and test work in progress.
+
 ## Screenshots
 
 <p align="center">
