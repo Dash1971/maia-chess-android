@@ -17,15 +17,15 @@ engine developed by the University of Toronto Computational Social Science Lab.
 ## Screenshots
 
 <p align="center">
-  <img src="docs/screenshots/20260828_v0_completed_game.jpg" width="30%" alt="Completed offline game against Maia-3">
-  <img src="docs/screenshots/20260828_v0_review_moves.jpg" width="30%" alt="Clickable Lichess-style analysis move list">
-  <img src="docs/screenshots/20260828_v0_review_graph.jpg" width="30%" alt="Stockfish evaluation graph with White and Black accuracy">
+  <img src="docs/screenshots/20260906_v0_home_setup.jpg" width="30%" alt="Mobile Maia setup with side, rating, clock, Analysis Board, Recent games, and Open PGN controls">
+  <img src="docs/screenshots/20260906_v0_live_game_navigation.jpg" width="30%" alt="Offline game against Maia with move navigation controls">
+  <img src="docs/screenshots/20260906_v0_analysis_moves.jpg" width="30%" alt="Analysis Board with Stockfish and Maia arrows and a scrolling move list">
 </p>
 
 <p align="center">
-  <img src="docs/screenshots/20260828_v0_review_variation.jpg" width="30%" alt="Inline nested analysis variation">
-  <img src="docs/screenshots/20260828_v0_review_graph_opening.jpg" width="30%" alt="Opening position with Stockfish and Maia analysis arrows">
-  <img src="docs/screenshots/20260828_v0_about.jpg" width="30%" alt="Mobile Maia version and open-source project credits">
+  <img src="docs/screenshots/20260906_v0_recent_games.jpg" width="30%" alt="Recent games with a saved incomplete game">
+  <img src="docs/screenshots/20260906_v0_review_graph.jpg" width="30%" alt="Computer analysis evaluation graph with colour-coded move classifications">
+  <img src="docs/screenshots/20260906_v0_review_classifications.jpg" width="30%" alt="Computer analysis summary of move classifications for both players">
 </p>
 
 ## User guide
@@ -37,29 +37,53 @@ starting a game. Stockfish continuously supplies the evaluation and blue
 best-move arrow, while Maia supplies its orange human-move recommendation at
 the configured analysis rating.
 
-The actions menu can load FEN or PGN text, copy the current FEN or complete PGN,
-open the graphical board editor, or start a Maia game from the current position
-as White, Black, or a random side. The board editor follows Lichess's toggle
-interaction: select a piece and tap an empty square to add it, or tap the same
-piece already on the board to remove it. It also controls side to move and
-castling rights. The complete Lichess CC0 opening-name dataset is bundled for
-offline ECO codes, detailed variation names, and transposition-aware matching.
+The bottom actions sheet can load FEN or PGN text, open a PGN file, clear the
+move tree, open the graphical board editor, or start a Maia game from the
+current position. **Continue from here** lets you choose White, Black, or a
+random side and confirms which colour moves next. The top-right menu saves,
+shares, or copies the complete PGN, or copies the current FEN.
+
+The board editor follows Lichess's toggle interaction: select a piece and tap
+an empty square to add it, or tap the same piece already on the board to remove
+it. It also controls side to move and castling rights. The complete Lichess CC0
+opening-name dataset is bundled for offline ECO codes, detailed variation
+names, and transposition-aware matching.
 
 Select any earlier move and play a different continuation to create an inline,
-clickable PGN variation without deleting the existing line. Active games,
-reviews, complete analysis trees, the selected position, board orientation,
-and clock state are checkpointed locally and restored after Android process
-death, device restart, or an app update.
+clickable PGN variation without deleting the existing line. Long-press a move
+to delete its continuation; variation moves can also be collapsed, expanded,
+promoted one level, or made the main line. Active games, reviews, complete
+analysis trees, the selected position, board orientation, and clock state are
+checkpointed locally and restored after Android process death, device restart,
+or an app update.
+
+<p align="center">
+  <img src="docs/screenshots/20260906_v0_analysis_board.jpg" width="30%" alt="Analysis Board at the starting position with offline Stockfish and Maia suggestions">
+  <img src="docs/screenshots/20260906_v0_analysis_actions.jpg" width="30%" alt="Analysis Board actions for loading, clearing, editing, and continuing a position">
+  <img src="docs/screenshots/20260906_v0_analysis_export.jpg" width="30%" alt="Analysis Board menu for saving, sharing, and copying PGN or FEN">
+</p>
+
+<p align="center">
+  <img src="docs/screenshots/20260906_v0_analysis_selected_move.jpg" width="30%" alt="Analysis Board with a selected move, engine lines, and move arrows">
+  <img src="docs/screenshots/20260906_v0_analysis_variation.jpg" width="30%" alt="Analysis Board preserving an inline variation in the move tree">
+  <img src="docs/screenshots/20260906_v0_analysis_castling.jpg" width="30%" alt="Analysis Board navigating a later move in the current line">
+</p>
 
 ### Start a game
 
 Choose White, Black, or a random side, set Maia's rating, and select a clock.
 Mobile Maia works entirely offline: the Maia-3 model and Stockfish are bundled
-with the app, and no account is required.
+with the app, and no account is required. The selected Maia rating is stored
+locally and reused the next time the app starts.
 
 <p align="center">
-  <img src="docs/screenshots/setup.jpg" width="38%" alt="Choose a side, Maia rating, and time control">
-  <img src="docs/screenshots/advanced.jpg" width="38%" alt="Advanced Maia timing and sampling controls">
+  <img src="docs/screenshots/20260906_v0_home_setup.jpg" width="30%" alt="Choose a side, Maia rating, time control, or Analysis Board">
+  <img src="docs/screenshots/20260906_v0_time_control_menu.jpg" width="30%" alt="Choose Unlimited, a preset clock, or a custom time control">
+  <img src="docs/screenshots/20260906_v0_advanced_settings.jpg" width="30%" alt="Advanced Maia timing, sampling, analysis-rating, and diagnostics controls">
+</p>
+
+<p align="center">
+  <img src="docs/screenshots/20260906_v0_sampling_help.jpg" width="38%" alt="In-app explanation of Maia Temperature and Top-P">
 </p>
 
 Advanced settings control human-like move timing, Temperature, Top-P, and the
@@ -95,36 +119,78 @@ For a deeper explanation, see the
 ### Play and take back
 
 Tap or drag pieces to play. The status card shows whose turn it is, while the
-material row and move list update throughout the game. Premoves can be entered
-while Maia is thinking. A takeback restores the board and clock; the abandoned
-line is retained as a variation when the PGN is copied.
+material row and move strip update throughout the game. Premoves can be entered
+while Maia is thinking. The bottom toolbar opens the game menu, resigns, and
+steps backward or forward through played moves. Historical positions are
+read-only until you return to the live position. **Takeback** is in the game
+menu; it restores the board and clock while retaining the abandoned line as a
+variation when the PGN is copied.
 
 <p align="center">
-  <img src="docs/screenshots/gameplay.jpg" width="38%" alt="Game board, material balance, move list, and takeback control">
-  <img src="docs/screenshots/20260828_v0_completed_game.jpg" width="38%" alt="Completed game with PGN and review actions">
-</p>
-
-### Review with Stockfish and Maia
-
-After a game, select **Review with Stockfish**. The board remains fixed at the
-top while **Moves** and **Graph** switch the panel below it. Select any move to
-jump directly to that position. The evaluation bar and blue arrow show
-Stockfish's assessment and best move. Maia also suggests the most likely human
-move at the configured rating; when it differs from Stockfish it is shown with
-an orange arrow, and when it agrees only the shared blue arrow is shown.
-
-Full-game analysis adds separate White and Black accuracy percentages and a
-tap-to-navigate evaluation graph. Move the pieces from any reviewed position to
-explore a branch; analysis variations are retained in exported PGN.
-
-<p align="center">
-  <img src="docs/screenshots/20260828_v0_review_moves.jpg" width="30%" alt="Clickable main-line moves in compact chess notation">
-  <img src="docs/screenshots/20260828_v0_review_variation.jpg" width="30%" alt="Inline nested variation in the move list">
-  <img src="docs/screenshots/20260828_v0_review_graph.jpg" width="30%" alt="Stockfish review with evaluation, accuracy, and graph">
+  <img src="docs/screenshots/20260906_v0_live_game_opening.jpg" width="30%" alt="Live game against Maia in an opening position">
+  <img src="docs/screenshots/20260906_v0_maia_thinking.jpg" width="30%" alt="Live game while Maia is thinking and a premove can be entered">
+  <img src="docs/screenshots/20260906_v0_live_game_navigation.jpg" width="30%" alt="Live game with menu, resign, previous-move, and next-move controls">
 </p>
 
 <p align="center">
-  <img src="docs/screenshots/20260828_v0_review_graph_opening.jpg" width="38%" alt="Stockfish and Maia suggestions shown as different colored arrows">
+  <img src="docs/screenshots/20260906_v0_game_result.jpg" width="38%" alt="Game conclusion dialog with Analysis Board and Rematch actions">
+</p>
+
+### Offline games and files
+
+Games and analysis are checkpointed in app-private files, with a previous-good
+backup for recovery. **Recent games** contains completed games and incomplete
+games explicitly saved with Home. Incomplete games are labelled and become the
+same completed record when finished. **Reset game** warns before permanently
+removing the current game and starting again.
+
+Recent games supports multi-select, select all, selected deletion, and delete
+all. Android may erase app-private data when the app is uninstalled; use
+**Save PGN file** or **Share PGN** to keep an independent copy.
+
+<p align="center">
+  <img src="docs/screenshots/20260906_v0_recent_games.jpg" width="38%" alt="Recent games showing an explicitly saved incomplete game">
+</p>
+
+**Open PGN file**, Android's Open with action, and shared PGN attachments import
+a single game with its variations, comments, and annotations. Files are limited
+to 2 MB and 20,000 moves across all branches. Save and share use Android's
+system picker and temporary URI grants; no storage or Internet permission is
+required. PGN import uses the first game in a multi-game document.
+
+Training clocks pause while the app is backgrounded, while reviewing the
+current game, or after a Maia error. Returning resumes the saved clock; Retry
+restarts a failed Maia turn. Analysis stops scheduling engine work offscreen.
+Selecting a position gets a short Stockfish search, then a longer refinement if
+it remains selected. Full computer analysis uses the longer budget.
+
+### Analysis Board and computer review
+
+After a game, select **Analysis Board**. The board remains fixed at the top
+while **Moves** and **Computer** switch the panel below it. Select any move to
+jump directly to that position. The evaluation bar and blue arrows show
+Stockfish's assessment and leading moves. Maia also suggests the most likely
+human move at the configured rating. Agreement between Maia and Stockfish is
+shown by a two-tone arrow.
+
+Open **Computer** and run computer analysis to add separate White and Black
+accuracy percentages, a tap-to-navigate evaluation graph,
+opening/middlegame/endgame separators, and colour-coded Brilliant, Good,
+Interesting, Dubious, Mistake, and Blunder move classifications. Analysis can
+be stopped safely from the progress screen. The current move's annotation also
+appears on the board. Move the pieces from any reviewed position to explore a
+branch; analysis is cached for responsive navigation and variations are
+retained in exported PGN.
+
+<p align="center">
+  <img src="docs/screenshots/20260906_v0_analysis_moves.jpg" width="30%" alt="Clickable move list with offline opening identification and engine arrows">
+  <img src="docs/screenshots/20260906_v0_analysis_progress.jpg" width="30%" alt="Cancellable full-game computer analysis progress">
+  <img src="docs/screenshots/20260906_v0_review_accuracy.jpg" width="30%" alt="Computer analysis tab with player accuracy, game phases, and move counts">
+</p>
+
+<p align="center">
+  <img src="docs/screenshots/20260906_v0_review_graph.jpg" width="38%" alt="Evaluation graph with clickable move-classification markers">
+  <img src="docs/screenshots/20260906_v0_review_classifications.jpg" width="38%" alt="Per-side totals for Brilliant, Good, Interesting, Dubious, Mistake, and Blunder moves">
 </p>
 
 ### About and licensing
@@ -133,7 +199,7 @@ The About screen shows the installed version and links to Maia-3, En Croissant,
 Lichess Flutter Chessground, Lichess multistockfish, and the bundled licences.
 
 <p align="center">
-  <img src="docs/screenshots/20260828_v0_about.jpg" width="38%" alt="Mobile Maia version, project credits, and licence links">
+  <img src="docs/screenshots/20260906_v0_about.jpg" width="38%" alt="Mobile Maia 2.0 About screen with AGPL terms, source and licence links, and project credits">
 </p>
 
 ## MVP features
@@ -141,7 +207,10 @@ Lichess Flutter Chessground, Lichess multistockfish, and the bundled licences.
 - Bundled Maia-3 79M model; no account, server, or network connection required
 - Offline Analysis Board with Stockfish evaluation and Maia move comparison
 - Automatic restoration of active games, reviews, and analysis trees
+- Recent Games for completed games and explicitly saved incomplete games
+- Multi-select, select-all, selected deletion, and delete-all game management
 - FEN/PGN loading, FEN/PGN copying, and graphical position editing
+- Android Files, Open with, and share-sheet PGN import and export
 - Play against Maia from the current analysis position
 - Complete offline Lichess CC0 opening-name and ECO recognition
 - Play as White, Black, or a random side
@@ -155,11 +224,13 @@ Lichess Flutter Chessground, Lichess multistockfish, and the bundled licences.
 - Legal move handling, checkmate/draw detection, move list, and rematches
 - Resignation and post-game Home/Rematch actions
 - Move-by-move Stockfish and Maia review, starting from the initial position
-- Configurable Maia human-move suggestion (default 1600) with a distinct arrow when it differs from Stockfish
+- Configurable Maia human-move suggestion (default 1600), two Stockfish choices, and two-tone agreement arrows
 - Evaluation bar with Lichess-style numeric score and blue Stockfish best-move arrow
 - Switchable clickable Moves and Computer graph views below a persistent board
-- Optional full-game computer analysis graph with tap-to-navigate positions
+- Optional full-game computer analysis graph with tap-to-navigate positions and game-phase separators
+- Brilliant, Good, Interesting, Dubious, Mistake, and Blunder classifications on the graph, move list, and board
 - Analysis variations and takebacks preserved as PGN recursive annotation variations
+- Long-press variation editing: collapse/expand, promote, make main line, or delete from a move
 - Flip-board control during analysis
 - Lichess-style material imbalance display, including bishop-versus-knight trades
 - Tagged PGN export with players, event, date, result, and termination
@@ -282,23 +353,3 @@ En Croissant code (GPL-3.0). See
 
 This is an independent community project and is not an official Maia Chess,
 University of Toronto CSSLab, Stockfish, Lichess, or En Croissant application.
-
-## Offline games and files
-
-Games and analysis are checkpointed in app-private files, with a previous-good
-backup. Home and New game keep the previous session in **Recent games**, where
-it can be reopened or explicitly deleted. The legacy preference checkpoint is
-migrated on first launch. Android may erase app-private data when the app is
-uninstalled; use **Save PGN file** or **Share PGN** to keep an independent copy.
-
-**Open PGN file**, Android's Open with action, and shared PGN attachments import
-a single game with its variations, comments and annotations. Files are limited
-to 2 MB and 20,000 moves across all branches. Save and share use Android's
-system picker and temporary URI grants; no storage or Internet permission is
-required. PGN import uses the first game in a multi-game document.
-
-Training clocks pause while the app is backgrounded, while reviewing the
-current game, or after a Maia error. Returning resumes the saved clock; Retry
-restarts a failed Maia turn. Analysis stops scheduling engine work offscreen.
-Selecting a position gets a short Stockfish search, then a longer refinement
-if it remains selected. Full computer analysis uses the longer budget.
