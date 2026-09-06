@@ -306,22 +306,20 @@ void main() {
     final litMoveCommands = board.ledCommands
         .where((command) => command.toSet().containsAll(const {'e7', 'e5'}))
         .length;
-    await tester.pump(const Duration(milliseconds: 250));
-    expect(
-      board.ledCommands
-          .where((command) => command.toSet().containsAll(const {'e7', 'e5'}))
-          .length,
-      greaterThan(litMoveCommands),
-    );
-    final burstMoveCommands = board.ledCommands
-        .where((command) => command.toSet().containsAll(const {'e7', 'e5'}))
-        .length;
     await tester.pump(const Duration(seconds: 1));
     expect(
       board.ledCommands
           .where((command) => command.toSet().containsAll(const {'e7', 'e5'}))
           .length,
-      greaterThan(burstMoveCommands),
+      litMoveCommands,
+      reason: 'Pending LEDs must not be flooded with immediate retries.',
+    );
+    await tester.pump(const Duration(milliseconds: 1100));
+    expect(
+      board.ledCommands
+          .where((command) => command.toSet().containsAll(const {'e7', 'e5'}))
+          .length,
+      greaterThan(litMoveCommands),
     );
 
     game.move('e4');
@@ -333,7 +331,7 @@ void main() {
     final clearIndex = board.ledCommands.lastIndexWhere(
       (command) => command.isEmpty,
     );
-    await tester.pump(const Duration(milliseconds: 700));
+    await tester.pump(const Duration(seconds: 3));
     expect(
       board.ledCommands
           .skip(clearIndex + 1)

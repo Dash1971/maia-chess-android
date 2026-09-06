@@ -36,6 +36,7 @@ class ChessnutBridge(
         private const val EVENT_CHANNEL = "maia_chess/chessnut/events"
         private const val PERMISSION_REQUEST = 7103
         private const val SCAN_TIMEOUT_MS = 10_000L
+        private const val WRITE_GAP_MS = 100L
 
         private val WRITE_UUID = UUID.fromString("1B7E8272-2877-41C3-B46E-CF057C562023")
         private val CONFIRM_UUID = UUID.fromString("1B7E8273-2877-41C3-B46E-CF057C562023")
@@ -74,6 +75,7 @@ class ChessnutBridge(
 
     private val writeQueue = ArrayDeque<PendingWrite>()
     private var writeInProgress = false
+    private var writeGapInProgress = false
     private var activeWrite: PendingWrite? = null
 
     init {
@@ -360,12 +362,12 @@ class ChessnutBridge(
                     if (completedWrite?.failureIsFatal != false) {
                         failConnection("Chessnut command failed (status $status).")
                     } else {
-                        writeNext()
+                        scheduleNextWrite()
                     }
                     return@post
                 }
                 completedWrite?.completion?.success(null)
-                writeNext()
+                scheduleNextWrite()
             }
         }
     }
@@ -497,12 +499,28 @@ class ChessnutBridge(
         failureIsFatal: Boolean = true,
         completion: MethodChannel.Result? = null,
     ) {
+        if (isLedCommand(command)) {
+            // LED state is absolute, not an event. Keep only the newest queued
+            // state so rapid board notifications cannot replay stale guidance.
+            val iterator = writeQueue.iterator()
+            while (iterator.hasNext()) {
+                val queued = iterator.next()
+                if (isLedCommand(queued.command)) {
+                    iterator.remove()
+                    queued.completion?.success(null)
+                }
+            }
+            if (activeWrite?.command?.contentEquals(command) == true) {
+                completion?.success(null)
+                return
+            }
+        }
         writeQueue.add(PendingWrite(command.copyOf(), failureIsFatal, completion))
         writeNext()
     }
 
     private fun writeNext() {
-        if (writeInProgress || writeQueue.isEmpty()) return
+        if (writeInProgress || writeGapInProgress || writeQueue.isEmpty()) return
         val currentGatt = gatt ?: return
         val characteristic = writeCharacteristic ?: return
         val pendingWrite = writeQueue.removeFirst()
@@ -535,7 +553,7 @@ class ChessnutBridge(
             if (pendingWrite.failureIsFatal) {
                 failConnection("Could not send a command to Chessnut Go.")
             } else {
-                writeNext()
+                scheduleNextWrite()
             }
         } catch (error: SecurityException) {
             writeInProgress = false
@@ -548,6 +566,18 @@ class ChessnutBridge(
             failConnection(error.message ?: "Bluetooth permission was revoked.")
         }
     }
+
+    private fun scheduleNextWrite() {
+        if (writeGapInProgress) return
+        writeGapInProgress = true
+        mainHandler.postDelayed({
+            writeGapInProgress = false
+            writeNext()
+        }, WRITE_GAP_MS)
+    }
+
+    private fun isLedCommand(command: ByteArray): Boolean =
+        command.size == 10 && command[0] == 0x0a.toByte() && command[1] == 0x08.toByte()
 
     private fun disconnect(message: String) {
         stopScan()
@@ -581,6 +611,7 @@ class ChessnutBridge(
         configuringDescriptor = null
         writeQueue.clear()
         writeInProgress = false
+        writeGapInProgress = false
         activeWrite = null
         try {
             gatt?.close()

@@ -85,8 +85,8 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
   bool _processingChessnutPosition = false;
   Map<String, String>? _queuedChessnutPosition;
   Timer? _chessnutLedRefreshTimer;
-  final List<Timer> _chessnutLedBurstTimers = [];
   int _chessnutLedRefreshGeneration = 0;
+  int? _chessnutLedRefreshInFlightGeneration;
 
   bool get _playerIsWhite => _playerColor == chess.Color.WHITE;
   bool get _isPlayerTurn => _game.turn == _playerColor;
@@ -941,9 +941,9 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
     });
     if (nextState == ElectronicBoardConnectionState.ready) {
       if (_pendingPhysicalMaiaMove != null) {
-        _startChessnutLedRefresh();
+        _startChessnutLedRefresh(immediate: true);
       } else if (_chessnutTakebackRestoreActive) {
-        _startChessnutLedRefresh();
+        _startChessnutLedRefresh(immediate: true);
       }
       final position = _chessnutPosition;
       if (position != null) _queueChessnutPosition(position);
@@ -1130,28 +1130,16 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
     return entries.map((entry) => '${entry.key}${entry.value}').join();
   }
 
-  void _startChessnutLedRefresh() {
+  void _startChessnutLedRefresh({bool immediate = false}) {
     _chessnutLedRefreshTimer?.cancel();
-    for (final timer in _chessnutLedBurstTimers) {
-      timer.cancel();
-    }
-    _chessnutLedBurstTimers.clear();
     if (_pendingPhysicalMaiaMove == null && !_chessnutTakebackRestoreActive) {
       _chessnutLedRefreshGeneration++;
       return;
     }
     final generation = ++_chessnutLedRefreshGeneration;
-    unawaited(_refreshPendingChessnutLeds(generation));
-    for (final delay in const [
-      Duration(milliseconds: 200),
-      Duration(milliseconds: 600),
-    ]) {
-      _chessnutLedBurstTimers.add(
-        Timer(delay, () => unawaited(_refreshPendingChessnutLeds(generation))),
-      );
-    }
+    if (immediate) unawaited(_refreshPendingChessnutLeds(generation));
     _chessnutLedRefreshTimer = Timer.periodic(
-      const Duration(seconds: 1),
+      const Duration(seconds: 2),
       (_) => unawaited(_refreshPendingChessnutLeds(generation)),
     );
   }
@@ -1159,36 +1147,40 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
   void _stopChessnutLedRefresh() {
     _chessnutLedRefreshTimer?.cancel();
     _chessnutLedRefreshTimer = null;
-    for (final timer in _chessnutLedBurstTimers) {
-      timer.cancel();
-    }
-    _chessnutLedBurstTimers.clear();
     _chessnutLedRefreshGeneration++;
   }
 
   Future<void> _refreshPendingChessnutLeds(int generation) async {
     if (generation != _chessnutLedRefreshGeneration) return;
-    final pending = _pendingPhysicalMaiaMove;
-    if (!mounted ||
-        !_chessnutGameActive ||
-        (pending == null && !_chessnutTakebackRestoreActive)) {
-      if (generation == _chessnutLedRefreshGeneration) {
-        _stopChessnutLedRefresh();
+    if (_chessnutLedRefreshInFlightGeneration == generation) return;
+    _chessnutLedRefreshInFlightGeneration = generation;
+    try {
+      final pending = _pendingPhysicalMaiaMove;
+      if (!mounted ||
+          !_chessnutGameActive ||
+          (pending == null && !_chessnutTakebackRestoreActive)) {
+        if (generation == _chessnutLedRefreshGeneration) {
+          _stopChessnutLedRefresh();
+        }
+        return;
       }
-      return;
-    }
-    if (!_chessnutReady) return;
-    final observed = _chessnutPosition;
-    final squares = observed == null
-        ? pending == null
-              ? const <String>[]
-              : [pending.substring(0, 2), pending.substring(2, 4)]
-        : ChessnutProtocol.mismatchSquares(
-            observed,
-            ChessnutProtocol.pieceMapFromFen(_game.fen),
-          );
-    if (squares.isNotEmpty && generation == _chessnutLedRefreshGeneration) {
-      await _setChessnutLeds(squares);
+      if (!_chessnutReady) return;
+      final observed = _chessnutPosition;
+      final squares = observed == null
+          ? pending == null
+                ? const <String>[]
+                : [pending.substring(0, 2), pending.substring(2, 4)]
+          : ChessnutProtocol.mismatchSquares(
+              observed,
+              ChessnutProtocol.pieceMapFromFen(_game.fen),
+            );
+      if (squares.isNotEmpty && generation == _chessnutLedRefreshGeneration) {
+        await _setChessnutLeds(squares);
+      }
+    } finally {
+      if (_chessnutLedRefreshInFlightGeneration == generation) {
+        _chessnutLedRefreshInFlightGeneration = null;
+      }
     }
   }
 
@@ -1688,6 +1680,11 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
           _pendingPhysicalMaiaMove = maiaUci;
           _status = 'Make Maia’s lit move on Chessnut Go.';
         });
+        await _setChessnutLeds([
+          maiaUci.substring(0, 2),
+          maiaUci.substring(2, 4),
+        ]);
+        if (!mounted || generation != _gameGeneration) return;
         _startChessnutLedRefresh();
         if (!mounted || generation != _gameGeneration) return;
         unawaited(_saveGameState());
