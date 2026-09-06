@@ -3,17 +3,44 @@
 ## Chessnut e-board protocol
 
 - Official API: <https://github.com/chessnutech/Chessnut_eBoards>
+- Official EasyLinkSDK: <https://github.com/chessnutech/EasyLinkSDK>
+- EasyLinkSDK copyright: Copyright (c) 2022 chessnutech
+- EasyLinkSDK licence: MIT License
 - Reference implementation: <https://github.com/rmarabini/chessnutair>
 - Reference implementation copyright: Roberto Marabini and contributors
 - Reference implementation licence: GNU General Public License v3.0
 
 Mobile Maia's Chessnut Bluetooth protocol constants, board-position decoding,
-LED mapping, and buzzer command follow Chessnut's published API and were
-cross-checked against the GPL-3.0 chessnutair reference implementation. The
-Android/Kotlin transport
-and Dart game integration are new adaptations for Mobile Maia and are
+and LED mapping follow Chessnut's published API and were cross-checked against
+the GPL-3.0 chessnutair reference implementation. The buzzer command encoding
+follows Chessnut's MIT-licensed EasyLinkSDK. The Android/Kotlin transport and
+Dart game integration are new adaptations for Mobile Maia and are
 distributed with the combined application under AGPL-3.0-only as permitted by
 section 13 of AGPL-3.0.
+
+The EasyLinkSDK licence notice follows:
+
+> MIT License
+>
+> Copyright (c) 2022 chessnutech
+>
+> Permission is hereby granted, free of charge, to any person obtaining a copy
+> of this software and associated documentation files (the "Software"), to deal
+> in the Software without restriction, including without limitation the rights
+> to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+> copies of the Software, and to permit persons to whom the Software is
+> furnished to do so, subject to the following conditions:
+>
+> The above copyright notice and this permission notice shall be included in all
+> copies or substantial portions of the Software.
+>
+> THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+> IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+> FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+> AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+> LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+> OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+> SOFTWARE.
 
 ## En Croissant
 

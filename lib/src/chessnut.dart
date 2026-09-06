@@ -201,6 +201,8 @@ class ChessnutProtocol {
     int frequencyHz = 1000,
     int durationMs = 200,
   }) {
+    // Command shape follows Chessnut's MIT-licensed EasyLinkSDK `cl_beep`
+    // implementation. See THIRD_PARTY_NOTICES.md.
     if (frequencyHz < 1 || frequencyHz > 0xffff) {
       throw ArgumentError.value(
         frequencyHz,
