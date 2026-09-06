@@ -6,6 +6,7 @@ class GamePage extends StatefulWidget {
     this.startingSide,
     this.startingElo,
     this.maiaEvaluator,
+    this.electronicBoardTransport,
     this.clockFactory,
     super.key,
   });
@@ -16,6 +17,7 @@ class GamePage extends StatefulWidget {
   final int? startingElo;
   final Future<Float32List> Function(List<String> positions, int elo)?
   maiaEvaluator;
+  final ElectronicBoardTransport? electronicBoardTransport;
 
   @override
   State<GamePage> createState() => _GamePageState();
@@ -64,6 +66,21 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
   int? _viewedPly;
   final ScrollController _liveMovesController = ScrollController();
   final Random _timingRandom = Random();
+  late final ElectronicBoardTransport _chessnut;
+  StreamSubscription<ElectronicBoardEvent>? _chessnutSubscription;
+  ElectronicBoardConnectionState _chessnutState =
+      ElectronicBoardConnectionState.disconnected;
+  String _chessnutMessage = 'Chessnut Go is disconnected.';
+  String? _chessnutDeviceName;
+  int? _chessnutBatteryPercent;
+  bool _chessnutCharging = false;
+  Map<String, String>? _chessnutPosition;
+  bool _useChessnutGo = false;
+  bool _chessnutGameActive = false;
+  bool _physicalMoveInProgress = false;
+  String? _pendingPhysicalMaiaMove;
+  bool _processingChessnutPosition = false;
+  Map<String, String>? _queuedChessnutPosition;
 
   bool get _playerIsWhite => _playerColor == chess.Color.WHITE;
   bool get _isPlayerTurn => _game.turn == _playerColor;
@@ -72,6 +89,17 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
   bool get _isViewingLivePosition =>
       _viewedPly == null || _displayPly == _positionHistory.length - 1;
   bool get _clockEnabled => _timePreset != TimePreset.unlimited;
+  bool get _chessnutReady =>
+      _chessnutState == ElectronicBoardConnectionState.ready;
+  bool get _chessnutStartPositionReady {
+    final observed = _chessnutPosition;
+    if (!_chessnutReady || observed == null) return false;
+    return ChessnutProtocol.positionsMatch(
+      observed,
+      ChessnutProtocol.pieceMapFromFen(chess.Chess.DEFAULT_POSITION),
+    );
+  }
+
   dc.Side get _boardOrientation {
     final playerSide = _playerIsWhite ? dc.Side.white : dc.Side.black;
     if (!_boardFlipped) return playerSide;
@@ -85,6 +113,7 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
       ? chess.Color.BLACK
       : chess.Color.WHITE;
   bool get _canTakeBack =>
+      !_chessnutGameActive &&
       !_gameFinished &&
       (_uciMoves.isNotEmpty && (!_isPlayerTurn || _uciMoves.length >= 2));
   int get _baseMinutes =>
@@ -98,6 +127,8 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _clockDisplay = ValueNotifier(const ClockSnapshot(0, 0));
+    _chessnut =
+        widget.electronicBoardTransport ?? ChessnutPlatformTransport.instance;
     _gameBoardController = cg.ChessboardController(game: _gameBoardData());
     if (widget.startingSide != null) _sideChoice = widget.startingSide!;
     if (widget.startingElo != null) _elo = widget.startingElo!;
@@ -136,7 +167,13 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
       _pauseGame();
       if (!_reviewOpen) unawaited(_saveGameState());
     }
-    if (state == AppLifecycleState.resumed) _resumeGame();
+    if (state == AppLifecycleState.resumed) {
+      _resumeGame();
+      final position = _chessnutPosition;
+      if (_chessnutGameActive && position != null) {
+        _queueChessnutPosition(position);
+      }
+    }
     _updateScreenWakeLock(state);
   }
 
@@ -343,8 +380,16 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
                 saved['forcedResult'] == null &&
                 !restored.game_over);
         _viewedPly = null;
+        _chessnutGameActive = saved['electronicBoard'] == 'chessnut-go';
+        _useChessnutGo = _chessnutGameActive;
+        if (_chessnutGameActive) _timePreset = TimePreset.unlimited;
+        _pendingPhysicalMaiaMove = saved['pendingPhysicalMaiaMove'] as String?;
+        if (_chessnutGameActive) {
+          _status = 'Reconnect Chessnut Go to continue.';
+        }
         _started = true;
       });
+      if (_chessnutGameActive) _ensureChessnutListening();
       _syncGameBoard(animate: false, resetPremove: true);
       if (_clockEnabled && !_gameFinished) {
         _clockTimer = Timer.periodic(
@@ -352,10 +397,16 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
           (_) => _tickClock(),
         );
       }
-      if (!_clockPaused && !_gameFinished && !_isPlayerTurn) {
+      if (!_clockPaused &&
+          !_gameFinished &&
+          !_isPlayerTurn &&
+          !_chessnutGameActive) {
         unawaited(_playMaiaMove());
       }
-      if (_gameFinished) _scheduleGameConclusion();
+      if (_gameFinished &&
+          (!_chessnutGameActive || _pendingPhysicalMaiaMove == null)) {
+        _scheduleGameConclusion();
+      }
     } catch (error, stackTrace) {
       await AppDiagnostics.record('game-session-restore', error, stackTrace);
       await ActiveSessionStore.clear();
@@ -428,6 +479,9 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
     'clockPaused': _clockPaused,
     'maiaFailed': _maiaFailed,
     'flipped': _boardFlipped,
+    if (_chessnutGameActive) 'electronicBoard': 'chessnut-go',
+    if (_pendingPhysicalMaiaMove != null)
+      'pendingPhysicalMaiaMove': _pendingPhysicalMaiaMove,
   };
 
   Future<void> _saveReviewState(
@@ -751,6 +805,316 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
     );
   }
 
+  void _ensureChessnutListening() {
+    _chessnutSubscription ??= _chessnut.events.listen(
+      _handleChessnutEvent,
+      onError: (Object error, StackTrace stackTrace) {
+        unawaited(AppDiagnostics.record('chessnut-events', error, stackTrace));
+        if (!mounted) return;
+        setState(() {
+          _chessnutState = ElectronicBoardConnectionState.error;
+          _chessnutMessage = 'Chessnut connection error.';
+          if (_chessnutGameActive) _status = _chessnutMessage;
+        });
+      },
+    );
+  }
+
+  Future<void> _setUseChessnutGo(bool enabled) async {
+    if (_started) return;
+    setState(() {
+      _useChessnutGo = enabled;
+      if (enabled) _timePreset = TimePreset.unlimited;
+    });
+    if (enabled) {
+      await _connectChessnut();
+    } else {
+      await _disconnectChessnut();
+    }
+  }
+
+  Future<void> _connectChessnut() async {
+    _ensureChessnutListening();
+    if (mounted) {
+      setState(() {
+        _chessnutPosition = null;
+        _chessnutState = ElectronicBoardConnectionState.scanning;
+        _chessnutMessage = 'Searching for Chessnut Go…';
+      });
+    }
+    try {
+      await _chessnut.connect();
+    } on PlatformException catch (error, stackTrace) {
+      unawaited(AppDiagnostics.record('chessnut-connect', error, stackTrace));
+      if (!mounted) return;
+      setState(() {
+        _chessnutState = ElectronicBoardConnectionState.error;
+        _chessnutMessage = error.message ?? 'Could not connect Chessnut Go.';
+        if (_chessnutGameActive) _status = _chessnutMessage;
+      });
+    } on MissingPluginException catch (error, stackTrace) {
+      unawaited(
+        AppDiagnostics.record('chessnut-unavailable', error, stackTrace),
+      );
+      if (!mounted) return;
+      setState(() {
+        _chessnutState = ElectronicBoardConnectionState.error;
+        _chessnutMessage = 'Chessnut Go support is available on Android.';
+      });
+    }
+  }
+
+  Future<void> _disconnectChessnut() async {
+    try {
+      if (_chessnutReady) await _chessnut.setLeds(const []);
+      await _chessnut.disconnect();
+    } on PlatformException catch (error, stackTrace) {
+      unawaited(
+        AppDiagnostics.record('chessnut-disconnect', error, stackTrace),
+      );
+    } on MissingPluginException {
+      // Unit tests and non-Android builds have no Chessnut platform bridge.
+    }
+    if (!mounted) return;
+    setState(() {
+      _chessnutState = ElectronicBoardConnectionState.disconnected;
+      _chessnutMessage = 'Chessnut Go is disconnected.';
+      _chessnutPosition = null;
+      if (_chessnutGameActive) _status = 'Reconnect Chessnut Go to continue.';
+    });
+  }
+
+  void _handleChessnutEvent(ElectronicBoardEvent event) {
+    if (!mounted) return;
+    if (event.type == 'battery') {
+      setState(() {
+        _chessnutBatteryPercent = event.batteryPercent;
+        _chessnutCharging = event.charging ?? false;
+      });
+      return;
+    }
+    if (event.type == 'position') {
+      final position = event.position;
+      if (position == null) return;
+      setState(() => _chessnutPosition = position);
+      _queueChessnutPosition(position);
+      return;
+    }
+    final nextState = event.connectionState;
+    if (nextState == null) return;
+    setState(() {
+      _chessnutState = nextState;
+      _chessnutMessage = event.message ?? _chessnutMessage;
+      _chessnutDeviceName = event.deviceName ?? _chessnutDeviceName;
+      if (_chessnutGameActive &&
+          (nextState == ElectronicBoardConnectionState.disconnected ||
+              nextState == ElectronicBoardConnectionState.error)) {
+        _status = nextState == ElectronicBoardConnectionState.disconnected
+            ? 'Reconnect Chessnut Go to continue.'
+            : _chessnutMessage;
+      }
+    });
+    if (nextState == ElectronicBoardConnectionState.ready) {
+      final position = _chessnutPosition;
+      if (position != null) _queueChessnutPosition(position);
+    }
+  }
+
+  void _queueChessnutPosition(Map<String, String> position) {
+    _queuedChessnutPosition = position;
+    if (_processingChessnutPosition) return;
+    _processingChessnutPosition = true;
+    unawaited(_drainChessnutPositions());
+  }
+
+  Future<void> _drainChessnutPositions() async {
+    try {
+      while (mounted && _queuedChessnutPosition != null) {
+        final position = _queuedChessnutPosition!;
+        _queuedChessnutPosition = null;
+        await _handleChessnutPosition(position);
+      }
+    } catch (error, stackTrace) {
+      await AppDiagnostics.record('chessnut-position', error, stackTrace);
+    } finally {
+      _processingChessnutPosition = false;
+      if (mounted && _queuedChessnutPosition != null) {
+        _queueChessnutPosition(_queuedChessnutPosition!);
+      }
+    }
+  }
+
+  Future<void> _handleChessnutPosition(Map<String, String> observed) async {
+    if (!_useChessnutGo || !_chessnutReady) return;
+    if (!_started) {
+      final expected = ChessnutProtocol.pieceMapFromFen(
+        chess.Chess.DEFAULT_POSITION,
+      );
+      final matches = ChessnutProtocol.positionsMatch(observed, expected);
+      await _setChessnutLeds(
+        matches
+            ? const []
+            : ChessnutProtocol.mismatchSquares(observed, expected),
+      );
+      if (!mounted) return;
+      setState(() {
+        _chessnutMessage = matches
+            ? 'Chessnut Go is ready.'
+            : 'Set up the standard starting position on Chessnut Go.';
+      });
+      return;
+    }
+    if (!_chessnutGameActive) return;
+
+    final expected = ChessnutProtocol.pieceMapFromFen(_game.fen);
+    if (ChessnutProtocol.positionsMatch(observed, expected)) {
+      await _setChessnutLeds(const []);
+      if (!mounted) return;
+      final confirmedMaiaMove = _pendingPhysicalMaiaMove != null;
+      setState(() {
+        _pendingPhysicalMaiaMove = null;
+        if (_gameFinished) {
+          _status = _resultText();
+        } else if (_isPlayerTurn) {
+          _status = 'Your move on Chessnut Go.';
+        } else if (!_engineThinking) {
+          _status = 'Maia is thinking…';
+        }
+      });
+      if (confirmedMaiaMove) {
+        unawaited(_saveGameState());
+        if (_gameFinished) _scheduleGameConclusion();
+      }
+      if (!_gameFinished && !_isPlayerTurn && !_engineThinking) {
+        unawaited(_playMaiaMove());
+      }
+      return;
+    }
+
+    if (_pendingPhysicalMaiaMove != null) {
+      await _setChessnutLeds(
+        ChessnutProtocol.mismatchSquares(observed, expected),
+      );
+      if (mounted) {
+        setState(() => _status = 'Complete Maia’s lit move on Chessnut Go.');
+      }
+      return;
+    }
+    if (!_isPlayerTurn || _engineThinking || _physicalMoveInProgress) return;
+
+    final uci = ChessnutProtocol.inferLegalMove(_game, observed);
+    if (uci != null) {
+      _physicalMoveInProgress = true;
+      try {
+        await _setChessnutLeds(const []);
+        await _commitHumanMove(uci, fromChessnut: true);
+      } finally {
+        _physicalMoveInProgress = false;
+      }
+      return;
+    }
+
+    final completeAttempt = ChessnutProtocol.looksLikeCompleteMoveAttempt(
+      _game,
+      observed,
+    );
+    await _setChessnutLeds(
+      completeAttempt
+          ? ChessnutProtocol.mismatchSquares(observed, expected)
+          : const [],
+    );
+    if (!mounted) return;
+    setState(() {
+      _status = completeAttempt
+          ? 'That position is not a legal move. Correct the lit squares.'
+          : 'Complete your move on Chessnut Go.';
+    });
+  }
+
+  Future<void> _setChessnutLeds(Iterable<String> squares) async {
+    if (!_chessnutReady) return;
+    try {
+      await _chessnut.setLeds(squares);
+    } on PlatformException catch (error, stackTrace) {
+      unawaited(AppDiagnostics.record('chessnut-leds', error, stackTrace));
+    }
+  }
+
+  Future<void> _showChessnutPanel() async {
+    final action = await showModalBottomSheet<String>(
+      context: context,
+      showDragHandle: true,
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: Icon(
+                _chessnutReady ? Icons.bluetooth_connected : Icons.bluetooth,
+              ),
+              title: Text(_chessnutDeviceName ?? 'Chessnut Go'),
+              subtitle: Text(_chessnutMessage),
+              trailing: _chessnutBatteryPercent == null
+                  ? null
+                  : Text(
+                      '$_chessnutBatteryPercent%${_chessnutCharging ? ' ⚡' : ''}',
+                    ),
+            ),
+            if (_chessnutReady)
+              ListTile(
+                leading: const Icon(Icons.bluetooth_disabled),
+                title: const Text('Disconnect'),
+                onTap: () => Navigator.pop(context, 'disconnect'),
+              )
+            else
+              ListTile(
+                leading: const Icon(Icons.refresh),
+                title: const Text('Reconnect'),
+                onTap: () => Navigator.pop(context, 'connect'),
+              ),
+          ],
+        ),
+      ),
+    );
+    if (action == 'connect') await _connectChessnut();
+    if (action == 'disconnect') await _disconnectChessnut();
+  }
+
+  Widget _chessnutStatusBanner() => Semantics(
+    label: _status,
+    child: Container(
+      key: const ValueKey('chessnut-status-banner'),
+      height: 32,
+      padding: const EdgeInsets.symmetric(horizontal: 10),
+      alignment: Alignment.center,
+      color: Theme.of(context).colorScheme.surfaceContainerHighest,
+      child: Row(
+        children: [
+          Icon(
+            _chessnutReady
+                ? Icons.bluetooth_connected
+                : Icons.bluetooth_disabled,
+            size: 17,
+          ),
+          const SizedBox(width: 7),
+          Expanded(
+            child: Text(
+              _status,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontSize: 12),
+            ),
+          ),
+          if (_chessnutBatteryPercent != null)
+            Text(
+              '$_chessnutBatteryPercent%${_chessnutCharging ? ' ⚡' : ''}',
+              style: const TextStyle(fontSize: 12),
+            ),
+        ],
+      ),
+    ),
+  );
+
   cg.GameData _gameBoardData() {
     final ply = _displayPly
         .clamp(0, max(0, _positionHistory.length - 1))
@@ -762,7 +1126,11 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
         : dc.NormalMove.fromUci(_uciMoves[ply - 1]);
     return cg.GameData(
       fen: fen,
-      playerSide: !_started || _gameFinished || !_isViewingLivePosition
+      playerSide:
+          !_started ||
+              _gameFinished ||
+              !_isViewingLivePosition ||
+              _chessnutGameActive
           ? cg.PlayerSide.none
           : _playerIsWhite
           ? cg.PlayerSide.white
@@ -841,6 +1209,26 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
   }
 
   void _startGame({bool archiveCurrent = true}) {
+    if (_useChessnutGo && !_chessnutStartPositionReady) {
+      final message = !_chessnutReady
+          ? 'Connect Chessnut Go before starting.'
+          : 'Set up the standard starting position on Chessnut Go.';
+      setState(() => _chessnutMessage = message);
+      final observed = _chessnutPosition;
+      if (_chessnutReady && observed != null) {
+        unawaited(
+          _setChessnutLeds(
+            ChessnutProtocol.mismatchSquares(
+              observed,
+              ChessnutProtocol.pieceMapFromFen(chess.Chess.DEFAULT_POSITION),
+            ),
+          ),
+        );
+      }
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(message)));
+      return;
+    }
     _pauseGame();
     if (archiveCurrent) {
       unawaited(_saveGameState());
@@ -874,6 +1262,8 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
       _resultDialogShown = false;
       _savedAsIncomplete = false;
       _viewedPly = null;
+      _chessnutGameActive = _useChessnutGo;
+      _pendingPhysicalMaiaMove = null;
       _started = true;
       final startingMillis = _baseMinutes * 60 * 1000;
       _whiteMillis = startingMillis;
@@ -884,7 +1274,9 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
       _clockHistory
         ..clear()
         ..add(ClockSnapshot(_whiteMillis, _blackMillis));
-      _status = _isPlayerTurn ? 'Your move.' : 'Game in progress.';
+      _status = _chessnutGameActive
+          ? (_isPlayerTurn ? 'Your move on Chessnut Go.' : 'Maia is thinking…')
+          : (_isPlayerTurn ? 'Your move.' : 'Game in progress.');
       final date = DateTime.now();
       final dateTag =
           '${date.year.toString().padLeft(4, '0')}.'
@@ -997,10 +1389,22 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
         _gameFinished ||
         _engineThinking ||
         !_isPlayerTurn ||
-        !_isViewingLivePosition) {
+        !_isViewingLivePosition ||
+        _chessnutGameActive) {
       return;
     }
-    final uci = move.uci;
+    await _commitHumanMove(move.uci);
+  }
+
+  Future<void> _commitHumanMove(String uci, {bool fromChessnut = false}) async {
+    if (!_started ||
+        _gameFinished ||
+        _engineThinking ||
+        !_isPlayerTurn ||
+        !_isViewingLivePosition ||
+        (fromChessnut && (!_chessnutGameActive || !_chessnutReady))) {
+      return;
+    }
     final chosen = _game
         .moves({'asObjects': true})
         .cast<chess.Move>()
@@ -1014,18 +1418,24 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
     _positionHistory.add(_game.fen);
     _recordClockSnapshot();
     setState(() {
-      _status = _game.game_over ? _finishNaturalGame() : 'Game in progress.';
+      _status = _game.game_over
+          ? _finishNaturalGame()
+          : _chessnutGameActive
+          ? 'Maia is thinking…'
+          : 'Game in progress.';
     });
     _syncGameBoard();
     unawaited(_saveGameState());
     if (_game.game_over) {
+      if (_chessnutGameActive) unawaited(_setChessnutLeds(const []));
       _scheduleGameConclusion();
     } else {
-      _playMaiaMove();
+      unawaited(_playMaiaMove());
     }
   }
 
   Future<bool> _playQueuedPremove() async {
+    if (_chessnutGameActive) return false;
     final move = _gameBoardController.premove;
     _gameBoardController.premove = null;
     if (move is! dc.NormalMove || !_isPlayerTurn || _gameFinished) {
@@ -1052,6 +1462,12 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
         _clockPaused ||
         _reviewOpen ||
         _engineThinking) {
+      return;
+    }
+    if (_chessnutGameActive && !_chessnutReady) {
+      if (mounted) {
+        setState(() => _status = 'Reconnect Chessnut Go to continue.');
+      }
       return;
     }
     final generation = _gameGeneration;
@@ -1092,11 +1508,28 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
       }
       if (!mounted || generation != _gameGeneration || _gameFinished) return;
       if (!_commitClock(_game.turn)) return;
-      _uciMoves.add(MaiaEncoding.uci(move));
+      final maiaUci = MaiaEncoding.uci(move);
+      _uciMoves.add(maiaUci);
       _game.move(move);
       _positionHistory.add(_game.fen);
       _recordClockSnapshot();
       _syncGameBoard();
+      if (_chessnutGameActive) {
+        setState(() {
+          _engineThinking = false;
+          _pendingPhysicalMaiaMove = maiaUci;
+          _status = 'Make Maia’s lit move on Chessnut Go.';
+        });
+        await _setChessnutLeds([
+          maiaUci.substring(0, 2),
+          maiaUci.substring(2, 4),
+        ]);
+        if (!mounted || generation != _gameGeneration) return;
+        unawaited(_saveGameState());
+        final observed = _chessnutPosition;
+        if (observed != null) _queueChessnutPosition(observed);
+        return;
+      }
       final premovePlayed = await _playQueuedPremove();
       if (!mounted || generation != _gameGeneration) return;
       setState(() {
@@ -1192,6 +1625,7 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
       _status = 'You resigned — Maia wins.';
     });
     _syncGameBoard(animate: false, resetPremove: true);
+    if (_chessnutGameActive) unawaited(_setChessnutLeds(const []));
     unawaited(_saveGameState());
     _scheduleGameConclusion();
   }
@@ -1206,9 +1640,12 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
     _gameGeneration++;
     _gameInferenceScope.invalidate();
     _clockTimer?.cancel();
+    if (_chessnutGameActive) await _setChessnutLeds(const []);
     setState(() {
       _started = false;
       _engineThinking = false;
+      _chessnutGameActive = false;
+      _pendingPhysicalMaiaMove = null;
       _status = 'Choose your settings and start a game.';
     });
     _syncGameBoard(animate: false, resetPremove: true);
@@ -1264,6 +1701,20 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
     _pauseGame();
     await ActiveSessionStore.discardActive();
     if (!mounted) return;
+    if (_chessnutGameActive) {
+      await _setChessnutLeds(const []);
+      setState(() {
+        _started = false;
+        _engineThinking = false;
+        _chessnutGameActive = false;
+        _pendingPhysicalMaiaMove = null;
+        _status = 'Choose your settings and start a game.';
+      });
+      _syncGameBoard(animate: false, resetPremove: true);
+      final position = _chessnutPosition;
+      if (position != null) _queueChessnutPosition(position);
+      return;
+    }
     _startGame(archiveCurrent: false);
   }
 
@@ -1439,7 +1890,13 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
     );
     if (!mounted) return;
     if (action == 'rematch') {
-      _startGame();
+      if (_chessnutGameActive) {
+        await _goHome();
+        final position = _chessnutPosition;
+        if (position != null) _queueChessnutPosition(position);
+      } else {
+        _startGame();
+      }
     } else if (action == 'analysis') {
       await _analyzeGame();
     }
@@ -1538,6 +1995,17 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
               tooltip: 'About',
             ),
           if (_started) ...[
+            if (_chessnutGameActive)
+              IconButton(
+                key: const ValueKey('chessnut-status-button'),
+                onPressed: _showChessnutPanel,
+                icon: Icon(
+                  _chessnutReady
+                      ? Icons.bluetooth_connected
+                      : Icons.bluetooth_disabled,
+                ),
+                tooltip: 'Chessnut Go status',
+              ),
             IconButton(
               key: const ValueKey('new-game-button'),
               onPressed: _requestNewGame,
@@ -1653,6 +2121,10 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
                       child: Column(
                         children: [
                           _liveMoveStrip(),
+                          if (_chessnutGameActive) ...[
+                            const SizedBox(height: 6),
+                            _chessnutStatusBanner(),
+                          ],
                           const Spacer(),
                           if (_maiaFailed)
                             TextButton(
@@ -1680,7 +2152,12 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
             // Keep the live board fixed while moves alone scroll horizontally.
             final boardSize = min(
               contentWidth,
-              max(0.0, contentHeight - (_maiaFailed ? 268 : 244)),
+              max(
+                0.0,
+                contentHeight -
+                    (_maiaFailed ? 268 : 244) -
+                    (_chessnutGameActive ? 38 : 0),
+              ),
             );
             return Padding(
               padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
@@ -1692,6 +2169,10 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       _liveMoveStrip(),
+                      if (_chessnutGameActive) ...[
+                        const SizedBox(height: 6),
+                        _chessnutStatusBanner(),
+                      ],
                       const SizedBox(height: 6),
                       _playerInfoRow(
                         _topBoardColor,
@@ -1824,9 +2305,11 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
                     ),
                   )
                   .toList(),
-              onChanged: (value) {
-                if (value != null) setState(() => _timePreset = value);
-              },
+              onChanged: _useChessnutGo
+                  ? null
+                  : (value) {
+                      if (value != null) setState(() => _timePreset = value);
+                    },
             ),
             if (_timePreset == TimePreset.custom) ...[
               const SizedBox(height: 8),
@@ -1956,9 +2439,66 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
                 ),
               ],
             ),
+            const SizedBox(height: 8),
+            SwitchListTile(
+              key: const ValueKey('chessnut-go-toggle'),
+              contentPadding: EdgeInsets.zero,
+              value: _useChessnutGo,
+              title: const Text('Chessnut Go (experimental)'),
+              subtitle: const Text(
+                'Enter moves on the physical board and follow Maia’s LEDs.',
+              ),
+              onChanged: (value) => unawaited(_setUseChessnutGo(value)),
+            ),
+            if (_useChessnutGo) ...[
+              Container(
+                key: const ValueKey('chessnut-setup-status'),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      _chessnutReady
+                          ? Icons.bluetooth_connected
+                          : Icons.bluetooth_searching,
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(child: Text(_chessnutMessage)),
+                    if (_chessnutBatteryPercent != null)
+                      Text(
+                        '$_chessnutBatteryPercent%${_chessnutCharging ? ' ⚡' : ''}',
+                      ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 8),
+              OutlinedButton.icon(
+                onPressed: _chessnutReady
+                    ? _disconnectChessnut
+                    : _connectChessnut,
+                icon: Icon(
+                  _chessnutReady ? Icons.bluetooth_disabled : Icons.bluetooth,
+                ),
+                label: Text(
+                  _chessnutReady ? 'Disconnect' : 'Connect Chessnut Go',
+                ),
+              ),
+              const Padding(
+                padding: EdgeInsets.only(top: 8),
+                child: Text(
+                  'The first preview supports standard-position, unlimited games only.',
+                  style: TextStyle(fontSize: 12),
+                ),
+              ),
+            ],
             const SizedBox(height: 20),
             FilledButton.icon(
-              onPressed: _initialized || widget.startingFen != null
+              onPressed:
+                  (_initialized || widget.startingFen != null) &&
+                      (!_useChessnutGo || _chessnutStartPositionReady)
                   ? _startGame
                   : null,
               icon: const Icon(Icons.play_arrow),
@@ -2198,6 +2738,7 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
     _updateScreenWakeLock(AppLifecycleState.detached);
     _clockDisplay.dispose();
     _liveMovesController.dispose();
+    unawaited(_chessnutSubscription?.cancel());
     _gameBoardController.dispose();
     super.dispose();
   }

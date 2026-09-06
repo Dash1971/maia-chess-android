@@ -76,6 +76,27 @@ Mobile Maia works entirely offline: the Maia-3 model and Stockfish are bundled
 with the app, and no account is required. The selected Maia rating is stored
 locally and reused the next time the app starts.
 
+#### Experimental Chessnut Go support
+
+Enable **Chessnut Go (experimental)** on the home screen, grant Android's
+nearby-device permission, and select **Connect Chessnut Go**. Set up the
+standard starting position before starting an unlimited game. Your physical
+moves are entered directly into Mobile Maia; after Maia replies, the move's
+from- and to-squares light on the board. Play the lit move before continuing.
+
+Mobile Maia compares every sensed piece with the complete legal position.
+Lifting a piece or moving only the rook during castling is treated as an
+unfinished action, not a move. If a completed position is illegal or the board
+is out of sync, the squares that need correction light up. The Bluetooth icon
+in a live game shows connection and battery status and provides reconnect and
+disconnect controls.
+
+This first preview targets Chessnut Go over Bluetooth. Timed e-board games,
+takebacks, arbitrary starting positions, USB connections, Analysis Board input,
+and other Chessnut models are not yet supported. The integration remains fully
+offline and the app continues to work normally without Bluetooth permission
+when Chessnut support is not enabled.
+
 <p align="center">
   <img src="docs/screenshots/20260906_v0_home_setup.jpg" width="30%" alt="Choose a side, Maia rating, time control, or Analysis Board">
   <img src="docs/screenshots/20260906_v0_time_control_menu.jpg" width="30%" alt="Choose Unlimited, a preset clock, or a custom time control">
@@ -214,6 +235,8 @@ Lichess Flutter Chessground, Lichess multistockfish, and the bundled licences.
 - Play against Maia from the current analysis position
 - Complete offline Lichess CC0 opening-name and ECO recognition
 - Play as White, Black, or a random side
+- Experimental Chessnut Go play with strict position matching, move LEDs,
+  battery status, and reconnect controls
 - Unlimited play by default, Lichess-style clock presets, or custom time and increment
 - Easy (800), Medium (1500), Hard (2200), or custom Elo
 - Optional human-like move timing with persistent advanced settings

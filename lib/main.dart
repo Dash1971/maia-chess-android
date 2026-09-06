@@ -28,6 +28,7 @@ part 'src/session_types.dart';
 part 'src/active_session_store.dart';
 part 'src/session_model.dart';
 part 'src/openings.dart';
+part 'src/chessnut.dart';
 part 'src/play.dart';
 part 'src/analysis_board.dart';
 part 'src/review.dart';

@@ -1,5 +1,19 @@
 # Third-party notices
 
+## Chessnut e-board protocol
+
+- Official API: <https://github.com/chessnutech/Chessnut_eBoards>
+- Reference implementation: <https://github.com/rmarabini/chessnutair>
+- Reference implementation copyright: Roberto Marabini and contributors
+- Reference implementation licence: GNU General Public License v3.0
+
+Mobile Maia's Chessnut Bluetooth protocol constants, board-position decoding,
+and LED mapping follow Chessnut's published API and were cross-checked against
+the GPL-3.0 chessnutair reference implementation. The Android/Kotlin transport
+and Dart game integration are new adaptations for Mobile Maia and are
+distributed with the combined application under AGPL-3.0-only as permitted by
+section 13 of AGPL-3.0.
+
 ## En Croissant
 
 - Project: <https://github.com/franciscoBSalgueiro/en-croissant>

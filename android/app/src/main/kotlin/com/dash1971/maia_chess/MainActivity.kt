@@ -105,6 +105,7 @@ private object MaiaEngine {
 class MainActivity : FlutterActivity() {
     private val channelName = "maia_chess/engine"
     private var methodChannel: MethodChannel? = null
+    private var chessnutBridge: ChessnutBridge? = null
     private val documents by lazy { PgnDocuments(this) { methodChannel?.invokeMethod("pgnReceived", null) } }
 
     @Volatile
@@ -163,6 +164,7 @@ class MainActivity : FlutterActivity() {
                 }
             }
         }
+        chessnutBridge = ChessnutBridge(this, flutterEngine.dartExecutor.binaryMessenger)
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -178,6 +180,17 @@ class MainActivity : FlutterActivity() {
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         if (!documents.onResult(requestCode, resultCode, data)) super.onActivityResult(requestCode, resultCode, data)
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray,
+    ) {
+        if (chessnutBridge?.onRequestPermissionsResult(requestCode, permissions, grantResults) == true) {
+            return
+        }
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
     }
 
     override fun onDestroy() {
@@ -242,6 +255,8 @@ class MainActivity : FlutterActivity() {
 
     override fun cleanUpFlutterEngine(flutterEngine: FlutterEngine) {
         engineAttached = false
+        chessnutBridge?.close()
+        chessnutBridge = null
         methodChannel?.setMethodCallHandler(null)
         methodChannel = null
         super.cleanUpFlutterEngine(flutterEngine)
