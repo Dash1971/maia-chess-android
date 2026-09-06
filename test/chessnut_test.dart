@@ -96,6 +96,19 @@ class _FakeElectronicBoard implements ElectronicBoardTransport {
     _events.add(ElectronicBoardEvent(type: 'position', position: pieces));
   }
 
+  void ready(Map<String, String> pieces) {
+    connected = true;
+    _events.add(
+      const ElectronicBoardEvent(
+        type: 'status',
+        connectionState: ElectronicBoardConnectionState.ready,
+        message: 'Chessnut Go is ready.',
+        deviceName: 'Chessnut Go',
+      ),
+    );
+    position(pieces);
+  }
+
   Future<void> close() => _events.close();
 }
 
@@ -265,6 +278,17 @@ void main() {
     expect(find.text('e4'), findsOneWidget);
     expect(find.text('e5'), findsOneWidget);
 
+    final litMoveCommands = board.ledCommands
+        .where((command) => command.toSet().containsAll(const {'e7', 'e5'}))
+        .length;
+    await tester.pump(const Duration(seconds: 2));
+    expect(
+      board.ledCommands
+          .where((command) => command.toSet().containsAll(const {'e7', 'e5'}))
+          .length,
+      greaterThan(litMoveCommands),
+    );
+
     game.move('e4');
     game.move('e5');
     board.position(ChessnutProtocol.pieceMapFromFen(game.fen));
@@ -275,5 +299,103 @@ void main() {
     await tester.pumpWidget(const SizedBox.shrink());
     await tester.pump();
     await board.close();
+  });
+
+  testWidgets('Chessnut checkmate records and displays the winning result', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues({});
+    const pgn = '''
+[Event "Mobile Maia Game"]
+[Site "Mobile Maia"]
+[Date "2026.09.06"]
+[Round "-"]
+[White "Player"]
+[Black "Maia-3 79M (1600)"]
+[Result "*"]
+
+1. b4 e5 2. Bb2 d6 3. c4 Nf6 4. Nc3 Be7 5. e3 O-O 6. Nf3 Bg4
+7. Be2 Nc6 8. O-O Nxb4 9. Qb3 a5 10. a3 Nc6 11. Qxb7 Qd7 12. Qb3 Rfb8
+13. Qc2 Bf5 14. Bd3 Bxd3 15. Qxd3 Rxb2 16. Nd5 Nxd5 17. cxd5 Nd8
+18. h4 Rab8 19. Ng5 Bxg5 20. hxg5 Qb5 21. Qf5 Qxd5 22. g6 hxg6
+23. g3 gxf5 24. f4 Rxd2 25. Rf2 Rxf2 26. Rd1 *
+''';
+    final session = AnalysisSession.fromPgn(pgn);
+    await ActiveSessionStore.save({
+      'type': 'game',
+      'pgn': pgn,
+      'playerIsWhite': true,
+      'timePreset': 'unlimited',
+      'clockPaused': false,
+      'electronicBoard': 'chessnut-go',
+    });
+    final board = _FakeElectronicBoard();
+    final policy = Float32List(4352)..fillRange(0, 4352, -100);
+    policy[MaiaEncoding.moveIndex('d5g2', true)] = 100;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: GamePage(
+          electronicBoardTransport: board,
+          maiaEvaluator: (_, _) async => policy,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final beforeMate = chess.Chess.fromFEN(session.positions.last);
+    board.ready(ChessnutProtocol.pieceMapFromFen(beforeMate.fen));
+    await tester.pump();
+    await tester.pump();
+    expect(
+      board.ledCommands.any(
+        (command) => command.toSet().containsAll(const {'d5', 'g2'}),
+      ),
+      isTrue,
+    );
+
+    expect(beforeMate.move('Qg2#'), isTrue);
+    board.position(ChessnutProtocol.pieceMapFromFen(beforeMate.fen));
+    await tester.pump();
+    await tester.pumpAndSettle();
+    expect(find.text('Black is victorious'), findsOneWidget);
+    expect(find.text('The game is a draw'), findsNothing);
+    final saved = await ActiveSessionStore.load();
+    expect(saved!['pgn'], contains('[Result "0-1"]'));
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
+    await board.close();
+  });
+
+  testWidgets('unlimited mobile games keep the screen awake', (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    final values = <bool>[];
+    final messenger =
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+    messenger.setMockMethodCallHandler(maiaEngineChannel, (call) async {
+      if (call.method == 'setKeepScreenOn') {
+        values.add(call.arguments['enabled'] as bool);
+      }
+      return null;
+    });
+    addTearDown(
+      () => messenger.setMockMethodCallHandler(maiaEngineChannel, null),
+    );
+
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: GamePage(
+          startingFen: chess.Chess.DEFAULT_POSITION,
+          startingSide: PlayerSide.white,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(values, contains(true));
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
+    expect(values.last, isFalse);
   });
 }

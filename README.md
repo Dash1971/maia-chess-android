@@ -83,6 +83,7 @@ nearby-device permission, and select **Connect Chessnut Go**. Set up the
 standard starting position before starting an unlimited game. Your physical
 moves are entered directly into Mobile Maia; after Maia replies, the move's
 from- and to-squares light on the board. Play the lit move before continuing.
+The app refreshes the pending move LEDs until the physical position matches.
 
 Mobile Maia compares every sensed piece with the complete legal position.
 Lifting a piece or moving only the rook during castling is treated as an
@@ -96,6 +97,9 @@ takebacks, arbitrary starting positions, USB connections, Analysis Board input,
 and other Chessnut models are not yet supported. The integration remains fully
 offline and the app continues to work normally without Bluetooth permission
 when Chessnut support is not enabled.
+
+The screen remains awake during every active game, whether moves are entered
+on Chessnut Go or directly on the phone.
 
 <p align="center">
   <img src="docs/screenshots/20260906_v0_home_setup.jpg" width="30%" alt="Choose a side, Maia rating, time control, or Analysis Board">

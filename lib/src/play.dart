@@ -81,6 +81,7 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
   String? _pendingPhysicalMaiaMove;
   bool _processingChessnutPosition = false;
   Map<String, String>? _queuedChessnutPosition;
+  Timer? _chessnutLedRefreshTimer;
 
   bool get _playerIsWhite => _playerColor == chess.Color.WHITE;
   bool get _isPlayerTurn => _game.turn == _playerColor;
@@ -865,6 +866,7 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
   }
 
   Future<void> _disconnectChessnut() async {
+    _stopChessnutLedRefresh();
     try {
       if (_chessnutReady) await _chessnut.setLeds(const []);
       await _chessnut.disconnect();
@@ -915,8 +917,15 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
       }
     });
     if (nextState == ElectronicBoardConnectionState.ready) {
+      if (_pendingPhysicalMaiaMove != null) {
+        unawaited(_refreshPendingChessnutLeds());
+        _startChessnutLedRefresh();
+      }
       final position = _chessnutPosition;
       if (position != null) _queueChessnutPosition(position);
+    } else if (nextState == ElectronicBoardConnectionState.disconnected ||
+        nextState == ElectronicBoardConnectionState.error) {
+      _stopChessnutLedRefresh();
     }
   }
 
@@ -968,13 +977,14 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
 
     final expected = ChessnutProtocol.pieceMapFromFen(_game.fen);
     if (ChessnutProtocol.positionsMatch(observed, expected)) {
+      _stopChessnutLedRefresh();
       await _setChessnutLeds(const []);
       if (!mounted) return;
       final confirmedMaiaMove = _pendingPhysicalMaiaMove != null;
       setState(() {
         _pendingPhysicalMaiaMove = null;
         if (_gameFinished) {
-          _status = _resultText();
+          _status = _game.game_over ? _finishNaturalGame() : _resultText();
         } else if (_isPlayerTurn) {
           _status = 'Your move on Chessnut Go.';
         } else if (!_engineThinking) {
@@ -1038,6 +1048,37 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
     } on PlatformException catch (error, stackTrace) {
       unawaited(AppDiagnostics.record('chessnut-leds', error, stackTrace));
     }
+  }
+
+  void _startChessnutLedRefresh() {
+    _stopChessnutLedRefresh();
+    if (_pendingPhysicalMaiaMove == null) return;
+    _chessnutLedRefreshTimer = Timer.periodic(
+      const Duration(seconds: 2),
+      (_) => unawaited(_refreshPendingChessnutLeds()),
+    );
+  }
+
+  void _stopChessnutLedRefresh() {
+    _chessnutLedRefreshTimer?.cancel();
+    _chessnutLedRefreshTimer = null;
+  }
+
+  Future<void> _refreshPendingChessnutLeds() async {
+    final pending = _pendingPhysicalMaiaMove;
+    if (!mounted || !_chessnutGameActive || pending == null) {
+      _stopChessnutLedRefresh();
+      return;
+    }
+    if (!_chessnutReady) return;
+    final observed = _chessnutPosition;
+    final squares = observed == null
+        ? [pending.substring(0, 2), pending.substring(2, 4)]
+        : ChessnutProtocol.mismatchSquares(
+            observed,
+            ChessnutProtocol.pieceMapFromFen(_game.fen),
+          );
+    if (squares.isNotEmpty) await _setChessnutLeds(squares);
   }
 
   Future<void> _showChessnutPanel() async {
@@ -1195,7 +1236,7 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
     final foreground =
         (lifecycleState ?? WidgetsBinding.instance.lifecycleState) ==
         AppLifecycleState.resumed;
-    final enabled = foreground && _started && _clockEnabled && !_gameFinished;
+    final enabled = foreground && _started && !_gameFinished;
     if (_screenWakeLockEnabled == enabled) return;
     _screenWakeLockEnabled = enabled;
     unawaited(
@@ -1237,6 +1278,7 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
     _gameGeneration++;
     _gameInferenceScope.invalidate();
     _clockTimer?.cancel();
+    _stopChessnutLedRefresh();
     final randomWhite = Random().nextBool();
     _playerColor = switch (_sideChoice) {
       PlayerSide.white => chess.Color.WHITE,
@@ -1514,6 +1556,7 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
       _positionHistory.add(_game.fen);
       _recordClockSnapshot();
       _syncGameBoard();
+      final naturalResult = _game.game_over ? _finishNaturalGame() : null;
       if (_chessnutGameActive) {
         setState(() {
           _engineThinking = false;
@@ -1524,6 +1567,7 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
           maiaUci.substring(0, 2),
           maiaUci.substring(2, 4),
         ]);
+        _startChessnutLedRefresh();
         if (!mounted || generation != _gameGeneration) return;
         unawaited(_saveGameState());
         final observed = _chessnutPosition;
@@ -1534,11 +1578,9 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
       if (!mounted || generation != _gameGeneration) return;
       setState(() {
         _engineThinking = false;
-        _status = _game.game_over
-            ? _finishNaturalGame()
-            : premovePlayed
-            ? 'Game in progress.'
-            : 'Your move.';
+        _status =
+            naturalResult ??
+            (premovePlayed ? 'Game in progress.' : 'Your move.');
       });
       unawaited(_saveGameState());
       if (_game.game_over) _scheduleGameConclusion();
@@ -1619,6 +1661,7 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
     _gameGeneration++;
     _gameInferenceScope.invalidate();
     _clockTimer?.cancel();
+    _stopChessnutLedRefresh();
     setState(() {
       _forcedResult = result;
       _game.set_header(['Result', result, 'Termination', 'Player resigned']);
@@ -1640,6 +1683,7 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
     _gameGeneration++;
     _gameInferenceScope.invalidate();
     _clockTimer?.cancel();
+    _stopChessnutLedRefresh();
     if (_chessnutGameActive) await _setChessnutLeds(const []);
     setState(() {
       _started = false;
@@ -1702,6 +1746,7 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
     await ActiveSessionStore.discardActive();
     if (!mounted) return;
     if (_chessnutGameActive) {
+      _stopChessnutLedRefresh();
       await _setChessnutLeds(const []);
       setState(() {
         _started = false;
@@ -2733,6 +2778,7 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _clockTimer?.cancel();
+    _stopChessnutLedRefresh();
     _gameInferenceScope.invalidate();
     _started = false;
     _updateScreenWakeLock(AppLifecycleState.detached);
