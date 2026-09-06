@@ -1341,6 +1341,82 @@ void main() {
     expect(copied, contains('1. e4 e5 ( 1... c5 ) *'));
   });
 
+  testWidgets('holding analysis arrows jumps to the game endpoints', (
+    tester,
+  ) async {
+    final game = chess.Chess();
+    final positions = <String>[game.fen];
+    for (final san in const ['e4', 'e5', 'Nf3']) {
+      expect(game.move(san), isTrue);
+      positions.add(game.fen);
+    }
+    final root = RecordedVariation(
+      basePly: 0,
+      baseFen: positions.first,
+      sanMoves: const ['e4', 'e5', 'Nf3'],
+    );
+    await tester.pumpWidget(
+      MaterialApp(
+        home: ReviewPage(
+          positions: [positions.first],
+          uciMoves: const [],
+          sanMoves: const [],
+          playerIsWhite: true,
+          pgn: '[Result "*"]\n\n*',
+          initialVariations: [root],
+          initialTreeIsAuthoritative: true,
+          initialCurrentFen: positions[1],
+          onHome: () {},
+          onSessionChanged: (_, _, _) async {},
+          evaluator: (_) async => const StockfishReview(0, 'e2e4'),
+          maiaEvaluator: (_, _) async => null,
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump();
+
+    String positionCore(String fen) => fen.split(' ').take(3).join(' ');
+    var board = tester.widget<cg.Chessboard>(find.byType(cg.Chessboard));
+    expect(positionCore(board.controller.fen), positionCore(positions[1]));
+
+    await tester.longPress(find.byKey(const ValueKey('next-move-button')));
+    await tester.pump();
+    board = tester.widget<cg.Chessboard>(find.byType(cg.Chessboard));
+    expect(positionCore(board.controller.fen), positionCore(positions.last));
+
+    await tester.longPress(find.byKey(const ValueKey('previous-move-button')));
+    await tester.pump();
+    board = tester.widget<cg.Chessboard>(find.byType(cg.Chessboard));
+    expect(positionCore(board.controller.fen), positionCore(positions.first));
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: ReviewPage(
+          positions: positions,
+          uciMoves: const ['e2e4', 'e7e5', 'g1f3'],
+          sanMoves: const ['e4', 'e5', 'Nf3'],
+          playerIsWhite: true,
+          pgn: '[Result "*"]\n\n1. e4 e5 2. Nf3 *',
+          initialCurrentFen: positions[1],
+          onHome: () {},
+          evaluator: (_) async => const StockfishReview(0, 'e2e4'),
+          maiaEvaluator: (_, _) async => null,
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.longPress(find.byKey(const ValueKey('next-move-button')));
+    await tester.pump();
+    board = tester.widget<cg.Chessboard>(find.byType(cg.Chessboard));
+    expect(positionCore(board.controller.fen), positionCore(positions.last));
+
+    await tester.longPress(find.byKey(const ValueKey('previous-move-button')));
+    await tester.pump();
+    board = tester.widget<cg.Chessboard>(find.byType(cg.Chessboard));
+    expect(positionCore(board.controller.fen), positionCore(positions.first));
+  });
+
   testWidgets('graph appears before background classifications finish', (
     tester,
   ) async {

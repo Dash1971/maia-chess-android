@@ -1827,6 +1827,39 @@ class _ReviewPageState extends State<ReviewPage>
     setState(() => _showMainPly(_ply + delta));
   }
 
+  void _jumpToStart() {
+    final root = _rootMainline;
+    if (root != null) {
+      _openVariation(root, 0);
+    } else {
+      setState(() => _showMainPly(0));
+    }
+  }
+
+  void _jumpToEnd() {
+    final root = _rootMainline;
+    if (root != null) {
+      _openVariation(root, root.sanMoves.length);
+    } else {
+      setState(() => _showMainPly(_maximumPly));
+    }
+  }
+
+  bool get _atAnalysisStart {
+    final root = _rootMainline;
+    return root != null
+        ? identical(_openedVariation, root) && _variationIndex == 0
+        : !_inVariation && _ply == 0;
+  }
+
+  bool get _atAnalysisEnd {
+    final root = _rootMainline;
+    return root != null
+        ? identical(_openedVariation, root) &&
+              _variationIndex == root.sanMoves.length
+        : !_inVariation && _ply == _maximumPly;
+  }
+
   String _exportReviewPgn() => PgnVariationExporter.export(
     widget.pgn,
     _rootMainline == null ? widget.sanMoves : const [],
@@ -1965,6 +1998,35 @@ class _ReviewPageState extends State<ReviewPage>
     }
   }
 
+  Widget _analysisNavigationButton({
+    required Key key,
+    required String tooltip,
+    required IconData icon,
+    required bool tapEnabled,
+    required bool longPressEnabled,
+    required VoidCallback onTap,
+    required VoidCallback onLongPress,
+  }) {
+    final colors = Theme.of(context).colorScheme;
+    final enabled = tapEnabled || longPressEnabled;
+    return Tooltip(
+      message: tooltip,
+      child: InkResponse(
+        key: key,
+        radius: 24,
+        onTap: tapEnabled ? onTap : null,
+        onLongPress: longPressEnabled ? onLongPress : null,
+        child: SizedBox.square(
+          dimension: 48,
+          child: Icon(
+            icon,
+            color: enabled ? colors.onSurfaceVariant : colors.outlineVariant,
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _analysisControls() {
     Widget slot(Widget child) => Expanded(child: Center(child: child));
 
@@ -2014,26 +2076,27 @@ class _ReviewPageState extends State<ReviewPage>
             ),
           ),
           slot(
-            IconButton(
+            _analysisNavigationButton(
               key: const ValueKey('previous-move-button'),
               tooltip: 'Previous move',
-              onPressed: (_inVariation ? _variationIndex == 0 : _ply == 0)
-                  ? null
-                  : () => _step(-1),
-              icon: const Icon(CupertinoIcons.chevron_back),
+              icon: CupertinoIcons.chevron_back,
+              tapEnabled: !(_inVariation ? _variationIndex == 0 : _ply == 0),
+              longPressEnabled: !_atAnalysisStart,
+              onTap: () => _step(-1),
+              onLongPress: _jumpToStart,
             ),
           ),
           slot(
-            IconButton(
+            _analysisNavigationButton(
               key: const ValueKey('next-move-button'),
               tooltip: 'Next move',
-              onPressed:
-                  (_inVariation
-                      ? _variationIndex == _variationSan.length
-                      : _ply == _maximumPly)
-                  ? null
-                  : () => _step(1),
-              icon: const Icon(CupertinoIcons.chevron_forward),
+              icon: CupertinoIcons.chevron_forward,
+              tapEnabled: !(_inVariation
+                  ? _variationIndex == _variationSan.length
+                  : _ply == _maximumPly),
+              longPressEnabled: !_atAnalysisEnd,
+              onTap: () => _step(1),
+              onLongPress: _jumpToEnd,
             ),
           ),
         ],

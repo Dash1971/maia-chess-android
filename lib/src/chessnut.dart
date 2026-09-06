@@ -35,6 +35,7 @@ abstract interface class ElectronicBoardTransport {
   Future<void> connect();
   Future<void> disconnect();
   Future<void> setLeds(Iterable<String> squares);
+  Future<void> beep({int frequencyHz = 1000, int durationMs = 200});
 }
 
 class ChessnutPlatformTransport implements ElectronicBoardTransport {
@@ -64,6 +65,15 @@ class ChessnutPlatformTransport implements ElectronicBoardTransport {
     'setLeds',
     {'command': ChessnutProtocol.encodeLedCommand(squares)},
   );
+
+  @override
+  Future<void> beep({int frequencyHz = 1000, int durationMs = 200}) =>
+      _methods.invokeMethod<void>('beep', {
+        'command': ChessnutProtocol.encodeBeepCommand(
+          frequencyHz: frequencyHz,
+          durationMs: durationMs,
+        ),
+      });
 
   static ElectronicBoardEvent _decodeEvent(dynamic value) {
     if (value is! Map) {
@@ -185,6 +195,34 @@ class ChessnutProtocol {
       rows[8 - rank] |= 1 << (7 - file);
     }
     return [0x0a, 0x08, ...rows];
+  }
+
+  static List<int> encodeBeepCommand({
+    int frequencyHz = 1000,
+    int durationMs = 200,
+  }) {
+    if (frequencyHz < 1 || frequencyHz > 0xffff) {
+      throw ArgumentError.value(
+        frequencyHz,
+        'frequencyHz',
+        'Must be in 1..65535',
+      );
+    }
+    if (durationMs < 1 || durationMs > 0xffff) {
+      throw ArgumentError.value(
+        durationMs,
+        'durationMs',
+        'Must be in 1..65535',
+      );
+    }
+    return [
+      0x0b,
+      0x04,
+      frequencyHz >> 8,
+      frequencyHz & 0xff,
+      durationMs >> 8,
+      durationMs & 0xff,
+    ];
   }
 
   static Map<String, String> pieceMapFromFen(String fen) {

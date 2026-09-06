@@ -66,8 +66,14 @@ class ChessnutBridge(
     private var state = "disconnected"
     private var stateMessage = "Chessnut Go is disconnected."
     private var deviceName: String? = null
-    private val writeQueue = ArrayDeque<ByteArray>()
+    private data class PendingWrite(
+        val command: ByteArray,
+        val failureIsFatal: Boolean = true,
+    )
+
+    private val writeQueue = ArrayDeque<PendingWrite>()
     private var writeInProgress = false
+    private var activeWrite: PendingWrite? = null
 
     init {
         methodChannel.setMethodCallHandler(this)
@@ -82,6 +88,7 @@ class ChessnutBridge(
                 result.success(null)
             }
             "setLeds" -> setLeds(call, result)
+            "beep" -> beep(call, result)
             else -> result.notImplemented()
         }
     }
@@ -341,8 +348,14 @@ class ChessnutBridge(
             mainHandler.post {
                 if (this@ChessnutBridge.gatt !== gatt) return@post
                 writeInProgress = false
+                val completedWrite = activeWrite
+                activeWrite = null
                 if (status != BluetoothGatt.GATT_SUCCESS) {
-                    failConnection("Chessnut command failed (status $status).")
+                    if (completedWrite?.failureIsFatal != false) {
+                        failConnection("Chessnut command failed (status $status).")
+                    } else {
+                        writeNext()
+                    }
                     return@post
                 }
                 writeNext()
@@ -453,8 +466,25 @@ class ChessnutBridge(
         result.success(null)
     }
 
-    private fun enqueueWrite(command: ByteArray) {
-        writeQueue.add(command.copyOf())
+    private fun beep(call: MethodCall, result: MethodChannel.Result) {
+        if (!ready) {
+            result.error("not_connected", "Chessnut Go is not ready.", null)
+            return
+        }
+        val values = call.argument<List<Number>>("command")
+        if (values == null || values.size != 6 || values[0].toInt() != 0x0b || values[1].toInt() != 0x04) {
+            result.error("bad_arguments", "Expected a Chessnut buzzer command.", null)
+            return
+        }
+        enqueueWrite(
+            values.map { it.toInt().toByte() }.toByteArray(),
+            failureIsFatal = false,
+        )
+        result.success(null)
+    }
+
+    private fun enqueueWrite(command: ByteArray, failureIsFatal: Boolean = true) {
+        writeQueue.add(PendingWrite(command.copyOf(), failureIsFatal))
         writeNext()
     }
 
@@ -462,7 +492,9 @@ class ChessnutBridge(
         if (writeInProgress || writeQueue.isEmpty()) return
         val currentGatt = gatt ?: return
         val characteristic = writeCharacteristic ?: return
-        val command = writeQueue.removeFirst()
+        val pendingWrite = writeQueue.removeFirst()
+        val command = pendingWrite.command
+        activeWrite = pendingWrite
         writeInProgress = true
         try {
             val started = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -481,9 +513,15 @@ class ChessnutBridge(
             }
             if (started) return
             writeInProgress = false
-            failConnection("Could not send a command to Chessnut Go.")
+            activeWrite = null
+            if (pendingWrite.failureIsFatal) {
+                failConnection("Could not send a command to Chessnut Go.")
+            } else {
+                writeNext()
+            }
         } catch (error: SecurityException) {
             writeInProgress = false
+            activeWrite = null
             failConnection(error.message ?: "Bluetooth permission was revoked.")
         }
     }
@@ -508,6 +546,7 @@ class ChessnutBridge(
         configuringDescriptor = null
         writeQueue.clear()
         writeInProgress = false
+        activeWrite = null
         try {
             gatt?.close()
         } catch (_: SecurityException) {

@@ -57,6 +57,10 @@ analysis trees, the selected position, board orientation, and clock state are
 checkpointed locally and restored after Android process death, device restart,
 or an app update.
 
+Tap the back and forward arrows to move one position at a time. Hold the back
+arrow to return to the game's starting position, or hold the forward arrow to
+jump to the end of the main line.
+
 <p align="center">
   <img src="docs/screenshots/20260906_v0_analysis_board.jpg" width="30%" alt="Analysis Board at the starting position with offline Stockfish and Maia suggestions">
   <img src="docs/screenshots/20260906_v0_analysis_actions.jpg" width="30%" alt="Analysis Board actions for loading, clearing, editing, and continuing a position">
@@ -88,15 +92,26 @@ The app refreshes the pending move LEDs until the physical position matches.
 Mobile Maia compares every sensed piece with the complete legal position.
 Lifting a piece or moving only the rook during castling is treated as an
 unfinished action, not a move. If a completed position is illegal or the board
-is out of sync, the squares that need correction light up. The Bluetooth icon
-in a live game shows connection and battery status and provides reconnect and
-disconnect controls.
+is out of sync, the squares that need correction light up. Matching the
+Chessnut Maia CLI, the board gives one short beep when either side gives check
+or checkmate and when a complete-looking illegal move is attempted. Temporary
+piece lifts remain silent, repeated board frames do not repeat the alert, and
+**Board sounds** can be disabled from setup or the live Bluetooth panel.
 
-This first preview targets Chessnut Go over Bluetooth. Timed e-board games,
-takebacks, arbitrary starting positions, USB connections, Analysis Board input,
-and other Chessnut models are not yet supported. The integration remains fully
-offline and the app continues to work normally without Bluetooth permission
-when Chessnut support is not enabled.
+**Take back move** removes the latest player/Maia turn, or the only available
+move. The reverted moves remain in the exported PGN as a variation. Every
+physical square that must be restored lights up, and play resumes only after
+the complete board matches the reverted position. Restoration guidance is
+retained across a reconnect or app restart.
+
+The Bluetooth icon in a live game shows connection and battery status and
+provides reconnect, sound, and disconnect controls.
+
+This preview targets Chessnut Go over Bluetooth. Timed e-board games, arbitrary
+starting positions, USB connections, Analysis Board input, and other Chessnut
+models are not yet supported. The integration remains fully offline and the app
+continues to work normally without Bluetooth permission when Chessnut support
+is not enabled.
 
 The screen remains awake during every active game, whether moves are entered
 on Chessnut Go or directly on the phone.
@@ -239,8 +254,8 @@ Lichess Flutter Chessground, Lichess multistockfish, and the bundled licences.
 - Play against Maia from the current analysis position
 - Complete offline Lichess CC0 opening-name and ECO recognition
 - Play as White, Black, or a random side
-- Experimental Chessnut Go play with strict position matching, move LEDs,
-  battery status, and reconnect controls
+- Experimental Chessnut Go play with strict position matching, move and
+  takeback LEDs, check/illegal-move sounds, battery status, and reconnect controls
 - Unlimited play by default, Lichess-style clock presets, or custom time and increment
 - Easy (800), Medium (1500), Hard (2200), or custom Elo
 - Optional human-like move timing with persistent advanced settings
@@ -258,6 +273,7 @@ Lichess Flutter Chessground, Lichess multistockfish, and the bundled licences.
 - Brilliant, Good, Interesting, Dubious, Mistake, and Blunder classifications on the graph, move list, and board
 - Analysis variations and takebacks preserved as PGN recursive annotation variations
 - Long-press variation editing: collapse/expand, promote, make main line, or delete from a move
+- Hold analysis navigation arrows to jump to the start or end of the main line
 - Flip-board control during analysis
 - Lichess-style material imbalance display, including bishop-versus-knight trades
 - Tagged PGN export with players, event, date, result, and termination

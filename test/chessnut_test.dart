@@ -56,6 +56,7 @@ class _FakeElectronicBoard implements ElectronicBoardTransport {
   final StreamController<ElectronicBoardEvent> _events =
       StreamController<ElectronicBoardEvent>.broadcast(sync: true);
   final List<List<String>> ledCommands = [];
+  final List<List<int>> beepCommands = [];
   bool connected = false;
 
   @override
@@ -90,6 +91,11 @@ class _FakeElectronicBoard implements ElectronicBoardTransport {
   @override
   Future<void> setLeds(Iterable<String> squares) async {
     ledCommands.add(squares.toList(growable: false));
+  }
+
+  @override
+  Future<void> beep({int frequencyHz = 1000, int durationMs = 200}) async {
+    beepCommands.add([frequencyHz, durationMs]);
   }
 
   void position(Map<String, String> pieces) {
@@ -158,6 +164,25 @@ void main() {
       0x08,
       0,
     ]);
+  });
+
+  test('encodes the same default buzzer command as the Chessnut CLI', () {
+    expect(ChessnutProtocol.encodeBeepCommand(), const [
+      0x0b,
+      0x04,
+      0x03,
+      0xe8,
+      0x00,
+      0xc8,
+    ]);
+    expect(
+      () => ChessnutProtocol.encodeBeepCommand(frequencyHz: 0),
+      throwsArgumentError,
+    );
+    expect(
+      () => ChessnutProtocol.encodeBeepCommand(durationMs: 0),
+      throwsArgumentError,
+    );
   });
 
   test('parses FEN piece placement', () {
@@ -301,6 +326,219 @@ void main() {
     await board.close();
   });
 
+  testWidgets(
+    'completed illegal moves beep once while piece lifts stay silent',
+    (tester) async {
+      SharedPreferences.setMockInitialValues({});
+      final board = _FakeElectronicBoard();
+      final pendingMaia = Completer<Float32List>();
+      await tester.pumpWidget(
+        MaterialApp(
+          home: GamePage(
+            electronicBoardTransport: board,
+            maiaEvaluator: (_, _) => pendingMaia.future,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(
+        find.byKey(const ValueKey('chessnut-go-toggle')),
+      );
+      await tester.tap(find.byKey(const ValueKey('chessnut-go-toggle')));
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(
+        find.widgetWithText(FilledButton, 'Start game'),
+      );
+      await tester.tap(find.widgetWithText(FilledButton, 'Start game'));
+      await tester.pump();
+
+      final game = chess.Chess();
+      final lifted = Map<String, String>.of(
+        ChessnutProtocol.pieceMapFromFen(game.fen),
+      )..remove('e2');
+      board.position(lifted);
+      await tester.pump();
+      expect(board.beepCommands, isEmpty);
+
+      final illegal = Map<String, String>.of(lifted)..['e5'] = 'P';
+      board.position(illegal);
+      await tester.pump(const Duration(milliseconds: 250));
+      expect(board.beepCommands, const [
+        [1000, 200],
+      ]);
+
+      board.position(illegal);
+      await tester.pump(const Duration(milliseconds: 250));
+      expect(board.beepCommands, hasLength(1));
+
+      board.position(lifted);
+      await tester.pump();
+      board.position(illegal);
+      await tester.pump(const Duration(milliseconds: 250));
+      expect(board.beepCommands, hasLength(2));
+
+      await tester.pumpWidget(const SizedBox.shrink());
+      pendingMaia.complete(Float32List(4352));
+      await tester.pump();
+      await board.close();
+    },
+  );
+
+  testWidgets('the persistent Chessnut board-sounds setting can mute alerts', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues({'chessnutBoardSounds': false});
+    final board = _FakeElectronicBoard();
+    await tester.pumpWidget(
+      MaterialApp(
+        home: GamePage(
+          electronicBoardTransport: board,
+          maiaEvaluator: (_, _) async => Float32List(4352),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(
+      find.byKey(const ValueKey('chessnut-go-toggle')),
+    );
+    await tester.tap(find.byKey(const ValueKey('chessnut-go-toggle')));
+    await tester.pumpAndSettle();
+    final sounds = tester.widget<SwitchListTile>(
+      find.byKey(const ValueKey('chessnut-sounds-toggle')),
+    );
+    expect(sounds.value, isFalse);
+
+    await tester.ensureVisible(find.widgetWithText(FilledButton, 'Start game'));
+    await tester.tap(find.widgetWithText(FilledButton, 'Start game'));
+    await tester.pump();
+    final illegal =
+        Map<String, String>.of(
+            ChessnutProtocol.pieceMapFromFen(chess.Chess.DEFAULT_POSITION),
+          )
+          ..remove('e2')
+          ..['e5'] = 'P';
+    board.position(illegal);
+    await tester.pump(const Duration(milliseconds: 250));
+    expect(board.beepCommands, isEmpty);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
+    await board.close();
+  });
+
+  testWidgets('Chessnut takeback restores the physical board before play', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues({});
+    final board = _FakeElectronicBoard();
+    final policy = Float32List(4352)..fillRange(0, 4352, -100);
+    policy[MaiaEncoding.moveIndex('e7e5', true)] = 100;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: GamePage(
+          electronicBoardTransport: board,
+          maiaEvaluator: (_, _) async => policy,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(
+      find.byKey(const ValueKey('chessnut-go-toggle')),
+    );
+    await tester.tap(find.byKey(const ValueKey('chessnut-go-toggle')));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.widgetWithText(FilledButton, 'Start game'));
+    await tester.tap(find.widgetWithText(FilledButton, 'Start game'));
+    await tester.pump();
+
+    final game = chess.Chess();
+    final afterE4 = _after(game, 'e2e4');
+    board.position(afterE4);
+    await tester.pump();
+    await tester.pump();
+    expect(find.text('e5'), findsOneWidget);
+
+    await tester.tap(find.byKey(const ValueKey('game-actions-menu')));
+    await tester.pumpAndSettle();
+    expect(find.text('Take back move'), findsOneWidget);
+    await tester.tap(find.text('Take back move'));
+    await tester.pump();
+    expect(
+      find.text('Takeback: restore the lit squares on Chessnut Go.'),
+      findsOneWidget,
+    );
+    expect(board.ledCommands.last.toSet(), containsAll(const {'e2', 'e4'}));
+
+    await board.disconnect();
+    await tester.pump();
+    board.ready(afterE4);
+    await tester.pump();
+    expect(board.ledCommands.last.toSet(), containsAll(const {'e2', 'e4'}));
+
+    board.position(
+      ChessnutProtocol.pieceMapFromFen(chess.Chess.DEFAULT_POSITION),
+    );
+    await tester.pump();
+    expect(
+      find.text('Takeback complete. Your move on Chessnut Go.'),
+      findsOneWidget,
+    );
+    await tester.pump();
+    final saved = await ActiveSessionStore.load();
+    final variations = saved!['variations'] as List;
+    expect(variations, hasLength(1));
+    expect((variations.single as Map)['sanMoves'], const ['e4', 'e5']);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
+    await board.close();
+  });
+
+  testWidgets('a physical human move that gives check sounds the board', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues({});
+    const pgn = '''
+[Event "Mobile Maia Game"]
+[Result "*"]
+
+1. e4 e5 2. Bc4 Nc6 *
+''';
+    final session = AnalysisSession.fromPgn(pgn);
+    await ActiveSessionStore.save({
+      'type': 'game',
+      'pgn': pgn,
+      'playerIsWhite': true,
+      'timePreset': 'unlimited',
+      'clockPaused': false,
+      'electronicBoard': 'chessnut-go',
+    });
+    final board = _FakeElectronicBoard();
+    final pendingMaia = Completer<Float32List>();
+    await tester.pumpWidget(
+      MaterialApp(
+        home: GamePage(
+          electronicBoardTransport: board,
+          maiaEvaluator: (_, _) => pendingMaia.future,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final beforeCheck = chess.Chess.fromFEN(session.positions.last);
+    board.ready(ChessnutProtocol.pieceMapFromFen(beforeCheck.fen));
+    await tester.pump();
+    board.position(_after(beforeCheck, 'c4f7'));
+    await tester.pump(const Duration(milliseconds: 250));
+    expect(board.beepCommands, const [
+      [1000, 200],
+    ]);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    pendingMaia.complete(Float32List(4352));
+    await tester.pump();
+    await board.close();
+  });
+
   testWidgets('Chessnut checkmate records and displays the winning result', (
     tester,
   ) async {
@@ -345,13 +583,16 @@ void main() {
     final beforeMate = chess.Chess.fromFEN(session.positions.last);
     board.ready(ChessnutProtocol.pieceMapFromFen(beforeMate.fen));
     await tester.pump();
-    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 250));
     expect(
       board.ledCommands.any(
         (command) => command.toSet().containsAll(const {'d5', 'g2'}),
       ),
       isTrue,
     );
+    expect(board.beepCommands, const [
+      [1000, 200],
+    ]);
 
     expect(beforeMate.move('Qg2#'), isTrue);
     board.position(ChessnutProtocol.pieceMapFromFen(beforeMate.fen));

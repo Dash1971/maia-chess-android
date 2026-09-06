@@ -8,8 +8,9 @@
 - Reference implementation licence: GNU General Public License v3.0
 
 Mobile Maia's Chessnut Bluetooth protocol constants, board-position decoding,
-and LED mapping follow Chessnut's published API and were cross-checked against
-the GPL-3.0 chessnutair reference implementation. The Android/Kotlin transport
+LED mapping, and buzzer command follow Chessnut's published API and were
+cross-checked against the GPL-3.0 chessnutair reference implementation. The
+Android/Kotlin transport
 and Dart game integration are new adaptations for Mobile Maia and are
 distributed with the combined application under AGPL-3.0-only as permitted by
 section 13 of AGPL-3.0.
