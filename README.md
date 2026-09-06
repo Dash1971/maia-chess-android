@@ -3,6 +3,10 @@
 > **Prerelease channel:** This repository contains experimental Mobile Maia
 > builds. The Android package ID is separate from the stable app, so **Mobile
 > Maia Preview** can be installed beside **Mobile Maia** without replacing it.
+>
+> Preview v1.7.0-beta.30 was promoted to the stable
+> [Mobile Maia 2.0.0 release](https://github.com/Dash1971/maia-chess-android/releases/tag/v2.0.0).
+> The Preview `main` branch now targets the Mobile Maia 2.1 development cycle.
 
 An offline-first Android chess app for playing against Maia-3, reviewing games
 with Maia and Stockfish, and exporting PGN.
