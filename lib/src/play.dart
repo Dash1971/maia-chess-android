@@ -85,6 +85,8 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
   bool _processingChessnutPosition = false;
   Map<String, String>? _queuedChessnutPosition;
   Timer? _chessnutLedRefreshTimer;
+  final List<Timer> _chessnutLedBurstTimers = [];
+  int _chessnutLedRefreshGeneration = 0;
 
   bool get _playerIsWhite => _playerColor == chess.Color.WHITE;
   bool get _isPlayerTurn => _game.turn == _playerColor;
@@ -939,10 +941,8 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
     });
     if (nextState == ElectronicBoardConnectionState.ready) {
       if (_pendingPhysicalMaiaMove != null) {
-        unawaited(_refreshPendingChessnutLeds());
         _startChessnutLedRefresh();
       } else if (_chessnutTakebackRestoreActive) {
-        unawaited(_refreshPendingChessnutLeds());
         _startChessnutLedRefresh();
       }
       final position = _chessnutPosition;
@@ -1131,27 +1131,50 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
   }
 
   void _startChessnutLedRefresh() {
-    _stopChessnutLedRefresh();
+    _chessnutLedRefreshTimer?.cancel();
+    for (final timer in _chessnutLedBurstTimers) {
+      timer.cancel();
+    }
+    _chessnutLedBurstTimers.clear();
     if (_pendingPhysicalMaiaMove == null && !_chessnutTakebackRestoreActive) {
+      _chessnutLedRefreshGeneration++;
       return;
     }
+    final generation = ++_chessnutLedRefreshGeneration;
+    unawaited(_refreshPendingChessnutLeds(generation));
+    for (final delay in const [
+      Duration(milliseconds: 200),
+      Duration(milliseconds: 600),
+    ]) {
+      _chessnutLedBurstTimers.add(
+        Timer(delay, () => unawaited(_refreshPendingChessnutLeds(generation))),
+      );
+    }
     _chessnutLedRefreshTimer = Timer.periodic(
-      const Duration(seconds: 2),
-      (_) => unawaited(_refreshPendingChessnutLeds()),
+      const Duration(seconds: 1),
+      (_) => unawaited(_refreshPendingChessnutLeds(generation)),
     );
   }
 
   void _stopChessnutLedRefresh() {
     _chessnutLedRefreshTimer?.cancel();
     _chessnutLedRefreshTimer = null;
+    for (final timer in _chessnutLedBurstTimers) {
+      timer.cancel();
+    }
+    _chessnutLedBurstTimers.clear();
+    _chessnutLedRefreshGeneration++;
   }
 
-  Future<void> _refreshPendingChessnutLeds() async {
+  Future<void> _refreshPendingChessnutLeds(int generation) async {
+    if (generation != _chessnutLedRefreshGeneration) return;
     final pending = _pendingPhysicalMaiaMove;
     if (!mounted ||
         !_chessnutGameActive ||
         (pending == null && !_chessnutTakebackRestoreActive)) {
-      _stopChessnutLedRefresh();
+      if (generation == _chessnutLedRefreshGeneration) {
+        _stopChessnutLedRefresh();
+      }
       return;
     }
     if (!_chessnutReady) return;
@@ -1164,7 +1187,9 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
             observed,
             ChessnutProtocol.pieceMapFromFen(_game.fen),
           );
-    if (squares.isNotEmpty) await _setChessnutLeds(squares);
+    if (squares.isNotEmpty && generation == _chessnutLedRefreshGeneration) {
+      await _setChessnutLeds(squares);
+    }
   }
 
   Future<void> _showChessnutPanel() async {
@@ -1663,10 +1688,6 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
           _pendingPhysicalMaiaMove = maiaUci;
           _status = 'Make Maia’s lit move on Chessnut Go.';
         });
-        await _setChessnutLeds([
-          maiaUci.substring(0, 2),
-          maiaUci.substring(2, 4),
-        ]);
         _startChessnutLedRefresh();
         if (!mounted || generation != _gameGeneration) return;
         unawaited(_saveGameState());

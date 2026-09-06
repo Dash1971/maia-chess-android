@@ -306,12 +306,22 @@ void main() {
     final litMoveCommands = board.ledCommands
         .where((command) => command.toSet().containsAll(const {'e7', 'e5'}))
         .length;
-    await tester.pump(const Duration(seconds: 2));
+    await tester.pump(const Duration(milliseconds: 250));
     expect(
       board.ledCommands
           .where((command) => command.toSet().containsAll(const {'e7', 'e5'}))
           .length,
       greaterThan(litMoveCommands),
+    );
+    final burstMoveCommands = board.ledCommands
+        .where((command) => command.toSet().containsAll(const {'e7', 'e5'}))
+        .length;
+    await tester.pump(const Duration(seconds: 1));
+    expect(
+      board.ledCommands
+          .where((command) => command.toSet().containsAll(const {'e7', 'e5'}))
+          .length,
+      greaterThan(burstMoveCommands),
     );
 
     game.move('e4');
@@ -320,6 +330,17 @@ void main() {
     await tester.pump();
     expect(board.ledCommands.last, isEmpty);
     expect(find.text('Your move on Chessnut Go.'), findsOneWidget);
+    final clearIndex = board.ledCommands.lastIndexWhere(
+      (command) => command.isEmpty,
+    );
+    await tester.pump(const Duration(milliseconds: 700));
+    expect(
+      board.ledCommands
+          .skip(clearIndex + 1)
+          .every((command) => command.isEmpty),
+      isTrue,
+      reason: 'A cancelled LED burst must not relight a completed move.',
+    );
 
     await tester.pumpWidget(const SizedBox.shrink());
     await tester.pump();

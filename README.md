@@ -87,7 +87,8 @@ nearby-device permission, and select **Connect Chessnut Go**. Set up the
 standard starting position before starting an unlimited game. Your physical
 moves are entered directly into Mobile Maia; after Maia replies, the move's
 from- and to-squares light on the board. Play the lit move before continuing.
-The app refreshes the pending move LEDs until the physical position matches.
+The app sends each new indication in a short reliability burst, then refreshes
+the pending move LEDs once per second until the physical position matches.
 
 Mobile Maia compares every sensed piece with the complete legal position.
 Lifting a piece or moving only the rook during castling is treated as an
