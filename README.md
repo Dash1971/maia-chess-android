@@ -81,20 +81,24 @@ somebody else's server.
 Mobile Maia is an independent community project, not an official Maia Chess,
 University of Toronto CSSLab, Stockfish, or Lichess app.
 
-## Latest release — v1.8.1
+## Latest release — v2.0.0
 
-[Mobile Maia v1.8.1](https://github.com/Dash1971/maia-chess-android/releases/tag/v1.8.1)
-is a bug-fix update to the 1.8 Game Review release:
+[Mobile Maia v2.0.0](https://github.com/Dash1971/maia-chess-android/releases/tag/v2.0.0)
+brings the tested Preview experience to the stable app:
 
-- Maia's selected playing strength is now remembered across app restarts.
-- Analysis Board and Game Review move-list rendering is hardened around the
-  exact Dart AOT path identified in a rare, one-off Android native crash.
-- Mainline rendering is bounded to available move data if restored analysis
-  state is incomplete or mismatched.
+- Lichess-style tap-and-drag play, compact analysis controls, move navigation,
+  and game-conclusion actions.
+- Recent Games for completed games and explicitly saved incomplete games, with
+  multi-select and delete-all controls.
+- Reliable restoration of active games, analysis trees, variations, clocks,
+  and board orientation.
+- Android Files, Open with, and share-sheet PGN import and export.
+- Correct analysis branching and nested-variation export.
+- Stronger Maia and Stockfish request cancellation, model verification, and
+  lifecycle handling.
+- A fix for Maia 500 mirroring White's moves while playing Black.
 
-The crash could not be reproduced, so this is targeted hardening rather than a
-claim that every possible native crash has been eliminated. See the
-[complete release notes and APK](https://github.com/Dash1971/maia-chess-android/releases/tag/v1.8.1).
+See the [complete release notes and APK](https://github.com/Dash1971/maia-chess-android/releases/tag/v2.0.0).
 
 ## Preview channel — active development
 
@@ -104,17 +108,9 @@ Preview builds use a yellow/gold app icon and a separate Android package, so
 they can be installed beside the stable blue Mobile Maia app without replacing
 it.
 
-The [current Preview release, v1.7.0-beta.27](https://github.com/Dash1971/maia-chess-android-preview/releases/tag/v1.7.0-beta.27)
-is testing:
-
-- Lichess-app-style tap and drag across live play, Analysis Board, and Game
-  Review, including touch magnification, finger offset, and the drop shadow,
-  while keeping the board fixed during a drag.
-- Reliable **Play from here** from custom positions with either side to move.
-- Lower-overhead clocks and Maia inference, plus safer model loading and engine
-  lifecycle handling.
-- More reliable nested analysis variations, graph navigation, and PGN export,
-  with the option to stop a full-game analysis in progress.
+Preview v1.7.0-beta.30 supplied the changes promoted into Mobile Maia 2.0.0.
+Future experimental work can continue in the Preview repository without
+replacing the stable app.
 
 Preview releases are prerelease software and may change before promotion to
 the stable app. Follow the Preview repository to see and test work in progress.
@@ -218,6 +214,30 @@ line is retained as a variation when the PGN is copied.
   <img src="docs/screenshots/20260902_v0_completed_game.jpg" width="38%" alt="Completed game with PGN, Game Review, and rematch actions">
 </p>
 
+### Offline games and files
+
+Games and analysis are checkpointed in app-private files, with a previous-good
+backup for recovery. **Recent games** contains completed games and incomplete
+games explicitly saved with Home. Incomplete games are labelled and become the
+same completed record when finished. **Reset Game** warns before permanently
+removing the current game and starting again.
+
+Recent games supports multi-select, select all, selected deletion, and delete
+all. Android may erase app-private data when the app is uninstalled; use
+**Save PGN file** or **Share PGN** to keep an independent copy.
+
+**Open PGN file**, Android's Open with action, and shared PGN attachments import
+a single game with its variations, comments, and annotations. Files are limited
+to 2 MB and 20,000 moves across all branches. Save and share use Android's
+system picker and temporary URI grants; no storage or Internet permission is
+required. PGN import uses the first game in a multi-game document.
+
+Training clocks pause while the app is backgrounded, while reviewing the
+current game, or after a Maia error. Returning resumes the saved clock; Retry
+restarts a failed Maia turn. Analysis stops scheduling engine work offscreen.
+Selecting a position gets a short Stockfish search, then a longer refinement if
+it remains selected. Full computer analysis uses the longer budget.
+
 ### Game Review
 
 After a game, select **Game Review**. The board remains fixed at the
@@ -310,10 +330,17 @@ Chess releases. Android may ask you to confirm each update.
 
 ## Build
 
-Requirements: Flutter 3.47+, JDK 17, and Android SDK 36.
+Requirements: **Flutter 3.47.1** (pinned in `.fvmrc`), JDK 17, Android SDK 36,
+Python 3, and Git LFS. Use the locked dependencies. A GitHub source ZIP contains
+an LFS pointer rather than the 316 MB Maia model, so clone with Git LFS:
 
 ```sh
-flutter pub get
+git clone https://github.com/Dash1971/maia-chess-android.git
+cd maia-chess-android
+git lfs install
+git lfs pull
+python3 tool/verify_model.py
+flutter pub get --enforce-lockfile
 flutter analyze
 flutter test
 tool/build_android_release.sh
@@ -322,8 +349,16 @@ tool/build_android_release.sh
 The APK is written to `build/app/outputs/flutter-apk/app-release.apk`. Release
 builds intentionally keep readable Dart symbols: Mobile Maia is open source,
 readable crash traces are more useful than obfuscation, and deterministic
-symbols allow independent reproducibility checks. See
-[`REPRODUCIBLE_BUILDS.md`](REPRODUCIBLE_BUILDS.md).
+symbols allow independent reproducibility checks. The script also verifies the
+model's exact size and SHA-256 so an incomplete Git LFS checkout cannot silently
+produce a broken release. See [`REPRODUCIBLE_BUILDS.md`](REPRODUCIBLE_BUILDS.md).
+
+To check reproducibility, build the **same commit** in two clean directories
+with the same pinned toolchain and no signing variables, then compare the
+unsigned APKs using `sha256sum`. Retain both hashes with the release notes;
+the procedure is not itself evidence that a particular release reproduced.
+The manual Checks workflow can build an unsigned APK; pull requests run the
+Dart analyzer and regression tests.
 
 Official releases are signed with the dedicated Mobile Maia app-signing key.
 The build reads `MOBILE_MAIA_KEYSTORE`, `MOBILE_MAIA_STORE_PASSWORD`, and
@@ -368,6 +403,15 @@ tree, navigation, variation actions, fixed analysis panel, board editor, and
 last-move presentation are also informed by the open-source
 [Lichess Mobile analysis experience](https://github.com/lichess-org/mobile).
 Mobile Maia is independently implemented and is not affiliated with Lichess.
+
+Game Review's move-classification and sacrifice-detection heuristics are
+adapted and translated to Dart from
+[En Croissant](https://github.com/franciscoBSalgueiro/en-croissant), the
+open-source chess GUI by Francisco Salgueiro and contributors. Mobile Maia
+retains the upstream classification rules while adding bounded search,
+background-isolate execution, and its own review integration. The pinned
+upstream revision and licence details are recorded in
+[`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).
 
 Game Review's move-classification and sacrifice-detection heuristics are
 adapted and translated to Dart from

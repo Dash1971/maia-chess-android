@@ -1,3 +1,5 @@
+import java.security.MessageDigest
+
 plugins {
     id("com.android.application")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
@@ -65,6 +67,10 @@ android {
             // F-Droid can build an unsigned release when signing credentials are
             // absent. Official Mobile Maia releases provide all three variables.
             signingConfig = signingConfigs.findByName("mobileMaiaRelease")
+            // The bundled ONNX model dominates APK size; Java/Kotlin shrinking
+            // adds release risk without a meaningful download-size reduction.
+            isMinifyEnabled = false
+            isShrinkResources = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
@@ -81,4 +87,32 @@ kotlin {
 
 flutter {
     source = "../.."
+}
+
+// Fail before Flutter copies assets: GitHub ZIP downloads and incomplete LFS
+// clones otherwise produce an installable APK with a tiny text pointer as Maia.
+val verifyMaiaModel by tasks.registering {
+    val model = rootProject.file("../assets/models/maia3-79m.onnx")
+    inputs.file(model)
+    doLast {
+        require(model.isFile && model.length() == 316_034_244L) {
+            "Maia model missing or wrong size. Run git lfs install && git lfs pull."
+        }
+        val digest = MessageDigest.getInstance("SHA-256")
+        model.inputStream().buffered().use { stream ->
+            val buffer = ByteArray(1024 * 1024)
+            while (true) {
+                val count = stream.read(buffer)
+                if (count < 0) break
+                digest.update(buffer, 0, count)
+            }
+        }
+        val sha256 = digest.digest().joinToString("") { "%02x".format(it) }
+        require(sha256 == "3454b03ae78baa64a87b345fdb1a457265d912caec531039b074f07eda0d8010") {
+            "Maia model SHA-256 mismatch. Restore the pinned Git LFS object."
+        }
+    }
+}
+tasks.matching { it.name == "preBuild" || it.name.startsWith("compileFlutterBuild") }.configureEach {
+    dependsOn(verifyMaiaModel)
 }

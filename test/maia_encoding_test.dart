@@ -26,6 +26,29 @@ void main() {
     expect(MaiaEncoding.historicalTokens([fen]), hasLength(64 * 97));
   });
 
+  test('model input repeats current board and keeps ponder channel zero', () {
+    final game = chess.Chess();
+    final earliest = game.fen;
+    expect(game.move('e4'), isTrue);
+    final currentOnly = MaiaEncoding.historicalTokens([game.fen]);
+    final tokens = MaiaEncoding.historicalTokens([earliest, game.fen]);
+    const e2 = 12;
+    const e5 = 36;
+
+    // Extra reconstructed history must not alter the released engine's
+    // default current-position-only input. After 1.e4 Black is to move, so
+    // every board slot contains the opposing pawn mirrored onto e5.
+    expect(tokens, currentOnly);
+    for (var history = 0; history < 8; history++) {
+      final offset = history * 12;
+      expect(tokens[e2 * 97 + offset + 6], 0);
+      expect(tokens[e5 * 97 + offset + 6], 1);
+    }
+    for (var square = 0; square < 64; square++) {
+      expect(tokens[square * 97 + 96], 0);
+    }
+  });
+
   test('top-p sampling keeps only the highest probability moves', () {
     final game = chess.Chess();
     final legalMoves = game.moves({'asObjects': true}).cast<chess.Move>();

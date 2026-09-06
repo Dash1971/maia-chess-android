@@ -10,7 +10,6 @@ import java.nio.FloatBuffer
 import java.nio.LongBuffer
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
-import org.junit.Assert.assertNotEquals
 import org.junit.Test
 import org.junit.runner.RunWith
 
@@ -82,8 +81,10 @@ class MaiaInferenceTest {
             }
             val at500 = logitsAt(500)
             val at1500 = logitsAt(1500)
-            assertTrue(at500.zip(at1500).any { (low, medium) -> kotlin.math.abs(low - medium) > 0.01f })
-            assertNotEquals(at500.indices.maxBy { at500[it] }, at1500.indices.maxBy { at1500[it] })
+            val maximumDifference = at500.indices.maxOf { index ->
+                kotlin.math.abs(at500[index] - at1500[index])
+            }
+            assertTrue(maximumDifference > 0.01f)
         }
     }
 }

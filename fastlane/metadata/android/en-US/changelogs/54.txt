@@ -1,0 +1,4 @@
+Mobile Maia 2.0 adds Lichess-style tap-and-drag play and move navigation,
+improved Recent Games and session recovery, Android PGN import/export and
+sharing, reliable analysis variations, and stronger Maia and Stockfish
+lifecycle handling. It also fixes Maia 500 mirroring White while playing Black.

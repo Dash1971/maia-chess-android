@@ -9,6 +9,8 @@ dart_bin=${DART_BIN:-$(dirname -- "$flutter_path")/dart}
 
 cd "$repo_root"
 
+python3 tool/verify_model.py
+
 # A fixed source timestamp and locked dependencies keep independent release
 # builds reproducible. Dart obfuscation is deliberately not enabled: its
 # randomized symbol mapping prevents reproducible builds and provides no

@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:chess/chess.dart' as chess;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -6,6 +8,28 @@ import 'package:maia_chess/main.dart';
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+  setUpAll(
+    () => maiaEngineChannel.invokeMethod<void>('setKeepScreenOn', {
+      'enabled': true,
+    }),
+  );
+  tearDownAll(
+    () => maiaEngineChannel.invokeMethod<void>('setKeepScreenOn', {
+      'enabled': false,
+    }),
+  );
+
+  testWidgets('real Maia bridge returns a typed policy vector', (tester) async {
+    final response = await MaiaInferenceQueue.predict({
+      'tokens': MaiaEncoding.historicalTokens([chess.Chess.DEFAULT_POSITION]),
+      'selfElo': 1500,
+      'opponentElo': 1500,
+    }, timeout: const Duration(minutes: 3));
+
+    expect(response, isA<Float32List>());
+    expect(response, hasLength(4352));
+    expect(response!.every((value) => value.isFinite), isTrue);
+  });
 
   Future<void> waitForRealEvaluation(WidgetTester tester) async {
     for (var i = 0; i < 240; i++) {
