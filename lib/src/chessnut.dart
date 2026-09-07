@@ -38,6 +38,49 @@ abstract interface class ElectronicBoardTransport {
   Future<void> beep({int frequencyHz = 1000, int durationMs = 200});
 }
 
+/// Coalesces unchanged guidance while preserving explicit recovery refreshes.
+class ChessnutLedController {
+  ChessnutLedController(this._transport);
+
+  final ElectronicBoardTransport _transport;
+  String? _state;
+  Object? _request;
+  Future<void>? _inFlight;
+
+  /// The next request must reach the board after a connection change.
+  void invalidate() {
+    _state = null;
+    _request = null;
+    _inFlight = null;
+  }
+
+  Future<void> setLeds(Iterable<String> squares, {bool refresh = false}) {
+    final normalized =
+        squares.map((square) => square.trim().toLowerCase()).toSet().toList()
+          ..sort();
+    final state = normalized.join(',');
+    if (_state == state && (!refresh || _inFlight != null)) {
+      return _inFlight ?? Future<void>.value();
+    }
+    final request = Object();
+    _state = state;
+    _request = request;
+    final completion = Future<void>.sync(() => _transport.setLeds(normalized))
+        .then<void>(
+          (_) {},
+          onError: (Object error, StackTrace stackTrace) {
+            if (identical(_request, request)) invalidate();
+            Error.throwWithStackTrace(error, stackTrace);
+          },
+        )
+        .whenComplete(() {
+          if (identical(_request, request)) _inFlight = null;
+        });
+    _inFlight = completion;
+    return completion;
+  }
+}
+
 class ChessnutPlatformTransport implements ElectronicBoardTransport {
   ChessnutPlatformTransport._();
 

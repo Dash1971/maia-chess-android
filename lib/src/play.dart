@@ -67,6 +67,7 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
   final ScrollController _liveMovesController = ScrollController();
   final Random _timingRandom = Random();
   late final ElectronicBoardTransport _chessnut;
+  late final ChessnutLedController _chessnutLeds;
   StreamSubscription<ElectronicBoardEvent>? _chessnutSubscription;
   ElectronicBoardConnectionState _chessnutState =
       ElectronicBoardConnectionState.disconnected;
@@ -141,6 +142,7 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
     _clockDisplay = ValueNotifier(const ClockSnapshot(0, 0));
     _chessnut =
         widget.electronicBoardTransport ?? ChessnutPlatformTransport.instance;
+    _chessnutLeds = ChessnutLedController(_chessnut);
     _gameBoardController = cg.ChessboardController(game: _gameBoardData());
     if (widget.startingSide != null) _sideChoice = widget.startingSide!;
     if (widget.startingElo != null) _elo = widget.startingElo!;
@@ -834,6 +836,7 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
       _handleChessnutEvent,
       onError: (Object error, StackTrace stackTrace) {
         unawaited(AppDiagnostics.record('chessnut-events', error, stackTrace));
+        _chessnutLeds.invalidate();
         if (!mounted) return;
         setState(() {
           _chessnutState = ElectronicBoardConnectionState.error;
@@ -927,6 +930,7 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
     }
     final nextState = event.connectionState;
     if (nextState == null) return;
+    if (nextState != _chessnutState) _chessnutLeds.invalidate();
     setState(() {
       _chessnutState = nextState;
       _chessnutMessage = event.message ?? _chessnutMessage;
@@ -1026,10 +1030,20 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
       return;
     }
     if (ChessnutProtocol.positionsMatch(observed, expected)) {
+      final generation = _gameGeneration;
+      final matchedFen = _game.fen;
+      final matchedPendingMove = _pendingPhysicalMaiaMove;
       _stopChessnutLedRefresh();
       await _setChessnutLeds(const []);
+      // A Bluetooth completion can arrive after Maia advances the game.
+      // Only acknowledge the position and pending move that we matched.
+      if (!mounted ||
+          generation != _gameGeneration ||
+          matchedFen != _game.fen ||
+          matchedPendingMove != _pendingPhysicalMaiaMove) {
+        return;
+      }
       _lastChessnutIllegalPosition = null;
-      if (!mounted) return;
       final confirmedMaiaMove = _pendingPhysicalMaiaMove != null;
       setState(() {
         _pendingPhysicalMaiaMove = null;
@@ -1102,10 +1116,13 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
     });
   }
 
-  Future<void> _setChessnutLeds(Iterable<String> squares) async {
+  Future<void> _setChessnutLeds(
+    Iterable<String> squares, {
+    bool refresh = false,
+  }) async {
     if (!_chessnutReady) return;
     try {
-      await _chessnut.setLeds(squares);
+      await _chessnutLeds.setLeds(squares, refresh: refresh);
     } on PlatformException catch (error, stackTrace) {
       unawaited(AppDiagnostics.record('chessnut-leds', error, stackTrace));
     }
@@ -1175,7 +1192,7 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
               ChessnutProtocol.pieceMapFromFen(_game.fen),
             );
       if (squares.isNotEmpty && generation == _chessnutLedRefreshGeneration) {
-        await _setChessnutLeds(squares);
+        await _setChessnutLeds(squares, refresh: true);
       }
     } finally {
       if (_chessnutLedRefreshInFlightGeneration == generation) {
