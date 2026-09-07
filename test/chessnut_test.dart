@@ -619,12 +619,49 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Black is victorious'), findsOneWidget);
     expect(find.text('The game is a draw'), findsNothing);
+    expect(find.text('Checkmate — Maia wins.'), findsOneWidget);
     final saved = await ActiveSessionStore.load();
     expect(saved!['pgn'], contains('[Result "0-1"]'));
 
     await tester.pumpWidget(const SizedBox.shrink());
     await tester.pump();
     await board.close();
+  });
+
+  testWidgets('restored Rxe1 checkmate repairs a stale unfinished result', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues({});
+    const pgn = '''
+[Event "Mobile Maia Game"]
+[Site "Mobile Maia"]
+[SetUp "1"]
+[FEN "8/8/8/8/8/6k1/4r3/4R1K1 b - - 0 1"]
+[White "Player"]
+[Black "Maia-3 79M (1600)"]
+[Result "*"]
+
+1... Rxe1# *
+''';
+    final session = AnalysisSession.fromPgn(pgn);
+    expect(session.sanMoves, const ['Rxe1#']);
+    expect(chess.Chess.fromFEN(session.positions.last).in_checkmate, isTrue);
+    await ActiveSessionStore.save({
+      'type': 'game',
+      'pgn': pgn,
+      'playerIsWhite': true,
+      'timePreset': 'unlimited',
+      'clockPaused': false,
+      'electronicBoard': 'chessnut-go',
+    });
+
+    await tester.pumpWidget(const MaterialApp(home: GamePage()));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Black is victorious'), findsOneWidget);
+    expect(find.text('The game is a draw'), findsNothing);
+    final saved = await ActiveSessionStore.load();
+    expect(saved!['pgn'], contains('[Result "0-1"]'));
   });
 
   testWidgets('unlimited mobile games keep the screen awake', (tester) async {

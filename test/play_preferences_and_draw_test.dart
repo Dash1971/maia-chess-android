@@ -6,6 +6,13 @@ import 'package:maia_chess/main.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
+  test('natural result is derived from a checkmated board', () {
+    final game = chess.Chess.fromFEN('8/8/8/8/8/6k1/4r3/4R1K1 b - - 0 1');
+    expect(game.move('Rxe1#'), isTrue);
+    expect(game.in_checkmate, isTrue);
+    expect(naturalGameResult(game), '0-1');
+  });
+
   TestWidgetsFlutterBinding.ensureInitialized();
 
   setUp(() async {

@@ -340,6 +340,11 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
       restored.set_header([
         for (final entry in headers.entries) ...[entry.key, entry.value],
       ]);
+      final storedResult = restored.header['Result']?.toString();
+      final repairedNaturalResult = naturalGameResult(restored);
+      if (repairedNaturalResult != null) {
+        restored.set_header(['Result', repairedNaturalResult]);
+      }
       final savedAt = DateTime.tryParse(saved['savedAt'] as String? ?? '');
       var whiteMillis = saved['whiteMillis'] as int? ?? 0;
       var blackMillis = saved['blackMillis'] as int? ?? 0;
@@ -406,10 +411,17 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
         if (_clockHistory.isEmpty) {
           _clockHistory.add(ClockSnapshot(whiteMillis, blackMillis));
         }
-        _forcedResult = saved['forcedResult'] as String?;
+        // A terminal board is authoritative. Forced results end play before a
+        // later move, so a saved forced result alongside checkmate/stalemate is
+        // stale or corrupt and must not override the position.
+        _forcedResult = repairedNaturalResult == null
+            ? saved['forcedResult'] as String?
+            : null;
         _lastDrawOfferFen = saved['lastDrawOfferFen'] as String?;
         _drawOfferEvaluating = false;
-        _status = saved['status'] as String? ?? 'Game restored.';
+        _status = repairedNaturalResult != null
+            ? _resultText()
+            : saved['status'] as String? ?? 'Game restored.';
         _boardFlipped = saved['flipped'] as bool? ?? false;
         _savedAsIncomplete =
             saved['recentState'] == 'incomplete' ||
@@ -445,6 +457,9 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
       }
       if (_gameFinished &&
           (!_chessnutGameActive || _pendingPhysicalMaiaMove == null)) {
+        if (storedResult != repairedNaturalResult && !_reviewOpen) {
+          await _saveGameState();
+        }
         _scheduleGameConclusion();
       }
     } catch (error, stackTrace) {
@@ -1127,7 +1142,9 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
       setState(() {
         _pendingPhysicalMaiaMove = null;
         if (_gameFinished) {
-          _status = _game.game_over ? _finishNaturalGame() : _resultText();
+          _status = _game.game_over
+              ? _finishNaturalGame() ?? _resultText()
+              : _resultText();
         } else if (_isPlayerTurn) {
           _status = 'Your move on Chessnut Go.';
         } else if (!_engineThinking) {
@@ -1678,15 +1695,14 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
     if (!_commitClock(_playerColor)) return;
     _uciMoves.add(uci);
     _game.move(chosen);
+    final naturalResult = _finishNaturalGame();
     _positionHistory.add(_game.fen);
     _recordClockSnapshot();
     if (_game.in_check) await _beepChessnut();
     setState(() {
-      _status = _game.game_over
-          ? _finishNaturalGame()
-          : _chessnutGameActive
-          ? 'Maia is thinking…'
-          : 'Game in progress.';
+      _status =
+          naturalResult ??
+          (_chessnutGameActive ? 'Maia is thinking…' : 'Game in progress.');
     });
     _syncGameBoard();
     unawaited(_saveGameState());
@@ -1714,6 +1730,7 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
     if (!_commitClock(_playerColor)) return false;
     _uciMoves.add(move.uci);
     _game.move(chosen);
+    _finishNaturalGame();
     _positionHistory.add(_game.fen);
     _recordClockSnapshot();
     _syncGameBoard();
@@ -1775,10 +1792,10 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
       final maiaUci = MaiaEncoding.uci(move);
       _uciMoves.add(maiaUci);
       _game.move(move);
+      final naturalResult = _finishNaturalGame();
       _positionHistory.add(_game.fen);
       _recordClockSnapshot();
       _syncGameBoard();
-      final naturalResult = _game.game_over ? _finishNaturalGame() : null;
       if (_chessnutGameActive) {
         if (_game.in_check) await _beepChessnut();
         setState(() {
@@ -1803,7 +1820,7 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
       setState(() {
         _engineThinking = false;
         _status =
-            naturalResult ??
+            (_game.game_over ? _resultText() : naturalResult) ??
             (premovePlayed ? 'Game in progress.' : 'Your move.');
       });
       unawaited(_saveGameState());
@@ -1839,25 +1856,29 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
   }
 
   String _resultText() {
+    final naturalResult = naturalGameResult(_game);
+    if (naturalResult != null) {
+      if (_game.in_checkmate) {
+        return _game.turn == _playerColor
+            ? 'Checkmate — Maia wins.'
+            : 'Checkmate — you win!';
+      }
+      return 'Draw.';
+    }
     if (_forcedResult != null) {
       if (_forcedResult == '1/2-1/2') return 'Draw by agreement.';
       return _forcedResult == '1-0'
           ? (_playerIsWhite ? 'You win.' : 'Maia wins.')
           : (_playerIsWhite ? 'Maia wins.' : 'You win.');
     }
-    if (_game.in_checkmate) {
-      return _game.turn == _playerColor
-          ? 'Checkmate — Maia wins.'
-          : 'Checkmate — you win!';
-    }
-    return 'Draw.';
+    return 'Game ended.';
   }
 
-  String _finishNaturalGame() {
+  String? _finishNaturalGame() {
+    final result = naturalGameResult(_game);
+    if (result == null) return null;
     _clockTimer?.cancel();
-    final result = _game.in_checkmate
-        ? (_game.turn == chess.Color.WHITE ? '0-1' : '1-0')
-        : '1/2-1/2';
+    _forcedResult = null;
     _game.set_header(['Result', result]);
     return _resultText();
   }
@@ -2300,11 +2321,16 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
   }
 
   Future<void> _showGameConclusion() async {
-    final result = _forcedResult ?? _game.header['Result']?.toString() ?? '*';
+    final result =
+        naturalGameResult(_game) ??
+        _forcedResult ??
+        _game.header['Result']?.toString() ??
+        '*';
     final title = switch (result) {
       '1-0' => 'White is victorious',
       '0-1' => 'Black is victorious',
-      _ => 'The game is a draw',
+      '1/2-1/2' => 'The game is a draw',
+      _ => 'The game has ended',
     };
     final action = await showDialog<String>(
       context: context,

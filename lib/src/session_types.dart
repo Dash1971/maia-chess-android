@@ -43,6 +43,18 @@ extension TimePresetDetails on TimePreset {
 const maiaDrawEndgamePhaseLimit = 8;
 const maiaDrawAcceptanceCentipawns = 30;
 
+/// Returns the objective result of a naturally completed chess position.
+///
+/// This deliberately derives the result from the board instead of trusting a
+/// PGN header, which can be stale in an interrupted or legacy saved session.
+String? naturalGameResult(chess.Chess game) {
+  if (!game.game_over) return null;
+  if (game.in_checkmate) {
+    return game.turn == chess.Color.WHITE ? '0-1' : '1-0';
+  }
+  return '1/2-1/2';
+}
+
 /// A deterministic material-phase measure for draw offers.
 ///
 /// Queens count 4, rooks 2, and bishops/knights 1 across both sides.
