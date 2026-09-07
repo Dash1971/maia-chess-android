@@ -6,6 +6,7 @@ class GamePage extends StatefulWidget {
     this.startingSide,
     this.startingElo,
     this.maiaEvaluator,
+    this.drawEvaluator,
     this.electronicBoardTransport,
     this.clockFactory,
     super.key,
@@ -17,6 +18,7 @@ class GamePage extends StatefulWidget {
   final int? startingElo;
   final Future<Float32List> Function(List<String> positions, int elo)?
   maiaEvaluator;
+  final Future<StockfishReview> Function(String fen)? drawEvaluator;
   final ElectronicBoardTransport? electronicBoardTransport;
 
   @override
@@ -42,8 +44,11 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
   double _temperature = 0.5;
   double _topP = 0.9;
   TimePreset _timePreset = TimePreset.unlimited;
+  TimePreset _preferredTimePreset = TimePreset.unlimited;
   int _customMinutes = 10;
   int _customIncrement = 0;
+  int _preferredCustomMinutes = 10;
+  int _preferredCustomIncrement = 0;
   int _whiteMillis = 0;
   int _blackMillis = 0;
   Stopwatch? _turnStartedAt;
@@ -62,6 +67,8 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
   bool _screenWakeLockEnabled = false;
   bool _boardFlipped = false;
   bool _resultDialogShown = false;
+  bool _drawOfferEvaluating = false;
+  String? _lastDrawOfferFen;
   bool _savedAsIncomplete = false;
   int? _viewedPly;
   final ScrollController _liveMovesController = ScrollController();
@@ -120,7 +127,9 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
       ? chess.Color.BLACK
       : chess.Color.WHITE;
   bool get _canTakeBack {
-    if (_gameFinished || _uciMoves.isEmpty) return false;
+    if (_gameFinished || _drawOfferEvaluating || _uciMoves.isEmpty) {
+      return false;
+    }
     if (_chessnutGameActive) {
       return _chessnutReady &&
           !_physicalMoveInProgress &&
@@ -128,6 +137,21 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
     }
     return !_isPlayerTurn || _uciMoves.length >= 2;
   }
+
+  bool get _canOfferDraw =>
+      _started &&
+      !_gameFinished &&
+      !_engineThinking &&
+      !_drawOfferEvaluating &&
+      _isPlayerTurn &&
+      _isViewingLivePosition &&
+      (!_chessnutGameActive ||
+          (_chessnutReady &&
+              !_physicalMoveInProgress &&
+              !_chessnutTakebackRestoreActive &&
+              _pendingPhysicalMaiaMove == null)) &&
+      isMaiaDrawOfferEndgame(_game.fen) &&
+      _lastDrawOfferFen != _game.fen;
 
   int get _baseMinutes =>
       _timePreset == TimePreset.custom ? _customMinutes : _timePreset.minutes;
@@ -362,9 +386,6 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
         _playerColor = saved['playerIsWhite'] as bool? ?? true
             ? chess.Color.WHITE
             : chess.Color.BLACK;
-        _sideChoice = _playerColor == chess.Color.WHITE
-            ? PlayerSide.white
-            : PlayerSide.black;
         _elo = saved['elo'] as int? ?? 1500;
         _timePreset = preset;
         _customMinutes = saved['customMinutes'] as int? ?? 10;
@@ -386,6 +407,8 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
           _clockHistory.add(ClockSnapshot(whiteMillis, blackMillis));
         }
         _forcedResult = saved['forcedResult'] as String?;
+        _lastDrawOfferFen = saved['lastDrawOfferFen'] as String?;
+        _drawOfferEvaluating = false;
         _status = saved['status'] as String? ?? 'Game restored.';
         _boardFlipped = saved['flipped'] as bool? ?? false;
         _savedAsIncomplete =
@@ -492,6 +515,7 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
     // while the process is stopped. Legacy local timestamps still parse.
     'savedAt': DateTime.now().toUtc().toIso8601String(),
     'forcedResult': _forcedResult,
+    if (_lastDrawOfferFen != null) 'lastDrawOfferFen': _lastDrawOfferFen,
     'status': _status,
     'clockPaused': _clockPaused,
     'maiaFailed': _maiaFailed,
@@ -561,10 +585,38 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
     final preferences = await SharedPreferences.getInstance();
     if (!mounted) return;
     final savedPlayElo = preferences.getInt(maiaPlayEloPreferenceKey);
+    final savedSide = PlayerSide.values
+        .where(
+          (value) =>
+              value.name == preferences.getString(maiaPlaySidePreferenceKey),
+        )
+        .firstOrNull;
+    final savedTimePreset = TimePreset.values
+        .where(
+          (value) =>
+              value.name == preferences.getString(maiaTimePresetPreferenceKey),
+        )
+        .firstOrNull;
+    final savedCustomMinutes =
+        (preferences.getInt(maiaCustomMinutesPreferenceKey) ?? 10).clamp(1, 60);
+    final savedCustomIncrement =
+        (preferences.getInt(maiaCustomIncrementPreferenceKey) ?? 0).clamp(
+          0,
+          30,
+        );
     setState(() {
       if (widget.startingElo == null && !_playEloChangedSinceLoad) {
         _elo = (savedPlayElo ?? 1500).clamp(500, 2500);
       }
+      if (widget.startingSide == null) {
+        _sideChoice = savedSide ?? PlayerSide.white;
+      }
+      _preferredTimePreset = savedTimePreset ?? TimePreset.unlimited;
+      _preferredCustomMinutes = savedCustomMinutes;
+      _preferredCustomIncrement = savedCustomIncrement;
+      _timePreset = _preferredTimePreset;
+      _customMinutes = _preferredCustomMinutes;
+      _customIncrement = _preferredCustomIncrement;
       _humanTiming = preferences.getBool('humanTiming') ?? false;
       _temperature = (preferences.getDouble('temperatureV2') ?? 0.5).clamp(
         0.0,
@@ -589,6 +641,29 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
   Future<void> _persistPlayElo(int elo) async {
     final preferences = await SharedPreferences.getInstance();
     await preferences.setInt(maiaPlayEloPreferenceKey, elo);
+  }
+
+  Future<void> _persistSideChoice(PlayerSide side) async {
+    final preferences = await SharedPreferences.getInstance();
+    await preferences.setString(maiaPlaySidePreferenceKey, side.name);
+  }
+
+  Future<void> _persistTimeControl() async {
+    final preferences = await SharedPreferences.getInstance();
+    await Future.wait([
+      preferences.setString(
+        maiaTimePresetPreferenceKey,
+        _preferredTimePreset.name,
+      ),
+      preferences.setInt(
+        maiaCustomMinutesPreferenceKey,
+        _preferredCustomMinutes,
+      ),
+      preferences.setInt(
+        maiaCustomIncrementPreferenceKey,
+        _preferredCustomIncrement,
+      ),
+    ]);
   }
 
   Future<void> _saveEnginePreferences() async {
@@ -851,7 +926,11 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
     if (_started) return;
     setState(() {
       _useChessnutGo = enabled;
-      if (enabled) _timePreset = TimePreset.unlimited;
+      _timePreset = enabled ? TimePreset.unlimited : _preferredTimePreset;
+      if (!enabled) {
+        _customMinutes = _preferredCustomMinutes;
+        _customIncrement = _preferredCustomIncrement;
+      }
     });
     if (enabled) {
       await _connectChessnut();
@@ -1075,7 +1154,12 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
       }
       return;
     }
-    if (!_isPlayerTurn || _engineThinking || _physicalMoveInProgress) return;
+    if (!_isPlayerTurn ||
+        _engineThinking ||
+        _drawOfferEvaluating ||
+        _physicalMoveInProgress) {
+      return;
+    }
 
     final uci = ChessnutProtocol.inferLegalMove(_game, observed);
     if (uci != null) {
@@ -1300,6 +1384,7 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
       playerSide:
           !_started ||
               _gameFinished ||
+              _drawOfferEvaluating ||
               !_isViewingLivePosition ||
               _chessnutGameActive
           ? cg.PlayerSide.none
@@ -1432,6 +1517,8 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
       _clockPaused = false;
       _boardFlipped = false;
       _resultDialogShown = false;
+      _drawOfferEvaluating = false;
+      _lastDrawOfferFen = null;
       _savedAsIncomplete = false;
       _viewedPly = null;
       _chessnutGameActive = _useChessnutGo;
@@ -1562,6 +1649,7 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
     if (!_started ||
         _gameFinished ||
         _engineThinking ||
+        _drawOfferEvaluating ||
         !_isPlayerTurn ||
         !_isViewingLivePosition ||
         _chessnutGameActive) {
@@ -1574,6 +1662,7 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
     if (!_started ||
         _gameFinished ||
         _engineThinking ||
+        _drawOfferEvaluating ||
         !_isPlayerTurn ||
         !_isViewingLivePosition ||
         (fromChessnut && (!_chessnutGameActive || !_chessnutReady))) {
@@ -1751,6 +1840,7 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
 
   String _resultText() {
     if (_forcedResult != null) {
+      if (_forcedResult == '1/2-1/2') return 'Draw by agreement.';
       return _forcedResult == '1-0'
           ? (_playerIsWhite ? 'You win.' : 'Maia wins.')
           : (_playerIsWhite ? 'Maia wins.' : 'You win.');
@@ -1772,8 +1862,118 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
     return _resultText();
   }
 
+  Future<void> _offerDraw() async {
+    if (!_canOfferDraw) return;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Offer draw?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Offer draw'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted || !_canOfferDraw) return;
+
+    final fen = _game.fen;
+    final generation = _gameGeneration;
+    setState(() {
+      _drawOfferEvaluating = true;
+      _lastDrawOfferFen = fen;
+      _status = 'Maia is considering the draw offer…';
+    });
+    unawaited(_saveGameState());
+
+    try {
+      final review = widget.drawEvaluator != null
+          ? await widget.drawEvaluator!(fen)
+          : await StockfishAnalyzer.instance.evaluate(
+              fen,
+              scope: _gameInferenceScope,
+              background: true,
+            );
+      if (!mounted) return;
+      if (generation != _gameGeneration || fen != _game.fen || _gameFinished) {
+        setState(() {
+          _drawOfferEvaluating = false;
+          if (fen == _game.fen && !_gameFinished) _lastDrawOfferFen = null;
+        });
+        unawaited(_saveGameState());
+        return;
+      }
+      final accepted = shouldMaiaAcceptDraw(
+        fen: fen,
+        maiaIsWhite: !_playerIsWhite,
+        whiteEvaluation: review.evaluation,
+        whiteMate: review.mate,
+      );
+      if (!accepted) {
+        setState(() {
+          _drawOfferEvaluating = false;
+          _status = 'Maia declined the draw.';
+        });
+        unawaited(_saveGameState());
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Maia declined the draw.')),
+        );
+        return;
+      }
+
+      _gameGeneration++;
+      _gameInferenceScope.invalidate();
+      _clockTimer?.cancel();
+      _stopChessnutLedRefresh();
+      setState(() {
+        _drawOfferEvaluating = false;
+        _forcedResult = '1/2-1/2';
+        _game.set_header([
+          'Result',
+          '1/2-1/2',
+          'Termination',
+          'Draw by agreement',
+        ]);
+        _status = 'Draw by agreement.';
+      });
+      _syncGameBoard(animate: false, resetPremove: true);
+      if (_chessnutGameActive) unawaited(_setChessnutLeds(const []));
+      unawaited(_saveGameState());
+      _scheduleGameConclusion();
+    } catch (error, stackTrace) {
+      if (!mounted) return;
+      if (generation != _gameGeneration || fen != _game.fen || _gameFinished) {
+        setState(() {
+          _drawOfferEvaluating = false;
+          if (fen == _game.fen && !_gameFinished) _lastDrawOfferFen = null;
+        });
+        unawaited(_saveGameState());
+        return;
+      }
+      unawaited(
+        AppDiagnostics.record('draw-offer-evaluation', error, stackTrace),
+      );
+      setState(() {
+        _drawOfferEvaluating = false;
+        _lastDrawOfferFen = null;
+        _status = 'Could not evaluate the draw offer.';
+      });
+      unawaited(_saveGameState());
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Could not evaluate the draw offer.')),
+      );
+    }
+  }
+
   Future<void> _resign() async {
-    if (!_started || _gameFinished || _engineThinking) return;
+    if (!_started || _gameFinished || _engineThinking || _drawOfferEvaluating) {
+      return;
+    }
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -1823,10 +2023,15 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
     setState(() {
       _started = false;
       _engineThinking = false;
+      _drawOfferEvaluating = false;
+      _lastDrawOfferFen = null;
       _chessnutGameActive = false;
       _pendingPhysicalMaiaMove = null;
       _chessnutTakebackRestoreActive = false;
       _lastChessnutIllegalPosition = null;
+      _timePreset = _preferredTimePreset;
+      _customMinutes = _preferredCustomMinutes;
+      _customIncrement = _preferredCustomIncrement;
       _status = 'Choose your settings and start a game.';
     });
     _syncGameBoard(animate: false, resetPremove: true);
@@ -1888,10 +2093,15 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
       setState(() {
         _started = false;
         _engineThinking = false;
+        _drawOfferEvaluating = false;
+        _lastDrawOfferFen = null;
         _chessnutGameActive = false;
         _pendingPhysicalMaiaMove = null;
         _chessnutTakebackRestoreActive = false;
         _lastChessnutIllegalPosition = null;
+        _timePreset = _preferredTimePreset;
+        _customMinutes = _preferredCustomMinutes;
+        _customIncrement = _preferredCustomIncrement;
         _status = 'Choose your settings and start a game.';
       });
       _syncGameBoard(animate: false, resetPremove: true);
@@ -2013,6 +2223,7 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
   }
 
   Future<void> _showGameMenu() async {
+    if (_drawOfferEvaluating) return;
     final action = await showModalBottomSheet<String>(
       context: context,
       showDragHandle: true,
@@ -2030,11 +2241,18 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
               title: const Text('Analysis Board'),
               onTap: () => Navigator.pop(context, 'analysis'),
             ),
+            if (_canOfferDraw)
+              ListTile(
+                leading: const Icon(Icons.handshake_outlined),
+                title: const Text('Offer draw'),
+                onTap: () => Navigator.pop(context, 'draw'),
+              ),
             ListTile(
-              enabled: !_gameFinished && !_engineThinking,
+              enabled:
+                  !_gameFinished && !_engineThinking && !_drawOfferEvaluating,
               leading: const Icon(Icons.flag_outlined),
               title: const Text('Resign'),
-              onTap: !_gameFinished && !_engineThinking
+              onTap: !_gameFinished && !_engineThinking && !_drawOfferEvaluating
                   ? () => Navigator.pop(context, 'resign')
                   : null,
             ),
@@ -2062,6 +2280,8 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
         unawaited(_saveGameState());
       case 'analysis':
         await _analyzeGame();
+      case 'draw':
+        await _offerDraw();
       case 'resign':
         await _resign();
       case 'takeback':
@@ -2467,8 +2687,11 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
                 ButtonSegment(value: PlayerSide.random, label: Text('Random')),
               ],
               selected: {_sideChoice},
-              onSelectionChanged: (value) =>
-                  setState(() => _sideChoice = value.first),
+              onSelectionChanged: (value) {
+                final selected = value.first;
+                setState(() => _sideChoice = selected);
+                unawaited(_persistSideChoice(selected));
+              },
             ),
             const SizedBox(height: 20),
             Text('Maia rating: $_elo'),
@@ -2502,6 +2725,7 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
             ),
             const SizedBox(height: 16),
             DropdownButtonFormField<TimePreset>(
+              key: ValueKey('time-preset-${_timePreset.name}'),
               isExpanded: true,
               initialValue: _timePreset,
               decoration: const InputDecoration(
@@ -2523,7 +2747,12 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
               onChanged: _useChessnutGo
                   ? null
                   : (value) {
-                      if (value != null) setState(() => _timePreset = value);
+                      if (value == null) return;
+                      setState(() {
+                        _timePreset = value;
+                        _preferredTimePreset = value;
+                      });
+                      unawaited(_persistTimeControl());
                     },
             ),
             if (_timePreset == TimePreset.custom) ...[
@@ -2535,8 +2764,11 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
                 divisions: 59,
                 value: _customMinutes.toDouble(),
                 label: '$_customMinutes',
-                onChanged: (value) =>
-                    setState(() => _customMinutes = value.round()),
+                onChanged: (value) => setState(() {
+                  _customMinutes = value.round();
+                  _preferredCustomMinutes = _customMinutes;
+                }),
+                onChangeEnd: (_) => unawaited(_persistTimeControl()),
               ),
               Text('Increment: $_customIncrement seconds'),
               Slider(
@@ -2545,8 +2777,11 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
                 divisions: 30,
                 value: _customIncrement.toDouble(),
                 label: '$_customIncrement',
-                onChanged: (value) =>
-                    setState(() => _customIncrement = value.round()),
+                onChanged: (value) => setState(() {
+                  _customIncrement = value.round();
+                  _preferredCustomIncrement = _customIncrement;
+                }),
+                onChangeEnd: (_) => unawaited(_persistTimeControl()),
               ),
             ],
             const SizedBox(height: 8),
@@ -2825,7 +3060,7 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
           child: Center(
             child: IconButton(
               key: const ValueKey('game-actions-menu'),
-              onPressed: _showGameMenu,
+              onPressed: _drawOfferEvaluating ? null : _showGameMenu,
               icon: const Icon(Icons.menu),
               tooltip: 'Game menu',
             ),
@@ -2835,7 +3070,10 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
           child: Center(
             child: IconButton(
               key: const ValueKey('quick-resign-button'),
-              onPressed: !_gameFinished && !_engineThinking ? _resign : null,
+              onPressed:
+                  !_gameFinished && !_engineThinking && !_drawOfferEvaluating
+                  ? _resign
+                  : null,
               icon: const Icon(CupertinoIcons.flag),
               tooltip: 'Resign',
             ),

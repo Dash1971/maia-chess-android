@@ -40,6 +40,45 @@ extension TimePresetDetails on TimePreset {
   };
 }
 
+const maiaDrawEndgamePhaseLimit = 8;
+const maiaDrawAcceptanceCentipawns = 30;
+
+/// A deterministic material-phase measure for draw offers.
+///
+/// Queens count 4, rooks 2, and bishops/knights 1 across both sides.
+/// Kings and pawns do not contribute. The initial position has phase 24.
+int maiaMaterialPhase(String fen) {
+  final board = fen.split(RegExp(r'\s+')).first;
+  var phase = 0;
+  for (final piece in board.codeUnits) {
+    phase += switch (piece) {
+      81 || 113 => 4, // Q/q
+      82 || 114 => 2, // R/r
+      66 || 98 || 78 || 110 => 1, // B/b/N/n
+      _ => 0,
+    };
+  }
+  return phase;
+}
+
+bool isMaiaDrawOfferEndgame(String fen) =>
+    maiaMaterialPhase(fen) <= maiaDrawEndgamePhaseLimit;
+
+bool shouldMaiaAcceptDraw({
+  required String fen,
+  required bool maiaIsWhite,
+  required int whiteEvaluation,
+  int? whiteMate,
+}) {
+  if (!isMaiaDrawOfferEndgame(fen)) return false;
+  if (whiteMate != null) {
+    final maiaMate = maiaIsWhite ? whiteMate : -whiteMate;
+    return maiaMate < 0;
+  }
+  final maiaEvaluation = maiaIsWhite ? whiteEvaluation : -whiteEvaluation;
+  return maiaEvaluation <= maiaDrawAcceptanceCentipawns;
+}
+
 class ClockSnapshot {
   const ClockSnapshot(this.whiteMillis, this.blackMillis);
 

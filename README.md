@@ -77,8 +77,10 @@ jump to the end of the main line.
 
 Choose White, Black, or a random side, set Maia's rating, and select a clock.
 Mobile Maia works entirely offline: the Maia-3 model and Stockfish are bundled
-with the app, and no account is required. The selected Maia rating is stored
-locally and reused the next time the app starts.
+with the app, and no account is required. Your side choice (including
+**Random**), time-control preset, custom minutes and increment, Maia rating,
+and advanced engine settings are stored locally and reused the next time the
+app starts.
 
 #### Experimental Chessnut Go support
 
@@ -169,6 +171,16 @@ read-only until you return to the live position. **Takeback** is in the game
 menu; it restores the board and clock while retaining the abandoned line as a
 variation when the PGN is copied.
 
+In an endgame, **Offer draw** appears in the game menu. As on Lichess, selecting
+it first opens a confirmation dialog. Mobile Maia defines an endgame with a
+material-phase score: each queen counts 4, each rook 2, and each bishop or
+knight 1 across both sides; kings and pawns count 0. Draw offers are available
+at a score of 8 or lower. Maia accepts when Stockfish evaluates its position at
+no more than a 0.30-pawn advantage, including equal and losing positions, and
+declines when it is more than 0.30 ahead. A declined offer cannot be repeated
+until the position changes. An accepted offer is saved as **Draw by agreement**
+with a `1/2-1/2` PGN result.
+
 <p align="center">
   <img src="docs/screenshots/20260906_v0_live_game_opening.jpg" width="30%" alt="Live game against Maia in an opening position">
   <img src="docs/screenshots/20260906_v0_maia_thinking.jpg" width="30%" alt="Live game while Maia is thinking and a premove can be entered">
@@ -212,9 +224,10 @@ it remains selected. Full computer analysis uses the longer budget.
 After a game, select **Analysis Board**. The board remains fixed at the top
 while **Moves** and **Computer** switch the panel below it. Select any move to
 jump directly to that position. The evaluation bar and blue arrows show
-Stockfish's assessment and leading moves. Maia also suggests the most likely
-human move at the configured rating. Agreement between Maia and Stockfish is
-shown by a two-tone arrow.
+Stockfish's assessment and leading moves. Matching Lichess, the numeric score
+stays at the end belonging to the advantaged side and follows the board when it
+is flipped. Maia also suggests the most likely human move at the configured
+rating. Agreement between Maia and Stockfish is shown by a two-tone arrow.
 
 Open **Computer** and run computer analysis to add separate White and Black
 accuracy percentages, a tap-to-navigate evaluation graph,
@@ -260,6 +273,7 @@ Lichess Flutter Chessground, Lichess multistockfish, and the bundled licences.
 - Experimental Chessnut Go play with strict position matching, move and
   takeback LEDs, check/illegal-move sounds, battery status, and reconnect controls
 - Unlimited play by default, Lichess-style clock presets, or custom time and increment
+- Persistent side and time-control setup, including Random and custom clock values
 - Easy (800), Medium (1500), Hard (2200), or custom Elo
 - Optional human-like move timing with persistent advanced settings
 - Premoves while Maia is thinking, with invalid premoves cancelled safely
@@ -268,6 +282,7 @@ Lichess Flutter Chessground, Lichess multistockfish, and the bundled licences.
 - Lichess Chessground board with the default brown theme and Cburnett pieces
 - Legal move handling, checkmate/draw detection, move list, and rematches
 - Resignation and post-game Home/Rematch actions
+- Endgame draw offers with confirmation, local Stockfish adjudication, and PGN recording
 - Move-by-move Stockfish and Maia review, starting from the initial position
 - Configurable Maia human-move suggestion (default 1600), two Stockfish choices, and two-tone agreement arrows
 - Evaluation bar with Lichess-style numeric score and blue Stockfish best-move arrow

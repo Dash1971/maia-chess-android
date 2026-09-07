@@ -88,6 +88,10 @@ const mobileMaiaSourceUrl =
     'https://github.com/Dash1971/maia-chess-android-preview';
 const mobileMaiaLicenseUrl = '$mobileMaiaSourceUrl/blob/main/LICENSE';
 const maiaPlayEloPreferenceKey = 'maiaPlayEloV1';
+const maiaPlaySidePreferenceKey = 'maiaPlaySideV1';
+const maiaTimePresetPreferenceKey = 'maiaTimePresetV1';
+const maiaCustomMinutesPreferenceKey = 'maiaCustomMinutesV1';
+const maiaCustomIncrementPreferenceKey = 'maiaCustomIncrementV1';
 
 // Match the Lichess app defaults across live play, Analysis Board, and Game
 // Review: magnify touch drags, lift the piece above the pointer, show the

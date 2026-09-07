@@ -2423,6 +2423,7 @@ class _ReviewPageState extends State<ReviewPage>
                     evaluation: evaluation,
                     mate: mate,
                     enabled: _engineEnabled,
+                    orientation: boardOrientation,
                   ),
                 ],
               ),

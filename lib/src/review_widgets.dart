@@ -968,12 +968,14 @@ class EvaluationBar extends StatelessWidget {
     required this.evaluation,
     this.mate,
     this.enabled = true,
+    this.orientation = dc.Side.white,
     super.key,
   });
 
   final int? evaluation;
   final int? mate;
   final bool enabled;
+  final dc.Side orientation;
 
   @override
   Widget build(BuildContext context) {
@@ -994,6 +996,9 @@ class EvaluationBar extends StatelessWidget {
       child: LayoutBuilder(
         builder: (context, constraints) {
           final whiteHeight = constraints.maxHeight * whiteShare;
+          final whiteFavored = (mate ?? score ?? 0) >= 0;
+          final favoredAtBottom =
+              whiteFavored == (orientation == dc.Side.white);
           return Stack(
             children: [
               Positioned.fill(
@@ -1007,21 +1012,23 @@ class EvaluationBar extends StatelessWidget {
                 Positioned(
                   left: 0,
                   right: 0,
-                  bottom: 0,
+                  top: orientation == dc.Side.black ? 0 : null,
+                  bottom: orientation == dc.Side.white ? 0 : null,
                   height: whiteHeight,
                   child: const ColoredBox(color: Color(0xfff0f0f0)),
                 ),
               if (enabled && (score != null || mate != null))
                 Align(
-                  alignment: (mate ?? score!) < 0
-                      ? Alignment.topCenter
-                      : Alignment.bottomCenter,
+                  alignment: favoredAtBottom
+                      ? Alignment.bottomCenter
+                      : Alignment.topCenter,
                   child: Padding(
                     padding: const EdgeInsets.symmetric(vertical: 6),
                     child: FittedBox(
                       fit: BoxFit.scaleDown,
                       child: Text(
                         _scoreLabel(score, mate),
+                        key: const ValueKey('evaluation-score-label'),
                         maxLines: 1,
                         style: TextStyle(
                           color: (mate ?? score!) < 0
