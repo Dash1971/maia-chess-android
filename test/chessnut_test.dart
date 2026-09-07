@@ -602,6 +602,7 @@ void main() {
     final beforeMate = chess.Chess.fromFEN(session.positions.last);
     board.ready(ChessnutProtocol.pieceMapFromFen(beforeMate.fen));
     await tester.pump();
+    await tester.pump(const Duration(milliseconds: 350));
     await tester.pump(const Duration(milliseconds: 250));
     expect(
       board.ledCommands.any(
@@ -610,6 +611,7 @@ void main() {
       isTrue,
     );
     expect(board.beepCommands, const [
+      [1000, 200],
       [1000, 200],
     ]);
 
@@ -620,6 +622,57 @@ void main() {
     expect(find.text('Black is victorious'), findsOneWidget);
     expect(find.text('The game is a draw'), findsNothing);
     expect(find.text('Checkmate — Maia wins.'), findsOneWidget);
+    final saved = await ActiveSessionStore.load();
+    expect(saved!['pgn'], contains('[Result "0-1"]'));
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
+    await board.close();
+  });
+
+  testWidgets('a physical human checkmate sounds two distinct alerts', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues({});
+    const pgn = '''
+[Event "Mobile Maia Game"]
+[Result "*"]
+
+1. f3 e5 2. g4 *
+''';
+    final session = AnalysisSession.fromPgn(pgn);
+    await ActiveSessionStore.save({
+      'type': 'game',
+      'pgn': pgn,
+      'playerIsWhite': false,
+      'timePreset': 'unlimited',
+      'clockPaused': false,
+      'electronicBoard': 'chessnut-go',
+    });
+    final board = _FakeElectronicBoard();
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: GamePage(
+          electronicBoardTransport: board,
+          maiaEvaluator: (_, _) async => Float32List(4352),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final beforeMate = chess.Chess.fromFEN(session.positions.last);
+    board.ready(ChessnutProtocol.pieceMapFromFen(beforeMate.fen));
+    await tester.pump();
+    board.position(_after(beforeMate, 'd8h4'));
+    await tester.pump(const Duration(milliseconds: 350));
+    await tester.pump(const Duration(milliseconds: 250));
+    await tester.pumpAndSettle();
+
+    expect(board.beepCommands, const [
+      [1000, 200],
+      [1000, 200],
+    ]);
+    expect(find.text('Checkmate — you win!'), findsOneWidget);
     final saved = await ActiveSessionStore.load();
     expect(saved!['pgn'], contains('[Result "0-1"]'));
 

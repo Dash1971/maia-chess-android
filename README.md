@@ -98,8 +98,8 @@ Mobile Maia compares every sensed piece with the complete legal position.
 Lifting a piece or moving only the rook during castling is treated as an
 unfinished action, not a move. If a completed position is illegal or the board
 is out of sync, the squares that need correction light up. Matching the
-Chessnut Maia CLI, the board gives one short beep when either side gives check
-or checkmate and when a complete-looking illegal move is attempted. Temporary
+Chessnut Maia CLI, the board gives one short beep for check, two distinct beeps
+for checkmate, and one beep for a complete-looking illegal move. Temporary
 piece lifts remain silent, repeated board frames do not repeat the alert, and
 **Board sounds** can be disabled from setup or the live Bluetooth panel.
 

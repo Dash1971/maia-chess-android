@@ -1229,17 +1229,29 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
     }
   }
 
-  Future<void> _beepChessnut() async {
+  Future<void> _beepChessnut({int count = 1}) async {
     if (!_chessnutGameActive || !_chessnutReady || !_chessnutSoundsEnabled) {
       return;
     }
     try {
-      await _chessnut.beep();
+      for (var index = 0; index < count; index++) {
+        await _chessnut.beep();
+        if (index + 1 < count) {
+          // Leave a short silence after the 200 ms tone so checkmate is heard
+          // as two distinct alerts rather than one extended buzz.
+          await Future<void>.delayed(const Duration(milliseconds: 300));
+        }
+      }
       // Match the CLI's alert pacing before another board command is sent.
       await Future<void>.delayed(const Duration(milliseconds: 200));
     } catch (error, stackTrace) {
       unawaited(AppDiagnostics.record('chessnut-beep', error, stackTrace));
     }
+  }
+
+  Future<void> _soundChessnutCheckAlert() async {
+    if (!_game.in_check) return;
+    await _beepChessnut(count: _game.in_checkmate ? 2 : 1);
   }
 
   String _chessnutPositionSignature(Map<String, String> position) {
@@ -1698,7 +1710,7 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
     final naturalResult = _finishNaturalGame();
     _positionHistory.add(_game.fen);
     _recordClockSnapshot();
-    if (_game.in_check) await _beepChessnut();
+    await _soundChessnutCheckAlert();
     setState(() {
       _status =
           naturalResult ??
@@ -1797,7 +1809,7 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
       _recordClockSnapshot();
       _syncGameBoard();
       if (_chessnutGameActive) {
-        if (_game.in_check) await _beepChessnut();
+        await _soundChessnutCheckAlert();
         setState(() {
           _engineThinking = false;
           _pendingPhysicalMaiaMove = maiaUci;
