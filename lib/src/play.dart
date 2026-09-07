@@ -2091,7 +2091,11 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
       false;
 
   Future<void> _requestHome() async {
-    if (!await _confirmEraseCurrentGame() || !mounted) return;
+    if (!_gameFinished) {
+      final confirmed = await _confirmEraseCurrentGame();
+      if (!confirmed || !mounted) return;
+    }
+    if (!mounted) return;
     await _goHome();
     if (mounted) Navigator.of(context).popUntil((route) => route.isFirst);
   }

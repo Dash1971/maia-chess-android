@@ -654,6 +654,15 @@ void main() {
     expect(find.text('Rematch'), findsOneWidget);
     expect(find.byKey(const ValueKey('game-home-button')), findsOneWidget);
     expect(find.widgetWithText(TextButton, 'Home'), findsNothing);
+
+    await tester.tapAt(const Offset(20, 20));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('game-home-button')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Leave current game?'), findsNothing);
+    expect(find.text('Your game will be kept in Recent games.'), findsNothing);
+    expect(find.text('Start game'), findsOneWidget);
   });
 
   testWidgets('custom FEN starts Maia only when it is Maia turn', (
