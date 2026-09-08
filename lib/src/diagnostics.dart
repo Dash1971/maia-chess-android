@@ -183,6 +183,9 @@ class AppDiagnostics {
     );
     await preferences.setStringList(_key, entries);
     final platform = await _platformReport();
+    final analysisQuality = GameAnalysisQuality.fromStoredName(
+      preferences.getString(gameAnalysisQualityPreferenceKey),
+    );
     return [
       'Mobile Maia diagnostics',
       'version=$version build=$build',
@@ -191,6 +194,9 @@ class AppDiagnostics {
           'maxEntries:$_maximumEntries '
           'maxEntryCharacters:$_maximumEntryCharacters '
           'maxTotalCharacters:$_maximumTotalCharacters',
+      'gameAnalysisQuality=${analysisQuality.name} '
+          'depth=${analysisQuality.depth} '
+          'moveTimeMs=${analysisQuality.moveTimeMs}',
       ...platform,
       if (entries.isEmpty) 'No recorded diagnostic events.',
       ...entries,

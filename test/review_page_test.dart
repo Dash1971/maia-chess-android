@@ -389,7 +389,9 @@ void main() {
   });
 
   test('diagnostics persist exception evidence and version metadata', () async {
-    SharedPreferences.setMockInitialValues({});
+    SharedPreferences.setMockInitialValues({
+      gameAnalysisQualityPreferenceKey: 'balanced',
+    });
     PackageInfo.setMockInitialValues(
       appName: 'Mobile Maia',
       packageName: 'com.dash1971.maia_chess',
@@ -409,6 +411,10 @@ void main() {
     expect(report, contains('diagnostic-test-error'));
     expect(report, contains('diagnostic-test-stack'));
     expect(report, contains('retention=maxAgeDays:14'));
+    expect(
+      report,
+      contains('gameAnalysisQuality=balanced depth=14 moveTimeMs=1000'),
+    );
   });
 
   test('diagnostics remove expired and excess entries', () async {

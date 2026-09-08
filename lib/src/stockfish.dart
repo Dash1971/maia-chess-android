@@ -1,5 +1,32 @@
 part of '../main.dart';
 
+enum GameAnalysisQuality {
+  fast(label: 'Fast', depth: 12, moveTimeMs: 500),
+  balanced(label: 'Balanced', depth: 14, moveTimeMs: 1000),
+  thorough(label: 'Thorough', depth: 16, moveTimeMs: 1500);
+
+  const GameAnalysisQuality({
+    required this.label,
+    required this.depth,
+    required this.moveTimeMs,
+  });
+
+  final String label;
+  final int depth;
+  final int moveTimeMs;
+
+  String get stockfishCommand => 'go depth $depth movetime $moveTimeMs';
+
+  String get description => switch (this) {
+    fast => 'Depth 12 · up to 0.5 seconds per position. Faster, but noisier.',
+    balanced => 'Depth 14 · up to 1 second per position.',
+    thorough => 'Depth 16 · up to 1.5 seconds per position. Most consistent.',
+  };
+
+  static GameAnalysisQuality fromStoredName(String? name) =>
+      values.firstWhere((value) => value.name == name, orElse: () => thorough);
+}
+
 class StockfishAnalyzer {
   StockfishAnalyzer._();
 
@@ -8,14 +35,20 @@ class StockfishAnalyzer {
   Future<void>? _startup;
   bool _searching = false;
   Future<void>? _closing;
-  late final EngineWorkQueue<StockfishReview> _queue = EngineWorkQueue(
-    run: (fen, background) => _evaluateNow(fen, background: background),
-    stop: () {
-      if (_searching) _engine.stdin = 'stop';
-    },
-    onStopError: (error, stackTrace) =>
-        unawaited(AppDiagnostics.record('stockfish-stop', error, stackTrace)),
-  );
+  late final EngineWorkQueue<StockfishReview, GameAnalysisQuality> _queue =
+      EngineWorkQueue(
+        run: (fen, background, configuration) => _evaluateNow(
+          fen,
+          background: background,
+          gameAnalysisQuality: configuration,
+        ),
+        stop: () {
+          if (_searching) _engine.stdin = 'stop';
+        },
+        onStopError: (error, stackTrace) => unawaited(
+          AppDiagnostics.record('stockfish-stop', error, stackTrace),
+        ),
+      );
 
   void cancel(MaiaInferenceScope scope) => _queue.cancel(scope);
 
@@ -40,11 +73,18 @@ class StockfishAnalyzer {
     String fen, {
     MaiaInferenceScope? scope,
     bool background = false,
-  }) => _queue.add(fen, scope: scope, background: background);
+    GameAnalysisQuality? gameAnalysisQuality,
+  }) => _queue.add(
+    fen,
+    scope: scope,
+    background: background,
+    configuration: gameAnalysisQuality,
+  );
 
   Future<StockfishReview> _evaluateNow(
     String fen, {
     bool background = false,
+    GameAnalysisQuality? gameAnalysisQuality,
   }) async {
     final position = chess.Chess.fromFEN(fen);
     if (position.in_checkmate) {
@@ -113,9 +153,9 @@ class StockfishAnalyzer {
     });
     _engine.stdin = 'position fen $fen';
     _searching = true;
-    _engine.stdin = background
-        ? 'go depth 16 movetime 1500'
-        : 'go depth 16 movetime 350';
+    _engine.stdin =
+        gameAnalysisQuality?.stockfishCommand ??
+        (background ? 'go depth 16 movetime 1500' : 'go depth 16 movetime 350');
     try {
       final sideToMoveScore = await completer.future.timeout(
         const Duration(seconds: 20),

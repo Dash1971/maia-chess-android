@@ -24,6 +24,7 @@ class ReviewPage extends StatefulWidget {
     this.onPlayFromPosition,
     this.initialCurrentFen,
     this.initialFlipped = false,
+    this.gameAnalysisQuality = GameAnalysisQuality.thorough,
     this.onSessionChanged,
     super.key,
   });
@@ -51,6 +52,7 @@ class ReviewPage extends StatefulWidget {
   final Future<void> Function(String fen)? onPlayFromPosition;
   final String? initialCurrentFen;
   final bool initialFlipped;
+  final GameAnalysisQuality gameAnalysisQuality;
   final Future<void> Function(
     String currentFen,
     bool flipped,
@@ -1261,6 +1263,7 @@ class _ReviewPageState extends State<ReviewPage>
     if (!_engineEnabled || !_foreground || _fullAnalysisRunning) return;
     final line = _computerAnalysisLine;
     final positions = line.positions;
+    final quality = widget.gameAnalysisQuality;
     final generation = ++_fullAnalysisGeneration;
     setState(() {
       _fullAnalysisRunning = true;
@@ -1272,6 +1275,13 @@ class _ReviewPageState extends State<ReviewPage>
       _graphClassifications = const [];
       _analysisError = null;
     });
+    unawaited(
+      AppDiagnostics.recordEvent(
+        'stockfish-full-analysis-start quality=${quality.name} '
+        'depth=${quality.depth} moveTimeMs=${quality.moveTimeMs} '
+        'positions=${positions.length}',
+      ),
+    );
     final scores = <StockfishReview>[];
     final evaluate =
         widget.evaluator ??
@@ -1279,6 +1289,7 @@ class _ReviewPageState extends State<ReviewPage>
           fen,
           scope: _batchScope,
           background: true,
+          gameAnalysisQuality: quality,
         );
     for (var i = 0; i < positions.length; i++) {
       if (!mounted || generation != _fullAnalysisGeneration) return;

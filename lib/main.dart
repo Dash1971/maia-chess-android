@@ -92,6 +92,7 @@ const maiaPlaySidePreferenceKey = 'maiaPlaySideV1';
 const maiaTimePresetPreferenceKey = 'maiaTimePresetV1';
 const maiaCustomMinutesPreferenceKey = 'maiaCustomMinutesV1';
 const maiaCustomIncrementPreferenceKey = 'maiaCustomIncrementV1';
+const gameAnalysisQualityPreferenceKey = 'gameAnalysisQualityV1';
 
 // Match the Lichess app defaults across live play, Analysis Board, and Game
 // Review: magnify touch drags, lift the piece above the pointer, show the

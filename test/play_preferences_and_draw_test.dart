@@ -83,6 +83,71 @@ void main() {
     );
   });
 
+  test('game analysis presets use the agreed Stockfish budgets', () {
+    expect(
+      GameAnalysisQuality.fast.stockfishCommand,
+      'go depth 12 movetime 500',
+    );
+    expect(
+      GameAnalysisQuality.balanced.stockfishCommand,
+      'go depth 14 movetime 1000',
+    );
+    expect(
+      GameAnalysisQuality.thorough.stockfishCommand,
+      'go depth 16 movetime 1500',
+    );
+    expect(
+      GameAnalysisQuality.fromStoredName('invalid'),
+      GameAnalysisQuality.thorough,
+    );
+  });
+
+  testWidgets('game analysis quality persists and defaults to Thorough', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(800, 1200);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(const MaterialApp(home: GamePage()));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Advanced'));
+    await tester.pumpAndSettle();
+
+    DropdownButtonFormField<GameAnalysisQuality> field() => tester.widget(
+      find.byType(DropdownButtonFormField<GameAnalysisQuality>),
+    );
+    expect(field().initialValue, GameAnalysisQuality.thorough);
+    await tester.tap(find.byType(DropdownButtonFormField<GameAnalysisQuality>));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Fast').last);
+    await tester.pumpAndSettle();
+    expect(
+      (await SharedPreferences.getInstance()).getString(
+        gameAnalysisQualityPreferenceKey,
+      ),
+      'fast',
+    );
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
+    await tester.pumpWidget(const MaterialApp(home: GamePage()));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Advanced'));
+    await tester.pumpAndSettle();
+    expect(field().initialValue, GameAnalysisQuality.fast);
+    expect(find.textContaining('Faster, but noisier'), findsOneWidget);
+
+    await tester.ensureVisible(find.text('Analysis Board'));
+    await tester.tap(find.text('Analysis Board'));
+    await tester.pumpAndSettle();
+    expect(
+      tester.widget<ReviewPage>(find.byType(ReviewPage)).gameAnalysisQuality,
+      GameAnalysisQuality.fast,
+    );
+  });
+
   testWidgets('last side and time-control settings survive a restart', (
     tester,
   ) async {

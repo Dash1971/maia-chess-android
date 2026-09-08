@@ -35,6 +35,7 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
   chess.Color _playerColor = chess.Color.WHITE;
   int _elo = 1500;
   int _analysisElo = 1600;
+  GameAnalysisQuality _gameAnalysisQuality = GameAnalysisQuality.thorough;
   late final cg.ChessboardController _gameBoardController;
   String _status = 'Choose your settings and start a game.';
   bool _started = false;
@@ -237,6 +238,7 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
               builder: (_) => AnalysisBoardPage(
                 initialSession: session,
                 maiaElo: saved['maiaElo'] as int? ?? _analysisElo,
+                gameAnalysisQuality: _gameAnalysisQuality,
                 initialVariations: variations,
                 initialTreeIsAuthoritative:
                     saved['treeIsAuthoritative'] == true,
@@ -288,6 +290,7 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
                     initialTreeIsAuthoritative:
                         saved['treeIsAuthoritative'] == true,
                     maiaElo: saved['maiaElo'] as int? ?? _analysisElo,
+                    gameAnalysisQuality: _gameAnalysisQuality,
                     initialCurrentFen: saved['currentFen'] as String?,
                     initialFlipped: saved['flipped'] as bool? ?? false,
                     onSessionChanged: (fen, flipped, updated) =>
@@ -639,6 +642,9 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
       );
       _topP = (preferences.getDouble('topPV2') ?? 0.9).clamp(0.0, 1.0);
       _analysisElo = preferences.getInt('analysisElo') ?? 1600;
+      _gameAnalysisQuality = GameAnalysisQuality.fromStoredName(
+        preferences.getString(gameAnalysisQualityPreferenceKey),
+      );
       _chessnutSoundsEnabled =
           preferences.getBool('chessnutBoardSounds') ?? true;
     });
@@ -688,6 +694,10 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
       preferences.setDouble('temperatureV2', _temperature),
       preferences.setDouble('topPV2', _topP),
       preferences.setInt('analysisElo', _analysisElo),
+      preferences.setString(
+        gameAnalysisQualityPreferenceKey,
+        _gameAnalysisQuality.name,
+      ),
     ]);
   }
 
@@ -894,8 +904,11 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
     unawaited(
       Navigator.of(context).push(
         MaterialPageRoute<void>(
-          builder: (_) =>
-              AnalysisBoardPage(initialSession: session, maiaElo: _analysisElo),
+          builder: (_) => AnalysisBoardPage(
+            initialSession: session,
+            maiaElo: _analysisElo,
+            gameAnalysisQuality: _gameAnalysisQuality,
+          ),
         ),
       ),
     );
@@ -916,6 +929,7 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
         builder: (context) => AnalysisBoardPage(
           initialSession: AnalysisSession.start(),
           maiaElo: _analysisElo,
+          gameAnalysisQuality: _gameAnalysisQuality,
         ),
       ),
     );
@@ -2450,6 +2464,7 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
           pgn: session.pgn,
           initialVariations: initialVariations,
           maiaElo: _analysisElo,
+          gameAnalysisQuality: _gameAnalysisQuality,
           initialCurrentFen: session.positions.last,
           title: 'Analysis Board',
           returnToGame: !_gameFinished,
@@ -2878,7 +2893,7 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
                     ),
                 ],
               ),
-              subtitle: const Text('Timing and move sampling'),
+              subtitle: const Text('Timing, move sampling, and analysis'),
               children: [
                 SwitchListTile(
                   contentPadding: EdgeInsets.zero,
@@ -2934,6 +2949,33 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
                     onChangeEnd: (_) => unawaited(_saveEnginePreferences()),
                   ),
                 ),
+                DropdownButtonFormField<GameAnalysisQuality>(
+                  key: ValueKey(
+                    'game-analysis-quality-${_gameAnalysisQuality.name}',
+                  ),
+                  isExpanded: true,
+                  initialValue: _gameAnalysisQuality,
+                  decoration: InputDecoration(
+                    labelText: 'Game analysis quality',
+                    helperText: _gameAnalysisQuality.description,
+                    helperMaxLines: 2,
+                    border: const OutlineInputBorder(),
+                  ),
+                  items: GameAnalysisQuality.values
+                      .map(
+                        (quality) => DropdownMenuItem(
+                          value: quality,
+                          child: Text(quality.label),
+                        ),
+                      )
+                      .toList(),
+                  onChanged: (value) {
+                    if (value == null) return;
+                    setState(() => _gameAnalysisQuality = value);
+                    unawaited(_saveEnginePreferences());
+                  },
+                ),
+                const SizedBox(height: 12),
                 Align(
                   alignment: Alignment.centerLeft,
                   child: TextButton(
@@ -2943,6 +2985,7 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
                         _temperature = 0.5;
                         _topP = 0.9;
                         _analysisElo = 1600;
+                        _gameAnalysisQuality = GameAnalysisQuality.thorough;
                       });
                       unawaited(_saveEnginePreferences());
                     },

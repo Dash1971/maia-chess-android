@@ -135,9 +135,13 @@ on Chessnut Go or directly on the phone.
   <img src="docs/screenshots/20260906_v0_sampling_help.jpg" width="38%" alt="In-app explanation of Maia Temperature and Top-P">
 </p>
 
-Advanced settings control human-like move timing, Temperature, Top-P, and the
-rating used for Maia's human-move suggestion during review. The default review
-rating is 1600. **Copy diagnostics** is also available here for troubleshooting.
+Advanced settings control human-like move timing, Temperature, Top-P, the
+rating used for Maia's human-move suggestion during review, and full-game
+analysis quality. **Thorough** remains the default (depth 16, up to 1.5 seconds
+per position); **Balanced** uses depth 14 and one second; **Fast** uses depth 12
+and half a second, trading some graph and classification consistency for speed.
+The default review rating is 1600. **Copy diagnostics** is also available here
+for troubleshooting.
 The local report includes the app version, Android/device model, OS/firmware
 build and security patch, CPU ABIs, memory page size, RAM/heap/storage figures,
 Maia model-cache state, privacy-safe Bluetooth/GATT state, recent connection
@@ -231,7 +235,9 @@ Training clocks pause while the app is backgrounded, while reviewing the
 current game, or after a Maia error. Returning resumes the saved clock; Retry
 restarts a failed Maia turn. Analysis stops scheduling engine work offscreen.
 Selecting a position gets a short Stockfish search, then a longer refinement if
-it remains selected. Full computer analysis uses the longer budget.
+it remains selected. The analysis-quality preset affects only full-game graph
+analysis; it is snapshotted when a run starts and does not change interactive
+analysis, gameplay, or draw evaluation.
 
 ### Analysis Board and computer review
 
@@ -302,6 +308,7 @@ Lichess Flutter Chessground, Lichess multistockfish, and the bundled licences.
 - Evaluation bar with Lichess-style numeric score and blue Stockfish best-move arrow
 - Switchable clickable Moves and Computer graph views below a persistent board
 - Optional full-game computer analysis graph with tap-to-navigate positions and game-phase separators
+- Fast, Balanced, and Thorough full-game analysis presets (Thorough by default)
 - Brilliant, Good, Interesting, Dubious, Mistake, and Blunder classifications on the graph, move list, and board
 - Analysis variations and takebacks preserved as PGN recursive annotation variations
 - Long-press variation editing: collapse/expand, promote, make main line, or delete from a move
