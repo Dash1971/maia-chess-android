@@ -408,6 +408,54 @@ void main() {
     expect(report, contains('[test-source]'));
     expect(report, contains('diagnostic-test-error'));
     expect(report, contains('diagnostic-test-stack'));
+    expect(report, contains('retention=maxAgeDays:14'));
+  });
+
+  test('diagnostics remove expired and excess entries', () async {
+    final old = DateTime.now()
+        .toUtc()
+        .subtract(const Duration(days: 15))
+        .toIso8601String();
+    SharedPreferences.setMockInitialValues({
+      'diagnosticEntriesV1': <String>['$old [expired-entry]'],
+    });
+    for (var index = 0; index < 45; index++) {
+      await AppDiagnostics.recordEvent('retention-entry-$index');
+    }
+
+    final report = await AppDiagnostics.report();
+    final preferences = await SharedPreferences.getInstance();
+    final entries = preferences.getStringList('diagnosticEntriesV1')!;
+    expect(entries, hasLength(40));
+    expect(report, isNot(contains('expired-entry')));
+    expect(report, isNot(contains('retention-entry-0')));
+    expect(report, contains('retention-entry-44'));
+    expect(
+      entries.fold<int>(0, (sum, entry) => sum + entry.length),
+      lessThanOrEqualTo(128000),
+    );
+  });
+
+  test('diagnostics enforce the total character ceiling', () async {
+    final timestamp = DateTime.now().toUtc().toIso8601String();
+    final payload = List.filled(5000, 'x').join();
+    SharedPreferences.setMockInitialValues({
+      'diagnosticEntriesV1': List.generate(
+        40,
+        (index) => '$timestamp [large-entry-$index] $payload',
+      ),
+    });
+
+    final report = await AppDiagnostics.report();
+    final preferences = await SharedPreferences.getInstance();
+    final entries = preferences.getStringList('diagnosticEntriesV1')!;
+    expect(entries, hasLength(25));
+    expect(report, isNot(contains('[large-entry-0]')));
+    expect(report, contains('[large-entry-39]'));
+    expect(
+      entries.fold<int>(0, (sum, entry) => sum + entry.length),
+      lessThanOrEqualTo(128000),
+    );
   });
 
   testWidgets('About shows the package version instead of a hard-coded value', (

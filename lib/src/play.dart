@@ -956,6 +956,13 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
 
   Future<void> _connectChessnut() async {
     _ensureChessnutListening();
+    unawaited(
+      AppDiagnostics.recordEvent(
+        _chessnutGameActive
+            ? 'chessnut-reconnect-requested'
+            : 'chessnut-connect-requested',
+      ),
+    );
     if (mounted) {
       setState(() {
         _chessnutPosition = null;
@@ -1024,7 +1031,16 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
     }
     final nextState = event.connectionState;
     if (nextState == null) return;
-    if (nextState != _chessnutState) _chessnutLeds.invalidate();
+    if (nextState != _chessnutState) {
+      _chessnutLeds.invalidate();
+      final detail = event.diagnostic;
+      unawaited(
+        AppDiagnostics.recordEvent(
+          'chessnut-state=${nextState.name}'
+          '${detail == null ? '' : ' $detail'}',
+        ),
+      );
+    }
     setState(() {
       _chessnutState = nextState;
       _chessnutMessage = event.message ?? _chessnutMessage;
@@ -1394,6 +1410,24 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
               '$_chessnutBatteryPercent%${_chessnutCharging ? ' ⚡' : ''}',
               style: const TextStyle(fontSize: 12),
             ),
+          if (!_chessnutReady) ...[
+            const SizedBox(width: 4),
+            TextButton(
+              key: const ValueKey('chessnut-inline-reconnect'),
+              onPressed:
+                  _chessnutState == ElectronicBoardConnectionState.scanning ||
+                      _chessnutState ==
+                          ElectronicBoardConnectionState.connecting
+                  ? null
+                  : _connectChessnut,
+              style: TextButton.styleFrom(
+                minimumSize: const Size(0, 30),
+                padding: const EdgeInsets.symmetric(horizontal: 7),
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+              child: const Text('Reconnect'),
+            ),
+          ],
         ],
       ),
     ),

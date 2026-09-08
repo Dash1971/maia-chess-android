@@ -18,6 +18,7 @@ class ElectronicBoardEvent {
     this.position,
     this.batteryPercent,
     this.charging,
+    this.diagnostic,
   });
 
   final String type;
@@ -27,6 +28,7 @@ class ElectronicBoardEvent {
   final Map<String, String>? position;
   final int? batteryPercent;
   final bool? charging;
+  final String? diagnostic;
 }
 
 abstract interface class ElectronicBoardTransport {
@@ -162,6 +164,7 @@ class ChessnutPlatformTransport implements ElectronicBoardTransport {
       connectionState: state,
       message: event['message'] as String?,
       deviceName: event['deviceName'] as String?,
+      diagnostic: event['diagnostic'] as String?,
     );
   }
 }

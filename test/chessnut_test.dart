@@ -58,12 +58,15 @@ class _FakeElectronicBoard implements ElectronicBoardTransport {
   final List<List<String>> ledCommands = [];
   final List<List<int>> beepCommands = [];
   bool connected = false;
+  int connectCalls = 0;
+  Map<String, String>? nextConnectPosition;
 
   @override
   Stream<ElectronicBoardEvent> get events => _events.stream;
 
   @override
   Future<void> connect() async {
+    connectCalls++;
     connected = true;
     _events.add(
       const ElectronicBoardEvent(
@@ -73,7 +76,11 @@ class _FakeElectronicBoard implements ElectronicBoardTransport {
         deviceName: 'Chessnut Go',
       ),
     );
-    position(ChessnutProtocol.pieceMapFromFen(chess.Chess.DEFAULT_POSITION));
+    position(
+      nextConnectPosition ??
+          ChessnutProtocol.pieceMapFromFen(chess.Chess.DEFAULT_POSITION),
+    );
+    nextConnectPosition = null;
   }
 
   @override
@@ -339,6 +346,57 @@ void main() {
       isTrue,
       reason: 'A cancelled LED burst must not relight a completed move.',
     );
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
+    await board.close();
+  });
+
+  testWidgets('inline reconnect rescans without losing the live game', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues({});
+    final board = _FakeElectronicBoard();
+    final policy = Float32List(4352)..fillRange(0, 4352, -100);
+    policy[MaiaEncoding.moveIndex('e7e5', true)] = 100;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: GamePage(
+          electronicBoardTransport: board,
+          maiaEvaluator: (_, _) async => policy,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final toggle = find.byKey(const ValueKey('chessnut-go-toggle'));
+    await tester.ensureVisible(toggle);
+    await tester.tap(toggle);
+    await tester.pumpAndSettle();
+    final start = find.widgetWithText(FilledButton, 'Start game');
+    await tester.ensureVisible(start);
+    await tester.tap(start);
+    await tester.pump();
+
+    final afterE4 = _after(chess.Chess(), 'e2e4');
+    board.position(afterE4);
+    await tester.pump();
+    await tester.pump();
+    expect(find.text('e4'), findsOneWidget);
+    expect(find.text('e5'), findsOneWidget);
+
+    await board.disconnect();
+    await tester.pump();
+    final reconnect = find.byKey(const ValueKey('chessnut-inline-reconnect'));
+    expect(reconnect, findsOneWidget);
+    board.nextConnectPosition = afterE4;
+    await tester.tap(reconnect);
+    await tester.pump();
+    await tester.pump();
+
+    expect(board.connectCalls, 2);
+    expect(find.text('e4'), findsOneWidget);
+    expect(find.text('e5'), findsOneWidget);
+    expect(board.ledCommands.last.toSet(), containsAll(const {'e7', 'e5'}));
 
     await tester.pumpWidget(const SizedBox.shrink());
     await tester.pump();

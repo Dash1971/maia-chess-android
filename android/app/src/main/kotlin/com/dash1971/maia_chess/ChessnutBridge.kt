@@ -67,6 +67,9 @@ class ChessnutBridge(
     private var state = "disconnected"
     private var stateMessage = "Chessnut Go is disconnected."
     private var deviceName: String? = null
+    private var lastGattStatus: Int? = null
+    private var scanAttempts = 0
+    private var unexpectedDisconnects = 0
     private data class PendingWrite(
         val command: ByteArray,
         val failureIsFatal: Boolean = true,
@@ -190,6 +193,7 @@ class ChessnutBridge(
 
     private fun startScan() {
         disconnectGatt()
+        scanAttempts++
         val scanner = adapter?.bluetoothLeScanner
             ?: throw IllegalStateException("Bluetooth LE scanning is unavailable.")
         emitStatus("scanning", "Searching for Chessnut Go…")
@@ -207,7 +211,12 @@ class ChessnutBridge(
 
             override fun onScanFailed(errorCode: Int) {
                 stopScan()
-                emitError("Chessnut scan failed (code $errorCode).")
+                emitStatus(
+                    "error",
+                    "Chessnut scan failed (code $errorCode).",
+                    deviceName,
+                    "scanErrorCode=$errorCode",
+                )
             }
         }
         scanCallback = callback
@@ -256,6 +265,7 @@ class ChessnutBridge(
         override fun onConnectionStateChange(gatt: BluetoothGatt, status: Int, newState: Int) {
             mainHandler.post {
                 if (this@ChessnutBridge.gatt !== gatt) return@post
+                lastGattStatus = status
                 if (status != BluetoothGatt.GATT_SUCCESS &&
                     newState != BluetoothProfile.STATE_DISCONNECTED
                 ) {
@@ -273,12 +283,14 @@ class ChessnutBridge(
                     }
                     BluetoothProfile.STATE_DISCONNECTED -> {
                         val unexpected = state != "disconnected"
+                        if (unexpected) unexpectedDisconnects++
                         disconnectGatt()
                         if (unexpected) {
                             emitStatus(
                                 "disconnected",
                                 "Chessnut Go connection was lost. Tap reconnect to continue.",
                                 deviceName,
+                                "gattStatus=$status newState=$newState",
                             )
                         }
                     }
@@ -621,7 +633,12 @@ class ChessnutBridge(
         gatt = null
     }
 
-    private fun emitStatus(newState: String, message: String, name: String? = null) {
+    private fun emitStatus(
+        newState: String,
+        message: String,
+        name: String? = null,
+        diagnostic: String? = null,
+    ) {
         state = newState
         stateMessage = message
         emit(
@@ -630,6 +647,7 @@ class ChessnutBridge(
                 put("state", newState)
                 put("message", message)
                 if (name != null) put("deviceName", name)
+                if (diagnostic != null) put("diagnostic", diagnostic)
             }
         )
     }
@@ -643,6 +661,34 @@ class ChessnutBridge(
 
     private fun emit(event: Map<String, Any>) {
         mainHandler.post { eventSink?.success(event) }
+    }
+
+    fun diagnosticsSnapshot(): Map<String, Any> {
+        val available = adapter != null
+        val enabled = try {
+            adapter?.isEnabled ?: false
+        } catch (_: SecurityException) {
+            false
+        }
+        val permissions = requiredPermissions().joinToString(",") { permission ->
+            val shortName = permission.substringAfterLast('.')
+            val granted = ContextCompat.checkSelfPermission(activity, permission) ==
+                PackageManager.PERMISSION_GRANTED
+            "$shortName=$granted"
+        }
+        return buildMap {
+            put("available", available)
+            put("enabled", enabled)
+            put("permissions", permissions)
+            put("state", state)
+            put("ready", ready)
+            put("scanActive", scanCallback != null)
+            put("gattPresent", gatt != null)
+            put("lastGattStatus", lastGattStatus ?: -1)
+            put("scanAttempts", scanAttempts)
+            put("unexpectedDisconnects", unexpectedDisconnects)
+            put("pendingWrites", writeQueue.size + if (activeWrite == null) 0 else 1)
+        }
     }
 
     fun close() {

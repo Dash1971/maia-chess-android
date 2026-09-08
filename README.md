@@ -110,7 +110,11 @@ the complete board matches the reverted position. Restoration guidance is
 retained across a reconnect or app restart.
 
 The Bluetooth icon in a live game shows connection and battery status and
-provides reconnect, sound, and disconnect controls.
+provides reconnect, sound, and disconnect controls. If the board loses power
+or disconnects, the live status bar also shows **Reconnect**. Mobile Maia
+rescans for the board without discarding the game, then checks the complete
+physical position before play continues. Pending Maia and takeback LEDs are
+restored after reconnecting.
 
 This preview targets Chessnut Go over Bluetooth. Timed e-board games, arbitrary
 starting positions, USB connections, Analysis Board input, and other Chessnut
@@ -133,8 +137,18 @@ on Chessnut Go or directly on the phone.
 
 Advanced settings control human-like move timing, Temperature, Top-P, and the
 rating used for Maia's human-move suggestion during review. The default review
-rating is 1600. **Copy diagnostics** is also available here if a reproducible
-screen error needs investigation.
+rating is 1600. **Copy diagnostics** is also available here for troubleshooting.
+The local report includes the app version, Android/device model, OS/firmware
+build and security patch, CPU ABIs, memory page size, RAM/heap/storage figures,
+Maia model-cache state, privacy-safe Bluetooth/GATT state, recent connection
+transitions, first Maia inference timing, and Android's recent process-exit
+reason when supported.
+It never includes a device serial, Bluetooth address, board name, chess
+position, or PGN, and nothing is uploaded automatically.
+
+Diagnostics are pruned whenever they are written or copied. Mobile Maia retains
+at most 14 days, 40 entries, 8,000 characters per entry, and 128,000 characters
+in total; the oldest data is removed as soon as any limit is exceeded.
 
 #### Temperature and Top-P
 
