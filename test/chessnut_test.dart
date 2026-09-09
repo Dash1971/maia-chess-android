@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:chess/chess.dart' as chess;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maia_chess/main.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -58,6 +59,8 @@ class _FakeElectronicBoard implements ElectronicBoardTransport {
   final List<List<String>> ledCommands = [];
   final List<List<int>> beepCommands = [];
   bool connected = false;
+  Completer<void>? beepGate;
+  bool failLeds = false;
   int connectCalls = 0;
   Map<String, String>? nextConnectPosition;
 
@@ -97,12 +100,14 @@ class _FakeElectronicBoard implements ElectronicBoardTransport {
 
   @override
   Future<void> setLeds(Iterable<String> squares) async {
+    if (failLeds) throw PlatformException(code: 'write_failed');
     ledCommands.add(squares.toList(growable: false));
   }
 
   @override
   Future<void> beep({int frequencyHz = 1000, int durationMs = 200}) async {
     beepCommands.add([frequencyHz, durationMs]);
+    await beepGate?.future;
   }
 
   void position(Map<String, String> pieces) {
@@ -568,6 +573,118 @@ void main() {
 
     await tester.pumpWidget(const SizedBox.shrink());
     await tester.pump();
+    await board.close();
+  });
+
+  testWidgets('disconnect still closes the board if clearing LEDs fails', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues({});
+    final board = _FakeElectronicBoard();
+    await tester.pumpWidget(
+      MaterialApp(home: GamePage(electronicBoardTransport: board)),
+    );
+    await tester.pumpAndSettle();
+    final toggle = find.byKey(const ValueKey('chessnut-go-toggle'));
+    await tester.ensureVisible(toggle);
+    await tester.tap(toggle);
+    await tester.pumpAndSettle();
+    expect(board.connected, isTrue);
+    board.failLeds = true;
+    await tester.tap(toggle);
+    await tester.pumpAndSettle();
+    expect(board.connected, isFalse);
+    await tester.pumpWidget(const SizedBox.shrink());
+    await board.close();
+  });
+
+  testWidgets(
+    'pausing during a Maia check alert retains physical move guidance',
+    (tester) async {
+      SharedPreferences.setMockInitialValues({});
+      const pgn = '[Result "*"]\n\n1. e4 e5 2. d4 Nc6 3. Nf3 *';
+      final session = AnalysisSession.fromPgn(pgn);
+      await ActiveSessionStore.save({
+        'type': 'game',
+        'pgn': pgn,
+        'playerIsWhite': true,
+        'timePreset': 'unlimited',
+        'clockPaused': false,
+        'electronicBoard': 'chessnut-go',
+      });
+      final board = _FakeElectronicBoard()..beepGate = Completer<void>();
+      final policy = Float32List(4352)..fillRange(0, 4352, -100);
+      policy[MaiaEncoding.moveIndex('f8b4', true)] = 100;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: GamePage(
+            electronicBoardTransport: board,
+            maiaEvaluator: (_, _) async => policy,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      board.ready(ChessnutProtocol.pieceMapFromFen(session.positions.last));
+      await tester.pump();
+      expect(board.beepCommands, hasLength(1));
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+      await tester.pump();
+      final saved = await ActiveSessionStore.load();
+      expect(saved!['pendingPhysicalMaiaMove'], 'f8b4');
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      await tester.pump();
+      expect(board.ledCommands.last.toSet(), containsAll(['f8', 'b4']));
+      board.beepGate!.complete();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 250));
+      await tester.pump(const Duration(seconds: 3));
+      expect(board.ledCommands.last.toSet(), containsAll(['f8', 'b4']));
+      await tester.pumpWidget(const SizedBox.shrink());
+      await board.close();
+    },
+  );
+
+  testWidgets('a delayed check alert cannot update a disposed game', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues({});
+    const pgn = '[Result "*"]\n\n1. e4 e5 2. Bc4 Nc6 *';
+    final session = AnalysisSession.fromPgn(pgn);
+    await ActiveSessionStore.save({
+      'type': 'game',
+      'pgn': pgn,
+      'playerIsWhite': true,
+      'timePreset': 'unlimited',
+      'clockPaused': false,
+      'electronicBoard': 'chessnut-go',
+    });
+    final board = _FakeElectronicBoard()..beepGate = Completer<void>();
+    await tester.pumpWidget(
+      MaterialApp(
+        home: GamePage(
+          electronicBoardTransport: board,
+          maiaEvaluator: (_, _) async => Float32List(4352),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final before = chess.Chess.fromFEN(session.positions.last);
+    board.ready(ChessnutProtocol.pieceMapFromFen(before.fen));
+    await tester.pump();
+    board.position(_after(before, 'c4f7'));
+    await tester.pump();
+    expect(board.beepCommands, hasLength(1));
+    await tester.pumpWidget(const SizedBox.shrink());
+    board.beepGate!.complete();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 250));
+    await tester.pump();
+    final preferences = await SharedPreferences.getInstance();
+    final diagnostics = preferences.getStringList('diagnosticEntriesV1') ?? [];
+    expect(
+      diagnostics.join('\n'),
+      isNot(contains('setState() called after dispose')),
+    );
     await board.close();
   });
 

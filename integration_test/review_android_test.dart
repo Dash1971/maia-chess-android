@@ -39,7 +39,10 @@ void main() {
         of: panel,
         matching: find.text('Analyzing…'),
       );
-      if (panel.evaluate().isNotEmpty && analyzing.evaluate().isEmpty) return;
+      if (panel.evaluate().isNotEmpty && analyzing.evaluate().isEmpty) {
+        expect(find.textContaining('Stockfish failed:'), findsNothing);
+        return;
+      }
     }
     fail('real Stockfish evaluation did not finish within 24 seconds');
   }
@@ -70,7 +73,7 @@ void main() {
 
     await waitForRealEvaluation(tester);
     for (var ply = 1; ply < positions.length; ply++) {
-      await tester.tap(find.byIcon(Icons.chevron_right));
+      await tester.tap(find.byKey(const ValueKey('next-move-button')));
       await tester.pump();
       await waitForRealEvaluation(tester);
       expect(tester.takeException(), isNull, reason: 'real engine ply $ply');
@@ -93,7 +96,7 @@ void main() {
       ),
     );
     await tester.pump();
-    await tester.tap(find.byTooltip('Computer analysis'));
+    await tester.tap(find.byKey(const ValueKey('graph-tab')));
     await tester.pump();
     await tester.tap(find.byKey(const ValueKey('run-computer-analysis')));
     for (var i = 0; i < 600; i++) {
@@ -103,12 +106,24 @@ void main() {
     expect(find.textContaining('Stockfish failed:'), findsNothing);
     expect(find.byType(AnalysisGraph), findsOneWidget);
     for (final alignment in const [-0.9, 0.0, 0.9]) {
-      final rect = tester.getRect(find.byType(AnalysisGraph));
+      // The plot can extend below the clipped panel on compact screens.
+      // Scroll it into view so the tap cannot hit the toolbar underneath it.
+      final plot = find.descendant(
+        of: find.byType(AnalysisGraph),
+        matching: find.byType(GestureDetector),
+      );
+      await Scrollable.ensureVisible(tester.element(plot), alignment: 0.5);
+      await tester.pump();
+      final rect = tester.getRect(plot);
       await tester.tapAt(
         Offset(rect.center.dx + alignment * rect.width / 2, rect.center.dy),
       );
       await tester.pump();
       expect(tester.takeException(), isNull);
+      expect(
+        tester.widget<AnalysisGraph>(find.byType(AnalysisGraph)).selectedPly,
+        ((alignment + 1) / 2 * (positions.length - 1)).round(),
+      );
     }
   });
 
@@ -165,12 +180,12 @@ void main() {
     await tester.pumpAndSettle();
 
     for (var ply = 1; ply < positions.length; ply++) {
-      await tester.tap(find.byIcon(Icons.chevron_right));
+      await tester.tap(find.byKey(const ValueKey('next-move-button')));
       await tester.pumpAndSettle();
       expect(tester.takeException(), isNull, reason: 'failed at ply $ply');
     }
 
-    await tester.tap(find.byTooltip('Computer analysis'));
+    await tester.tap(find.byKey(const ValueKey('graph-tab')));
     await tester.pump();
     await tester.tap(find.byKey(const ValueKey('run-computer-analysis')));
     await tester.pumpAndSettle();
@@ -203,7 +218,7 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    await tester.tap(find.byIcon(Icons.chevron_right));
+    await tester.tap(find.byKey(const ValueKey('next-move-button')));
     await tester.pumpAndSettle();
 
     expect(find.text('#-1'), findsWidgets);

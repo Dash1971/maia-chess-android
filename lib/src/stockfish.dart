@@ -28,10 +28,19 @@ enum GameAnalysisQuality {
 }
 
 class StockfishAnalyzer {
-  StockfishAnalyzer._();
+  StockfishAnalyzer._() : this.withEngine(Stockfish.instance);
+
+  /// Allows deterministic native failure tests without loading a chess engine.
+  StockfishAnalyzer.withEngine(
+    this._engine, {
+    this.searchTimeout = const Duration(seconds: 20),
+    this.drainTimeout = const Duration(seconds: 2),
+  });
 
   static final instance = StockfishAnalyzer._();
-  final Stockfish _engine = Stockfish.instance;
+  final Stockfish _engine;
+  final Duration searchTimeout;
+  final Duration drainTimeout;
   Future<void>? _startup;
   bool _searching = false;
   Future<void>? _closing;
@@ -151,15 +160,15 @@ class StockfishAnalyzer {
         completer.complete(latest);
       }
     });
-    _engine.stdin = 'position fen $fen';
-    _searching = true;
-    _engine.stdin =
-        gameAnalysisQuality?.stockfishCommand ??
-        (background ? 'go depth 16 movetime 1500' : 'go depth 16 movetime 350');
     try {
-      final sideToMoveScore = await completer.future.timeout(
-        const Duration(seconds: 20),
-      );
+      _engine.stdin = 'position fen $fen';
+      _searching = true;
+      _engine.stdin =
+          gameAnalysisQuality?.stockfishCommand ??
+          (background
+              ? 'go depth 16 movetime 1500'
+              : 'go depth 16 movetime 350');
+      final sideToMoveScore = await completer.future.timeout(searchTimeout);
       final blackToMove = fen.split(' ')[1] == 'b';
       final orderedLines = lines.entries.toList(growable: false)
         ..sort((a, b) => a.key.compareTo(b.key));
@@ -176,25 +185,32 @@ class StockfishAnalyzer {
             .toList(growable: false),
       );
     } on TimeoutException {
-      // Stop and drain the outstanding search before the next queued request.
-      // Otherwise its delayed bestmove can be mistaken for the next position.
-      _engine.stdin = 'stop';
+      // Keep consuming output until stop is acknowledged. A dead native
+      // process can also reject stop, so reset it on either failure path.
       try {
-        await completer.future.timeout(const Duration(seconds: 2));
-      } on TimeoutException {
-        // Never reuse an engine whose output could not be drained. A delayed
-        // bestmove from it could otherwise satisfy the next position request.
+        _engine.stdin = 'stop';
+        await completer.future.timeout(drainTimeout);
+      } catch (_) {
         await subscription.cancel();
-        try {
-          await _engine.quit().timeout(const Duration(seconds: 3));
-        } finally {
-          _startup = null;
-        }
+        await _resetEngine();
       }
+      rethrow;
+    } catch (_) {
+      await subscription.cancel();
+      await _resetEngine();
       rethrow;
     } finally {
       _searching = false;
       await subscription.cancel();
+    }
+  }
+
+  Future<void> _resetEngine() async {
+    _startup = null;
+    try {
+      await _engine.quit().timeout(const Duration(seconds: 3));
+    } catch (error, stackTrace) {
+      unawaited(AppDiagnostics.record('stockfish-reset', error, stackTrace));
     }
   }
 

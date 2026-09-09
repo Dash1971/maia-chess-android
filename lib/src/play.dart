@@ -498,6 +498,10 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
         : null;
     _tickClock();
     if (!_isPlayerTurn && !_gameFinished) unawaited(_playMaiaMove());
+    if (_chessnutGameActive &&
+        (_pendingPhysicalMaiaMove != null || _chessnutTakebackRestoreActive)) {
+      _startChessnutLedRefresh(immediate: true);
+    }
     setState(() {});
   }
 
@@ -1009,9 +1013,19 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
   Future<void> _disconnectChessnut() async {
     _stopChessnutLedRefresh();
     try {
-      if (_chessnutReady) await _chessnut.setLeds(const []);
-      await _chessnut.disconnect();
+      try {
+        if (_chessnutReady) {
+          await _chessnut.setLeds(const []).timeout(const Duration(seconds: 1));
+        }
+      } finally {
+        // Disconnect remains available even when clearing a stalled board fails.
+        await _chessnut.disconnect();
+      }
     } on PlatformException catch (error, stackTrace) {
+      unawaited(
+        AppDiagnostics.record('chessnut-disconnect', error, stackTrace),
+      );
+    } on TimeoutException catch (error, stackTrace) {
       unawaited(
         AppDiagnostics.record('chessnut-disconnect', error, stackTrace),
       );
@@ -1752,6 +1766,7 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
         .firstOrNull;
     if (chosen == null) return;
 
+    final generation = _gameGeneration;
     if (!_commitClock(_playerColor)) return;
     _uciMoves.add(uci);
     _game.move(chosen);
@@ -1759,6 +1774,7 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
     _positionHistory.add(_game.fen);
     _recordClockSnapshot();
     await _soundChessnutCheckAlert();
+    if (!mounted || generation != _gameGeneration) return;
     setState(() {
       _status =
           naturalResult ??
@@ -1857,10 +1873,13 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
       _recordClockSnapshot();
       _syncGameBoard();
       if (_chessnutGameActive) {
+        // Persist guidance with the committed move even if the app pauses
+        // while the check alert is waiting for Bluetooth completion.
+        _pendingPhysicalMaiaMove = maiaUci;
         await _soundChessnutCheckAlert();
+        if (!mounted || generation != _gameGeneration) return;
         setState(() {
           _engineThinking = false;
-          _pendingPhysicalMaiaMove = maiaUci;
           _status = 'Make Maia’s lit move on Chessnut Go.';
         });
         await _setChessnutLeds([

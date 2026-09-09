@@ -260,7 +260,9 @@ class AnalysisSession {
     movetext = uncommented.toString();
     var variationDepth = 0;
     for (final character in movetext.codeUnits) {
-      if (character == 0x28) variationDepth++;
+      if (character == 0x28 && ++variationDepth > 64) {
+        throw const FormatException('PGN variations are too deeply nested.');
+      }
       if (character == 0x29 && --variationDepth < 0) {
         throw const FormatException('Malformed PGN variation.');
       }
@@ -306,7 +308,8 @@ class AnalysisSession {
       AnalysisSession.fromFen(chess.Chess.DEFAULT_POSITION);
 
   factory AnalysisSession.fromPgn(String source) {
-    if (source.length > 2 * 1024 * 1024) {
+    if (source.length > 2 * 1024 * 1024 ||
+        utf8.encode(source).length > 2 * 1024 * 1024) {
       throw const FormatException('PGN is too large.');
     }
     _validatePgnTokens(source);

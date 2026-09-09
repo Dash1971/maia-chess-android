@@ -68,7 +68,13 @@ class SessionRepository {
       if (decoded is! Map ||
           decoded['version'] != 1 ||
           decoded['id'] is! String ||
+          !RegExp(r'^[0-9a-z-]+$').hasMatch(decoded['id'] as String) ||
+          (decoded['updatedAt'] != null && decoded['updatedAt'] is! String) ||
           (decoded['data'] != null && decoded['data'] is! Map)) {
+        return null;
+      }
+      final data = decoded['data'];
+      if (data is Map && data['pgn'] != null && data['pgn'] is! String) {
         return null;
       }
       return Map<String, dynamic>.from(decoded);

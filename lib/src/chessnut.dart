@@ -99,21 +99,60 @@ class ChessnutPlatformTransport implements ElectronicBoardTransport {
   @override
   Stream<ElectronicBoardEvent> get events => _events;
 
-  @override
-  Future<void> connect() => _methods.invokeMethod<void>('connect');
+  int _connectionGeneration = 0;
 
   @override
-  Future<void> disconnect() => _methods.invokeMethod<void>('disconnect');
+  Future<void> connect() {
+    _connectionGeneration++;
+    return _methods.invokeMethod<void>('connect');
+  }
 
   @override
-  Future<void> setLeds(Iterable<String> squares) => _methods.invokeMethod<void>(
-    'setLeds',
-    {'command': ChessnutProtocol.encodeLedCommand(squares)},
-  );
+  Future<void> disconnect() {
+    _connectionGeneration++;
+    return _methods.invokeMethod<void>('disconnect');
+  }
+
+  Future<void> _sendCommand(
+    String method,
+    Map<String, Object> arguments,
+  ) async {
+    final generation = _connectionGeneration;
+    try {
+      await _methods
+          .invokeMethod<void>(method, arguments)
+          .timeout(const Duration(seconds: 10));
+    } on TimeoutException {
+      // A missing Android write callback otherwise wedges every later command.
+      // Closing GATT also invalidates its late callbacks in the native bridge.
+      if (generation == _connectionGeneration) {
+        try {
+          await disconnect().timeout(const Duration(seconds: 2));
+        } catch (error, stackTrace) {
+          unawaited(
+            AppDiagnostics.record(
+              'chessnut-timeout-disconnect',
+              error,
+              stackTrace,
+            ),
+          );
+        }
+      }
+      throw PlatformException(
+        code: 'write_timeout',
+        message: 'Chessnut command timed out. Reconnect the board to continue.',
+      );
+    }
+  }
+
+  @override
+  Future<void> setLeds(Iterable<String> squares) => _sendCommand('setLeds', {
+    'command': ChessnutProtocol.encodeLedCommand(squares),
+  });
 
   @override
   Future<void> beep({int frequencyHz = 1000, int durationMs = 200}) =>
-      _methods.invokeMethod<void>('beep', {
+      _sendCommand('beep', {
         'command': ChessnutProtocol.encodeBeepCommand(
           frequencyHz: frequencyHz,
           durationMs: durationMs,

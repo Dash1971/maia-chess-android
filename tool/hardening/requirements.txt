@@ -1,0 +1,3 @@
+# Optional: regenerate the independent chess-rule corpus.
+python-chess==1.999
+chess==1.11.2
