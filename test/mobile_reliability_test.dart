@@ -125,6 +125,58 @@ void main() {
     expect(saved['forcedResult'], '0-1');
   });
 
+  for (final whiteFlags in [true, false]) {
+    testWidgets(
+      '${whiteFlags ? 'White' : 'Black'} flagging against a bare king draws',
+      (tester) async {
+        final clock = ManualStopwatch();
+        final session = AnalysisSession.fromFen(
+          whiteFlags
+              ? '7k/8/8/8/8/8/P7/K7 w - - 0 1'
+              : '7k/7p/8/8/8/8/8/K7 b - - 0 1',
+        );
+        await ActiveSessionStore.save({
+          'type': 'game',
+          'pgn': session.pgn,
+          'timePreset': 'blitz',
+          'whiteMillis': whiteFlags ? 50 : 180000,
+          'blackMillis': whiteFlags ? 180000 : 50,
+          'clockPaused': true,
+          'playerIsWhite': whiteFlags,
+        });
+        await tester.pumpWidget(
+          MaterialApp(home: GamePage(clockFactory: () => clock)),
+        );
+        await tester.pumpAndSettle();
+        clock.milliseconds = 51;
+        await tester.pump(const Duration(milliseconds: 200));
+        await tester.pumpAndSettle();
+        final saved = await ActiveSessionStore.load();
+        expect(saved!['forcedResult'], '1/2-1/2');
+        expect(saved['pgn'], contains('[Result "1/2-1/2"]'));
+        expect(saved['status'], contains('Draw'));
+      },
+    );
+  }
+
+  test('timeout adjudication distinguishes possible mate from forced mate', () {
+    for (final (fen, expected) in [
+      ('7k/8/8/8/8/8/P7/K7 w - - 0 1', '1/2-1/2'),
+      ('7k/7p/8/8/8/8/8/K7 b - - 0 1', '1/2-1/2'),
+      ('6nk/8/8/8/8/8/8/KQ6 w - - 0 1', '1/2-1/2'),
+      ('6nk/8/8/8/8/8/P7/K7 w - - 0 1', '0-1'),
+      ('6bk/8/8/8/8/8/P7/K7 w - - 0 1', '0-1'),
+      ('6rk/8/8/8/8/8/8/K7 w - - 0 1', '0-1'),
+      ('7k/8/8/8/8/8/8/KR6 b - - 0 1', '1-0'),
+    ]) {
+      expect(
+        timeoutGameResult(chess.Chess.fromFEN(fen)),
+        expected,
+        reason: fen,
+      );
+    }
+  });
+
   testWidgets('game checkpoints use timezone-stable UTC timestamps', (
     tester,
   ) async {

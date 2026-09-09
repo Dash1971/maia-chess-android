@@ -62,18 +62,48 @@ class StockfishAnalyzer {
   void cancel(MaiaInferenceScope scope) => _queue.cancel(scope);
 
   Future<void> _ensureStarted() async {
-    final startup = _startup ??= _engine.start().then((_) async {
-      _engine.stdin = 'setoption name Threads value 2';
-      _engine.stdin = 'setoption name Hash value 64';
-      _engine.stdin = 'setoption name MultiPV value 2';
-      final ready = _engine.stdout.firstWhere((line) => line == 'readyok');
-      _engine.stdin = 'isready';
-      await ready.timeout(const Duration(seconds: 5));
-    });
+    final startup = _startup ??= _startEngine();
     try {
       await startup;
     } catch (_) {
       if (identical(_startup, startup)) _startup = null;
+      rethrow;
+    }
+  }
+
+  Future<void> _startEngine() async {
+    try {
+      await _engine.start();
+      final ready = Completer<void>();
+      // A synchronous write failure can abandon the handshake before its
+      // future is awaited. Still consume any simultaneous stream error.
+      ready.future.ignore();
+      final subscription = _engine.stdout.listen(
+        (line) {
+          if (line == 'readyok' && !ready.isCompleted) ready.complete();
+        },
+        onError: (Object error, StackTrace stack) {
+          if (!ready.isCompleted) ready.completeError(error, stack);
+        },
+        onDone: () {
+          if (!ready.isCompleted) {
+            ready.completeError(StateError('Stockfish closed during startup'));
+          }
+        },
+      );
+      try {
+        _engine.stdin = 'setoption name Threads value 2';
+        _engine.stdin = 'setoption name Hash value 64';
+        _engine.stdin = 'setoption name MultiPV value 2';
+        _engine.stdin = 'isready';
+        await ready.future.timeout(const Duration(seconds: 5));
+      } finally {
+        await subscription.cancel();
+      }
+    } catch (_) {
+      // start() can succeed while option writes/readiness fail. The native
+      // library refuses a second start until that running process is quit.
+      await _resetEngine();
       rethrow;
     }
   }

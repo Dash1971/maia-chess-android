@@ -42,6 +42,17 @@ exhaustive proof of chess correctness or a test of Maia's rating calibration.
 Use `--positions 256 --output test/fixtures/chess_oracle.json` to regenerate the
 committed fixture with the default seed.
 
+The corpus also supplies the complete 4,352-entry Maia move vocabulary, its
+Black-perspective mapping, and board token occupancy derived with python-chess.
+Regenerate older external corpora to include these fields. Sampling tests check
+43,200 probability-space quantiles across temperatures, Top-P settings, colours,
+promotion positions, and large additive shifts to logits.
+
+Additional regressions cover Stockfish readiness failures and score perspective,
+timeout draws against insufficient mating material, analysis restoration and
+existing variations after pawn double moves, failed checkpoint writes, and a
+1,000-game archive. These run as part of the standard suite.
+
 The 1,000-ply PGN stress test prints a host timing for import and round-trip.
 Compare timings on the same host; it does not establish phone performance.
 

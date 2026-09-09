@@ -1711,7 +1711,7 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
     final remaining = _liveMillis(_game.turn);
     if (remaining <= 0) {
       final whiteFlagged = _game.turn == chess.Color.WHITE;
-      final result = whiteFlagged ? '0-1' : '1-0';
+      final result = timeoutGameResult(_game);
       _gameGeneration++;
       _gameInferenceScope.invalidate();
       _clockTimer?.cancel();
@@ -1724,7 +1724,9 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
         _forcedResult = result;
         _engineThinking = false;
         _game.set_header(['Result', result, 'Termination', 'Time forfeit']);
-        _status = whiteFlagged
+        _status = result == '1/2-1/2'
+            ? 'Draw — timeout against insufficient material.'
+            : whiteFlagged
             ? 'White ran out of time.'
             : 'Black ran out of time.';
       });
@@ -1945,7 +1947,11 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
       return 'Draw.';
     }
     if (_forcedResult != null) {
-      if (_forcedResult == '1/2-1/2') return 'Draw by agreement.';
+      if (_forcedResult == '1/2-1/2') {
+        return _game.header['Termination'] == 'Time forfeit'
+            ? 'Draw — timeout against insufficient material.'
+            : 'Draw by agreement.';
+      }
       return _forcedResult == '1-0'
           ? (_playerIsWhite ? 'You win.' : 'Maia wins.')
           : (_playerIsWhite ? 'Maia wins.' : 'You win.');

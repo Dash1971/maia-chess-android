@@ -55,6 +55,17 @@ String? naturalGameResult(chess.Chess game) {
   return '1/2-1/2';
 }
 
+/// The side to move has flagged. An opponent without possible mating material
+/// cannot win on time (FIDE 6.9). Use the chess library's side-specific test;
+/// a lone minor piece can still mate with help from the opponent's material.
+String timeoutGameResult(chess.Chess game) {
+  final position = dc.Chess.fromSetup(dc.Setup.parseFen(game.fen));
+  if (position.hasInsufficientMaterial(position.turn.opposite)) {
+    return '1/2-1/2';
+  }
+  return game.turn == chess.Color.WHITE ? '0-1' : '1-0';
+}
+
 /// A deterministic material-phase measure for draw offers.
 ///
 /// Queens count 4, rooks 2, and bishops/knights 1 across both sides.

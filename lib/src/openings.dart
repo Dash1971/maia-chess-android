@@ -19,7 +19,20 @@ class OpeningNames {
     for (final fen in positions.toList(growable: false).reversed) {
       final fields = fen.split(RegExp(r'\s+'));
       if (fields.length < 4) continue;
-      final opening = _byEpd[fields.take(4).join(' ')];
+      var epd = fields.take(4).join(' ');
+      if (fields[3] != '-') {
+        try {
+          // The bundled Lichess EPDs include only legally capturable en-passant
+          // targets. chess FENs also include targets after ordinary double pushes.
+          epd = dc.Chess.fromSetup(dc.Setup.parseFen(fen)).fen
+              .split(' ')
+              .take(4)
+              .join(' ');
+        } catch (_) {
+          continue;
+        }
+      }
+      final opening = _byEpd[epd];
       if (opening != null) return '${opening.eco} · ${opening.name}';
     }
     return null;

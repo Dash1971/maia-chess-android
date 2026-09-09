@@ -414,6 +414,14 @@ class _ReviewPageState extends State<ReviewPage>
       a.length == b.length &&
       List.generate(a.length, (i) => a[i] == b[i]).every((v) => v);
 
+  static String? _canonicalFen(String value) {
+    try {
+      return dc.Chess.fromSetup(dc.Setup.parseFen(value)).fen;
+    } catch (_) {
+      return null;
+    }
+  }
+
   void _showMainPly(int ply) {
     _cancelSelectedWork();
     final root = _rootMainline;
@@ -450,7 +458,9 @@ class _ReviewPageState extends State<ReviewPage>
     final analysisMovesBefore = widget.onSessionChanged == null
         ? null
         : List<String>.of(_computerAnalysisLine.uciMoves);
-    final fenBefore = _boardPosition.fen;
+    // Keep stored/replayed FENs in the same notation. dartchess omits an
+    // en-passant target when no legal capture exists; chess preserves it.
+    final fenBefore = _currentFen;
     final uci = move.uci;
     final sanGame = chess.Chess.fromFEN(fenBefore);
     final candidate = sanGame
@@ -490,7 +500,8 @@ class _ReviewPageState extends State<ReviewPage>
           (line) =>
               line.basePly == selectedPly &&
               line.sanMoves.firstOrNull == san &&
-              line.baseFen == fenBefore,
+              (line.baseFen == fenBefore ||
+                  _canonicalFen(line.baseFen) == _boardPosition.fen),
         )
         .firstOrNull;
     if (existing != null) {
@@ -543,7 +554,7 @@ class _ReviewPageState extends State<ReviewPage>
       _variationPositions
         ..clear()
         ..add(fenBefore)
-        ..add(_boardPosition.fen);
+        ..add(sanGame.fen);
       _variationIndex = 1;
       _boardController.updatePosition(_boardGameData());
       setState(() {
@@ -565,7 +576,7 @@ class _ReviewPageState extends State<ReviewPage>
     }
     _variationSan.add(san);
     _variationUci.add(uci);
-    _variationPositions.add(_boardPosition.fen);
+    _variationPositions.add(sanGame.fen);
     _variationIndex = _variationSan.length;
     final updated = RecordedVariation(
       basePly: basePly,
@@ -1167,15 +1178,21 @@ class _ReviewPageState extends State<ReviewPage>
   }
 
   void _restoreCurrentFen(String fen) {
+    // Older checkpoints used dartchess FENs, while line replay uses chess.
+    // Normalize non-capturable en-passant targets without discarding legal
+    // en-passant rights, castling rights, or move counters.
+    final canonical = _canonicalFen(fen);
+    bool matches(String value) =>
+        value == fen || (canonical != null && _canonicalFen(value) == canonical);
     bool visit(RecordedVariation variation) {
       final game = chess.Chess.fromFEN(variation.baseFen);
-      if (variation.baseFen == fen) {
+      if (matches(variation.baseFen)) {
         _openVariation(variation, 0);
         return true;
       }
       for (var index = 0; index < variation.sanMoves.length; index++) {
         if (!game.move(variation.sanMoves[index])) break;
-        if (game.fen == fen) {
+        if (matches(game.fen)) {
           _openVariation(variation, index + 1);
           return true;
         }
@@ -1184,7 +1201,7 @@ class _ReviewPageState extends State<ReviewPage>
     }
 
     if (_variations.any(visit)) return;
-    final mainIndex = widget.positions.indexOf(fen);
+    final mainIndex = widget.positions.indexWhere(matches);
     if (mainIndex >= 0) {
       setState(() => _showMainPly(mainIndex));
       return;

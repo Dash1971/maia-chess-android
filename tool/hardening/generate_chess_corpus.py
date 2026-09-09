@@ -31,6 +31,10 @@ for i in range(args.positions):
     row = {'fen': board.fen(en_passant='fen'),
            'legal': [move.uci() for move in legal],
            'checkmate': board.is_checkmate(), 'stalemate': board.is_stalemate()}
+    perspective = board if board.turn == chess.WHITE else board.mirror()
+    row['tokenOnes'] = sorted(square * 12 + piece.piece_type - 1 +
+                             (0 if piece.color == chess.WHITE else 6)
+                             for square, piece in perspective.piece_map().items())
     if selected:
         row['move'] = selected.uci()
         row['san'] = board.san(selected)
@@ -38,6 +42,14 @@ for i in range(args.positions):
         row['after'] = board.fen(en_passant='fen')
     rows.append(row)
 args.output.parent.mkdir(parents=True, exist_ok=True)
+vocabulary = [chess.square_name(a) + chess.square_name(b)
+              for a in chess.SQUARES for b in chess.SQUARES]
+vocabulary += [f'{a}7{b}8{piece}' for a in 'abcdefgh'
+               for b in 'abcdefgh' for piece in 'qrbn']
+mirrored = [chess.square_name(chess.square_mirror(chess.parse_square(move[:2]))) +
+            chess.square_name(chess.square_mirror(chess.parse_square(move[2:4]))) +
+            move[4:] for move in vocabulary]
 args.output.write_text(json.dumps({'generator': f'python-chess {chess.__version__}',
-    'seed': args.seed, 'positions': rows}, separators=(',', ':'))+'\n')
+    'seed': args.seed, 'vocabulary': vocabulary, 'mirroredVocabulary': mirrored,
+    'positions': rows}, separators=(',', ':'))+'\n')
 print(f'Wrote {len(rows)} positions to {args.output}')
