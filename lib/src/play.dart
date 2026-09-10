@@ -2562,12 +2562,15 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
     final basePly = max(0, history.length - plies);
     final removedSan = history.skip(basePly).toList(growable: false);
     if (removedSan.isNotEmpty) {
-      final removedPathFens = _positionHistory.skip(basePly).toSet();
       final nested = _takebackVariations
           .where(
             (variation) =>
                 variation.basePly > basePly &&
-                removedPathFens.contains(variation.baseFen),
+                variation.basePly < _positionHistory.length &&
+                PgnVariationExporter._samePosition(
+                  variation.baseFen,
+                  _positionHistory[variation.basePly],
+                ),
           )
           .toList(growable: false);
       _takebackVariations.removeWhere(nested.contains);

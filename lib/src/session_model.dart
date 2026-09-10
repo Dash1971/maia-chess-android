@@ -3,6 +3,18 @@ part of '../main.dart';
 class PgnVariationExporter {
   static const _unplayedPrefix = 'Unplayed takeback line';
 
+  static bool _samePosition(String left, String right) {
+    if (left == right) return true;
+    try {
+      // Older analysis records omit an en-passant target when no capture is
+      // legal. Canonicalize that notation without ignoring real capture rights.
+      return dc.Chess.fromSetup(dc.Setup.parseFen(left)).fen ==
+          dc.Chess.fromSetup(dc.Setup.parseFen(right)).fen;
+    } on Exception {
+      return false;
+    }
+  }
+
   static List<RecordedVariation> annotationsForMainline(
     List<String> mainSan,
     List<RecordedVariation> reviewTree,
@@ -103,7 +115,7 @@ class PgnVariationExporter {
       bool matchesMainline(RecordedVariation line) =>
           mainPositions == null ||
           (line.basePly < mainPositions.length &&
-              line.baseFen == mainPositions[line.basePly]);
+              _samePosition(line.baseFen, mainPositions[line.basePly]));
       unplayed.addAll(
         variations.where(
           (line) => line.basePly == mainSan.length && matchesMainline(line),

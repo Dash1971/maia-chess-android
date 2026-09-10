@@ -487,6 +487,47 @@ void main() {
       await board.close();
     },
   );
+  testWidgets('Android restores and exports legacy pawn-position variations', (
+    tester,
+  ) async {
+    await ActiveSessionStore.clear();
+    final session = AnalysisSession.fromPgn('1. e4 e5 1-0');
+    await ActiveSessionStore.save({
+      ...gameRecord(pgn: session.pgn, result: '1-0'),
+      'variations': [
+        RecordedVariation(
+          basePly: 1,
+          baseFen: dc.Chess.fromSetup(dc.Setup.parseFen(session.positions[1]))
+              .fen,
+          sanMoves: const ['c5', 'Nf3'],
+          annotations: const [
+            {
+              'comments': ['Android legacy note'],
+            },
+          ],
+        ).toJson(),
+      ],
+    });
+    await tester.pumpWidget(const MaterialApp(home: GamePage()));
+    await waitFor(tester, () => find.byType(AlertDialog).evaluate().isNotEmpty);
+    Navigator.of(tester.element(find.byType(AlertDialog))).pop();
+    await tester.pumpAndSettle();
+    final saved = (await ActiveSessionStore.load())!;
+    expect(saved['pgn'], contains('Android legacy note'));
+    final root = PgnVariationExporter.parseTree(saved['pgn'] as String).single;
+    expect(root.sanMoves, ['e4', 'e5']);
+    expect(root.children.single.sanMoves, ['c5', 'Nf3']);
+    await tester.tap(find.byKey(const ValueKey('game-share-menu')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Copy PGN'));
+    await tester.pumpAndSettle();
+    final clipboard = await Clipboard.getData(Clipboard.kTextPlain);
+    expect(clipboard!.text, saved['pgn']);
+    expect(tester.takeException(), isNull);
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pumpAndSettle();
+  });
+
   testWidgets(
     'Android new-game flow preserves all completed result types in Recent Games',
     (tester) async {
