@@ -88,6 +88,18 @@ continuation, different child alternatives, comments and NAGs, equivalent
 legacy FEN notation, and the boundary between played and undone moves. An
 undone terminal continuation must never become part of the played main line.
 
+`test/variation_editing_regressions_test.dart` combines nested promotion,
+making a branch the main line, deleting a separate alternative, and four JSON
+reopens. It compares every remaining move path and annotation, the selected
+position, and the complete PGN after each reopen.
+
+`test/recent_games_failure_test.dart` exercises overlapping taps before a new
+frame, Back while a save is opening, and retry after open/delete failures.
+`test/storage_failure_test.dart` also blocks an active-checkpoint write while
+switching archives, then resumes the original game and checks both save IDs.
+The Android suite repeats that real filesystem failure and retry through the
+Recent-games screen on app-private storage.
+
 `test/beta16_release_regressions_test.dart` combines seeded legal moves,
 repeated takebacks, stale Maia replies, background/resume, reopening, and
 analysis visits. After each step it checks played moves, board position and

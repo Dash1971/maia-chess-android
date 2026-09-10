@@ -232,8 +232,10 @@ class SessionRepository {
     if (entry == null) return null;
     final data = _recentGameData(entry['data']);
     if (data == null) return null;
-    _activeId = id;
     await _write(_active, {...entry, 'data': data});
+    // Keep the current game's identity if publishing the new checkpoint fails.
+    // Otherwise resuming it could overwrite the selected archive's record.
+    _activeId = id;
     return data;
   });
 
@@ -303,6 +305,8 @@ class _RecentGamesPageState extends State<RecentGamesPage> {
   List<RecentSession>? _games;
   Object? _loadError;
   bool _selecting = false;
+  bool _busy = false;
+  bool _updatingFiles = false;
   final Set<String> _selected = {};
 
   @override
@@ -329,6 +333,7 @@ class _RecentGamesPageState extends State<RecentGamesPage> {
   }
 
   void _toggleSelection(String id) {
+    if (_busy) return;
     setState(() {
       _selecting = true;
       if (!_selected.add(id)) _selected.remove(id);
@@ -336,7 +341,68 @@ class _RecentGamesPageState extends State<RecentGamesPage> {
   }
 
   Future<void> _deleteGames(List<RecentSession> games) async {
-    if (games.isEmpty) return;
+    if (_busy || games.isEmpty) return;
+    setState(() => _busy = true);
+    try {
+      await _confirmAndDeleteGames(games);
+    } catch (_) {
+      if (mounted) {
+        _showOperationError('Could not delete saved games. Please try again.');
+        // A batch can fail after deleting some entries. Refresh the list so a
+        // retry targets the records that actually remain.
+        await _reload();
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _busy = false;
+          _updatingFiles = false;
+        });
+      }
+    }
+  }
+
+  void _showOperationError(String message) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  Future<void> _openGame(RecentSession game) async {
+    // Guard synchronously as another tap may arrive before the busy frame.
+    if (_busy) return;
+    setState(() {
+      _busy = true;
+      _updatingFiles = true;
+    });
+    var opened = false;
+    try {
+      final data =
+          await (widget.openGame?.call(game.id) ??
+              ActiveSessionStore.open(game.id));
+      if (!mounted) return;
+      if (data == null) {
+        _showOperationError('Could not open saved game. Please try again.');
+      } else {
+        Navigator.pop(context, data);
+        opened = true;
+      }
+    } catch (_) {
+      if (mounted) {
+        _showOperationError('Could not open saved game. Please try again.');
+      }
+    } finally {
+      // Keep rejecting callbacks while a successfully opened page exits.
+      if (mounted && !opened) {
+        setState(() {
+          _busy = false;
+          _updatingFiles = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _confirmAndDeleteGames(List<RecentSession> games) async {
     final count = games.length;
     final confirmed = await showDialog<bool>(
       context: context,
@@ -359,7 +425,8 @@ class _RecentGamesPageState extends State<RecentGamesPage> {
         ],
       ),
     );
-    if (confirmed != true) return;
+    if (!mounted || confirmed != true) return;
+    setState(() => _updatingFiles = true);
     final ids = games.map((game) => game.id);
     if (widget.deleteGames case final deleteGames?) {
       await deleteGames(ids);
@@ -378,8 +445,17 @@ class _RecentGamesPageState extends State<RecentGamesPage> {
   @override
   Widget build(BuildContext context) {
     final games = _games;
-    return Scaffold(
+    final page = Scaffold(
       appBar: AppBar(
+        bottom: _updatingFiles
+            ? const PreferredSize(
+                preferredSize: Size.fromHeight(2),
+                child: LinearProgressIndicator(
+                  minHeight: 2,
+                  semanticsLabel: 'Updating saved games',
+                ),
+              )
+            : null,
         leading: _selecting
             ? IconButton(
                 tooltip: 'Cancel selection',
@@ -474,17 +550,13 @@ class _RecentGamesPageState extends State<RecentGamesPage> {
                   '${game.isIncomplete ? 'Incomplete' : 'Completed'} · '
                   '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}',
                 ),
-                onTap: () async {
+                onTap: () {
+                  if (_busy) return;
                   if (_selecting) {
                     _toggleSelection(game.id);
                     return;
                   }
-                  final data =
-                      await (widget.openGame?.call(game.id) ??
-                          ActiveSessionStore.open(game.id));
-                  if (context.mounted && data != null) {
-                    Navigator.pop(context, data);
-                  }
+                  unawaited(_openGame(game));
                 },
                 onLongPress: () => _toggleSelection(game.id),
                 trailing: _selecting
@@ -499,6 +571,10 @@ class _RecentGamesPageState extends State<RecentGamesPage> {
           );
         },
       ),
+    );
+    return PopScope(
+      canPop: !_busy,
+      child: AbsorbPointer(absorbing: _busy, child: page),
     );
   }
 }

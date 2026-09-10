@@ -6,6 +6,44 @@ import 'package:maia_chess/main.dart';
 
 void main() {
   test(
+    'failed archive open does not change the active game identity',
+    () async {
+      final directory = await Directory.systemTemp.createTemp(
+        'maia-open-failure-',
+      );
+      addTearDown(() => directory.delete(recursive: true));
+      final store = SessionRepository(directory);
+      await store.save({'type': 'game', 'pgn': '1. e4 *'});
+      final firstId = (await store.recent()).single.id;
+      await store.startNew();
+      await store.save({'type': 'game', 'pgn': '1. d4 *'});
+      final secondId = (await store.recent()).first.id;
+      expect(secondId, isNot(firstId));
+      await store.open(firstId);
+      final obstruction = Directory('${directory.path}/active.json.pending');
+      await obstruction.create();
+      await expectLater(
+        store.open(secondId),
+        throwsA(isA<FileSystemException>()),
+      );
+      await obstruction.delete();
+      expect((await SessionRepository(directory).load())!['pgn'], '1. e4 *');
+      // Loading in a different repository must not be needed to repair the live
+      // repository's identity after a failed open. Resume the original game.
+      await store.save({'type': 'game', 'pgn': '1. e4 e5 *'});
+      final recent = await store.recent();
+      expect(
+        recent.singleWhere((game) => game.id == firstId).data['pgn'],
+        '1. e4 e5 *',
+      );
+      expect(
+        recent.singleWhere((game) => game.id == secondId).data['pgn'],
+        '1. d4 *',
+      );
+    },
+  );
+
+  test(
     'failed checkpoint write preserves the last save and the queue recovers',
     () async {
       final directory = await Directory.systemTemp.createTemp(

@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -846,6 +847,93 @@ void main() {
       await disposeGame(tester);
       await prefs.setBool('multiplePremoves', false);
       await prefs.setBool('premovePenalty', false);
+    },
+  );
+  testWidgets(
+    'Android Recent games recovers from a failed switch without mixing save IDs',
+    (tester) async {
+      final dataDirectory = await maiaEngineChannel.invokeMethod<String>(
+        'dataDirectory',
+      );
+      final directory = await Directory(dataDirectory!)
+          .createTemp('recent-regression-');
+      addTearDown(() => directory.delete(recursive: true));
+      final store = SessionRepository(directory);
+      Map<String, Object?> record(String event, String moves) => {
+        'type': 'game',
+        'recentState': 'incomplete',
+        'pgn': '[Event "$event"]\n[Result "*"]\n\n$moves *',
+      };
+      final first = record('First saved game', '1. e4');
+      final second = record('Second saved game', '1. d4');
+      await store.save(first);
+      final firstId = (await store.recent()).single.id;
+      await store.startNew();
+      await store.save(second);
+      final secondId = (await store.recent()).first.id;
+      await store.open(firstId);
+      final obstruction = Directory('${directory.path}/active.json.pending');
+      await obstruction.create();
+      Map<String, dynamic>? selected;
+      var attempts = 0;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Builder(
+              builder: (context) {
+                return TextButton(
+                  onPressed: () async {
+                    selected = await Navigator.push<Map<String, dynamic>>(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => RecentGamesPage(
+                          loadGames: store.recent,
+                          openGame: (id) {
+                            attempts++;
+                            return store.open(id);
+                          },
+                        ),
+                      ),
+                    );
+                  },
+                  child: const Text('Open recent'),
+                );
+              },
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.text('Open recent'));
+      await waitFor(
+        tester,
+        () => find.text('Second saved game').evaluate().isNotEmpty,
+      );
+      await tester.tap(find.text('Second saved game'));
+      await waitFor(
+        tester,
+        () => find
+            .text('Could not open saved game. Please try again.')
+            .evaluate()
+            .isNotEmpty,
+      );
+      expect(tester.takeException(), isNull);
+      await obstruction.delete();
+      final resumed = record('First saved game', '1. e4 e5');
+      await store.save(resumed);
+      final games = await store.recent();
+      expect(games.singleWhere((game) => game.id == firstId).data, resumed);
+      expect(games.singleWhere((game) => game.id == secondId).data, second);
+      await tester.tap(find.text('Second saved game'));
+      await waitFor(tester, () => selected != null);
+      expect(attempts, 2);
+      expect(selected, second);
+      expect(await store.load(), second);
+      expect(
+        (await store.recent()).singleWhere((game) => game.id == firstId).data,
+        resumed,
+      );
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pumpAndSettle();
     },
   );
 }
