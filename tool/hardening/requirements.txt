@@ -1,3 +1,3 @@
-# Optional: regenerate the independent chess-rule corpus.
+# Development only: independent chess corpora and release upgrade verification.
 python-chess==1.999
 chess==1.11.2

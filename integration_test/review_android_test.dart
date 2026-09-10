@@ -15,6 +15,7 @@ import 'package:maia_chess/main.dart';
 import '../test/fixtures/variation_navigation_game.dart';
 import '../test/fixtures/electronic_board.dart';
 import '../test/fixtures/launch_game.dart';
+import '../test/fixtures/nested_takeback_game.dart';
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
@@ -527,6 +528,87 @@ void main() {
     await tester.pumpWidget(const SizedBox.shrink());
     await tester.pumpAndSettle();
   });
+
+  testWidgets(
+    'Android nested takebacks stay unique through analysis, clipboard and reopen',
+    (tester) async {
+      await ActiveSessionStore.clear();
+      final preferences = await SharedPreferences.getInstance();
+      await preferences.setBool('humanTiming', false);
+      final maia = ControlledMaia();
+      await ActiveSessionStore.save(
+        gameRecord(
+          pgn: '[Event "Nested takeback regression"]\n$nestedTakebackGame',
+          playerWhite: false,
+          preset: 'unlimited',
+        ),
+      );
+      Future<void> open() async {
+        await tester.pumpWidget(
+          MaterialApp(home: GamePage(maiaEvaluator: maia.call)),
+        );
+        await waitFor(
+          tester,
+          () => find.byType(cg.Chessboard).evaluate().isNotEmpty,
+        );
+      }
+
+      Future<void> action(String label) async {
+        await tester.tap(find.byKey(const ValueKey('game-actions-menu')));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text(label));
+        await tester.pumpAndSettle();
+      }
+
+      void checkLine(String pgn) {
+        var parent = dc.PgnGame.parsePgn(pgn).moves;
+        for (var ply = 0; ply < 23; ply++) {
+          parent = parent.children.first;
+        }
+        expect(parent.children, hasLength(2));
+        final branch = parent.children[1];
+        expect(
+          [branch.data.san, ...branch.mainline().map((n) => n.san)],
+          ['Qxe7', 'Qe2', 'Qd7', 'Qe3'],
+        );
+        expect(RegExp('Queen note').allMatches(pgn), hasLength(1));
+        expect(RegExp('Reply note').allMatches(pgn), hasLength(1));
+      }
+
+      await open();
+      await action('Take back move');
+      await action('Take back move');
+      expect((await ActiveSessionStore.load())!['uciMoves'], hasLength(23));
+      boardOf(tester).onMove!(dc.NormalMove.fromUci('d8e7'));
+      await waitFor(tester, () => maia.requests.isNotEmpty);
+      maia.reply('g1g2');
+      await tester.pumpAndSettle();
+      final before = (await ActiveSessionStore.load())!;
+      checkLine(before['pgn'] as String);
+      for (var visit = 0; visit < 3; visit++) {
+        await action('Analysis Board');
+        await waitForRealEvaluation(tester);
+        Navigator.of(tester.element(find.byType(ReviewPage))).pop();
+        await tester.pumpAndSettle();
+        final saved = (await ActiveSessionStore.load())!;
+        checkLine(saved['pgn'] as String);
+        expect(saved['pgn'], before['pgn']);
+        expect(saved['uciMoves'], before['uciMoves']);
+        await tester.pumpWidget(const SizedBox.shrink());
+        await tester.pumpAndSettle();
+        await open();
+      }
+      await tester.tap(find.byKey(const ValueKey('game-share-menu')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Copy PGN'));
+      await tester.pumpAndSettle();
+      final clipboard = await Clipboard.getData(Clipboard.kTextPlain);
+      expect(clipboard?.text, before['pgn']);
+      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pumpAndSettle();
+    },
+  );
 
   testWidgets(
     'Android new-game flow preserves all completed result types in Recent Games',

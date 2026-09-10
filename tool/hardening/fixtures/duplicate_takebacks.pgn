@@ -1,0 +1,13 @@
+[Event "Synthetic release upgrade regression"]
+[White "Test White"]
+[Black "Test Black"]
+[Result "1-0"]
+[TimeControl "900+10"]
+
+1. e4 e5 2. Nf3 Nc6 3. Nc3 Nf6 4. Bb5 d6 5. O-O Bg4 6. h3 Bh5 7. g4 Nxg4 8. hxg4 Bxg4
+9. Bxc6+ bxc6 10. d3 h5 11. Bg5 Be7 12. Bxe7 Qxe7 ( 12... Qxe7 13. Qe2 $5 Qd7
+{ Queen note } 14. Qe3 ) ( 12... Qxe7 13. Qe2 $5 Qd7 14. Qe3 { Reply note } ) ( 12...
+Qxe7 13. Qe2 $5 Qd7 { Queen note } 14. Qe3 { Reply note } ) 13. Kg2 h4 14. Rh1 h3+ 15.
+Kg3 Bh5 16. Rxh3 O-O-O 17. Qh1 g6 18. Rg1 Rh7 19. Kg2 Rdh8 20. Kf1 Bxf3 21. Qxf3 Rxh3
+22. Qg4+ Kb8 23. Rg3 R3h4 24. Qf3 Rf4 25. Qe3 Qh4 26. Ne2 Qh1+ 27. Rg1 Rh3 ( 27... Rg4
+28. Rxh1 Rxh1+ 29. Ng1 Rgxg1+ 30. Ke2 ) 28. Nxf4 Rxe3 29. Rxh1 exf4 30. fxe3 1-0

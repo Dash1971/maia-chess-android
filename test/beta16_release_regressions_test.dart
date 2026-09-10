@@ -235,6 +235,21 @@ void main() {
           );
           // Validate all exported branches, not only the played main line.
           PgnVariationExporter.parseTree(pgn);
+          final leaves = <String>{};
+          void visit(dc.PgnNode<dc.PgnNodeData> node, List<String> path) {
+            if (node.children.isEmpty) {
+              expect(
+                leaves.add(path.join(' ')),
+                isTrue,
+                reason: 'Duplicate continuation in release trace $seed: $path',
+              );
+            }
+            for (final child in node.children) {
+              visit(child, [...path, child.data.san]);
+            }
+          }
+
+          visit(dc.PgnGame.parsePgn(pgn).moves, []);
           expect(tester.takeException(), isNull);
         }
 
@@ -271,6 +286,22 @@ void main() {
             if (turn % 3 == 0) await takeBack(2);
           }
           await verify();
+          if (turn % 4 == 0) {
+            final before = (await ActiveSessionStore.load())!['pgn'];
+            await tester.tap(find.byKey(const ValueKey('game-actions-menu')));
+            await tester.pumpAndSettle();
+            await tester.tap(find.text('Analysis Board'));
+            await tester.pumpAndSettle();
+            Navigator.of(tester.element(find.byType(ReviewPage))).pop();
+            await tester.pumpAndSettle();
+            expect(
+              (await ActiveSessionStore.load())!['pgn'],
+              before,
+              reason:
+                  'Review visit must preserve the complete PGN at turn $turn',
+            );
+            await verify();
+          }
           if (turn % 5 == 0) {
             tester.binding.handleAppLifecycleStateChanged(
               AppLifecycleState.paused,

@@ -25,6 +25,7 @@ part 'src/pgn_files.dart';
 part 'src/maia_queue.dart';
 part 'src/diagnostics.dart';
 part 'src/session_types.dart';
+part 'src/variation_tree.dart';
 part 'src/game_clocks.dart';
 part 'src/premoves.dart';
 part 'src/active_session_store.dart';

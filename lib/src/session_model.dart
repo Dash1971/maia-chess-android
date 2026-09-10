@@ -90,7 +90,10 @@ class PgnVariationExporter {
       );
     }
 
-    return parsed.moves.children.map((node) => line(node, fen, 0, 0)).toList();
+    return VariationTree.normalize(
+      parsed.moves.children.map((node) => line(node, fen, 0, 0)).toList(),
+      preserveFirst: true,
+    );
   }
 
   static String export(
@@ -201,7 +204,7 @@ class PgnVariationExporter {
       }
     }
 
-    for (final root in roots) {
+    for (final root in VariationTree.normalize(roots, preserveFirst: true)) {
       addLine(tree, root);
     }
     final comments = [
@@ -216,7 +219,7 @@ class PgnVariationExporter {
       // back into the played main line. Session JSON retains the editable tree.
       final noteTree = mainSan.isEmpty ? tree : dc.PgnNode<dc.PgnNodeData>();
       if (mainSan.isNotEmpty) {
-        for (final line in unplayed) {
+        for (final line in VariationTree.normalize(unplayed)) {
           addLine(noteTree, line);
         }
       }

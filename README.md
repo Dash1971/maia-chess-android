@@ -420,6 +420,11 @@ the procedure is not itself evidence that a particular release reproduced.
 The manual Checks workflow can build an unsigned APK; pull requests run the
 Dart analyzer and regression tests.
 
+The [release verification guide](tool/hardening/RELEASE_CHECKS.md) includes
+portable APK checks, sanitized saved-game upgrade fixtures, emulator commands,
+and CI artifact retention. See the [hardening guide](tool/hardening/README.md)
+for the full regression suites and independent chess/variation corpora.
+
 Official releases are signed with the dedicated Mobile Maia app-signing key.
 The build reads `MOBILE_MAIA_KEYSTORE`, `MOBILE_MAIA_STORE_PASSWORD`, and
 `MOBILE_MAIA_KEY_PASSWORD` from the environment; no signing secrets belong in

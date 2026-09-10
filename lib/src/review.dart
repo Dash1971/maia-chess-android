@@ -283,43 +283,43 @@ class _ReviewPageState extends State<ReviewPage>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _flipped = widget.initialFlipped;
-    _variations = List.of(widget.initialVariations);
+    bool sameLine(RecordedVariation line) =>
+        line.basePly == 0 && _sameMoves(line.sanMoves, widget.sanMoves);
+    final initialVariations = VariationTree.normalize(
+      widget.initialVariations,
+      preserveFirst:
+          widget.initialTreeIsAuthoritative ||
+          (widget.initialVariations.isNotEmpty &&
+              sameLine(widget.initialVariations.first)),
+    );
+    _variations = List.of(initialVariations);
     if (widget.onSessionChanged != null &&
         !widget.initialTreeIsAuthoritative &&
         widget.sanMoves.isNotEmpty) {
-      bool sameLine(RecordedVariation line) =>
-          line.basePly == 0 && _sameMoves(line.sanMoves, widget.sanMoves);
       final parsed = PgnVariationExporter.parseTree(widget.pgn);
       if (parsed.isNotEmpty && sameLine(parsed.first)) {
-        // The complete seed PGN includes its comments and imported variations.
+        // PGN flattens terminal children created by successive takebacks.
+        // Merge equivalent paths and their notes instead of comparing only
+        // each saved segment's immediate SAN list.
+        final root = parsed.first;
         _variations
           ..clear()
-          ..addAll(parsed);
-        for (final line in widget.initialVariations) {
-          if (!sameLine(line) &&
-              !_variations.any(
-                (v) =>
-                    v.basePly == line.basePly &&
-                    _sameMoves(v.sanMoves, line.sanMoves),
-              )) {
-            if (line.basePly == 0) {
-              _variations.add(line);
-            } else if (!_variations.first.children.any(
-              (v) =>
-                  v.basePly == line.basePly &&
-                  _sameMoves(v.sanMoves, line.sanMoves),
-            )) {
-              final root = _variations.first;
-              _variations[0] = RecordedVariation(
-                basePly: 0,
+          ..addAll(
+            VariationTree.normalize([
+              RecordedVariation(
+                basePly: root.basePly,
                 baseFen: root.baseFen,
                 sanMoves: root.sanMoves,
                 annotations: root.annotations,
-                children: [...root.children, line],
-              );
-            }
-          }
-        }
+                children: [
+                  ...root.children,
+                  ...initialVariations.where((line) => line.basePly > 0),
+                ],
+              ),
+              ...parsed.skip(1),
+              ...initialVariations.where((line) => line.basePly == 0),
+            ], preserveFirst: true),
+          );
       } else if (!_variations.any(sameLine)) {
         final attached = _variations.where((line) => line.basePly > 0).toList();
         _variations.removeWhere((line) => line.basePly > 0);

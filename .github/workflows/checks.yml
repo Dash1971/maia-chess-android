@@ -24,7 +24,11 @@ jobs:
       - run: flutter pub get --enforce-lockfile
       - run: flutter analyze
       - run: flutter test --reporter expanded
-      - run: python3 -m unittest discover -s tool -p '*_test.py'
+      - name: Test release verification tools
+        run: |
+          python3 -m venv "$RUNNER_TEMP/release-checks-venv"
+          "$RUNNER_TEMP/release-checks-venv/bin/pip" install -r tool/hardening/requirements.txt
+          "$RUNNER_TEMP/release-checks-venv/bin/python" -m unittest discover -s tool -p '*_test.py'
   android:
     if: github.event_name == 'workflow_dispatch' && inputs.build_android
     runs-on: ubuntu-24.04
@@ -42,8 +46,25 @@ jobs:
           test "$(git -C "$RUNNER_TEMP/flutter" rev-parse HEAD)" = 6655482ec06e547f90abf8ae7590466f4415978d
           echo "$RUNNER_TEMP/flutter/bin" >> "$GITHUB_PATH"
       - run: python3 tool/verify_model.py
-      - run: tool/build_android_release.sh
+      - name: Build release APK
+        shell: bash
+        run: |
+          set -o pipefail
+          mkdir -p release-checks
+          tool/build_android_release.sh 2>&1 | tee release-checks/build.log
+      - name: Verify release packaging
+        run: |
+          python3 tool/verify_release_apk.py build/app/outputs/flutter-apk/app-arm64-v8a-release.apk \
+            --output release-checks/apk.json
+      - name: Upload verification diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-verification
+          path: release-checks/
+          retention-days: 14
       - uses: actions/upload-artifact@v4
         with:
           name: unsigned-android-release
           path: build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
+          retention-days: 14
