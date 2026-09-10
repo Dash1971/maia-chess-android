@@ -865,7 +865,7 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
       );
       if (text != null) {
         consumed = true;
-        final session = await Isolate.run(() => AnalysisSession.fromPgn(text));
+        final session = await AnalysisSession.fromPgnAsync(text);
         if (mounted) await _openImportedSession(session);
       }
     } on MissingPluginException {

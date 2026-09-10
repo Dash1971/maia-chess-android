@@ -1,10 +1,14 @@
 import 'dart:typed_data';
 
 import 'package:chess/chess.dart' as chess;
+import 'package:chessground/chessground.dart' as cg;
+import 'package:dartchess/dartchess.dart' as dc;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:maia_chess/main.dart';
+
+import '../test/fixtures/variation_navigation_game.dart';
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
@@ -46,6 +50,88 @@ void main() {
     }
     fail('real Stockfish evaluation did not finish within 24 seconds');
   }
+
+  testWidgets('move 16 returns to the main line with real engines on Android', (
+    tester,
+  ) async {
+    final session = AnalysisSession.fromPgn(variationNavigationPgn);
+    final root = PgnVariationExporter.parseTree(session.pgn).single;
+    final branch = root.children.singleWhere((v) => v.basePly == 30);
+    final position = chess.Chess.fromFEN(branch.baseFen);
+    for (final san in branch.sanMoves) {
+      expect(position.move(san), isTrue);
+    }
+    await tester.pumpWidget(
+      MaterialApp(
+        home: AnalysisBoardPage(
+          initialSession: session,
+          initialCurrentFen: position.fen,
+          maiaElo: 1600,
+        ),
+      ),
+    );
+    await tester.pump();
+    await waitForRealEvaluation(tester);
+    for (var i = 0; i < 2; i++) {
+      await tester.tap(find.byKey(const ValueKey('previous-move-button')));
+      await tester.pump();
+    }
+    await waitForRealEvaluation(tester);
+    final selected = find.byKey(const ValueKey('mainline-move-29'));
+    expect(tester.widget<Material>(selected).color, isNot(Colors.transparent));
+    final board = tester.widget<cg.Chessboard>(find.byType(cg.Chessboard));
+    expect(
+      board.controller.fen,
+      dc.Chess.fromSetup(dc.Setup.parseFen(session.positions[30])).fen,
+    );
+    expect(board.controller.lastMove?.uci, session.uciMoves[29]);
+    await tester.tap(find.byKey(const ValueKey('next-move-button')));
+    await tester.pump();
+    await waitForRealEvaluation(tester);
+    expect(
+      tester
+          .widget<Material>(find.byKey(const ValueKey('mainline-move-30')))
+          .color,
+      isNot(Colors.transparent),
+    );
+    expect(tester.takeException(), isNull);
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
+  });
+
+  testWidgets('pasted PGN crosses the isolate boundary on Android', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: AnalysisBoardPage(
+          initialSession: AnalysisSession.start(),
+          maiaElo: 1600,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('analysis-actions-menu')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Load PGN'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField), variationNavigationPgn);
+    await tester.tap(find.widgetWithText(FilledButton, 'Load'));
+    for (var attempt = 0; attempt < 100; attempt++) {
+      await tester.pump(const Duration(milliseconds: 100));
+      final review = tester.widget<ReviewPage>(find.byType(ReviewPage));
+      if (review.sanMoves.lastOrNull == 'Ra4#') break;
+    }
+    expect(
+      tester.widget<ReviewPage>(find.byType(ReviewPage)).sanMoves.last,
+      'Ra4#',
+    );
+    expect(find.text('Qc3'), findsOneWidget);
+    await waitForRealEvaluation(tester);
+    expect(tester.takeException(), isNull);
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
+  });
 
   testWidgets('real Stockfish survives navigation and graph taps on Android', (
     tester,

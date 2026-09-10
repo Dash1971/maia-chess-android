@@ -164,7 +164,8 @@ class _AnalysisBoardPageState extends State<AnalysisBoardPage> {
     final value = await _textDialog('Load PGN', 'Paste a PGN game');
     if (value == null || value.trim().isEmpty) return;
     try {
-      final session = await Isolate.run(() => AnalysisSession.fromPgn(value));
+      final session = await AnalysisSession.fromPgnAsync(value);
+      if (!mounted) return;
       await ActiveSessionStore.startNew();
       if (mounted) _replace(session);
     } catch (error) {

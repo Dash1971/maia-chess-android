@@ -1183,7 +1183,8 @@ class _ReviewPageState extends State<ReviewPage>
     // en-passant rights, castling rights, or move counters.
     final canonical = _canonicalFen(fen);
     bool matches(String value) =>
-        value == fen || (canonical != null && _canonicalFen(value) == canonical);
+        value == fen ||
+        (canonical != null && _canonicalFen(value) == canonical);
     bool visit(RecordedVariation variation) {
       final game = chess.Chess.fromFEN(variation.baseFen);
       if (matches(variation.baseFen)) {
@@ -1834,6 +1835,31 @@ class _ReviewPageState extends State<ReviewPage>
   void _step(int delta) {
     _cancelSelectedWork();
     if (_inVariation) {
+      final root = _rootMainline;
+      if (delta < 0 &&
+          _variationIndex <= 1 &&
+          (root == null || !identical(_openedVariation, root))) {
+        // A branch's index zero is a position on its parent line. Select
+        // that actual node so its move stays highlighted and Back/Next
+        // continue along the parent instead of stopping on an invisible node.
+        final basePly = _variationBasePly!;
+        final opened = _openedVariation;
+        final path = opened == null ? null : _pathToVariation(opened);
+        if (path != null) {
+          for (var depth = path.length - 2; depth >= 0; depth--) {
+            final parent = path[depth];
+            final index = basePly - parent.basePly;
+            if (index > 0 || identical(parent, root)) {
+              _openVariation(parent, index);
+              return;
+            }
+          }
+        }
+        // Top-level alternatives in a Game Review attach directly to its
+        // original moves, rather than to another RecordedVariation.
+        setState(() => _showMainPly(basePly));
+        return;
+      }
       final next = (_variationIndex + delta).clamp(0, _variationSan.length);
       setState(() {
         _variationIndex = next;
@@ -1874,10 +1900,11 @@ class _ReviewPageState extends State<ReviewPage>
   }
 
   bool get _atAnalysisStart {
+    if (!_inVariation) return _ply == 0;
     final root = _rootMainline;
-    return root != null
-        ? identical(_openedVariation, root) && _variationIndex == 0
-        : !_inVariation && _ply == 0;
+    return root != null &&
+        identical(_openedVariation, root) &&
+        _variationIndex == 0;
   }
 
   bool get _atAnalysisEnd {
@@ -2108,7 +2135,7 @@ class _ReviewPageState extends State<ReviewPage>
               key: const ValueKey('previous-move-button'),
               tooltip: 'Previous move',
               icon: CupertinoIcons.chevron_back,
-              tapEnabled: !(_inVariation ? _variationIndex == 0 : _ply == 0),
+              tapEnabled: !_atAnalysisStart,
               longPressEnabled: !_atAnalysisStart,
               onTap: () => _step(-1),
               onLongPress: _jumpToStart,

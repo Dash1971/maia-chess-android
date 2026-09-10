@@ -249,6 +249,10 @@ stays at the end belonging to the advantaged side and follows the board when it
 is flipped. Maia also suggests the most likely human move at the configured
 rating. Agreement between Maia and Stockfish is shown by a two-tone arrow.
 
+The Back arrow rewinds a variation into the parent line at the position where
+it branched, keeping that move highlighted. Repeated Back presses continue
+through nested variations to the main line; Forward then follows that line.
+
 Open **Computer** and run computer analysis to add separate White and Black
 accuracy percentages, a tap-to-navigate evaluation graph,
 opening/middlegame/endgame separators, and colour-coded Brilliant, Good,

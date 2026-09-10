@@ -53,6 +53,14 @@ timeout draws against insufficient mating material, analysis restoration and
 existing variations after pawn double moves, failed checkpoint writes, and a
 1,000-game archive. These run as part of the standard suite.
 
+`test/variation_navigation_test.dart` covers returning from imported and nested
+variations, move highlighting, root alternatives, black-to-move starting FENs,
+save/reopen, stale analysis replies, repeated branch exits with annotations,
+and every main-line move of the reported 66-move game in both directions.
+`test/pgn_import_routes_test.dart` drives shared, pasted, and file-picker PGNs
+through their screens with the real background parser. This guards against
+isolate closures accidentally capturing unsendable widget state.
+
 The 1,000-ply PGN stress test prints a host timing for import and round-trip.
 Compare timings on the same host; it does not establish phone performance.
 
@@ -74,6 +82,9 @@ Substitute the actual emulator ID. Integration tests exercise the real Maia
 policy bridge, real Stockfish navigation and graph analysis, a reported game
 replay, and checkmate UI handling. Test-only simulated transports cover Bluetooth
 failures; the emulator does not establish actual GATT or LED behavior.
+The reported move-16 variation is also exercised with the real engines, checking
+that Back selects the highlighted main-line move and Forward follows that line.
+The paste dialog also imports the reported PGN through a real isolate on Android.
 
 Keep release artifacts unsigned for review. Do not commit materialized model
 binaries, SDKs, caches, emulator disks, or generated APKs. The checked-in LFS

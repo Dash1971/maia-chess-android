@@ -207,6 +207,11 @@ class AnalysisSession {
   factory AnalysisSession.fromJson(Map<String, dynamic> json) =>
       AnalysisSession.fromPgn(json['pgn'] as String);
 
+  // Keep the isolate closure out of widget methods: another closure in the
+  // same method can make it capture an unsendable State/BuildContext as well.
+  static Future<AnalysisSession> fromPgnAsync(String source) =>
+      Isolate.run(() => AnalysisSession.fromPgn(source));
+
   static void validateFen(String fen) {
     try {
       dc.Chess.fromSetup(dc.Setup.parseFen(fen.trim()));
