@@ -81,24 +81,24 @@ somebody else's server.
 Mobile Maia is an independent community project, not an official Maia Chess,
 University of Toronto CSSLab, Stockfish, or Lichess app.
 
-## Latest release — v2.0.0
+## Next release — v2.1.0
 
-[Mobile Maia v2.0.0](https://github.com/Dash1971/maia-chess-android/releases/tag/v2.0.0)
-brings the tested Preview experience to the stable app:
+Mobile Maia 2.1 promotes the complete Preview 2.1 cycle to the stable app:
 
-- Lichess-style tap-and-drag play, compact analysis controls, move navigation,
-  and game-conclusion actions.
-- Recent Games for completed games and explicitly saved incomplete games, with
-  multi-select and delete-all controls.
-- Reliable restoration of active games, analysis trees, variations, clocks,
-  and board orientation.
-- Android Files, Open with, and share-sheet PGN import and export.
-- Correct analysis branching and nested-variation export.
-- Stronger Maia and Stockfish request cancellation, model verification, and
-  lifecycle handling.
-- A fix for Maia 500 mirroring White's moves while playing Black.
+- Experimental Chessnut Go support with strict full-position matching, LEDs,
+  board sounds, physical takebacks, reconnect recovery, and the option to
+  continue an unfinished board game on the phone.
+- Endgame draw offers, remembered game setup, and Fast, Balanced, or Thorough
+  full-game analysis.
+- Optional 100 ms premove penalties and multiple queued premoves, while the
+  default remains Lichess-style single premoves with no fixed deduction.
+- Hold-to-start/end move navigation and accurate historical clocks during
+  completed-game review.
+- Standard `TimeControl` headers and `[%clk ...]` annotations in timed PGNs.
+- More reliable variation navigation, takeback preservation, Android PGN
+  import, Recent Games recovery, and completed-game New game prompts.
 
-See the [complete release notes and APK](https://github.com/Dash1971/maia-chess-android/releases/tag/v2.0.0).
+See the [complete 2.1 release notes](docs/release-notes/v2.1.0.md).
 
 ## Preview channel — active development
 
@@ -108,7 +108,7 @@ Preview builds use a yellow/gold app icon and a separate Android package, so
 they can be installed beside the stable blue Mobile Maia app without replacing
 it.
 
-Preview v1.7.0-beta.30 supplied the changes promoted into Mobile Maia 2.0.0.
+Preview v2.1.0-beta.19 supplied the changes prepared for Mobile Maia 2.1.0.
 Future experimental work can continue in the Preview repository without
 replacing the stable app.
 
@@ -174,8 +174,51 @@ death, device restart, or an app update.
 
 Choose White, Black, or a random side, set Maia's rating, and select a clock.
 Mobile Maia works entirely offline: the Maia-3 model and Stockfish are bundled
-with the app, and no account is required. The selected Maia rating is stored
-locally and reused the next time the app starts.
+with the app, and no account is required. Your side choice (including
+**Random**), time-control preset, custom minutes and increment, Maia rating,
+and advanced engine settings are stored locally and reused the next time the
+app starts.
+
+#### Experimental Chessnut Go support
+
+Enable **Chessnut Go (experimental)** on the home screen, grant Android's
+nearby-device permission, and select **Connect Chessnut Go**. Set up the
+standard starting position before starting an unlimited game. Your physical
+moves are entered directly into Mobile Maia; after Maia replies, the move's
+from- and to-squares light on the board. Play the lit move before continuing.
+LED writes are paced, refreshed conservatively, and cleared when stale so
+rapid board updates cannot overwrite the current indication.
+
+Mobile Maia compares every sensed piece with the complete legal position.
+Lifting a piece or moving only the rook during castling is treated as an
+unfinished action, not a move. If a completed position is illegal or the board
+is out of sync, the squares that need correction light up. The board gives one
+short beep for check, two distinct beeps for checkmate, and one beep for a
+complete-looking illegal move. Temporary piece lifts remain silent, repeated
+board frames do not repeat the alert, and **Board sounds** can be disabled.
+
+**Take back move** removes the latest player/Maia turn, or the only available
+move. The reverted moves remain in the exported PGN as a variation. Every
+physical square that must be restored lights up, and play resumes only after
+the complete board matches the reverted position. Restoration guidance is
+retained across a reconnect or app restart.
+
+The Bluetooth icon in a live game shows connection and battery status and
+provides reconnect, sound, disconnect, and **Play in app** controls. If the
+board loses power or disconnects, a compact card offers **Reconnect** and
+**Play in app**. Reconnect preserves the game and checks the full physical
+position before play continues. Pending Maia and takeback LEDs are restored.
+
+**Play in app** switches the current game to on-screen moves, even while
+connecting or waiting to copy Maia's move onto the physical board. The
+position, moves, variations, rating, orientation, and unlimited time control
+are retained. Reopened games continue on the phone, and completed games opened
+from **Recent games** never reactivate Chessnut mode.
+
+Mobile Maia 2.1 targets Chessnut Go over Bluetooth. Timed e-board games,
+arbitrary starting positions, USB connections, Analysis Board input, and other
+Chessnut models are not yet supported. The app continues to work normally
+without Bluetooth permission when Chessnut support is not enabled.
 
 <p align="center">
   <img src="docs/screenshots/20260906_v0_home_setup.jpg" width="30%" alt="Choose a side, Maia rating, time control, or Analysis Board">
@@ -187,10 +230,24 @@ locally and reused the next time the app starts.
   <img src="docs/screenshots/20260906_v0_sampling_help.jpg" width="38%" alt="In-app explanation of Maia Temperature and Top-P">
 </p>
 
-Advanced settings control human-like move timing, Temperature, Top-P, and the
-rating used for Maia's human-move suggestion during review. The default review
-rating is 1600. **Copy diagnostics** is also available here if a reproducible
-screen error needs investigation.
+Advanced settings control premoves, human-like move timing, Temperature, Top-P, the
+rating used for Maia's human-move suggestion during review, and full-game
+analysis quality. **Thorough** remains the default (depth 16, up to 1.5 seconds
+per position); **Balanced** uses depth 14 and one second; **Fast** uses depth 12
+and half a second, trading some graph and classification consistency for speed.
+The default review rating is 1600. **Copy diagnostics** is also available here
+for troubleshooting.
+The local report includes the app version, Android/device model, OS/firmware
+build and security patch, CPU ABIs, memory page size, RAM/heap/storage figures,
+Maia model-cache state, privacy-safe Bluetooth/GATT state, recent connection
+transitions, first Maia inference timing, and Android's recent process-exit
+reason when supported.
+It never includes a device serial, Bluetooth address, board name, chess
+position, or PGN, and nothing is uploaded automatically.
+
+Diagnostics are pruned whenever they are written or copied. Mobile Maia retains
+at most 14 days, 40 entries, 8,000 characters per entry, and 128,000 characters
+in total; the oldest data is removed as soon as any limit is exceeded.
 
 #### Temperature and Top-P
 
@@ -221,11 +278,35 @@ For a deeper explanation, see the
 
 Tap or drag pieces to play. The status card shows whose turn it is, while the
 material row and move strip update throughout the game. Premoves can be entered
-while Maia is thinking. The bottom toolbar opens the game menu, resigns, and
-steps backward or forward through played moves. Historical positions are
-read-only until you return to the live position. **Takeback** is in the game
-menu; it restores the board and clock while retaining the abandoned line as a
-variation when the PGN is copied.
+while Maia is thinking. They are enabled by default, with one queued move and
+no fixed time deduction. Advanced settings can enable **100 ms premove penalty**
+and **Allow multiple premoves** independently. The penalty consumes exactly
+0.1 seconds per executed premove, including processing time, then awards the
+normal increment. With 100 ms or less remaining, the player flags before the
+move and receives no increment. Unlimited games ignore the penalty.
+
+Multiple-premoves mode previews the planned positions and shows an ordered,
+horizontally scrollable move strip with a **Cancel premoves** button. Up to 64
+moves may be queued. After each Maia reply, only the next move may execute,
+after checking it against the actual position. An illegal premove cancels the
+remaining sequence. Navigation, takebacks, leaving or restarting a game, and
+game completion clear the queue. Premoves apply only to on-screen games.
+
+The bottom toolbar opens the game menu, resigns, and steps backward or forward
+through played moves. Hold Back to jump to the starting position; hold Forward
+to return to the latest position. After completion, both clocks follow the
+selected position, including the increment already awarded. The final position
+shows the actual final clocks, including a timeout. Missing historical values
+in older games appear as a dash. Historical positions are read-only until you
+return to the live position. **Takeback** restores the board and clock while
+retaining the abandoned line as a variation when the PGN is copied.
+
+In an endgame, **Offer draw** appears in the game menu and opens a confirmation
+dialog. Maia accepts when Stockfish evaluates its position at no more than a
+0.30-pawn advantage, including equal and losing positions, and declines when
+it is more than 0.30 ahead. A declined offer cannot be repeated until the
+position changes. An accepted offer is saved as **Draw by agreement** with a
+`1/2-1/2` PGN result.
 
 <p align="center">
   <img src="docs/screenshots/20260906_v0_live_game_opening.jpg" width="30%" alt="Live game against Maia in an opening position">
@@ -243,7 +324,8 @@ Games and analysis are checkpointed in app-private files, with a previous-good
 backup for recovery. **Recent games** contains completed games and incomplete
 games explicitly saved with Home. Incomplete games are labelled and become the
 same completed record when finished. **Reset game** warns before permanently
-removing the current game and starting again.
+removing an unfinished game and starting again. After completion, the action
+becomes **New game** and confirms that the result will remain in Recent Games.
 
 Recent games supports multi-select, select all, selected deletion, and delete
 all. Android may erase app-private data when the app is uninstalled; use
@@ -259,11 +341,20 @@ to 2 MB and 20,000 moves across all branches. Save and share use Android's
 system picker and temporary URI grants; no storage or Internet permission is
 required. PGN import uses the first game in a multi-game document.
 
+Timed-game PGNs include the standard `TimeControl` header and `[%clk ...]`
+comments with each mover's remaining time after their move, to millisecond
+precision. Copy, save, share, and saved games use the same clock data. Existing
+imported clocks and annotations are retained. Unlimited games and missing clock
+history receive no invented move times. Takebacks remove the corresponding
+mainline clock entries while retaining the abandoned variation.
+
 Training clocks pause while the app is backgrounded, while reviewing the
 current game, or after a Maia error. Returning resumes the saved clock; Retry
 restarts a failed Maia turn. Analysis stops scheduling engine work offscreen.
 Selecting a position gets a short Stockfish search, then a longer refinement if
-it remains selected. Full computer analysis uses the longer budget.
+it remains selected. The analysis-quality preset affects only full-game graph
+analysis; it is snapshotted when a run starts and does not change interactive
+analysis, gameplay, or draw evaluation.
 
 ### Analysis Board and computer review
 
@@ -271,8 +362,13 @@ After a game, select **Analysis Board**. The board remains fixed at the top
 while **Moves** and **Computer** switch the panel below it. Select any move to
 jump directly to that position. The evaluation bar and blue arrows show
 Stockfish's assessment and leading moves. Maia also suggests the most likely
-human move at the configured rating. Agreement between Maia and Stockfish is
-shown by a two-tone arrow.
+human move at the configured rating. Matching Lichess, the numeric score stays
+at the end belonging to the advantaged side and follows the board when it is
+flipped. Agreement between Maia and Stockfish is shown by a two-tone arrow.
+
+The Back arrow rewinds a variation into the parent line at the position where
+it branched, keeping that move highlighted. Repeated Back presses continue
+through nested variations to the main line; Forward then follows that line.
 
 Open **Computer** and run computer analysis to add separate White and Black
 accuracy percentages, a tap-to-navigate evaluation graph,
@@ -301,7 +397,7 @@ notice, complete source and licence links, and credits for Maia-3, Lichess,
 and En Croissant components and adapted code.
 
 <p align="center">
-  <img src="docs/screenshots/20260906_v0_about.jpg" width="38%" alt="Mobile Maia 2.0 About screen with AGPL terms, source and licence links, and project credits">
+  <img src="docs/screenshots/20260906_v0_about.jpg" width="38%" alt="Mobile Maia About screen with AGPL terms, source and licence links, and project credits">
 </p>
 
 ## MVP features
@@ -309,24 +405,34 @@ and En Croissant components and adapted code.
 - Bundled Maia-3 79M model; no account, server, or network connection required
 - Offline Analysis Board with Stockfish evaluation and Maia move comparison
 - Automatic restoration of active games, reviews, and analysis trees
+- Recent Games for completed games and explicitly saved incomplete games
+- Multi-select, select-all, selected deletion, and delete-all game management
 - FEN/PGN loading, FEN/PGN copying, and graphical position editing
+- Android Files, Open with, and share-sheet PGN import and export
 - Play against Maia from the current analysis position
 - Complete offline Lichess CC0 opening-name and ECO recognition
 - Play as White, Black, or a random side
+- Experimental Chessnut Go play with strict position matching, move and
+  takeback LEDs, check/illegal-move sounds, battery status, and reconnect controls
 - Unlimited play by default, Lichess-style clock presets, or custom time and increment
+- Persistent side and time-control setup, including Random and custom clock values
 - Easy (800), Medium (1500), Hard (2200), or custom Elo
 - Optional human-like move timing with persistent advanced settings
-- Premoves while Maia is thinking, with invalid premoves cancelled safely
+- Single or multiple premoves, with an optional 100 ms penalty and invalid sequences cancelled safely
 - Takebacks that restore the previous playable position and clock state while preserving the abandoned line in PGN
 - Adjustable Maia Temperature and Top-P from 0 to 1 (defaults 0.5 and 0.9)
 - Lichess Chessground board with the default brown theme and Cburnett pieces
 - Legal move handling, checkmate/draw detection, move list, and rematches
 - Resignation and post-game Home/Rematch actions
+- Endgame draw offers with confirmation, local Stockfish adjudication, and PGN recording
+- Hold-to-start/end game navigation with historical clocks in completed games
+- Timed PGNs with `TimeControl` and per-move `[%clk ...]` annotations
 - Move-by-move Stockfish and Maia review, starting from the initial position
 - Configurable Maia human-move suggestion (default 1600), two Stockfish choices, and two-tone agreement arrows
 - Evaluation bar with Lichess-style numeric score and blue Stockfish best-move arrow
 - Switchable clickable Moves and Computer graph views below a persistent board
 - Optional full-game computer analysis graph with tap-to-navigate positions and game-phase separators
+- Fast, Balanced, and Thorough full-game analysis quality presets
 - Brilliant, Good, Interesting, Dubious, Mistake, and Blunder classifications on the graph, move list, and board
 - Analysis variations and takebacks preserved as PGN recursive annotation variations
 - Long-press variation editing: collapse/expand, promote, make main line, or delete from a move
@@ -388,6 +494,21 @@ unsigned APKs using `sha256sum`. Retain both hashes with the release notes;
 the procedure is not itself evidence that a particular release reproduced.
 The manual Checks workflow can build an unsigned APK; pull requests run the
 Dart analyzer and regression tests.
+
+The release verifier accepts the stable universal package explicitly:
+
+```sh
+python3 tool/verify_release_apk.py \
+  build/app/outputs/flutter-apk/app-release.apk \
+  --package com.dash1971.maia_chess \
+  --allow-abi armeabi-v7a --allow-abi arm64-v8a --allow-abi x86_64 \
+  --output release-checks/apk.json
+```
+
+The [release verification guide](tool/hardening/RELEASE_CHECKS.md) includes
+portable APK checks, sanitized saved-game upgrade fixtures, emulator commands,
+and CI artifact retention. See the [hardening guide](tool/hardening/README.md)
+for the full regression suites and independent chess/variation corpora.
 
 Official releases are signed with the dedicated Mobile Maia app-signing key.
 The build reads `MOBILE_MAIA_KEYSTORE`, `MOBILE_MAIA_STORE_PASSWORD`, and

@@ -12,7 +12,7 @@ import 'package:dartchess/dartchess.dart' as dc;
 import 'package:flutter/cupertino.dart' show CupertinoIcons;
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart'
-    show LicenseRegistry, LicenseEntryWithLineBreaks;
+    show LicenseRegistry, LicenseEntryWithLineBreaks, mapEquals, listEquals;
 import 'package:flutter/services.dart';
 import 'package:multistockfish/multistockfish.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -25,9 +25,13 @@ part 'src/pgn_files.dart';
 part 'src/maia_queue.dart';
 part 'src/diagnostics.dart';
 part 'src/session_types.dart';
+part 'src/variation_tree.dart';
+part 'src/game_clocks.dart';
+part 'src/premoves.dart';
 part 'src/active_session_store.dart';
 part 'src/session_model.dart';
 part 'src/openings.dart';
+part 'src/chessnut.dart';
 part 'src/play.dart';
 part 'src/analysis_board.dart';
 part 'src/review.dart';
@@ -86,6 +90,11 @@ const enCroissantProjectUrl =
 const mobileMaiaSourceUrl = 'https://github.com/Dash1971/maia-chess-android';
 const mobileMaiaLicenseUrl = '$mobileMaiaSourceUrl/blob/main/LICENSE';
 const maiaPlayEloPreferenceKey = 'maiaPlayEloV1';
+const maiaPlaySidePreferenceKey = 'maiaPlaySideV1';
+const maiaTimePresetPreferenceKey = 'maiaTimePresetV1';
+const maiaCustomMinutesPreferenceKey = 'maiaCustomMinutesV1';
+const maiaCustomIncrementPreferenceKey = 'maiaCustomIncrementV1';
+const gameAnalysisQualityPreferenceKey = 'gameAnalysisQualityV1';
 
 // Match the Lichess app defaults across live play, Analysis Board, and Game
 // Review: magnify touch drags, lift the piece above the pointer, show the

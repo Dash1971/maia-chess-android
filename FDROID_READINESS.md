@@ -22,24 +22,24 @@ Mobile Maia to F-Droid. The Preview package is not part of the submission.
 
 ## Clean build
 
-Version 1.8.1 (`versionCode 46`) builds from commit
-`15fe52d77ba69475b77f5f324953d211ba2dc448` using Flutter 3.47.1 and Java 17.
-The build recipe replaces the Git LFS model pointer from an immutable commit
-URL and verifies SHA-256
+Version 2.1.0 (`versionCode 73`) uses Flutter 3.47.1 and Java 17. The build
+recipe replaces the Git LFS model pointer from the immutable release commit and
+verifies SHA-256
 `3454b03ae78baa64a87b345fdb1a457265d912caec531039b074f07eda0d8010`
-before compilation.
+before compilation. The stable release remains a universal APK for ARMv7,
+ARM64, and x86_64; its release verifier checks the exact ABI set and 16 KB ELF
+alignment.
 
 ## Reproducibility status
 
-Version 1.8.1 deliberately disables Dart release obfuscation. Two independent
-clean unsigned builds were byte-for-byte identical. Copying the signature from
-the developer-signed release onto an independent unsigned build reconstructed
-the published APK byte-for-byte.
+Mobile Maia deliberately disables Dart release obfuscation. The 2.1 release
+candidate must pass two independent clean builds whose ZIP payloads match after
+signature normalization. The published APK must then be re-downloaded and
+compared with the locally audited candidate before the release is complete.
 
-The release therefore supports F-Droid's developer-signed reproducible-build
-path using `Binaries` and `AllowedAPKSigningKeys`. The published APK SHA-256 is
-`3b00cfa593c20fe0bd8ba2b2968c512c68d07ded51ec0d88cdd3cdddf0b8541c` and
-the allowed signing-certificate SHA-256 is
+The release supports F-Droid's developer-signed reproducible-build path using
+`Binaries` and `AllowedAPKSigningKeys`. The allowed signing-certificate
+SHA-256 is
 `cd6c07c4efacf52bcccb83009b522c1dcad4a171197505a486f0a58edb6f172e`.
 
 ## Submission recipe

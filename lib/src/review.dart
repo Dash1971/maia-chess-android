@@ -24,6 +24,7 @@ class ReviewPage extends StatefulWidget {
     this.onPlayFromPosition,
     this.initialCurrentFen,
     this.initialFlipped = false,
+    this.gameAnalysisQuality = GameAnalysisQuality.thorough,
     this.onSessionChanged,
     super.key,
   });
@@ -51,6 +52,7 @@ class ReviewPage extends StatefulWidget {
   final Future<void> Function(String fen)? onPlayFromPosition;
   final String? initialCurrentFen;
   final bool initialFlipped;
+  final GameAnalysisQuality gameAnalysisQuality;
   final Future<void> Function(
     String currentFen,
     bool flipped,
@@ -281,43 +283,43 @@ class _ReviewPageState extends State<ReviewPage>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _flipped = widget.initialFlipped;
-    _variations = List.of(widget.initialVariations);
+    bool sameLine(RecordedVariation line) =>
+        line.basePly == 0 && _sameMoves(line.sanMoves, widget.sanMoves);
+    final initialVariations = VariationTree.normalize(
+      widget.initialVariations,
+      preserveFirst:
+          widget.initialTreeIsAuthoritative ||
+          (widget.initialVariations.isNotEmpty &&
+              sameLine(widget.initialVariations.first)),
+    );
+    _variations = List.of(initialVariations);
     if (widget.onSessionChanged != null &&
         !widget.initialTreeIsAuthoritative &&
         widget.sanMoves.isNotEmpty) {
-      bool sameLine(RecordedVariation line) =>
-          line.basePly == 0 && _sameMoves(line.sanMoves, widget.sanMoves);
       final parsed = PgnVariationExporter.parseTree(widget.pgn);
       if (parsed.isNotEmpty && sameLine(parsed.first)) {
-        // The complete seed PGN includes its comments and imported variations.
+        // PGN flattens terminal children created by successive takebacks.
+        // Merge equivalent paths and their notes instead of comparing only
+        // each saved segment's immediate SAN list.
+        final root = parsed.first;
         _variations
           ..clear()
-          ..addAll(parsed);
-        for (final line in widget.initialVariations) {
-          if (!sameLine(line) &&
-              !_variations.any(
-                (v) =>
-                    v.basePly == line.basePly &&
-                    _sameMoves(v.sanMoves, line.sanMoves),
-              )) {
-            if (line.basePly == 0) {
-              _variations.add(line);
-            } else if (!_variations.first.children.any(
-              (v) =>
-                  v.basePly == line.basePly &&
-                  _sameMoves(v.sanMoves, line.sanMoves),
-            )) {
-              final root = _variations.first;
-              _variations[0] = RecordedVariation(
-                basePly: 0,
+          ..addAll(
+            VariationTree.normalize([
+              RecordedVariation(
+                basePly: root.basePly,
                 baseFen: root.baseFen,
                 sanMoves: root.sanMoves,
                 annotations: root.annotations,
-                children: [...root.children, line],
-              );
-            }
-          }
-        }
+                children: [
+                  ...root.children,
+                  ...initialVariations.where((line) => line.basePly > 0),
+                ],
+              ),
+              ...parsed.skip(1),
+              ...initialVariations.where((line) => line.basePly == 0),
+            ], preserveFirst: true),
+          );
       } else if (!_variations.any(sameLine)) {
         final attached = _variations.where((line) => line.basePly > 0).toList();
         _variations.removeWhere((line) => line.basePly > 0);
@@ -412,6 +414,14 @@ class _ReviewPageState extends State<ReviewPage>
       a.length == b.length &&
       List.generate(a.length, (i) => a[i] == b[i]).every((v) => v);
 
+  static String? _canonicalFen(String value) {
+    try {
+      return dc.Chess.fromSetup(dc.Setup.parseFen(value)).fen;
+    } catch (_) {
+      return null;
+    }
+  }
+
   void _showMainPly(int ply) {
     _cancelSelectedWork();
     final root = _rootMainline;
@@ -448,7 +458,9 @@ class _ReviewPageState extends State<ReviewPage>
     final analysisMovesBefore = widget.onSessionChanged == null
         ? null
         : List<String>.of(_computerAnalysisLine.uciMoves);
-    final fenBefore = _boardPosition.fen;
+    // Keep stored/replayed FENs in the same notation. dartchess omits an
+    // en-passant target when no legal capture exists; chess preserves it.
+    final fenBefore = _currentFen;
     final uci = move.uci;
     final sanGame = chess.Chess.fromFEN(fenBefore);
     final candidate = sanGame
@@ -488,7 +500,8 @@ class _ReviewPageState extends State<ReviewPage>
           (line) =>
               line.basePly == selectedPly &&
               line.sanMoves.firstOrNull == san &&
-              line.baseFen == fenBefore,
+              (line.baseFen == fenBefore ||
+                  _canonicalFen(line.baseFen) == _boardPosition.fen),
         )
         .firstOrNull;
     if (existing != null) {
@@ -541,7 +554,7 @@ class _ReviewPageState extends State<ReviewPage>
       _variationPositions
         ..clear()
         ..add(fenBefore)
-        ..add(_boardPosition.fen);
+        ..add(sanGame.fen);
       _variationIndex = 1;
       _boardController.updatePosition(_boardGameData());
       setState(() {
@@ -563,7 +576,7 @@ class _ReviewPageState extends State<ReviewPage>
     }
     _variationSan.add(san);
     _variationUci.add(uci);
-    _variationPositions.add(_boardPosition.fen);
+    _variationPositions.add(sanGame.fen);
     _variationIndex = _variationSan.length;
     final updated = RecordedVariation(
       basePly: basePly,
@@ -1165,15 +1178,22 @@ class _ReviewPageState extends State<ReviewPage>
   }
 
   void _restoreCurrentFen(String fen) {
+    // Older checkpoints used dartchess FENs, while line replay uses chess.
+    // Normalize non-capturable en-passant targets without discarding legal
+    // en-passant rights, castling rights, or move counters.
+    final canonical = _canonicalFen(fen);
+    bool matches(String value) =>
+        value == fen ||
+        (canonical != null && _canonicalFen(value) == canonical);
     bool visit(RecordedVariation variation) {
       final game = chess.Chess.fromFEN(variation.baseFen);
-      if (variation.baseFen == fen) {
+      if (matches(variation.baseFen)) {
         _openVariation(variation, 0);
         return true;
       }
       for (var index = 0; index < variation.sanMoves.length; index++) {
         if (!game.move(variation.sanMoves[index])) break;
-        if (game.fen == fen) {
+        if (matches(game.fen)) {
           _openVariation(variation, index + 1);
           return true;
         }
@@ -1182,7 +1202,7 @@ class _ReviewPageState extends State<ReviewPage>
     }
 
     if (_variations.any(visit)) return;
-    final mainIndex = widget.positions.indexOf(fen);
+    final mainIndex = widget.positions.indexWhere(matches);
     if (mainIndex >= 0) {
       setState(() => _showMainPly(mainIndex));
       return;
@@ -1261,6 +1281,7 @@ class _ReviewPageState extends State<ReviewPage>
     if (!_engineEnabled || !_foreground || _fullAnalysisRunning) return;
     final line = _computerAnalysisLine;
     final positions = line.positions;
+    final quality = widget.gameAnalysisQuality;
     final generation = ++_fullAnalysisGeneration;
     setState(() {
       _fullAnalysisRunning = true;
@@ -1272,6 +1293,13 @@ class _ReviewPageState extends State<ReviewPage>
       _graphClassifications = const [];
       _analysisError = null;
     });
+    unawaited(
+      AppDiagnostics.recordEvent(
+        'stockfish-full-analysis-start quality=${quality.name} '
+        'depth=${quality.depth} moveTimeMs=${quality.moveTimeMs} '
+        'positions=${positions.length}',
+      ),
+    );
     final scores = <StockfishReview>[];
     final evaluate =
         widget.evaluator ??
@@ -1279,6 +1307,7 @@ class _ReviewPageState extends State<ReviewPage>
           fen,
           scope: _batchScope,
           background: true,
+          gameAnalysisQuality: quality,
         );
     for (var i = 0; i < positions.length; i++) {
       if (!mounted || generation != _fullAnalysisGeneration) return;
@@ -1806,6 +1835,31 @@ class _ReviewPageState extends State<ReviewPage>
   void _step(int delta) {
     _cancelSelectedWork();
     if (_inVariation) {
+      final root = _rootMainline;
+      if (delta < 0 &&
+          _variationIndex <= 1 &&
+          (root == null || !identical(_openedVariation, root))) {
+        // A branch's index zero is a position on its parent line. Select
+        // that actual node so its move stays highlighted and Back/Next
+        // continue along the parent instead of stopping on an invisible node.
+        final basePly = _variationBasePly!;
+        final opened = _openedVariation;
+        final path = opened == null ? null : _pathToVariation(opened);
+        if (path != null) {
+          for (var depth = path.length - 2; depth >= 0; depth--) {
+            final parent = path[depth];
+            final index = basePly - parent.basePly;
+            if (index > 0 || identical(parent, root)) {
+              _openVariation(parent, index);
+              return;
+            }
+          }
+        }
+        // Top-level alternatives in a Game Review attach directly to its
+        // original moves, rather than to another RecordedVariation.
+        setState(() => _showMainPly(basePly));
+        return;
+      }
       final next = (_variationIndex + delta).clamp(0, _variationSan.length);
       setState(() {
         _variationIndex = next;
@@ -1825,6 +1879,40 @@ class _ReviewPageState extends State<ReviewPage>
       return;
     }
     setState(() => _showMainPly(_ply + delta));
+  }
+
+  void _jumpToStart() {
+    final root = _rootMainline;
+    if (root != null) {
+      _openVariation(root, 0);
+    } else {
+      setState(() => _showMainPly(0));
+    }
+  }
+
+  void _jumpToEnd() {
+    final root = _rootMainline;
+    if (root != null) {
+      _openVariation(root, root.sanMoves.length);
+    } else {
+      setState(() => _showMainPly(_maximumPly));
+    }
+  }
+
+  bool get _atAnalysisStart {
+    if (!_inVariation) return _ply == 0;
+    final root = _rootMainline;
+    return root != null &&
+        identical(_openedVariation, root) &&
+        _variationIndex == 0;
+  }
+
+  bool get _atAnalysisEnd {
+    final root = _rootMainline;
+    return root != null
+        ? identical(_openedVariation, root) &&
+              _variationIndex == root.sanMoves.length
+        : !_inVariation && _ply == _maximumPly;
   }
 
   String _exportReviewPgn() => PgnVariationExporter.export(
@@ -1965,6 +2053,35 @@ class _ReviewPageState extends State<ReviewPage>
     }
   }
 
+  Widget _analysisNavigationButton({
+    required Key key,
+    required String tooltip,
+    required IconData icon,
+    required bool tapEnabled,
+    required bool longPressEnabled,
+    required VoidCallback onTap,
+    required VoidCallback onLongPress,
+  }) {
+    final colors = Theme.of(context).colorScheme;
+    final enabled = tapEnabled || longPressEnabled;
+    return Tooltip(
+      message: tooltip,
+      child: InkResponse(
+        key: key,
+        radius: 24,
+        onTap: tapEnabled ? onTap : null,
+        onLongPress: longPressEnabled ? onLongPress : null,
+        child: SizedBox.square(
+          dimension: 48,
+          child: Icon(
+            icon,
+            color: enabled ? colors.onSurfaceVariant : colors.outlineVariant,
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _analysisControls() {
     Widget slot(Widget child) => Expanded(child: Center(child: child));
 
@@ -2014,26 +2131,27 @@ class _ReviewPageState extends State<ReviewPage>
             ),
           ),
           slot(
-            IconButton(
+            _analysisNavigationButton(
               key: const ValueKey('previous-move-button'),
               tooltip: 'Previous move',
-              onPressed: (_inVariation ? _variationIndex == 0 : _ply == 0)
-                  ? null
-                  : () => _step(-1),
-              icon: const Icon(CupertinoIcons.chevron_back),
+              icon: CupertinoIcons.chevron_back,
+              tapEnabled: !_atAnalysisStart,
+              longPressEnabled: !_atAnalysisStart,
+              onTap: () => _step(-1),
+              onLongPress: _jumpToStart,
             ),
           ),
           slot(
-            IconButton(
+            _analysisNavigationButton(
               key: const ValueKey('next-move-button'),
               tooltip: 'Next move',
-              onPressed:
-                  (_inVariation
-                      ? _variationIndex == _variationSan.length
-                      : _ply == _maximumPly)
-                  ? null
-                  : () => _step(1),
-              icon: const Icon(CupertinoIcons.chevron_forward),
+              icon: CupertinoIcons.chevron_forward,
+              tapEnabled: !(_inVariation
+                  ? _variationIndex == _variationSan.length
+                  : _ply == _maximumPly),
+              longPressEnabled: !_atAnalysisEnd,
+              onTap: () => _step(1),
+              onLongPress: _jumpToEnd,
             ),
           ),
         ],
@@ -2360,6 +2478,7 @@ class _ReviewPageState extends State<ReviewPage>
                     evaluation: evaluation,
                     mate: mate,
                     enabled: _engineEnabled,
+                    orientation: boardOrientation,
                   ),
                 ],
               ),

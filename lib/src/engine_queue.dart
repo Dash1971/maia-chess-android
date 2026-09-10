@@ -6,13 +6,13 @@ class AnalysisCancelled implements Exception {
 
 /// One native search at a time. Foreground requests preempt batch work; a
 /// stopped search is drained before the next request consumes native output.
-class EngineWorkQueue<T> {
+class EngineWorkQueue<T, C> {
   EngineWorkQueue({required this.run, required this.stop, this.onStopError});
-  final Future<T> Function(String, bool) run;
+  final Future<T> Function(String, bool, C?) run;
   final void Function() stop;
   final void Function(Object, StackTrace)? onStopError;
-  final List<_EngineWork<T>> _pending = [];
-  _EngineWork<T>? _active;
+  final List<_EngineWork<T, C>> _pending = [];
+  _EngineWork<T, C>? _active;
   Completer<void>? _idle;
   bool paused = false;
   bool get canRunActive =>
@@ -22,8 +22,15 @@ class EngineWorkQueue<T> {
     String fen, {
     MaiaInferenceScope? scope,
     bool background = false,
+    C? configuration,
   }) {
-    final work = _EngineWork<T>(fen, scope, scope?.begin(), background);
+    final work = _EngineWork<T, C>(
+      fen,
+      scope,
+      scope?.begin(),
+      background,
+      configuration,
+    );
     if (scope != null) {
       _discardWhere((item) => identical(item.scope, scope));
       if (identical(_active?.scope, scope)) _requestStop();
@@ -43,7 +50,7 @@ class EngineWorkQueue<T> {
     if (identical(_active?.scope, scope)) _requestStop();
   }
 
-  void _discardWhere(bool Function(_EngineWork<T>) test) {
+  void _discardWhere(bool Function(_EngineWork<T, C>) test) {
     for (final work in _pending.where(test).toList()) {
       work.result.completeError(const AnalysisCancelled());
       _pending.remove(work);
@@ -89,7 +96,7 @@ class EngineWorkQueue<T> {
     _active = work;
     unawaited(() async {
       try {
-        final value = await run(work.fen, work.background);
+        final value = await run(work.fen, work.background, work.configuration);
         if (!work.current) throw const AnalysisCancelled();
         if (!work.preempted) work.result.complete(value);
       } catch (error, stack) {
@@ -107,12 +114,19 @@ class EngineWorkQueue<T> {
   }
 }
 
-class _EngineWork<T> {
-  _EngineWork(this.fen, this.scope, this.generation, this.background);
+class _EngineWork<T, C> {
+  _EngineWork(
+    this.fen,
+    this.scope,
+    this.generation,
+    this.background,
+    this.configuration,
+  );
   final String fen;
   final MaiaInferenceScope? scope;
   final int? generation;
   final bool background;
+  final C? configuration;
   bool preempted = false;
   bool cancelled = false;
   final result = Completer<T>();

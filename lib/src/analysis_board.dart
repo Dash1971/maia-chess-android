@@ -53,6 +53,7 @@ class AnalysisBoardPage extends StatefulWidget {
     this.initialTreeIsAuthoritative = false,
     this.initialCurrentFen,
     this.initialFlipped = false,
+    this.gameAnalysisQuality = GameAnalysisQuality.thorough,
     this.evaluator,
     this.maiaEvaluator,
     super.key,
@@ -64,6 +65,7 @@ class AnalysisBoardPage extends StatefulWidget {
   final bool initialTreeIsAuthoritative;
   final String? initialCurrentFen;
   final bool initialFlipped;
+  final GameAnalysisQuality gameAnalysisQuality;
   final Future<StockfishReview> Function(String fen)? evaluator;
   final Future<String?> Function(List<String> positions, int elo)?
   maiaEvaluator;
@@ -162,7 +164,8 @@ class _AnalysisBoardPageState extends State<AnalysisBoardPage> {
     final value = await _textDialog('Load PGN', 'Paste a PGN game');
     if (value == null || value.trim().isEmpty) return;
     try {
-      final session = await Isolate.run(() => AnalysisSession.fromPgn(value));
+      final session = await AnalysisSession.fromPgnAsync(value);
+      if (!mounted) return;
       await ActiveSessionStore.startNew();
       if (mounted) _replace(session);
     } catch (error) {
@@ -236,6 +239,7 @@ class _AnalysisBoardPageState extends State<AnalysisBoardPage> {
         _revision == 0 && widget.initialTreeIsAuthoritative,
     initialCurrentFen: _initialCurrentFen,
     initialFlipped: _initialFlipped,
+    gameAnalysisQuality: widget.gameAnalysisQuality,
     onSessionChanged: _saveAnalysisState,
     maiaElo: widget.maiaElo,
     evaluator: widget.evaluator,

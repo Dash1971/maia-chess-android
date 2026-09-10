@@ -1,6 +1,20 @@
 part of '../main.dart';
 
 class PgnVariationExporter {
+  static const _unplayedPrefix = 'Unplayed takeback line';
+
+  static bool _samePosition(String left, String right) {
+    if (left == right) return true;
+    try {
+      // Older analysis records omit an en-passant target when no capture is
+      // legal. Canonicalize that notation without ignoring real capture rights.
+      return dc.Chess.fromSetup(dc.Setup.parseFen(left)).fen ==
+          dc.Chess.fromSetup(dc.Setup.parseFen(right)).fen;
+    } on Exception {
+      return false;
+    }
+  }
+
   static List<RecordedVariation> annotationsForMainline(
     List<String> mainSan,
     List<RecordedVariation> reviewTree,
@@ -76,7 +90,10 @@ class PgnVariationExporter {
       );
     }
 
-    return parsed.moves.children.map((node) => line(node, fen, 0, 0)).toList();
+    return VariationTree.normalize(
+      parsed.moves.children.map((node) => line(node, fen, 0, 0)).toList(),
+      preserveFirst: true,
+    );
   }
 
   static String export(
@@ -84,6 +101,9 @@ class PgnVariationExporter {
     List<String> mainSan,
     List<RecordedVariation> variations, {
     List<String>? mainPositions,
+    List<Map<String, dynamic>>? mainAnnotations,
+    List<String>? startingComments,
+    bool preserveEmptyMainline = false,
   }) {
     final source = dc.PgnGame.parsePgn(
       pgn,
@@ -92,8 +112,18 @@ class PgnVariationExporter {
     final headers = Map<String, String>.of(source.headers);
     headers.putIfAbsent('Result', () => '*');
     final roots = <RecordedVariation>[];
+    final unplayed = <RecordedVariation>[];
     if (mainSan.isNotEmpty) {
       final seed = source.moves.mainline().toList();
+      bool matchesMainline(RecordedVariation line) =>
+          mainPositions == null ||
+          (line.basePly < mainPositions.length &&
+              _samePosition(line.baseFen, mainPositions[line.basePly]));
+      unplayed.addAll(
+        variations.where(
+          (line) => line.basePly == mainSan.length && matchesMainline(line),
+        ),
+      );
       roots.add(
         RecordedVariation(
           basePly: 0,
@@ -102,22 +132,23 @@ class PgnVariationExporter {
               headers['FEN'] ??
               chess.Chess.DEFAULT_POSITION,
           sanMoves: mainSan,
-          annotations: [
-            for (final data in seed)
-              {
-                if (data.comments != null) 'comments': data.comments,
-                if (data.startingComments != null)
-                  'startingComments': data.startingComments,
-                if (data.nags != null) 'nags': data.nags,
-              },
-          ],
+          annotations:
+              mainAnnotations ??
+              [
+                for (final data in seed)
+                  {
+                    if (data.comments != null) 'comments': data.comments,
+                    if (data.startingComments != null)
+                      'startingComments': data.startingComments,
+                    if (data.nags != null) 'nags': data.nags,
+                  },
+              ],
           children: variations
               .where(
                 (v) =>
                     v.basePly > 0 &&
-                    (mainPositions == null ||
-                        (v.basePly < mainPositions.length &&
-                            v.baseFen == mainPositions[v.basePly])),
+                    v.basePly < mainSan.length &&
+                    matchesMainline(v),
               )
               .toList(),
         ),
@@ -173,13 +204,53 @@ class PgnVariationExporter {
       }
     }
 
-    for (final root in roots) {
+    for (final root in VariationTree.normalize(roots, preserveFirst: true)) {
       addLine(tree, root);
+    }
+    final comments = [
+      for (final comment in startingComments ?? source.comments)
+        if (!preserveEmptyMainline || !comment.startsWith(_unplayedPrefix))
+          comment,
+    ];
+    if (preserveEmptyMainline &&
+        ((mainSan.isEmpty && roots.isNotEmpty) || unplayed.isNotEmpty)) {
+      // A RAV needs a played sibling move. Until a replacement move exists,
+      // keep an abandoned terminal continuation readable without promoting it
+      // back into the played main line. Session JSON retains the editable tree.
+      final noteTree = mainSan.isEmpty ? tree : dc.PgnNode<dc.PgnNodeData>();
+      if (mainSan.isNotEmpty) {
+        for (final line in VariationTree.normalize(unplayed)) {
+          addLine(noteTree, line);
+        }
+      }
+      final noteFen = mainSan.isEmpty ? rootFen : unplayed.first.baseFen;
+      final noteHeaders = <String, String>{'Result': '*'};
+      if (noteFen != null && noteFen != chess.Chess.DEFAULT_POSITION) {
+        noteHeaders.addAll({'SetUp': '1', 'FEN': noteFen});
+      }
+      final rendered =
+          dc.PgnGame(headers: noteHeaders, moves: noteTree, comments: const [])
+              .makePgn()
+              .replaceAll(RegExp(r'^\[.*\]\s*', multiLine: true), '')
+              .replaceAll('{', '(')
+              .replaceAll('}', ')')
+              .trim();
+      final label = mainSan.isEmpty
+          ? _unplayedPrefix
+          : '$_unplayedPrefix after ply ${mainSan.length}';
+      comments.add('$label: $rendered');
+      if (mainSan.isEmpty) {
+        return dc.PgnGame(
+          headers: headers,
+          moves: dc.PgnNode<dc.PgnNodeData>(),
+          comments: comments,
+        ).makePgn().trim();
+      }
     }
     return dc.PgnGame(
       headers: headers,
       moves: tree,
-      comments: source.comments,
+      comments: comments,
     ).makePgn().trim();
   }
 }
@@ -206,6 +277,11 @@ class AnalysisSession {
 
   factory AnalysisSession.fromJson(Map<String, dynamic> json) =>
       AnalysisSession.fromPgn(json['pgn'] as String);
+
+  // Keep the isolate closure out of widget methods: another closure in the
+  // same method can make it capture an unsendable State/BuildContext as well.
+  static Future<AnalysisSession> fromPgnAsync(String source) =>
+      Isolate.run(() => AnalysisSession.fromPgn(source));
 
   static void validateFen(String fen) {
     try {
@@ -260,7 +336,9 @@ class AnalysisSession {
     movetext = uncommented.toString();
     var variationDepth = 0;
     for (final character in movetext.codeUnits) {
-      if (character == 0x28) variationDepth++;
+      if (character == 0x28 && ++variationDepth > 64) {
+        throw const FormatException('PGN variations are too deeply nested.');
+      }
       if (character == 0x29 && --variationDepth < 0) {
         throw const FormatException('Malformed PGN variation.');
       }
@@ -306,7 +384,8 @@ class AnalysisSession {
       AnalysisSession.fromFen(chess.Chess.DEFAULT_POSITION);
 
   factory AnalysisSession.fromPgn(String source) {
-    if (source.length > 2 * 1024 * 1024) {
+    if (source.length > 2 * 1024 * 1024 ||
+        utf8.encode(source).length > 2 * 1024 * 1024) {
       throw const FormatException('PGN is too large.');
     }
     _validatePgnTokens(source);
