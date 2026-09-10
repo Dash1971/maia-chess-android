@@ -2,12 +2,12 @@ import copy
 import io
 import struct
 import unittest
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 import zipfile
 
 from verify_release_apk import compare_payloads, elf_alignment, payload_names
 from verify_release_upgrade import (check_baseline, check_restored, emulator_preflight,
-                                    restored_ui_ready, seed_record)
+                                    restored_ui_ready, seed_record, wait_for_checkpoint)
 
 
 def archive(files):
@@ -56,6 +56,39 @@ class ArtifactChecksTest(unittest.TestCase):
 
 
 class UpgradeChecksTest(unittest.TestCase):
+    def test_checkpoint_polling_retries_transient_reads_but_waits_for_a_new_save(self):
+        now = [0.0]
+        def advance(seconds):
+            now[0] += seconds
+        reads = Mock(side_effect=[b'', b'{', b'\xff', RuntimeError('cat: No such file'),
+                                  b'{"updatedAt":"old"}', b'{"updatedAt":"new","data":{"kept":1}}'])
+        retries = []
+        with patch('verify_release_upgrade.time.monotonic', side_effect=lambda: now[0]), \
+                patch('verify_release_upgrade.time.sleep', side_effect=advance):
+            result = wait_for_checkpoint(reads, 'old', 2, retries.append)
+        self.assertEqual(result, {'updatedAt': 'new', 'data': {'kept': 1}})
+        self.assertEqual(reads.call_count, 6)
+        self.assertEqual(len(retries), 4)
+
+    def test_checkpoint_polling_does_not_pass_persistent_corruption_or_no_new_save(self):
+        for source in (b'', b'{broken', b'{"updatedAt":"old"}', RuntimeError('Permission denied')):
+            with self.subTest(source=source):
+                now = [0.0]
+                def advance(seconds):
+                    now[0] += seconds
+                read = Mock(side_effect=source) if isinstance(source, Exception) else Mock(return_value=source)
+                with patch('verify_release_upgrade.time.monotonic', side_effect=lambda: now[0]), \
+                        patch('verify_release_upgrade.time.sleep', side_effect=advance):
+                    with self.assertRaisesRegex(ValueError, 'before timeout'):
+                        wait_for_checkpoint(read, 'old', .5)
+                self.assertEqual(now[0], .5)
+
+    def test_checkpoint_polling_rejects_invalid_envelopes_without_accepting_a_timestamp_change(self):
+        for source in (b'[]', b'{}', b'{"updatedAt":null}', b'{"updatedAt":""}'):
+            with self.subTest(source=source):
+                with self.assertRaisesRegex(ValueError, 'no valid update timestamp'):
+                    wait_for_checkpoint(lambda: source, 'old', 1)
+
     def test_natural_result_checkpoint_and_result_dialog_readiness(self):
         fixture = seed_record('1. f3 e5 2. g4 Qh4# 0-1')
         baseline = copy.deepcopy(fixture)

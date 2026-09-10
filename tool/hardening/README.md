@@ -95,6 +95,10 @@ position, and the complete PGN after each reopen.
 
 `test/recent_games_failure_test.dart` exercises overlapping taps before a new
 frame, Back while a save is opening, and retry after open/delete failures.
+`test/recent_games_recovery_test.dart` adds concurrent delete requests before
+a confirmation frame, cancellation by button or Back followed by a successful
+open, partial batch deletion with selection refresh and retry, and opening
+another game after a record becomes unavailable.
 `test/storage_failure_test.dart` also blocks an active-checkpoint write while
 switching archives, then resumes the original game and checks both save IDs.
 The Android suite repeats that real filesystem failure and retry through the

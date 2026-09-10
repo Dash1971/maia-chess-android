@@ -146,6 +146,32 @@ def check_baseline(fixture, before):
             parse_pgn(fixture['data']['pgn']).headers['Result'], 'Baseline changed the game result.')
 
 
+def wait_for_checkpoint(read_raw, previous, timeout, on_retry=None):
+    """Wait for the primary checkpoint, without mistaking a rename gap for corruption."""
+    deadline = time.monotonic() + timeout
+    last_problem = 'checkpoint timestamp has not advanced'
+    while time.monotonic() < deadline:
+        try:
+            raw = read_raw()
+            current = json.loads(raw)
+        except (RuntimeError, json.JSONDecodeError, UnicodeDecodeError) as error:
+            # adb can return an empty/unreadable result while the app replaces
+            # active.json. Retry only the read/decode, never preservation checks.
+            last_problem = f'{type(error).__name__}: {error}'[:240]
+            if on_retry is not None:
+                on_retry(last_problem)
+        else:
+            require(isinstance(current, dict) and
+                    isinstance(current.get('updatedAt'), str) and current['updatedAt'],
+                    'Checkpoint has no valid update timestamp.')
+            if current['updatedAt'] != previous:
+                return current
+            last_problem = 'checkpoint timestamp has not advanced'
+        time.sleep(min(.2, max(0, deadline - time.monotonic())))
+    raise ValueError('App did not persist a readable restored game before timeout; '
+                     + last_problem)
+
+
 def verify(args, report):
     def stage(name):
         report['stage'] = name
@@ -198,12 +224,9 @@ def verify(args, report):
                 break
         else:
             raise ValueError('Restored game UI did not appear before timeout.')
-        while time.monotonic() < deadline:
-            current = json.loads(read_raw())
-            if current.get('updatedAt') != previous:
-                return current
-            time.sleep(.2)
-        raise ValueError('App did not persist the restored game before timeout.')
+        return wait_for_checkpoint(
+            read_raw, previous, max(0, deadline - time.monotonic()),
+            on_retry=lambda error: report.setdefault('checkpoint_read_retries', []).append(error))
 
     def launch(identity):
         output = shell('am', 'start', '-W', '-n', args.package + '/' + identity['activity']).decode()

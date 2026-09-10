@@ -145,6 +145,14 @@ preservation is checked with
 the completed fixture; running-clock behavior is covered by the host/native
 regressions. Update this UI readiness check if the player-label wording changes.
 
+Checkpoint polling retries transient read/decode failures within the existing
+timeout: the primary file can briefly be absent while the app replaces it.
+Retries are recorded in `checkpoint_read_retries` in the JSON report. A readable
+checkpoint must have a nonempty timestamp different from the previous save;
+all preservation comparisons still run afterward. Persistent unreadable data,
+an unchanged timestamp, or an invalid envelope fails the check. Tool unit tests
+cover both recovery and failure, using a fake clock without real sleeps.
+
 Repeat with `--fixture tool/hardening/fixtures/incomplete_game.pgn` and a new
 output directory to check the included unfinished-game case as well.
 `--fixture tool/hardening/fixtures/checkmate.pgn` checks natural result restoration,
