@@ -12,7 +12,7 @@ import 'package:dartchess/dartchess.dart' as dc;
 import 'package:flutter/cupertino.dart' show CupertinoIcons;
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart'
-    show LicenseRegistry, LicenseEntryWithLineBreaks;
+    show LicenseRegistry, LicenseEntryWithLineBreaks, mapEquals, listEquals;
 import 'package:flutter/services.dart';
 import 'package:multistockfish/multistockfish.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -25,6 +25,8 @@ part 'src/pgn_files.dart';
 part 'src/maia_queue.dart';
 part 'src/diagnostics.dart';
 part 'src/session_types.dart';
+part 'src/game_clocks.dart';
+part 'src/premoves.dart';
 part 'src/active_session_store.dart';
 part 'src/session_model.dart';
 part 'src/openings.dart';

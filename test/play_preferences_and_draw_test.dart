@@ -119,6 +119,9 @@ void main() {
       find.byType(DropdownButtonFormField<GameAnalysisQuality>),
     );
     expect(field().initialValue, GameAnalysisQuality.thorough);
+    await tester.ensureVisible(
+      find.byType(DropdownButtonFormField<GameAnalysisQuality>),
+    );
     await tester.tap(find.byType(DropdownButtonFormField<GameAnalysisQuality>));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Fast').last);

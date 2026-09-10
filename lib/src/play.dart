@@ -42,6 +42,21 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
   bool _engineThinking = false;
   String? _forcedResult;
   bool _humanTiming = false;
+  bool _premovesEnabled = true;
+  bool _premovePenalty = false;
+  bool _multiplePremoves = false;
+  final PremoveSequence _premoves = PremoveSequence();
+  bool _changingPremove = false;
+  bool _premoveUpdateScheduled = false;
+  bool get _showPremovePlan =>
+      _multiplePremoves &&
+      _premovesEnabled &&
+      !_premoves.isEmpty &&
+      !_chessnutGameActive &&
+      !_gameFinished &&
+      _isViewingLivePosition &&
+      !_isPlayerTurn;
+
   double _temperature = 0.5;
   double _topP = 0.9;
   TimePreset _timePreset = TimePreset.unlimited;
@@ -59,7 +74,9 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
   final MaiaInferenceScope _gameInferenceScope = MaiaInferenceScope();
   Timer? _clockTimer;
   late final ValueNotifier<ClockSnapshot> _clockDisplay;
-  final List<ClockSnapshot> _clockHistory = [];
+  final List<ClockSnapshot?> _clockHistory = [];
+  final List<Map<String, dynamic>> _mainlineAnnotations = [];
+  List<String>? _pgnComments;
   int _gameGeneration = 0;
   bool _reviewOpen = false;
   List<RecordedVariation>? _reviewVariationSnapshot;
@@ -171,6 +188,7 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
         widget.electronicBoardTransport ?? ChessnutPlatformTransport.instance;
     _chessnutLeds = ChessnutLedController(_chessnut);
     _gameBoardController = cg.ChessboardController(game: _gameBoardData());
+    _gameBoardController.premoveNotifier.addListener(_onPremoveChanged);
     if (widget.startingSide != null) _sideChoice = widget.startingSide!;
     if (widget.startingElo != null) _elo = widget.startingElo!;
     if (widget.startingFen == null) {
@@ -338,10 +356,14 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
       for (final san in restoredSession.sanMoves) {
         restored.move(san);
       }
-      final headers = dc.PgnGame.parsePgn(
+      final parsedPgn = dc.PgnGame.parsePgn(
         savedPgn,
         initHeaders: dc.PgnGame.emptyHeaders,
-      ).headers;
+      );
+      final headers = parsedPgn.headers;
+      final parsedTree = saved['variations'] is List
+          ? const <RecordedVariation>[]
+          : PgnVariationExporter.parseTree(savedPgn);
       restored.set_header([
         for (final entry in headers.entries) ...[entry.key, entry.value],
       ]);
@@ -397,14 +419,32 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
         _uciMoves
           ..clear()
           ..addAll(restoredSession.uciMoves);
+        _mainlineAnnotations
+          ..clear()
+          ..addAll(
+            parsedPgn.moves.mainline().map(
+              (move) => {
+                if (move.comments != null) 'comments': move.comments,
+                if (move.startingComments != null)
+                  'startingComments': move.startingComments,
+                if (move.nags != null) 'nags': move.nags,
+              },
+            ),
+          );
+        _pgnComments = parsedPgn.comments;
         _takebackVariations
           ..clear()
           ..addAll(
-            (saved['variations'] as List? ?? const []).map(
-              (item) => RecordedVariation.fromJson(
-                Map<String, dynamic>.from(item as Map),
-              ),
-            ),
+            (saved['variations'] as List? ??
+                    PgnVariationExporter.annotationsForMainline(
+                      restoredSession.sanMoves,
+                      parsedTree,
+                    ).map((line) => line.toJson()).toList())
+                .map(
+                  (item) => RecordedVariation.fromJson(
+                    Map<String, dynamic>.from(item as Map),
+                  ),
+                ),
           );
         _playerColor = saved['playerIsWhite'] as bool? ?? true
             ? chess.Color.WHITE
@@ -415,20 +455,18 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
         _customIncrement = saved['customIncrement'] as int? ?? 0;
         _whiteMillis = whiteMillis;
         _blackMillis = blackMillis;
-        _turnStartedAt = _clockEnabled
+        _turnStartedAt =
+            _clockEnabled &&
+                !_naturalGameOver &&
+                restoredForcedResult == null &&
+                !_clockPaused
             ? ((widget.clockFactory?.call() ?? Stopwatch())..start())
             : null;
         _clockHistory
           ..clear()
           ..addAll(
-            (saved['clockHistory'] as List? ?? const []).map((item) {
-              final values = (item as List).cast<int>();
-              return ClockSnapshot(values[0], values[1]);
-            }),
+            restoreClockHistory(saved['clockHistory'], _positionHistory.length),
           );
-        if (_clockHistory.isEmpty) {
-          _clockHistory.add(ClockSnapshot(whiteMillis, blackMillis));
-        }
         // A terminal board is authoritative. Forced results end play before a
         // later move, so a saved forced result alongside checkmate/stalemate is
         // stale or corrupt and must not override the position.
@@ -502,6 +540,8 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
     _gameGeneration++;
     _gameInferenceScope.invalidate();
     _engineThinking = false;
+    _clearPremoves();
+    _gameBoardController.updatePosition(_gameBoardData(), animate: false);
     _publishClock();
   }
 
@@ -541,7 +581,7 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
             : _savedAsIncomplete
             ? 'incomplete'
             : 'active'),
-    'pgn': _game.pgn(),
+    'pgn': _exportPgn(),
     'positions': List<String>.of(_positionHistory),
     'uciMoves': List<String>.of(_uciMoves),
     'variations': _takebackVariations.map((item) => item.toJson()).toList(),
@@ -553,7 +593,9 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
     'whiteMillis': _liveMillis(chess.Color.WHITE),
     'blackMillis': _liveMillis(chess.Color.BLACK),
     'clockHistory': _clockHistory
-        .map((item) => [item.whiteMillis, item.blackMillis])
+        .map(
+          (item) => item == null ? null : [item.whiteMillis, item.blackMillis],
+        )
         .toList(),
     // UTC keeps elapsed-clock recovery stable if Android's timezone changes
     // while the process is stopped. Legacy local timestamps still parse.
@@ -611,6 +653,18 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
         session.sanMoves,
         variations,
       );
+      final mainline = variations
+          .where(
+            (line) =>
+                line.basePly == 0 &&
+                listEquals(line.sanMoves, session.sanMoves),
+          )
+          .firstOrNull;
+      if (mainline != null) {
+        _mainlineAnnotations
+          ..clear()
+          ..addAll(mainline.annotations);
+      }
       _takebackVariations
         ..clear()
         ..addAll(annotations);
@@ -662,6 +716,9 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
       _customMinutes = _preferredCustomMinutes;
       _customIncrement = _preferredCustomIncrement;
       _humanTiming = preferences.getBool('humanTiming') ?? false;
+      _premovesEnabled = preferences.getBool('premovesEnabled') ?? true;
+      _premovePenalty = preferences.getBool('premovePenalty') ?? false;
+      _multiplePremoves = preferences.getBool('multiplePremoves') ?? false;
       _temperature = (preferences.getDouble('temperatureV2') ?? 0.5).clamp(
         0.0,
         1.0,
@@ -717,6 +774,9 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
     final preferences = await SharedPreferences.getInstance();
     await Future.wait([
       preferences.setBool('humanTiming', _humanTiming),
+      preferences.setBool('premovesEnabled', _premovesEnabled),
+      preferences.setBool('premovePenalty', _premovePenalty),
+      preferences.setBool('multiplePremoves', _multiplePremoves),
       preferences.setDouble('temperatureV2', _temperature),
       preferences.setDouble('topPV2', _topP),
       preferences.setInt('analysisElo', _analysisElo),
@@ -1617,7 +1677,12 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
         ? null
         : dc.NormalMove.fromUci(_uciMoves[ply - 1]);
     return cg.GameData(
-      fen: fen,
+      fen: _showPremovePlan
+          ? _premoves.project(
+              fen,
+              _playerIsWhite ? dc.Side.white : dc.Side.black,
+            )
+          : fen,
       playerSide:
           !_started ||
               _gameFinished ||
@@ -1639,6 +1704,7 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
 
   void _syncGameBoard({bool animate = true, bool resetPremove = false}) {
     _naturalGameOver = _game.game_over;
+    if (resetPremove || _gameFinished) _clearPremoves();
     _liveSanMoves = _game
         .getHistory({'verbose': true})
         .cast<Map<String, dynamic>>()
@@ -1654,10 +1720,13 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
     _scrollLiveMovesToEnd();
   }
 
-  void _stepGameHistory(int delta) {
+  void _stepGameHistory(int delta) => _showGamePly(_displayPly + delta);
+
+  void _showGamePly(int ply) {
     if (_positionHistory.isEmpty) return;
     final last = _positionHistory.length - 1;
-    final next = (_displayPly + delta).clamp(0, last);
+    final next = ply.clamp(0, last);
+    _clearPremoves();
     setState(() => _viewedPly = next == last ? null : next);
     _gameBoardController.updatePosition(
       _gameBoardData(),
@@ -1746,6 +1815,8 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
         ..add(_game.fen);
       _uciMoves.clear();
       _takebackVariations.clear();
+      _mainlineAnnotations.clear();
+      _pgnComments = null;
       _reviewVariationSnapshot = null;
       _forcedResult = null;
       _naturalGameOver = false;
@@ -1825,18 +1896,21 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
     return max(0, base - started.elapsedMilliseconds);
   }
 
-  bool _commitClock(chess.Color mover) {
+  bool _commitClock(chess.Color mover, {bool premove = false}) {
     if (_clockPaused) return false;
     if (!_clockEnabled) return true;
-    if (_liveMillis(mover) <= 0) {
-      _tickClock();
+    final base = mover == chess.Color.WHITE ? _whiteMillis : _blackMillis;
+    final remaining = premove && _premovePenalty
+        ? base - 100
+        : _liveMillis(mover);
+    if (remaining <= 0) {
+      _finishTimeout();
       return false;
     }
-    final remaining = _liveMillis(mover) + _incrementSeconds * 1000;
     if (mover == chess.Color.WHITE) {
-      _whiteMillis = remaining;
+      _whiteMillis = remaining + _incrementSeconds * 1000;
     } else {
-      _blackMillis = remaining;
+      _blackMillis = remaining + _incrementSeconds * 1000;
     }
     _turnStartedAt = (widget.clockFactory?.call() ?? Stopwatch())..start();
     return true;
@@ -1844,6 +1918,7 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
 
   void _recordClockSnapshot() {
     _clockHistory.add(ClockSnapshot(_whiteMillis, _blackMillis));
+    _mainlineAnnotations.add({});
   }
 
   void _tickClock() {
@@ -1856,32 +1931,84 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
     }
     final remaining = _liveMillis(_game.turn);
     if (remaining <= 0) {
-      final whiteFlagged = _game.turn == chess.Color.WHITE;
-      final result = timeoutGameResult(_game);
-      _gameGeneration++;
-      _gameInferenceScope.invalidate();
-      _clockTimer?.cancel();
-      setState(() {
-        if (whiteFlagged) {
-          _whiteMillis = 0;
-        } else {
-          _blackMillis = 0;
-        }
-        _forcedResult = result;
-        _engineThinking = false;
-        _game.set_header(['Result', result, 'Termination', 'Time forfeit']);
-        _status = result == '1/2-1/2'
-            ? 'Draw — timeout against insufficient material.'
-            : whiteFlagged
-            ? 'White ran out of time.'
-            : 'Black ran out of time.';
-      });
-      _syncGameBoard(animate: false, resetPremove: true);
-      unawaited(_saveGameState());
-      _scheduleGameConclusion();
+      _finishTimeout();
       return;
     }
     _publishClock();
+  }
+
+  void _finishTimeout() {
+    final whiteFlagged = _game.turn == chess.Color.WHITE;
+    final result = timeoutGameResult(_game);
+    _gameGeneration++;
+    _gameInferenceScope.invalidate();
+    _clockTimer?.cancel();
+    setState(() {
+      if (whiteFlagged) {
+        _whiteMillis = 0;
+      } else {
+        _blackMillis = 0;
+      }
+      _forcedResult = result;
+      _engineThinking = false;
+      _game.set_header(['Result', result, 'Termination', 'Time forfeit']);
+      _status = result == '1/2-1/2'
+          ? 'Draw — timeout against insufficient material.'
+          : whiteFlagged
+          ? 'White ran out of time.'
+          : 'Black ran out of time.';
+    });
+    _syncGameBoard(animate: false, resetPremove: true);
+    unawaited(_saveGameState());
+    _scheduleGameConclusion();
+  }
+
+  void _clearPremoves() {
+    _premoves.clear();
+    _changingPremove = true;
+    _gameBoardController.premove = null;
+    _changingPremove = false;
+  }
+
+  void _onPremoveChanged() {
+    if (_changingPremove || !_multiplePremoves) return;
+    final move = _gameBoardController.premove;
+    if (move is! dc.NormalMove) return;
+    if (_premovesEnabled &&
+        !_chessnutGameActive &&
+        !_gameFinished &&
+        !_isPlayerTurn &&
+        _isViewingLivePosition) {
+      if (_premoves.length == PremoveSequence.maximumLength) {
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Up to 64 premoves can be queued.')),
+        );
+      }
+      _premoves.add(
+        _game.fen,
+        _playerIsWhite ? dc.Side.white : dc.Side.black,
+        move,
+      );
+    }
+    _changingPremove = true;
+    _gameBoardController.premove = null;
+    _changingPremove = false;
+    // Let Chessground finish its gesture before replacing the visual position.
+    if (_premoveUpdateScheduled) return;
+    _premoveUpdateScheduled = true;
+    scheduleMicrotask(() {
+      _premoveUpdateScheduled = false;
+      if (!mounted) return;
+      setState(() {});
+      _gameBoardController.updatePosition(_gameBoardData(), animate: false);
+    });
+  }
+
+  void _cancelPremoves() {
+    _clearPremoves();
+    setState(() {});
+    _gameBoardController.updatePosition(_gameBoardData(), animate: false);
   }
 
   Future<void> _onGameBoardMove(dc.Move move, {bool? viaDragAndDrop}) async {
@@ -1939,20 +2066,35 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
   }
 
   Future<bool> _playQueuedPremove() async {
-    if (_chessnutGameActive) return false;
-    final move = _gameBoardController.premove;
-    _gameBoardController.premove = null;
-    if (move is! dc.NormalMove || !_isPlayerTurn || _gameFinished) {
+    if (_chessnutGameActive || !_premovesEnabled) {
+      _clearPremoves();
       return false;
     }
+    final move = _multiplePremoves
+        ? _premoves.takeNext()
+        : _gameBoardController.premove;
+    _changingPremove = true;
+    _gameBoardController.premove = null;
+    _changingPremove = false;
+    if (move is! dc.NormalMove || !_isPlayerTurn || _gameFinished) {
+      _clearPremoves();
+      return false;
+    }
+    final piece = dc.Setup.parseFen(_game.fen).board.pieceAt(move.from);
+    final normalized = piece == null
+        ? move
+        : PremoveSequence.normalize(piece, move);
     final chosen = _game
         .moves({'asObjects': true})
         .cast<chess.Move>()
-        .where((candidate) => MaiaEncoding.uci(candidate) == move.uci)
+        .where((candidate) => MaiaEncoding.uci(candidate) == normalized.uci)
         .firstOrNull;
-    if (chosen == null) return false;
-    if (!_commitClock(_playerColor)) return false;
-    _uciMoves.add(move.uci);
+    if (chosen == null) {
+      _clearPremoves();
+      return false;
+    }
+    if (!_commitClock(_playerColor, premove: true)) return false;
+    _uciMoves.add(normalized.uci);
     _game.move(chosen);
     _finishNaturalGame();
     _positionHistory.add(_game.fen);
@@ -2179,6 +2321,9 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
         return;
       }
 
+      _tickClock();
+      if (_gameFinished) return;
+      _pauseGame();
       _gameGeneration++;
       _gameInferenceScope.invalidate();
       _clockTimer?.cancel();
@@ -2227,6 +2372,7 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
     if (!_started || _gameFinished || _engineThinking || _drawOfferEvaluating) {
       return;
     }
+    final generation = _gameGeneration;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -2244,7 +2390,15 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
         ],
       ),
     );
-    if (confirmed != true || !mounted) return;
+    if (confirmed != true ||
+        !mounted ||
+        generation != _gameGeneration ||
+        _gameFinished) {
+      return;
+    }
+    _tickClock();
+    if (_gameFinished) return;
+    _pauseGame();
     final result = _playerIsWhite ? '0-1' : '1-0';
     _gameGeneration++;
     _gameInferenceScope.invalidate();
@@ -2321,12 +2475,18 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
   }
 
   Future<void> _requestNewGame() async {
+    final completed = _gameFinished;
+    final generation = _gameGeneration;
     final confirmed =
         await showDialog<bool>(
           context: context,
           builder: (context) => AlertDialog(
-            title: const Text('Reset game?'),
-            content: const Text('This game will be permanently erased.'),
+            title: Text(completed ? 'Start a new game?' : 'Reset game?'),
+            content: Text(
+              completed
+                  ? 'Your completed game will remain in Recent Games.'
+                  : 'This game will be permanently erased.',
+            ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context, false),
@@ -2334,15 +2494,21 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
               ),
               FilledButton(
                 onPressed: () => Navigator.pop(context, true),
-                child: const Text('Reset'),
+                child: Text(completed ? 'Start new game' : 'Reset'),
               ),
             ],
           ),
         ) ??
         false;
-    if (!confirmed || !mounted) return;
+    if (!confirmed || !mounted || generation != _gameGeneration) return;
     _pauseGame();
-    await ActiveSessionStore.discardActive();
+    // A game can finish while the confirmation is open. Never erase a result.
+    if (_gameFinished) {
+      await _saveGameState();
+      await ActiveSessionStore.startNew();
+    } else {
+      await ActiveSessionStore.discardActive();
+    }
     if (!mounted) return;
     if (_chessnutGameActive) {
       _stopChessnutLedRefresh();
@@ -2372,6 +2538,12 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
   Future<void> _takeBack() async {
     if (!_started || !_canTakeBack) return;
     final chessnutTakeback = _chessnutGameActive;
+    // Legacy records may lack the target snapshot. Retain current clock values
+    // from before undo changes the side to move; do not charge the other side.
+    final fallbackClock = ClockSnapshot(
+      _liveMillis(chess.Color.WHITE),
+      _liveMillis(chess.Color.BLACK),
+    );
     final observed = _chessnutPosition;
     _gameGeneration++;
     _gameInferenceScope.invalidate();
@@ -2404,6 +2576,10 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
           basePly: basePly,
           baseFen: _positionHistory[basePly],
           sanMoves: removedSan,
+          annotations: _mainlineAnnotations
+              .skip(basePly)
+              .map(PgnClockExporter.withoutClockTags)
+              .toList(),
           children: nested,
         ),
       );
@@ -2413,8 +2589,9 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
       _uciMoves.removeLast();
       _positionHistory.removeLast();
       if (_clockHistory.length > 1) _clockHistory.removeLast();
+      if (_mainlineAnnotations.isNotEmpty) _mainlineAnnotations.removeLast();
     }
-    final clock = _clockHistory.last;
+    final clock = _clockHistory.lastOrNull ?? fallbackClock;
     setState(() {
       _whiteMillis = clock.whiteMillis;
       _blackMillis = clock.blackMillis;
@@ -2528,7 +2705,7 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
               ),
               ListTile(
                 leading: const Icon(Icons.refresh),
-                title: const Text('Reset game'),
+                title: Text(_gameFinished ? 'New game' : 'Reset game'),
                 onTap: () => Navigator.pop(context, 'new'),
               ),
             ],
@@ -2669,11 +2846,20 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
         .cast<Map<String, dynamic>>()
         .map((move) => move['san'] as String)
         .toList(growable: false);
-    return PgnVariationExporter.export(
+    final pgn = PgnVariationExporter.export(
       _game.pgn(),
       moves,
       _takebackVariations,
       mainPositions: _positionHistory,
+      mainAnnotations: _mainlineAnnotations,
+      startingComments: _pgnComments,
+      preserveEmptyMainline: true,
+    );
+    return PgnClockExporter.export(
+      pgn,
+      history: _clockHistory,
+      baseSeconds: _clockEnabled ? _baseMinutes * 60 : null,
+      incrementSeconds: _incrementSeconds,
     );
   }
 
@@ -2714,7 +2900,7 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
               key: const ValueKey('new-game-button'),
               onPressed: _requestNewGame,
               icon: const Icon(Icons.refresh),
-              tooltip: 'Reset game',
+              tooltip: _gameFinished ? 'New game' : 'Reset game',
             ),
             PopupMenuButton<String>(
               key: const ValueKey('game-share-menu'),
@@ -2825,6 +3011,10 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
                       child: Column(
                         children: [
                           _liveMoveStrip(),
+                          if (_multiplePremoves &&
+                              _premovesEnabled &&
+                              !_chessnutGameActive)
+                            _premoveStrip(),
                           if (_chessnutGameActive) ...[
                             const SizedBox(height: 6),
                             _chessnutStatusBanner(),
@@ -2839,7 +3029,11 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
                               child: const Text('Maia error. Retry'),
                             )
                           else if (_engineThinking)
-                            const Text('Maia is thinking…'),
+                            const Text(
+                              'Maia is thinking…',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           _liveGameControls(),
                         ],
                       ),
@@ -2859,7 +3053,18 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
               max(
                 0.0,
                 contentHeight -
-                    (_maiaFailed ? 268 : 244) -
+                    (154 +
+                        2 * _playerRowHeight +
+                        max(
+                              0,
+                              MediaQuery.textScalerOf(context).scale(14) - 14,
+                            ) *
+                            1.5) -
+                    (_multiplePremoves &&
+                            _premovesEnabled &&
+                            !_chessnutGameActive
+                        ? 48
+                        : 0) -
                     (_chessnutGameActive ? _chessnutBannerHeight + 6 : 0),
               ),
             );
@@ -2873,6 +3078,10 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       _liveMoveStrip(),
+                      if (_multiplePremoves &&
+                          _premovesEnabled &&
+                          !_chessnutGameActive)
+                        _premoveStrip(),
                       if (_chessnutGameActive) ...[
                         const SizedBox(height: 6),
                         _chessnutStatusBanner(),
@@ -2917,6 +3126,8 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
                       else if (_engineThinking)
                         const Text(
                           'Maia is thinking…',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                           textAlign: TextAlign.center,
                         ),
                       _liveGameControls(),
@@ -3074,6 +3285,47 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
               subtitle: const Text('Timing, move sampling, and analysis'),
               children: [
                 SwitchListTile(
+                  key: const ValueKey('premoves-setting'),
+                  contentPadding: EdgeInsets.zero,
+                  title: const Text('Premoves'),
+                  subtitle: const Text('Queue a move while Maia is thinking'),
+                  value: _premovesEnabled,
+                  onChanged: (value) {
+                    setState(() => _premovesEnabled = value);
+                    unawaited(_saveEnginePreferences());
+                  },
+                ),
+                SwitchListTile(
+                  key: const ValueKey('premove-penalty-setting'),
+                  contentPadding: EdgeInsets.zero,
+                  title: const Text('100 ms premove penalty'),
+                  subtitle: const Text(
+                    'Use 0.1 seconds per premove in timed games',
+                  ),
+                  value: _premovePenalty,
+                  onChanged: _premovesEnabled
+                      ? (value) {
+                          setState(() => _premovePenalty = value);
+                          unawaited(_saveEnginePreferences());
+                        }
+                      : null,
+                ),
+                SwitchListTile(
+                  key: const ValueKey('multiple-premoves-setting'),
+                  contentPadding: EdgeInsets.zero,
+                  title: const Text('Allow multiple premoves'),
+                  subtitle: const Text(
+                    'Queue a sequence; an illegal move cancels the rest',
+                  ),
+                  value: _multiplePremoves,
+                  onChanged: _premovesEnabled
+                      ? (value) {
+                          setState(() => _multiplePremoves = value);
+                          unawaited(_saveEnginePreferences());
+                        }
+                      : null,
+                ),
+                SwitchListTile(
                   contentPadding: EdgeInsets.zero,
                   value: _humanTiming,
                   title: const Text('Human move timing'),
@@ -3160,6 +3412,9 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
                     onPressed: () {
                       setState(() {
                         _humanTiming = false;
+                        _premovesEnabled = true;
+                        _premovePenalty = false;
+                        _multiplePremoves = false;
                         _temperature = 0.5;
                         _topP = 0.9;
                         _analysisElo = 1600;
@@ -3378,22 +3633,24 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
         ),
         Expanded(
           child: Center(
-            child: IconButton(
+            child: _historyButton(
               key: const ValueKey('game-previous-move-button'),
-              onPressed: _displayPly == 0 ? null : () => _stepGameHistory(-1),
-              icon: const Icon(CupertinoIcons.chevron_back),
+              enabled: _displayPly > 0,
+              onTap: () => _stepGameHistory(-1),
+              onLongPress: () => _showGamePly(0),
+              icon: CupertinoIcons.chevron_back,
               tooltip: 'Previous move',
             ),
           ),
         ),
         Expanded(
           child: Center(
-            child: IconButton(
+            child: _historyButton(
               key: const ValueKey('game-next-move-button'),
-              onPressed: _isViewingLivePosition
-                  ? null
-                  : () => _stepGameHistory(1),
-              icon: const Icon(CupertinoIcons.chevron_forward),
+              enabled: !_isViewingLivePosition,
+              onTap: () => _stepGameHistory(1),
+              onLongPress: () => _showGamePly(_positionHistory.length - 1),
+              icon: CupertinoIcons.chevron_forward,
               tooltip: 'Next move',
             ),
           ),
@@ -3402,13 +3659,45 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
     ),
   );
 
-  Widget _playerInfoRow(chess.Color color, String label) {
-    return SizedBox(
-      height: max(
-        _clockEnabled ? 44.0 : 24.0,
-        MediaQuery.textScalerOf(context).scale(_clockEnabled ? 20 : 14) + 16,
+  Widget _historyButton({
+    required Key key,
+    required bool enabled,
+    required VoidCallback onTap,
+    required VoidCallback onLongPress,
+    required IconData icon,
+    required String tooltip,
+  }) => Tooltip(
+    message: tooltip,
+    child: Semantics(
+      button: true,
+      enabled: enabled,
+      child: InkResponse(
+        key: key,
+        radius: 24,
+        onTap: enabled ? onTap : null,
+        onLongPress: enabled ? onLongPress : null,
+        child: SizedBox.square(
+          dimension: 48,
+          child: Icon(
+            icon,
+            color: enabled
+                ? Theme.of(context).colorScheme.onSurfaceVariant
+                : Theme.of(context).colorScheme.outlineVariant,
+          ),
+        ),
       ),
-      child: Row(
+    ),
+  );
+
+  double get _playerRowHeight => max(
+    _clockEnabled ? 44.0 : 24.0,
+    MediaQuery.textScalerOf(context).scale(_clockEnabled ? 20 : 14) + 16,
+  );
+
+  Widget _playerInfoRow(chess.Color color, String label) => SizedBox(
+    height: _playerRowHeight,
+    child: LayoutBuilder(
+      builder: (context, constraints) => Row(
         children: [
           Expanded(
             child: Row(
@@ -3422,24 +3711,38 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
                   ),
                 ),
                 const SizedBox(width: 8),
-                MaterialDifference(fen: _game.fen, side: color),
+                Flexible(
+                  child: MaterialDifference(fen: _game.fen, side: color),
+                ),
               ],
             ),
           ),
-          if (_clockEnabled) _clockTile(color),
+          if (_clockEnabled)
+            ConstrainedBox(
+              constraints: BoxConstraints(
+                maxWidth: max(48, constraints.maxWidth - 88),
+              ),
+              child: _clockTile(color),
+            ),
         ],
       ),
-    );
-  }
+    ),
+  );
 
   Widget _clockTile(chess.Color color) {
     return ValueListenableBuilder<ClockSnapshot>(
       valueListenable: _clockDisplay,
       builder: (context, clock, _) {
+        final historical = _gameFinished && !_isViewingLivePosition;
+        final snapshot = historical
+            ? (_displayPly < _clockHistory.length
+                  ? _clockHistory[_displayPly]
+                  : null)
+            : clock;
         final milliseconds = color == chess.Color.WHITE
-            ? clock.whiteMillis
-            : clock.blackMillis;
-        final urgent = milliseconds < 10000;
+            ? snapshot?.whiteMillis
+            : snapshot?.blackMillis;
+        final urgent = milliseconds != null && milliseconds < 10000;
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           decoration: BoxDecoration(
@@ -3448,17 +3751,23 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
                 : const Color(0xff343735),
             borderRadius: BorderRadius.circular(6),
           ),
-          child: Text(
-            _formatClock(milliseconds),
-            style: TextStyle(
-              color: urgent
-                  ? Colors.redAccent
-                  : _game.turn == color && !_gameFinished
-                  ? Colors.black
-                  : Colors.white70,
-              fontSize: 20,
-              fontWeight: FontWeight.w700,
-              fontFeatures: const [FontFeature.tabularFigures()],
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              milliseconds == null ? '—' : _formatClock(milliseconds),
+              key: ValueKey(
+                color == chess.Color.WHITE ? 'white-clock' : 'black-clock',
+              ),
+              style: TextStyle(
+                color: urgent
+                    ? Colors.redAccent
+                    : _game.turn == color && !_gameFinished
+                    ? Colors.black
+                    : Colors.white70,
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+                fontFeatures: const [FontFeature.tabularFigures()],
+              ),
             ),
           ),
         );
@@ -3477,16 +3786,64 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
     return '$minutes:${seconds.toString().padLeft(2, '0')}';
   }
 
+  Widget _premoveStrip() => SizedBox(
+    height: 48,
+    child: _premoves.isEmpty
+        ? null
+        : Row(
+            key: const ValueKey('premove-queue'),
+            children: [
+              Expanded(
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Text(
+                    'Premoves: ${_premoves.moves.indexed.map((entry) => '${entry.$1 + 1}. ${entry.$2.from.name}–${entry.$2.to.name}${entry.$2.promotion?.uppercaseLetter ?? ''}').join('  ')}',
+                  ),
+                ),
+              ),
+              IconButton(
+                key: const ValueKey('cancel-premoves'),
+                tooltip: 'Cancel premoves',
+                onPressed: _cancelPremoves,
+                icon: const Icon(Icons.close),
+              ),
+            ],
+          ),
+  );
+
   Widget _board() {
     return LayoutBuilder(
-      builder: (context, constraints) => cg.Chessboard(
-        key: const ValueKey('game-board'),
-        size: constraints.biggest.shortestSide,
-        orientation: _boardOrientation,
-        controller: _gameBoardController,
-        onMove: _onGameBoardMove,
-        settings: mobileMaiaInteractiveBoardSettings,
-      ),
+      builder: (context, constraints) {
+        final size = constraints.biggest.shortestSide;
+        return Stack(
+          children: [
+            cg.Chessboard(
+              key: const ValueKey('game-board'),
+              size: size,
+              orientation: _boardOrientation,
+              controller: _gameBoardController,
+              onMove: _onGameBoardMove,
+              settings: mobileMaiaInteractiveBoardSettings.copyWith(
+                enablePremoves: _premovesEnabled,
+              ),
+            ),
+            if (_showPremovePlan)
+              Positioned.fill(
+                child: IgnorePointer(
+                  child: CustomPaint(
+                    painter: PremoveHighlights(
+                      _premoves.destinations,
+                      _boardOrientation,
+                      mobileMaiaInteractiveBoardSettings
+                          .colorScheme
+                          .validPremoves,
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        );
+      },
     );
   }
 
@@ -3501,6 +3858,7 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
     _clockDisplay.dispose();
     _liveMovesController.dispose();
     unawaited(_chessnutSubscription?.cancel());
+    _gameBoardController.premoveNotifier.removeListener(_onPremoveChanged);
     _gameBoardController.dispose();
     super.dispose();
   }

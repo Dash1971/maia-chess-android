@@ -146,7 +146,7 @@ on Chessnut Go or directly on the phone.
   <img src="docs/screenshots/20260906_v0_sampling_help.jpg" width="38%" alt="In-app explanation of Maia Temperature and Top-P">
 </p>
 
-Advanced settings control human-like move timing, Temperature, Top-P, the
+Advanced settings control premoves, human-like move timing, Temperature, Top-P, the
 rating used for Maia's human-move suggestion during review, and full-game
 analysis quality. **Thorough** remains the default (depth 16, up to 1.5 seconds
 per position); **Balanced** uses depth 14 and one second; **Fast** uses depth 12
@@ -194,8 +194,28 @@ For a deeper explanation, see the
 
 Tap or drag pieces to play. The status card shows whose turn it is, while the
 material row and move strip update throughout the game. Premoves can be entered
-while Maia is thinking. The bottom toolbar opens the game menu, resigns, and
-steps backward or forward through played moves. Historical positions are
+while Maia is thinking. They are enabled by default, with one queued move and
+no fixed time deduction. Advanced settings can enable **100 ms premove penalty**
+and **Allow multiple premoves** independently. The penalty consumes exactly
+0.1 seconds per executed premove, including processing time, then awards the
+normal increment. With 100 ms or less remaining, the player flags before the
+move and receives no increment. Unlimited games ignore the penalty.
+
+Multiple-premoves mode previews the planned piece positions and shows an ordered,
+horizontally scrollable move strip with a **Cancel premoves** button. Source and
+destination squares use the existing premove colour; a square's last queued use
+determines its tint, without stacking colours. Up to 64 moves may be queued.
+After each Maia reply, only the next premove may execute, after checking its
+legality against the actual position. An illegal premove cancels the remaining
+sequence. Navigation, takebacks, leaving/restarting a game, and game completion
+clear the queue. Premoves apply only to on-screen games.
+
+The bottom toolbar opens the game menu, resigns, and steps backward or forward
+through played moves. Hold Back to jump to the starting position; hold Forward
+to return to the latest position. After completion, both clocks follow the
+selected position, including the increment already awarded. The final position
+shows the actual final clocks, including a timeout. Missing historical values
+in older games appear as a dash. Historical positions are
 read-only until you return to the live position. **Takeback** is in the game
 menu; it restores the board and clock while retaining the abandoned line as a
 variation when the PGN is copied.
@@ -226,7 +246,8 @@ Games and analysis are checkpointed in app-private files, with a previous-good
 backup for recovery. **Recent games** contains completed games and incomplete
 games explicitly saved with Home. Incomplete games are labelled and become the
 same completed record when finished. **Reset game** warns before permanently
-removing the current game and starting again.
+removing an unfinished game and starting again. After completion, the action
+becomes **New game** and confirms that the result will remain in Recent Games.
 
 Recent games supports multi-select, select all, selected deletion, and delete
 all. Android may erase app-private data when the app is uninstalled; use
@@ -241,6 +262,16 @@ a single game with its variations, comments, and annotations. Files are limited
 to 2 MB and 20,000 moves across all branches. Save and share use Android's
 system picker and temporary URI grants; no storage or Internet permission is
 required. PGN import uses the first game in a multi-game document.
+
+Timed-game PGNs include the standard `TimeControl` header and `[%clk ...]`
+comments with each mover's remaining time after their move, to millisecond
+precision. Copy, save, share, and saved games use the same clock data. Existing
+imported clocks and annotations are retained. Unlimited games and missing clock
+history receive no invented move times. Takebacks remove the corresponding
+mainline clock entries while retaining the abandoned variation. If every played
+move has been taken back, PGN describes the unplayed line in a comment; the full
+editable variation remains in the app and becomes a normal PGN variation after
+a new first move is played.
 
 Training clocks pause while the app is backgrounded, while reviewing the
 current game, or after a Maia error. Returning resumes the saved clock; Retry

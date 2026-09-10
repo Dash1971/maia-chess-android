@@ -1,6 +1,8 @@
 part of '../main.dart';
 
 class PgnVariationExporter {
+  static const _unplayedPrefix = 'Unplayed takeback line';
+
   static List<RecordedVariation> annotationsForMainline(
     List<String> mainSan,
     List<RecordedVariation> reviewTree,
@@ -84,6 +86,9 @@ class PgnVariationExporter {
     List<String> mainSan,
     List<RecordedVariation> variations, {
     List<String>? mainPositions,
+    List<Map<String, dynamic>>? mainAnnotations,
+    List<String>? startingComments,
+    bool preserveEmptyMainline = false,
   }) {
     final source = dc.PgnGame.parsePgn(
       pgn,
@@ -92,8 +97,18 @@ class PgnVariationExporter {
     final headers = Map<String, String>.of(source.headers);
     headers.putIfAbsent('Result', () => '*');
     final roots = <RecordedVariation>[];
+    final unplayed = <RecordedVariation>[];
     if (mainSan.isNotEmpty) {
       final seed = source.moves.mainline().toList();
+      bool matchesMainline(RecordedVariation line) =>
+          mainPositions == null ||
+          (line.basePly < mainPositions.length &&
+              line.baseFen == mainPositions[line.basePly]);
+      unplayed.addAll(
+        variations.where(
+          (line) => line.basePly == mainSan.length && matchesMainline(line),
+        ),
+      );
       roots.add(
         RecordedVariation(
           basePly: 0,
@@ -102,22 +117,23 @@ class PgnVariationExporter {
               headers['FEN'] ??
               chess.Chess.DEFAULT_POSITION,
           sanMoves: mainSan,
-          annotations: [
-            for (final data in seed)
-              {
-                if (data.comments != null) 'comments': data.comments,
-                if (data.startingComments != null)
-                  'startingComments': data.startingComments,
-                if (data.nags != null) 'nags': data.nags,
-              },
-          ],
+          annotations:
+              mainAnnotations ??
+              [
+                for (final data in seed)
+                  {
+                    if (data.comments != null) 'comments': data.comments,
+                    if (data.startingComments != null)
+                      'startingComments': data.startingComments,
+                    if (data.nags != null) 'nags': data.nags,
+                  },
+              ],
           children: variations
               .where(
                 (v) =>
                     v.basePly > 0 &&
-                    (mainPositions == null ||
-                        (v.basePly < mainPositions.length &&
-                            v.baseFen == mainPositions[v.basePly])),
+                    v.basePly < mainSan.length &&
+                    matchesMainline(v),
               )
               .toList(),
         ),
@@ -176,10 +192,50 @@ class PgnVariationExporter {
     for (final root in roots) {
       addLine(tree, root);
     }
+    final comments = [
+      for (final comment in startingComments ?? source.comments)
+        if (!preserveEmptyMainline || !comment.startsWith(_unplayedPrefix))
+          comment,
+    ];
+    if (preserveEmptyMainline &&
+        ((mainSan.isEmpty && roots.isNotEmpty) || unplayed.isNotEmpty)) {
+      // A RAV needs a played sibling move. Until a replacement move exists,
+      // keep an abandoned terminal continuation readable without promoting it
+      // back into the played main line. Session JSON retains the editable tree.
+      final noteTree = mainSan.isEmpty ? tree : dc.PgnNode<dc.PgnNodeData>();
+      if (mainSan.isNotEmpty) {
+        for (final line in unplayed) {
+          addLine(noteTree, line);
+        }
+      }
+      final noteFen = mainSan.isEmpty ? rootFen : unplayed.first.baseFen;
+      final noteHeaders = <String, String>{'Result': '*'};
+      if (noteFen != null && noteFen != chess.Chess.DEFAULT_POSITION) {
+        noteHeaders.addAll({'SetUp': '1', 'FEN': noteFen});
+      }
+      final rendered =
+          dc.PgnGame(headers: noteHeaders, moves: noteTree, comments: const [])
+              .makePgn()
+              .replaceAll(RegExp(r'^\[.*\]\s*', multiLine: true), '')
+              .replaceAll('{', '(')
+              .replaceAll('}', ')')
+              .trim();
+      final label = mainSan.isEmpty
+          ? _unplayedPrefix
+          : '$_unplayedPrefix after ply ${mainSan.length}';
+      comments.add('$label: $rendered');
+      if (mainSan.isEmpty) {
+        return dc.PgnGame(
+          headers: headers,
+          moves: dc.PgnNode<dc.PgnNodeData>(),
+          comments: comments,
+        ).makePgn().trim();
+      }
+    }
     return dc.PgnGame(
       headers: headers,
       moves: tree,
-      comments: source.comments,
+      comments: comments,
     ).makePgn().trim();
   }
 }

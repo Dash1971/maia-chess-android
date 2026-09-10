@@ -1,4 +1,8 @@
 import 'dart:typed_data';
+import 'dart:async';
+
+import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:chess/chess.dart' as chess;
 import 'package:chessground/chessground.dart' as cg;
@@ -10,6 +14,7 @@ import 'package:maia_chess/main.dart';
 
 import '../test/fixtures/variation_navigation_game.dart';
 import '../test/fixtures/electronic_board.dart';
+import '../test/fixtures/launch_game.dart';
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
@@ -480,6 +485,244 @@ void main() {
       await tester.pumpWidget(const SizedBox.shrink());
       await tester.pumpAndSettle();
       await board.close();
+    },
+  );
+  testWidgets(
+    'Android new-game flow preserves all completed result types in Recent Games',
+    (tester) async {
+      final preferences = await SharedPreferences.getInstance();
+      await preferences.setBool('multiplePremoves', false);
+      await preferences.setBool('premovePenalty', false);
+      for (final (name, movetext, result) in [
+        ('checkmate', '1. f3 e5 2. g4 Qh4# 0-1', '0-1'),
+        (
+          'stalemate',
+          '[FEN "7k/5Q2/6K1/8/8/8/8/8 b - - 0 1"]\n[SetUp "1"]\n1/2-1/2',
+          '1/2-1/2',
+        ),
+        ('resignation', '1. e4 {Keep this note} (1. d4 d5) e5 0-1', '0-1'),
+        ('agreed draw', '1. e4 e5 1/2-1/2', '1/2-1/2'),
+        ('timeout', '1. e4 e5 1-0', '1-0'),
+      ]) {
+        await ActiveSessionStore.clear();
+        final pgn = '[Event "Launch $name"]\n[Result "$result"]\n$movetext';
+        final session = AnalysisSession.fromPgn(pgn);
+        final history = List.generate(
+          session.positions.length,
+          (ply) => [60000 - ply * 137, 60000 - ply * 213],
+        );
+        await ActiveSessionStore.save(
+          gameRecord(
+            pgn: pgn,
+            result: result,
+            preset: 'bullet',
+            history: history,
+            white: 55000,
+            black: name == 'timeout' ? 0 : 56000,
+          ),
+        );
+        await tester.pumpWidget(
+          MaterialApp(home: GamePage(clockFactory: () => TestClock(0))),
+        );
+        await waitFor(
+          tester,
+          () => find.byType(AlertDialog).evaluate().isNotEmpty,
+        );
+        Navigator.of(tester.element(find.byType(AlertDialog))).pop();
+        await tester.pumpAndSettle();
+        // Persist once through the real app before comparing the archived record.
+        await tester.tap(find.byKey(const ValueKey('game-home-button')));
+        await waitFor(
+          tester,
+          () => find.text('Recent games').evaluate().isNotEmpty,
+        );
+        final before = (await ActiveSessionStore.recent()).singleWhere(
+          (record) => record.title == 'Launch $name',
+        );
+        await openRecent(tester, 'Launch $name');
+        await waitFor(
+          tester,
+          () => find.byType(AlertDialog).evaluate().isNotEmpty,
+        );
+        Navigator.of(tester.element(find.byType(AlertDialog))).pop();
+        await tester.pumpAndSettle();
+        await tester.longPress(
+          find.byKey(const ValueKey('game-previous-move-button')),
+        );
+        await tester.pumpAndSettle();
+        if (session.uciMoves.isNotEmpty) {
+          expect(
+            tester.widget<Text>(find.byKey(const ValueKey('white-clock'))).data,
+            '1:00',
+          );
+          expect(
+            tester.widget<Text>(find.byKey(const ValueKey('black-clock'))).data,
+            '1:00',
+          );
+        }
+        await tester.longPress(
+          find.byKey(const ValueKey('game-next-move-button')),
+        );
+        await tester.pumpAndSettle();
+        expect(
+          tester.widget<Text>(find.byKey(const ValueKey('black-clock'))).data,
+          name == 'timeout' ? '0:00.0' : '0:56',
+        );
+        await tester.tap(find.byKey(const ValueKey('game-share-menu')));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Copy PGN'));
+        await tester.pumpAndSettle();
+        final clipboard = await Clipboard.getData(Clipboard.kTextPlain);
+        expect(clipboard!.text, before.data['pgn']);
+        await tester.tap(find.byTooltip('New game'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Cancel'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.byTooltip('New game'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Start new game'));
+        await waitFor(
+          tester,
+          () => find.byTooltip('Reset game').evaluate().isNotEmpty,
+        );
+        final after = (await ActiveSessionStore.recent()).singleWhere(
+          (record) => record.id == before.id,
+        );
+        for (final field in [
+          'pgn',
+          'forcedResult',
+          'whiteMillis',
+          'blackMillis',
+          'clockHistory',
+          'variations',
+        ]) {
+          expect(after.data[field], before.data[field], reason: '$name $field');
+        }
+        expect((await ActiveSessionStore.load())!['uciMoves'], isEmpty);
+        await disposeGame(tester);
+      }
+    },
+  );
+
+  testWidgets(
+    'Android unfinished reset discards only the selected incomplete game',
+    (tester) async {
+      await ActiveSessionStore.clear();
+      await ActiveSessionStore.save({
+        ...gameRecord(pgn: '[Event "Launch unfinished reset"]\n1. e4 e5 *'),
+        'recentState': 'incomplete',
+      });
+      await ActiveSessionStore.clear();
+      final old = (await ActiveSessionStore.recent()).singleWhere(
+        (game) => game.title == 'Launch unfinished reset',
+      );
+      await tester.pumpWidget(
+        MaterialApp(home: GamePage(clockFactory: () => TestClock(0))),
+      );
+      await waitFor(
+        tester,
+        () => find.text('Recent games').evaluate().isNotEmpty,
+      );
+      await openRecent(tester, old.title);
+      await tester.tap(find.byTooltip('Reset game'));
+      await tester.pumpAndSettle();
+      expect(
+        find.text('This game will be permanently erased.'),
+        findsOneWidget,
+      );
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+      expect(
+        (await ActiveSessionStore.recent()).any((game) => game.id == old.id),
+        true,
+      );
+      await tester.tap(find.byTooltip('Reset game'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilledButton, 'Reset'));
+      await waitFor(
+        tester,
+        () => boardOf(tester).controller.fen == chess.Chess.DEFAULT_POSITION,
+      );
+      expect(
+        (await ActiveSessionStore.recent()).any((game) => game.id == old.id),
+        false,
+      );
+      expect(
+        (await ActiveSessionStore.recent())
+            .where((game) => game.title.startsWith('Launch '))
+            .length,
+        5,
+      );
+      await disposeGame(tester);
+    },
+  );
+
+  testWidgets(
+    'Android board queues premoves against real Maia and saves precise clocks',
+    (tester) async {
+      await ActiveSessionStore.clear();
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('multiplePremoves', true);
+      await prefs.setBool('premovePenalty', true);
+      await prefs.setBool('humanTiming', false);
+      final releaseReply = Completer<void>();
+      var requests = 0;
+      await ActiveSessionStore.save(
+        gameRecord(
+          playerWhite: false,
+          pgn: '[Event "Launch real premoves"]\n*',
+          history: [
+            [5000, 5000],
+          ],
+        ),
+      );
+      await tester.pumpWidget(
+        MaterialApp(
+          home: GamePage(
+            clockFactory: () => TestClock(17),
+            maiaEvaluator: (positions, elo) async {
+              requests++;
+              if (requests > 1) return Completer<Float32List>().future;
+              final policy = await MaiaInferenceQueue.predict({
+                'tokens': MaiaEncoding.historicalTokens(positions),
+                'selfElo': elo,
+                'opponentElo': elo,
+              });
+              await releaseReply.future;
+              return policy!;
+            },
+          ),
+        ),
+      );
+      await waitFor(
+        tester,
+        () => find.byType(cg.Chessboard).evaluate().isNotEmpty,
+      );
+      await queueMove(tester, 'g8f6');
+      await queueMove(tester, 'f6g4');
+      expect(find.byKey(const ValueKey('premove-queue')), findsOneWidget);
+      releaseReply.complete();
+      await waitFor(tester, () => requests == 2);
+      Map<String, dynamic>? saved;
+      for (var i = 0; i < 100; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+        saved = await ActiveSessionStore.load();
+        if ((saved?['uciMoves'] as List?)?.length == 2) break;
+      }
+      expect((saved!['uciMoves'] as List).last, 'g8f6');
+      expect((saved['clockHistory'] as List).last, [6983, 6900]);
+      final pgn = dc.PgnGame.parsePgn(saved['pgn'] as String);
+      expect(pgn.headers['TimeControl'], '180+2');
+      expect(
+        pgn.moves.mainline().last.comments,
+        contains('[%clk 0:00:06.900]'),
+      );
+      await tester.tap(find.byKey(const ValueKey('cancel-premoves')));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey('premove-queue')), findsNothing);
+      await disposeGame(tester);
+      await prefs.setBool('multiplePremoves', false);
+      await prefs.setBool('premovePenalty', false);
     },
   );
 }
