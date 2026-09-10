@@ -9,6 +9,7 @@ import 'package:integration_test/integration_test.dart';
 import 'package:maia_chess/main.dart';
 
 import '../test/fixtures/variation_navigation_game.dart';
+import '../test/fixtures/electronic_board.dart';
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
@@ -310,4 +311,175 @@ void main() {
     expect(find.text('#-1'), findsWidgets);
     expect(tester.takeException(), isNull);
   });
+  Future<void> waitFor(WidgetTester tester, bool Function() condition) async {
+    for (var i = 0; i < 300; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+      if (condition()) return;
+    }
+    fail('Android screen or engine did not finish within 30 seconds');
+  }
+
+  Future<void> openRecent(WidgetTester tester, String title) async {
+    final recent = find.text('Recent games');
+    await tester.ensureVisible(recent);
+    await tester.tap(recent);
+    await waitFor(tester, () => find.text(title).evaluate().isNotEmpty);
+    await tester.tap(find.text(title));
+    await tester.pumpAndSettle();
+  }
+
+  testWidgets(
+    'completed Chessnut game in Android Recent games keeps board mode off',
+    (tester) async {
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump();
+      await ActiveSessionStore.clear();
+      final store = await ActiveSessionStore.repository;
+      await store.deleteMany((await store.recent()).map((game) => game.id));
+      await ActiveSessionStore.save({
+        'type': 'game',
+        'recentState': 'completed',
+        'pgn': '[Event "Chessnut completed regression"]\n[Result "0-1"]\n1. f3 e5 2. g4 Qh4# 0-1',
+        'electronicBoard': 'chessnut-go',
+        'pendingPhysicalMaiaMove': 'd8h4',
+      });
+      await ActiveSessionStore.clear();
+      final board = SimulatedElectronicBoard();
+      await tester.pumpWidget(
+        MaterialApp(home: GamePage(electronicBoardTransport: board)),
+      );
+      await waitFor(
+        tester,
+        () => find.text('Recent games').evaluate().isNotEmpty,
+      );
+      await openRecent(tester, 'Chessnut completed regression');
+      await waitFor(
+        tester,
+        () => find.text('Black is victorious').evaluate().isNotEmpty,
+      );
+      expect(
+        find.byKey(const ValueKey('chessnut-status-banner')),
+        findsNothing,
+      );
+      expect(board.connects, 0);
+      await tester.tapAt(const Offset(10, 100));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('game-home-button')));
+      await waitFor(
+        tester,
+        () => find.text('Recent games').evaluate().isNotEmpty,
+      );
+      expect(
+        tester
+            .widget<SwitchListTile>(
+              find.byKey(const ValueKey('chessnut-go-toggle')),
+            )
+            .value,
+        isFalse,
+      );
+      // Selecting another completed record must not inherit the old result-dialog flag.
+      await openRecent(tester, 'Chessnut completed regression');
+      await waitFor(
+        tester,
+        () => find.text('Black is victorious').evaluate().isNotEmpty,
+      );
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pumpAndSettle();
+      await board.close();
+    },
+  );
+
+  testWidgets(
+    'Android Recent game switches to phone with real Maia and retains its archive identity',
+    (tester) async {
+      await ActiveSessionStore.clear();
+      await ActiveSessionStore.save({
+        'type': 'game',
+        'recentState': 'incomplete',
+        'pgn': '[Event "Chessnut phone regression"]\n1. e4 e5 *',
+        'electronicBoard': 'chessnut-go',
+        'clockPaused': true,
+        'playerIsWhite': true,
+        'timePreset': 'unlimited',
+      });
+      await ActiveSessionStore.clear();
+      final before = (await ActiveSessionStore.recent()).singleWhere(
+        (game) => game.title == 'Chessnut phone regression',
+      );
+      final board = SimulatedElectronicBoard();
+      await tester.pumpWidget(
+        MaterialApp(home: GamePage(electronicBoardTransport: board)),
+      );
+      await waitFor(
+        tester,
+        () => find.text('Recent games').evaluate().isNotEmpty,
+      );
+      await openRecent(tester, 'Chessnut phone regression');
+      await waitFor(
+        tester,
+        () => find.text('Play in app').evaluate().isNotEmpty,
+      );
+      await tester.tap(find.text('Play in app'));
+      await tester.pumpAndSettle();
+      final screenBoard = tester.widget<cg.Chessboard>(
+        find.byType(cg.Chessboard),
+      );
+      expect(screenBoard.controller.interactive, isTrue);
+      screenBoard.onMove!(dc.NormalMove.fromUci('g1f3'));
+      await waitFor(
+        tester,
+        () =>
+            tester
+                .widget<cg.Chessboard>(find.byType(cg.Chessboard))
+                .controller
+                .game
+                .sideToMove ==
+            dc.Side.white,
+      );
+      for (var i = 0; i < 100; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+        if (((await ActiveSessionStore.load())?['uciMoves'] as List?)?.length ==
+            4) {
+          break;
+        }
+      }
+      final saved = (await ActiveSessionStore.load())!;
+      expect(saved['uciMoves'], hasLength(4));
+      expect((saved['uciMoves'] as List).take(3), ['e2e4', 'e7e5', 'g1f3']);
+      expect(saved['electronicBoard'], isNull);
+      await tester.tap(find.byKey(const ValueKey('game-home-button')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilledButton, 'Continue'));
+      await waitFor(
+        tester,
+        () => find.text('Recent games').evaluate().isNotEmpty,
+      );
+      final after = (await ActiveSessionStore.recent()).singleWhere(
+        (game) => game.title == 'Chessnut phone regression',
+      );
+      expect(after.id, before.id);
+      expect(after.data['electronicBoard'], isNull);
+      await openRecent(tester, 'Chessnut phone regression');
+      await waitFor(
+        tester,
+        () => find.byType(cg.Chessboard).evaluate().isNotEmpty,
+      );
+      expect(
+        find.byKey(const ValueKey('chessnut-status-banner')),
+        findsNothing,
+      );
+      expect(
+        tester
+            .widget<cg.Chessboard>(find.byType(cg.Chessboard))
+            .controller
+            .interactive,
+        isTrue,
+      );
+      expect(board.connects, 0);
+      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pumpAndSettle();
+      await board.close();
+    },
+  );
 }

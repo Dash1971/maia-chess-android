@@ -61,6 +61,15 @@ and every main-line move of the reported 66-move game in both directions.
 through their screens with the real background parser. This guards against
 isolate closures accidentally capturing unsendable widget state.
 
+`test/chessnut_continuation_test.dart` covers completed-game restoration and
+switching from board input to the screen, including delayed connection/LED
+callbacks, pending Maia moves, takebacks, draw decisions, retry, checkmate,
+and persistence. `test/chessnut_continuation_layout_test.dart` checks both
+connection actions and scrollable menus in portrait/landscape at normal and
+200% text size. Android integration also opens real Recent games records,
+continues a board game on screen with real Maia, and verifies that saving and
+reopening preserve the archive identity and the new input choice.
+
 The 1,000-ply PGN stress test prints a host timing for import and round-trip.
 Compare timings on the same host; it does not establish phone performance.
 

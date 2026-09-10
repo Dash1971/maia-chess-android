@@ -110,11 +110,22 @@ the complete board matches the reverted position. Restoration guidance is
 retained across a reconnect or app restart.
 
 The Bluetooth icon in a live game shows connection and battery status and
-provides reconnect, sound, and disconnect controls. If the board loses power
-or disconnects, the live status bar also shows **Reconnect**. Mobile Maia
-rescans for the board without discarding the game, then checks the complete
-physical position before play continues. Pending Maia and takeback LEDs are
-restored after reconnecting.
+provides reconnect, sound, disconnect, and **Play in app** controls. If the
+board loses power or disconnects, a compact card offers **Reconnect** and
+**Play in app**. Reconnect rescans for the board without discarding the game,
+then checks the complete physical position before play continues. Pending
+Maia and takeback LEDs are restored after reconnecting.
+
+**Play in app** immediately switches the current game to on-screen moves,
+even while connecting or waiting to copy Maia's move onto the physical board.
+The position, moves, variations, rating, orientation, and unlimited time control
+are retained. The choice is saved, so reopening that game continues on screen
+and the home-screen Chessnut toggle stays off. You can also choose it from the
+Bluetooth menu before leaving a connected board.
+
+Completed games opened from **Recent games** do not reactivate Chessnut or
+request a connection. Unfinished board games retain their reconnect option
+until you choose **Play in app**.
 
 This preview targets Chessnut Go over Bluetooth. Timed e-board games, arbitrary
 starting positions, USB connections, Analysis Board input, and other Chessnut

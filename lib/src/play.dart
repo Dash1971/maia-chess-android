@@ -69,6 +69,7 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
   bool _boardFlipped = false;
   bool _resultDialogShown = false;
   bool _drawOfferEvaluating = false;
+  Object? _drawOfferRequest;
   String? _lastDrawOfferFen;
   bool _savedAsIncomplete = false;
   int? _viewedPly;
@@ -87,6 +88,7 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
   bool _useChessnutGo = false;
   bool _chessnutSoundsEnabled = true;
   bool _chessnutGameActive = false;
+  int _chessnutConnectionGeneration = 0;
   bool _chessnutTakebackRestoreActive = false;
   bool _physicalMoveInProgress = false;
   String? _pendingPhysicalMaiaMove;
@@ -348,6 +350,12 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
       if (repairedNaturalResult != null) {
         restored.set_header(['Result', repairedNaturalResult]);
       }
+      final restoredForcedResult = repairedNaturalResult == null
+          ? saved['forcedResult'] as String? ??
+                (const ['1-0', '0-1', '1/2-1/2'].contains(storedResult)
+                    ? storedResult
+                    : null)
+          : null;
       final savedAt = DateTime.tryParse(saved['savedAt'] as String? ?? '');
       var whiteMillis = saved['whiteMillis'] as int? ?? 0;
       var blackMillis = saved['blackMillis'] as int? ?? 0;
@@ -357,7 +365,7 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
       if (savedAt != null &&
           preset != TimePreset.unlimited &&
           saved['clockPaused'] != true &&
-          saved['forcedResult'] == null &&
+          restoredForcedResult == null &&
           !restored.game_over) {
         // Wall-clock corrections must never add time to a saved clock.
         final elapsed = max(
@@ -370,8 +378,15 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
           blackMillis = max(0, blackMillis - elapsed);
         }
       }
+      final wasUsingChessnut = _useChessnutGo;
+      _gameGeneration++;
+      _gameInferenceScope.invalidate();
+      _clockTimer?.cancel();
+      _stopChessnutLedRefresh();
       setState(() {
         _game = restored;
+        _engineThinking = false;
+        _resultDialogShown = false;
         _naturalGameOver = restored.game_over;
         _clockPaused = paused;
         _maiaFailed = saved['maiaFailed'] == true;
@@ -417,9 +432,7 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
         // A terminal board is authoritative. Forced results end play before a
         // later move, so a saved forced result alongside checkmate/stalemate is
         // stale or corrupt and must not override the position.
-        _forcedResult = repairedNaturalResult == null
-            ? saved['forcedResult'] as String?
-            : null;
+        _forcedResult = restoredForcedResult;
         _lastDrawOfferFen = saved['lastDrawOfferFen'] as String?;
         _drawOfferEvaluating = false;
         _status = repairedNaturalResult != null
@@ -427,17 +440,25 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
             : saved['status'] as String? ?? 'Game restored.';
         _boardFlipped = saved['flipped'] as bool? ?? false;
         _savedAsIncomplete =
-            saved['recentState'] == 'incomplete' ||
-            (saved['recentState'] == null &&
-                saved['forcedResult'] == null &&
-                !restored.game_over);
+            !_gameFinished &&
+            (saved['recentState'] == 'incomplete' ||
+                (saved['recentState'] == null &&
+                    saved['forcedResult'] == null &&
+                    !restored.game_over));
         _viewedPly = null;
-        _chessnutGameActive = saved['electronicBoard'] == 'chessnut-go';
+        // Board metadata describes how the game was played. Only an unfinished
+        // game needs physical move input when it is reopened.
+        _chessnutGameActive =
+            !_gameFinished && saved['electronicBoard'] == 'chessnut-go';
         _useChessnutGo = _chessnutGameActive;
         if (_chessnutGameActive) _timePreset = TimePreset.unlimited;
-        _pendingPhysicalMaiaMove = saved['pendingPhysicalMaiaMove'] as String?;
+        _pendingPhysicalMaiaMove = _chessnutGameActive
+            ? saved['pendingPhysicalMaiaMove'] as String?
+            : null;
         _chessnutTakebackRestoreActive =
-            saved['chessnutTakebackRestore'] == true;
+            _chessnutGameActive && saved['chessnutTakebackRestore'] == true;
+        _queuedChessnutPosition = null;
+        _physicalMoveInProgress = false;
         _lastChessnutIllegalPosition = null;
         if (_chessnutGameActive) {
           _status = 'Reconnect Chessnut Go to continue.';
@@ -445,6 +466,7 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
         _started = true;
       });
       if (_chessnutGameActive) _ensureChessnutListening();
+      if (wasUsingChessnut && !_useChessnutGo) unawaited(_disconnectChessnut());
       _syncGameBoard(animate: false, resetPremove: true);
       if (_clockEnabled && !_gameFinished) {
         _clockTimer = Timer.periodic(
@@ -945,7 +967,7 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
       onError: (Object error, StackTrace stackTrace) {
         unawaited(AppDiagnostics.record('chessnut-events', error, stackTrace));
         _chessnutLeds.invalidate();
-        if (!mounted) return;
+        if (!mounted || !_useChessnutGo) return;
         setState(() {
           _chessnutState = ElectronicBoardConnectionState.error;
           _chessnutMessage = 'Chessnut connection error.';
@@ -973,6 +995,8 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
   }
 
   Future<void> _connectChessnut() async {
+    if (!mounted || !_useChessnutGo) return;
+    final generation = ++_chessnutConnectionGeneration;
     _ensureChessnutListening();
     unawaited(
       AppDiagnostics.recordEvent(
@@ -992,7 +1016,11 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
       await _chessnut.connect();
     } on PlatformException catch (error, stackTrace) {
       unawaited(AppDiagnostics.record('chessnut-connect', error, stackTrace));
-      if (!mounted) return;
+      if (!mounted ||
+          generation != _chessnutConnectionGeneration ||
+          !_useChessnutGo) {
+        return;
+      }
       setState(() {
         _chessnutState = ElectronicBoardConnectionState.error;
         _chessnutMessage = error.message ?? 'Could not connect Chessnut Go.';
@@ -1002,7 +1030,11 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
       unawaited(
         AppDiagnostics.record('chessnut-unavailable', error, stackTrace),
       );
-      if (!mounted) return;
+      if (!mounted ||
+          generation != _chessnutConnectionGeneration ||
+          !_useChessnutGo) {
+        return;
+      }
       setState(() {
         _chessnutState = ElectronicBoardConnectionState.error;
         _chessnutMessage = 'Chessnut Go support is available on Android.';
@@ -1011,7 +1043,9 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
   }
 
   Future<void> _disconnectChessnut() async {
+    final generation = ++_chessnutConnectionGeneration;
     _stopChessnutLedRefresh();
+    _chessnutLeds.invalidate();
     try {
       try {
         if (_chessnutReady) {
@@ -1019,7 +1053,9 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
         }
       } finally {
         // Disconnect remains available even when clearing a stalled board fails.
-        await _chessnut.disconnect();
+        if (generation == _chessnutConnectionGeneration) {
+          await _chessnut.disconnect().timeout(const Duration(seconds: 2));
+        }
       }
     } on PlatformException catch (error, stackTrace) {
       unawaited(
@@ -1032,7 +1068,7 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
     } on MissingPluginException {
       // Unit tests and non-Android builds have no Chessnut platform bridge.
     }
-    if (!mounted) return;
+    if (!mounted || generation != _chessnutConnectionGeneration) return;
     setState(() {
       _chessnutState = ElectronicBoardConnectionState.disconnected;
       _chessnutMessage = 'Chessnut Go is disconnected.';
@@ -1041,8 +1077,48 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
     });
   }
 
+  Future<void> _playInApp() async {
+    if (!mounted || !_started || !_chessnutGameActive) return;
+    // The app position already includes Maia's pending physical move. Switching
+    // input must neither replay it nor wait for the board to acknowledge it.
+    _gameGeneration++;
+    _gameInferenceScope.invalidate();
+    _stopChessnutLedRefresh();
+    setState(() {
+      _useChessnutGo = false;
+      _chessnutGameActive = false;
+      _pendingPhysicalMaiaMove = null;
+      _chessnutTakebackRestoreActive = false;
+      _physicalMoveInProgress = false;
+      _queuedChessnutPosition = null;
+      _lastChessnutIllegalPosition = null;
+      _viewedPly = null;
+      _engineThinking = false;
+      if (_drawOfferEvaluating) _lastDrawOfferFen = null;
+      _drawOfferEvaluating = false;
+      _drawOfferRequest = null;
+      _status = _gameFinished
+          ? _resultText()
+          : _maiaFailed
+          ? 'Maia error. Please retry.'
+          : _isPlayerTurn
+          ? 'Your move.'
+          : 'Maia is thinking…';
+    });
+    _syncGameBoard(animate: false, resetPremove: true);
+    // Board shutdown is best effort; a missing Bluetooth callback must not
+    // block on-screen play or saving the user's input-mode choice.
+    unawaited(_disconnectChessnut());
+    unawaited(_saveGameState());
+    if (_gameFinished) {
+      _scheduleGameConclusion();
+    } else if (!_clockPaused && !_maiaFailed && !_isPlayerTurn) {
+      unawaited(_playMaiaMove());
+    }
+  }
+
   void _handleChessnutEvent(ElectronicBoardEvent event) {
-    if (!mounted) return;
+    if (!mounted || !_useChessnutGo) return;
     if (event.type == 'battery') {
       setState(() {
         _chessnutBatteryPercent = event.batteryPercent;
@@ -1121,6 +1197,9 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
 
   Future<void> _handleChessnutPosition(Map<String, String> observed) async {
     if (!_useChessnutGo || !_chessnutReady) return;
+    final generation = _gameGeneration;
+    bool isCurrent() =>
+        mounted && _useChessnutGo && generation == _gameGeneration;
     if (!_started) {
       final expected = ChessnutProtocol.pieceMapFromFen(
         chess.Chess.DEFAULT_POSITION,
@@ -1131,7 +1210,7 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
             ? const []
             : ChessnutProtocol.mismatchSquares(observed, expected),
       );
-      if (!mounted) return;
+      if (!isCurrent()) return;
       setState(() {
         _chessnutMessage = matches
             ? 'Chessnut Go is ready.'
@@ -1148,8 +1227,8 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
           ? const <String>[]
           : ChessnutProtocol.mismatchSquares(observed, expected);
       await _setChessnutLeds(mismatch);
+      if (!isCurrent()) return;
       _lastChessnutIllegalPosition = null;
-      if (!mounted) return;
       if (matches) {
         _stopChessnutLedRefresh();
         setState(() {
@@ -1210,7 +1289,7 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
       await _setChessnutLeds(
         ChessnutProtocol.mismatchSquares(observed, expected),
       );
-      if (mounted) {
+      if (isCurrent()) {
         setState(() => _status = 'Complete Maia’s lit move on Chessnut Go.');
       }
       return;
@@ -1228,9 +1307,10 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
       _physicalMoveInProgress = true;
       try {
         await _setChessnutLeds(const []);
+        if (!isCurrent()) return;
         await _commitHumanMove(uci, fromChessnut: true);
       } finally {
-        _physicalMoveInProgress = false;
+        if (generation == _gameGeneration) _physicalMoveInProgress = false;
       }
       return;
     }
@@ -1244,6 +1324,7 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
       if (_lastChessnutIllegalPosition != signature) {
         _lastChessnutIllegalPosition = signature;
         await _beepChessnut();
+        if (!isCurrent()) return;
       }
     } else {
       _lastChessnutIllegalPosition = null;
@@ -1253,7 +1334,7 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
           ? ChessnutProtocol.mismatchSquares(observed, expected)
           : const [],
     );
-    if (!mounted) return;
+    if (!isCurrent()) return;
     setState(() {
       _status = completeAttempt
           ? 'That position is not a legal move. Correct the lit squares.'
@@ -1277,8 +1358,12 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
     if (!_chessnutGameActive || !_chessnutReady || !_chessnutSoundsEnabled) {
       return;
     }
+    final generation = _gameGeneration;
     try {
       for (var index = 0; index < count; index++) {
+        if (!mounted || !_chessnutGameActive || generation != _gameGeneration) {
+          return;
+        }
         await _chessnut.beep();
         if (index + 1 < count) {
           // Leave a short silence after the 200 ms tone so checkmate is heard
@@ -1363,103 +1448,164 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
       context: context,
       showDragHandle: true,
       builder: (context) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: Icon(
-                _chessnutReady ? Icons.bluetooth_connected : Icons.bluetooth,
-              ),
-              title: Text(_chessnutDeviceName ?? 'Chessnut Go'),
-              subtitle: Text(_chessnutMessage),
-              trailing: _chessnutBatteryPercent == null
-                  ? null
-                  : Text(
-                      '$_chessnutBatteryPercent%${_chessnutCharging ? ' ⚡' : ''}',
-                    ),
-            ),
-            SwitchListTile(
-              secondary: const Icon(Icons.volume_up_outlined),
-              value: _chessnutSoundsEnabled,
-              title: const Text('Board sounds'),
-              subtitle: const Text('Check, checkmate, and illegal moves'),
-              onChanged: (enabled) =>
-                  Navigator.pop(context, enabled ? 'sounds-on' : 'sounds-off'),
-            ),
-            if (_chessnutReady)
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
               ListTile(
-                leading: const Icon(Icons.bluetooth_disabled),
-                title: const Text('Disconnect'),
-                onTap: () => Navigator.pop(context, 'disconnect'),
-              )
-            else
-              ListTile(
-                leading: const Icon(Icons.refresh),
-                title: const Text('Reconnect'),
-                onTap: () => Navigator.pop(context, 'connect'),
+                leading: Icon(
+                  _chessnutReady ? Icons.bluetooth_connected : Icons.bluetooth,
+                ),
+                title: Text(_chessnutDeviceName ?? 'Chessnut Go'),
+                subtitle: Text(_chessnutMessage),
+                trailing: _chessnutBatteryPercent == null
+                    ? null
+                    : Text(
+                        '$_chessnutBatteryPercent%${_chessnutCharging ? ' ⚡' : ''}',
+                      ),
               ),
-          ],
+              SwitchListTile(
+                secondary: const Icon(Icons.volume_up_outlined),
+                value: _chessnutSoundsEnabled,
+                title: const Text('Board sounds'),
+                subtitle: const Text('Check, checkmate, and illegal moves'),
+                onChanged: (enabled) => Navigator.pop(
+                  context,
+                  enabled ? 'sounds-on' : 'sounds-off',
+                ),
+              ),
+              if (_chessnutReady)
+                ListTile(
+                  leading: const Icon(Icons.bluetooth_disabled),
+                  title: const Text('Disconnect'),
+                  onTap: () => Navigator.pop(context, 'disconnect'),
+                )
+              else
+                ListTile(
+                  leading: const Icon(Icons.refresh),
+                  title: const Text('Reconnect'),
+                  onTap: () => Navigator.pop(context, 'connect'),
+                ),
+              if (_chessnutGameActive)
+                ListTile(
+                  leading: const Icon(Icons.smartphone_outlined),
+                  title: const Text('Play in app'),
+                  subtitle: const Text('Continue this game on screen'),
+                  onTap: () => Navigator.pop(context, 'app'),
+                ),
+            ],
+          ),
         ),
       ),
     );
+    if (!mounted) return;
+    if (action == 'app') await _playInApp();
     if (action == 'connect') await _connectChessnut();
     if (action == 'disconnect') await _disconnectChessnut();
     if (action == 'sounds-on') await _setChessnutSoundsEnabled(true);
     if (action == 'sounds-off') await _setChessnutSoundsEnabled(false);
   }
 
-  Widget _chessnutStatusBanner() => Semantics(
-    label: _status,
-    child: Container(
+  double get _chessnutStatusHeight =>
+      max(32, MediaQuery.textScalerOf(context).scale(12) + 12);
+
+  bool get _stackChessnutActions =>
+      MediaQuery.textScalerOf(context).scale(14) > 21;
+
+  double get _chessnutActionsHeight =>
+      max(48, MediaQuery.textScalerOf(context).scale(14) + 16) *
+      (_stackChessnutActions ? 2 : 1);
+
+  double get _chessnutBannerHeight =>
+      _chessnutStatusHeight + (_chessnutReady ? 0 : _chessnutActionsHeight);
+
+  Widget _chessnutStatusBanner() {
+    final connecting =
+        _chessnutState == ElectronicBoardConnectionState.scanning ||
+        _chessnutState == ElectronicBoardConnectionState.connecting ||
+        _chessnutState == ElectronicBoardConnectionState.connected;
+    final message = _chessnutReady
+        ? _status
+        : connecting
+        ? 'Connecting to Chessnut Go…'
+        : _chessnutState == ElectronicBoardConnectionState.error
+        ? 'Chessnut Go unavailable'
+        : 'Chessnut Go disconnected';
+    return Container(
       key: const ValueKey('chessnut-status-banner'),
-      height: 32,
-      padding: const EdgeInsets.symmetric(horizontal: 10),
-      alignment: Alignment.center,
-      color: Theme.of(context).colorScheme.surfaceContainerHighest,
-      child: Row(
+      height: _chessnutBannerHeight,
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
         children: [
-          Icon(
-            _chessnutReady
-                ? Icons.bluetooth_connected
-                : Icons.bluetooth_disabled,
-            size: 17,
-          ),
-          const SizedBox(width: 7),
-          Expanded(
-            child: Text(
-              _status,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontSize: 12),
-            ),
-          ),
-          if (_chessnutBatteryPercent != null)
-            Text(
-              '$_chessnutBatteryPercent%${_chessnutCharging ? ' ⚡' : ''}',
-              style: const TextStyle(fontSize: 12),
-            ),
-          if (!_chessnutReady) ...[
-            const SizedBox(width: 4),
-            TextButton(
-              key: const ValueKey('chessnut-inline-reconnect'),
-              onPressed:
-                  _chessnutState == ElectronicBoardConnectionState.scanning ||
-                      _chessnutState ==
-                          ElectronicBoardConnectionState.connecting
-                  ? null
-                  : _connectChessnut,
-              style: TextButton.styleFrom(
-                minimumSize: const Size(0, 30),
-                padding: const EdgeInsets.symmetric(horizontal: 7),
-                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          SizedBox(
+            height: _chessnutStatusHeight,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+              child: Row(
+                children: [
+                  Icon(
+                    _chessnutReady
+                        ? Icons.bluetooth_connected
+                        : Icons.bluetooth_disabled,
+                    size: 17,
+                  ),
+                  const SizedBox(width: 7),
+                  Expanded(
+                    child: Text(
+                      message,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontSize: 12),
+                    ),
+                  ),
+                  if (_chessnutReady && _chessnutBatteryPercent != null)
+                    Text(
+                      '$_chessnutBatteryPercent%${_chessnutCharging ? ' ⚡' : ''}',
+                      style: const TextStyle(fontSize: 12),
+                    ),
+                ],
               ),
-              child: const Text('Reconnect'),
             ),
-          ],
+          ),
+          if (!_chessnutReady)
+            SizedBox(
+              height: _chessnutActionsHeight,
+              child: Flex(
+                direction: _stackChessnutActions
+                    ? Axis.vertical
+                    : Axis.horizontal,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Expanded(
+                    child: TextButton(
+                      key: const ValueKey('chessnut-inline-reconnect'),
+                      onPressed: connecting ? null : _connectChessnut,
+                      child: const Text(
+                        'Reconnect',
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: TextButton(
+                      key: const ValueKey('chessnut-play-in-app'),
+                      onPressed: _playInApp,
+                      child: const Text(
+                        'Play in app',
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
         ],
       ),
-    ),
-  );
+    );
+  }
 
   cg.GameData _gameBoardData() {
     final ply = _displayPly
@@ -1990,6 +2136,7 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
 
     final fen = _game.fen;
     final generation = _gameGeneration;
+    final request = _drawOfferRequest = Object();
     setState(() {
       _drawOfferEvaluating = true;
       _lastDrawOfferFen = fen;
@@ -2005,7 +2152,7 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
               scope: _gameInferenceScope,
               background: true,
             );
-      if (!mounted) return;
+      if (!mounted || !identical(request, _drawOfferRequest)) return;
       if (generation != _gameGeneration || fen != _game.fen || _gameFinished) {
         setState(() {
           _drawOfferEvaluating = false;
@@ -2052,7 +2199,7 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
       unawaited(_saveGameState());
       _scheduleGameConclusion();
     } catch (error, stackTrace) {
-      if (!mounted) return;
+      if (!mounted || !identical(request, _drawOfferRequest)) return;
       if (generation != _gameGeneration || fen != _game.fen || _gameFinished) {
         setState(() {
           _drawOfferEvaluating = false;
@@ -2228,6 +2375,7 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
     final observed = _chessnutPosition;
     _gameGeneration++;
     _gameInferenceScope.invalidate();
+    final generation = _gameGeneration;
     if (chessnutTakeback) _stopChessnutLedRefresh();
     final plies = chessnutTakeback
         ? (_engineThinking ? 1 : min(2, _uciMoves.length))
@@ -2300,7 +2448,9 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
           ? target.keys.toList(growable: false)
           : ChessnutProtocol.mismatchSquares(observed, target);
       await _setChessnutLeds(mismatch);
-      if (!mounted) return;
+      if (!mounted || generation != _gameGeneration || !_chessnutGameActive) {
+        return;
+      }
       if (mismatch.isEmpty) {
         setState(() {
           _chessnutTakebackRestoreActive = false;
@@ -2338,48 +2488,51 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
       context: context,
       showDragHandle: true,
       builder: (context) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(CupertinoIcons.arrow_2_squarepath),
-              title: const Text('Flip board'),
-              onTap: () => Navigator.pop(context, 'flip'),
-            ),
-            ListTile(
-              leading: const Icon(Icons.analytics_outlined),
-              title: const Text('Analysis Board'),
-              onTap: () => Navigator.pop(context, 'analysis'),
-            ),
-            if (_canOfferDraw)
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
               ListTile(
-                leading: const Icon(Icons.handshake_outlined),
-                title: const Text('Offer draw'),
-                onTap: () => Navigator.pop(context, 'draw'),
+                leading: const Icon(CupertinoIcons.arrow_2_squarepath),
+                title: const Text('Flip board'),
+                onTap: () => Navigator.pop(context, 'flip'),
               ),
-            ListTile(
-              enabled:
-                  !_gameFinished && !_engineThinking && !_drawOfferEvaluating,
-              leading: const Icon(Icons.flag_outlined),
-              title: const Text('Resign'),
-              onTap: !_gameFinished && !_engineThinking && !_drawOfferEvaluating
-                  ? () => Navigator.pop(context, 'resign')
-                  : null,
-            ),
-            ListTile(
-              enabled: _canTakeBack,
-              leading: const Icon(CupertinoIcons.arrow_uturn_left),
-              title: const Text('Take back move'),
-              onTap: _canTakeBack
-                  ? () => Navigator.pop(context, 'takeback')
-                  : null,
-            ),
-            ListTile(
-              leading: const Icon(Icons.refresh),
-              title: const Text('Reset game'),
-              onTap: () => Navigator.pop(context, 'new'),
-            ),
-          ],
+              ListTile(
+                leading: const Icon(Icons.analytics_outlined),
+                title: const Text('Analysis Board'),
+                onTap: () => Navigator.pop(context, 'analysis'),
+              ),
+              if (_canOfferDraw)
+                ListTile(
+                  leading: const Icon(Icons.handshake_outlined),
+                  title: const Text('Offer draw'),
+                  onTap: () => Navigator.pop(context, 'draw'),
+                ),
+              ListTile(
+                enabled:
+                    !_gameFinished && !_engineThinking && !_drawOfferEvaluating,
+                leading: const Icon(Icons.flag_outlined),
+                title: const Text('Resign'),
+                onTap:
+                    !_gameFinished && !_engineThinking && !_drawOfferEvaluating
+                    ? () => Navigator.pop(context, 'resign')
+                    : null,
+              ),
+              ListTile(
+                enabled: _canTakeBack,
+                leading: const Icon(CupertinoIcons.arrow_uturn_left),
+                title: const Text('Take back move'),
+                onTap: _canTakeBack
+                    ? () => Navigator.pop(context, 'takeback')
+                    : null,
+              ),
+              ListTile(
+                leading: const Icon(Icons.refresh),
+                title: const Text('Reset game'),
+                onTap: () => Navigator.pop(context, 'new'),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -2707,7 +2860,7 @@ class _GamePageState extends State<GamePage> with WidgetsBindingObserver {
                 0.0,
                 contentHeight -
                     (_maiaFailed ? 268 : 244) -
-                    (_chessnutGameActive ? 38 : 0),
+                    (_chessnutGameActive ? _chessnutBannerHeight + 6 : 0),
               ),
             );
             return Padding(
