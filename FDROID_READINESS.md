@@ -41,10 +41,11 @@ and package caches, were byte-for-byte identical. Both produced a 555,017,993
 byte APK with SHA-256
 `39f60ea87f052100f99258c8a4f22eab3b771c222b2708383e09bb197017c897`.
 Both passed package/version, no-Internet-permission, model, exact-ABI,
-ZIP-alignment, and 16 KB ELF-alignment checks. The eventual developer-signed
-APK must still be compared after signature normalization, then re-downloaded
-and compared with the locally audited release artifact before publication is
-complete.
+ZIP-alignment, and 16 KB ELF-alignment checks. Two clean signed builds then
+reproduced all 2,500 APK payload entries after Android signature normalization.
+The published developer-signed APK was re-downloaded byte-for-byte and passed
+the full release verifier. It is 555,026,185 bytes with SHA-256
+`26b99c95a5118752316249c3efa12256bf36c646c90a1a5412b3b4dc4a7eae3c`.
 
 The release supports F-Droid's developer-signed reproducible-build path using
 `Binaries` and `AllowedAPKSigningKeys`. The allowed signing-certificate
