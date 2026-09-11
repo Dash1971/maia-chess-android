@@ -30,12 +30,21 @@ before compilation. The stable release remains a universal APK for ARMv7,
 ARM64, and x86_64; its release verifier checks the exact ABI set and 16 KB ELF
 alignment.
 
+The immutable 2.1.0 release-source commit is
+`7ad1264f2df1a483a9fc083d7cd885568681df1b`.
+
 ## Reproducibility status
 
-Mobile Maia deliberately disables Dart release obfuscation. The 2.1 release
-candidate must pass two independent clean builds whose ZIP payloads match after
-signature normalization. The published APK must then be re-downloaded and
-compared with the locally audited candidate before the release is complete.
+Mobile Maia deliberately disables Dart release obfuscation. On 2026-09-11, two
+clean unsigned builds from the release-source commit, using separate worktrees
+and package caches, were byte-for-byte identical. Both produced a 555,017,993
+byte APK with SHA-256
+`39f60ea87f052100f99258c8a4f22eab3b771c222b2708383e09bb197017c897`.
+Both passed package/version, no-Internet-permission, model, exact-ABI,
+ZIP-alignment, and 16 KB ELF-alignment checks. The eventual developer-signed
+APK must still be compared after signature normalization, then re-downloaded
+and compared with the locally audited release artifact before publication is
+complete.
 
 The release supports F-Droid's developer-signed reproducible-build path using
 `Binaries` and `AllowedAPKSigningKeys`. The allowed signing-certificate
