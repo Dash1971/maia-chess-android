@@ -160,6 +160,29 @@ output directory to check the included unfinished-game case as well.
 `--fixture tool/hardening/fixtures/checkmate.pgn` checks natural result restoration,
 including conversion of a forced-result marker to the board's natural result.
 
+For the stable **2.0-to-2.1** boundary, also pass `--legacy-game-format`.
+Stable 2.0 live-game checkpoints store the played main line in `pgn` and
+takeback branches in separate `variations` records. The option seeds that
+metadata and checks every branch SAN, base FEN, comment and NAG before the
+candidate is installed. It does not treat a baseline that already dropped
+the fixture as a successful preservation test. Use
+`--fixture tool/hardening/fixtures/stable_incomplete_game.pgn` for the unfinished
+case: its notes live on a branch, as supported by 2.0's game checkpoint format.
+Legacy mode rejects fixtures with main-line notes/NAGs that 2.0 live games do
+not retain. The default completed and checkmate fixtures also support this mode.
+
+Version 2.1 can add `[%clk ...]` comments from existing clock history. The
+checker accepts only additional main-line clock comments matching the exact
+saved milliseconds, while requiring existing comments/NAGs and all saved clock
+values to survive. It rejects wrong clock values, clock tags on the wrong move
+or a variation, and missing annotations. `validated_new_clock_annotations`
+records the count. `tool/stable_upgrade_test.py` covers these migration rules,
+nested variations, a black-to-move starting FEN, and deliberately lost metadata.
+Legacy mode also permits clearing a redundant forced-result marker only when
+python-chess independently confirms the same automatic terminal result on the
+board and in the PGN. A nonterminal board or changed winner fails. The report
+records this transition as `natural_result_normalized`.
+
 Use a new or empty output directory for each run. `result.json`, before/after
 records, restart data, logcat and a screenshot are retained; diagnostic capture
 is attempted on failure too. The temporary key and test-signed APK copies are
