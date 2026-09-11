@@ -29,7 +29,10 @@ dependencies {
 android {
     namespace = "com.dash1971.maia_chess"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
+    // Pinned instead of flutter.ndkVersion (Flutter 3.47.1's default) so every
+    // build server resolves the exact same NDK package rather than whichever
+    // NDK a given Flutter install or CI image happens to already have.
+    ndkVersion = "28.2.13676358"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
