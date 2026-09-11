@@ -1,33 +1,68 @@
 part of '../main.dart';
 
+enum GameAnalysisQuality {
+  fast(label: 'Fast', depth: 12, moveTimeMs: 500),
+  balanced(label: 'Balanced', depth: 14, moveTimeMs: 1000),
+  thorough(label: 'Thorough', depth: 16, moveTimeMs: 1500);
+
+  const GameAnalysisQuality({
+    required this.label,
+    required this.depth,
+    required this.moveTimeMs,
+  });
+
+  final String label;
+  final int depth;
+  final int moveTimeMs;
+
+  String get stockfishCommand => 'go depth $depth movetime $moveTimeMs';
+
+  String get description => switch (this) {
+    fast => 'Depth 12 · up to 0.5 seconds per position. Faster, but noisier.',
+    balanced => 'Depth 14 · up to 1 second per position.',
+    thorough => 'Depth 16 · up to 1.5 seconds per position. Most consistent.',
+  };
+
+  static GameAnalysisQuality fromStoredName(String? name) =>
+      values.firstWhere((value) => value.name == name, orElse: () => thorough);
+}
+
 class StockfishAnalyzer {
-  StockfishAnalyzer._();
+  StockfishAnalyzer._() : this.withEngine(Stockfish.instance);
+
+  /// Allows deterministic native failure tests without loading a chess engine.
+  StockfishAnalyzer.withEngine(
+    this._engine, {
+    this.searchTimeout = const Duration(seconds: 20),
+    this.drainTimeout = const Duration(seconds: 2),
+  });
 
   static final instance = StockfishAnalyzer._();
-  final Stockfish _engine = Stockfish.instance;
+  final Stockfish _engine;
+  final Duration searchTimeout;
+  final Duration drainTimeout;
   Future<void>? _startup;
   bool _searching = false;
   Future<void>? _closing;
-  late final EngineWorkQueue<StockfishReview> _queue = EngineWorkQueue(
-    run: (fen, background) => _evaluateNow(fen, background: background),
-    stop: () {
-      if (_searching) _engine.stdin = 'stop';
-    },
-    onStopError: (error, stackTrace) =>
-        unawaited(AppDiagnostics.record('stockfish-stop', error, stackTrace)),
-  );
+  late final EngineWorkQueue<StockfishReview, GameAnalysisQuality> _queue =
+      EngineWorkQueue(
+        run: (fen, background, configuration) => _evaluateNow(
+          fen,
+          background: background,
+          gameAnalysisQuality: configuration,
+        ),
+        stop: () {
+          if (_searching) _engine.stdin = 'stop';
+        },
+        onStopError: (error, stackTrace) => unawaited(
+          AppDiagnostics.record('stockfish-stop', error, stackTrace),
+        ),
+      );
 
   void cancel(MaiaInferenceScope scope) => _queue.cancel(scope);
 
   Future<void> _ensureStarted() async {
-    final startup = _startup ??= _engine.start().then((_) async {
-      _engine.stdin = 'setoption name Threads value 2';
-      _engine.stdin = 'setoption name Hash value 64';
-      _engine.stdin = 'setoption name MultiPV value 2';
-      final ready = _engine.stdout.firstWhere((line) => line == 'readyok');
-      _engine.stdin = 'isready';
-      await ready.timeout(const Duration(seconds: 5));
-    });
+    final startup = _startup ??= _startEngine();
     try {
       await startup;
     } catch (_) {
@@ -36,15 +71,59 @@ class StockfishAnalyzer {
     }
   }
 
+  Future<void> _startEngine() async {
+    try {
+      await _engine.start();
+      final ready = Completer<void>();
+      // A synchronous write failure can abandon the handshake before its
+      // future is awaited. Still consume any simultaneous stream error.
+      ready.future.ignore();
+      final subscription = _engine.stdout.listen(
+        (line) {
+          if (line == 'readyok' && !ready.isCompleted) ready.complete();
+        },
+        onError: (Object error, StackTrace stack) {
+          if (!ready.isCompleted) ready.completeError(error, stack);
+        },
+        onDone: () {
+          if (!ready.isCompleted) {
+            ready.completeError(StateError('Stockfish closed during startup'));
+          }
+        },
+      );
+      try {
+        _engine.stdin = 'setoption name Threads value 2';
+        _engine.stdin = 'setoption name Hash value 64';
+        _engine.stdin = 'setoption name MultiPV value 2';
+        _engine.stdin = 'isready';
+        await ready.future.timeout(const Duration(seconds: 5));
+      } finally {
+        await subscription.cancel();
+      }
+    } catch (_) {
+      // start() can succeed while option writes/readiness fail. The native
+      // library refuses a second start until that running process is quit.
+      await _resetEngine();
+      rethrow;
+    }
+  }
+
   Future<StockfishReview> evaluate(
     String fen, {
     MaiaInferenceScope? scope,
     bool background = false,
-  }) => _queue.add(fen, scope: scope, background: background);
+    GameAnalysisQuality? gameAnalysisQuality,
+  }) => _queue.add(
+    fen,
+    scope: scope,
+    background: background,
+    configuration: gameAnalysisQuality,
+  );
 
   Future<StockfishReview> _evaluateNow(
     String fen, {
     bool background = false,
+    GameAnalysisQuality? gameAnalysisQuality,
   }) async {
     final position = chess.Chess.fromFEN(fen);
     if (position.in_checkmate) {
@@ -111,15 +190,15 @@ class StockfishAnalyzer {
         completer.complete(latest);
       }
     });
-    _engine.stdin = 'position fen $fen';
-    _searching = true;
-    _engine.stdin = background
-        ? 'go depth 16 movetime 1500'
-        : 'go depth 16 movetime 350';
     try {
-      final sideToMoveScore = await completer.future.timeout(
-        const Duration(seconds: 20),
-      );
+      _engine.stdin = 'position fen $fen';
+      _searching = true;
+      _engine.stdin =
+          gameAnalysisQuality?.stockfishCommand ??
+          (background
+              ? 'go depth 16 movetime 1500'
+              : 'go depth 16 movetime 350');
+      final sideToMoveScore = await completer.future.timeout(searchTimeout);
       final blackToMove = fen.split(' ')[1] == 'b';
       final orderedLines = lines.entries.toList(growable: false)
         ..sort((a, b) => a.key.compareTo(b.key));
@@ -136,25 +215,32 @@ class StockfishAnalyzer {
             .toList(growable: false),
       );
     } on TimeoutException {
-      // Stop and drain the outstanding search before the next queued request.
-      // Otherwise its delayed bestmove can be mistaken for the next position.
-      _engine.stdin = 'stop';
+      // Keep consuming output until stop is acknowledged. A dead native
+      // process can also reject stop, so reset it on either failure path.
       try {
-        await completer.future.timeout(const Duration(seconds: 2));
-      } on TimeoutException {
-        // Never reuse an engine whose output could not be drained. A delayed
-        // bestmove from it could otherwise satisfy the next position request.
+        _engine.stdin = 'stop';
+        await completer.future.timeout(drainTimeout);
+      } catch (_) {
         await subscription.cancel();
-        try {
-          await _engine.quit().timeout(const Duration(seconds: 3));
-        } finally {
-          _startup = null;
-        }
+        await _resetEngine();
       }
+      rethrow;
+    } catch (_) {
+      await subscription.cancel();
+      await _resetEngine();
       rethrow;
     } finally {
       _searching = false;
       await subscription.cancel();
+    }
+  }
+
+  Future<void> _resetEngine() async {
+    _startup = null;
+    try {
+      await _engine.quit().timeout(const Duration(seconds: 3));
+    } catch (error, stackTrace) {
+      unawaited(AppDiagnostics.record('stockfish-reset', error, stackTrace));
     }
   }
 

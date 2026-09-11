@@ -40,6 +40,68 @@ extension TimePresetDetails on TimePreset {
   };
 }
 
+const maiaDrawEndgamePhaseLimit = 8;
+const maiaDrawAcceptanceCentipawns = 30;
+
+/// Returns the objective result of a naturally completed chess position.
+///
+/// This deliberately derives the result from the board instead of trusting a
+/// PGN header, which can be stale in an interrupted or legacy saved session.
+String? naturalGameResult(chess.Chess game) {
+  if (!game.game_over) return null;
+  if (game.in_checkmate) {
+    return game.turn == chess.Color.WHITE ? '0-1' : '1-0';
+  }
+  return '1/2-1/2';
+}
+
+/// The side to move has flagged. An opponent without possible mating material
+/// cannot win on time (FIDE 6.9). Use the chess library's side-specific test;
+/// a lone minor piece can still mate with help from the opponent's material.
+String timeoutGameResult(chess.Chess game) {
+  final position = dc.Chess.fromSetup(dc.Setup.parseFen(game.fen));
+  if (position.hasInsufficientMaterial(position.turn.opposite)) {
+    return '1/2-1/2';
+  }
+  return game.turn == chess.Color.WHITE ? '0-1' : '1-0';
+}
+
+/// A deterministic material-phase measure for draw offers.
+///
+/// Queens count 4, rooks 2, and bishops/knights 1 across both sides.
+/// Kings and pawns do not contribute. The initial position has phase 24.
+int maiaMaterialPhase(String fen) {
+  final board = fen.split(RegExp(r'\s+')).first;
+  var phase = 0;
+  for (final piece in board.codeUnits) {
+    phase += switch (piece) {
+      81 || 113 => 4, // Q/q
+      82 || 114 => 2, // R/r
+      66 || 98 || 78 || 110 => 1, // B/b/N/n
+      _ => 0,
+    };
+  }
+  return phase;
+}
+
+bool isMaiaDrawOfferEndgame(String fen) =>
+    maiaMaterialPhase(fen) <= maiaDrawEndgamePhaseLimit;
+
+bool shouldMaiaAcceptDraw({
+  required String fen,
+  required bool maiaIsWhite,
+  required int whiteEvaluation,
+  int? whiteMate,
+}) {
+  if (!isMaiaDrawOfferEndgame(fen)) return false;
+  if (whiteMate != null) {
+    final maiaMate = maiaIsWhite ? whiteMate : -whiteMate;
+    return maiaMate < 0;
+  }
+  final maiaEvaluation = maiaIsWhite ? whiteEvaluation : -whiteEvaluation;
+  return maiaEvaluation <= maiaDrawAcceptanceCentipawns;
+}
+
 class ClockSnapshot {
   const ClockSnapshot(this.whiteMillis, this.blackMillis);
 

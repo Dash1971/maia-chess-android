@@ -9,15 +9,19 @@
 <li>Maia ratings from 800 to 2200, plus a custom rating</li>
 <li>Unlimited play, clock presets, and custom time controls</li>
 <li>Human-like move timing and adjustable Temperature and Top-P</li>
-<li>Premoves, takebacks, rematches, and automatic game restoration</li>
+<li>Single or multiple premoves, with an optional 100 ms penalty</li>
+<li>Takebacks, endgame draw offers, rematches, and automatic game restoration</li>
+<li>Experimental Chessnut Go play with LEDs, sounds, battery status, reconnect recovery, and phone continuation</li>
 <li>An analysis board with FEN and PGN import and export</li>
 <li>A graphical position editor and persistent analysis variations</li>
 <li>Offline Stockfish evaluation and Maia move comparison</li>
+<li>Fast, Balanced, or Thorough full-game analysis</li>
 <li>Full-game accuracy scores and a navigable evaluation graph</li>
 <li>Brilliant, Good, Interesting, Dubious, Mistake, and Blunder move classifications</li>
 <li>Two Stockfish suggestions and visible Maia/Stockfish agreement</li>
 <li>Lichess-style material difference beside each player</li>
 <li>Offline opening names and ECO codes from the Lichess opening database</li>
+<li>Historical clocks and timed PGN export with standard clock annotations</li>
 <li>PGN export with variations and game metadata</li>
 </ul>
 

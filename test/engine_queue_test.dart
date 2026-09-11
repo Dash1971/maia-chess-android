@@ -4,17 +4,20 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:maia_chess/main.dart';
 
 void main() {
-  late EngineWorkQueue<String> queue;
+  late EngineWorkQueue<String, String> queue;
   late List<String> starts;
+  late List<Object?> configurations;
   late List<Completer<String>> searches;
   late int stops;
   setUp(() {
     starts = [];
+    configurations = [];
     searches = [];
     stops = 0;
     queue = EngineWorkQueue(
-      run: (fen, background) {
+      run: (fen, background, configuration) {
         starts.add(fen);
+        configurations.add(configuration);
         final result = Completer<String>();
         searches.add(result);
         return result.future;
@@ -57,6 +60,7 @@ void main() {
         'batch',
         scope: MaiaInferenceScope(),
         background: true,
+        configuration: 'fast',
       );
       final selected = queue.add('selected', scope: MaiaInferenceScope());
       expect(stops, 1);
@@ -67,6 +71,7 @@ void main() {
       expect(await selected, 'quick');
       await drain();
       expect(starts, ['batch', 'selected', 'batch']);
+      expect(configurations, ['fast', null, 'fast']);
       searches[2].complete('full batch');
       expect(await batch, 'full batch');
     },
@@ -112,7 +117,7 @@ void main() {
   test('a stop state error cannot wedge cancellation or suspend', () async {
     final errors = <Object>[];
     queue = EngineWorkQueue(
-      run: (fen, background) {
+      run: (fen, background, configuration) {
         starts.add(fen);
         final result = Completer<String>();
         searches.add(result);

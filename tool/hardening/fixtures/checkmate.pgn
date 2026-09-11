@@ -1,0 +1,7 @@
+[Event "Synthetic checkmate upgrade regression"]
+[White "Test White"]
+[Black "Test Black"]
+[Result "0-1"]
+[TimeControl "900+10"]
+
+1. f3 e5 2. g4 Qh4# 0-1

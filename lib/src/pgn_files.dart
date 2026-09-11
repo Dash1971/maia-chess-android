@@ -31,8 +31,6 @@ class PgnFiles {
 
   static Future<AnalysisSession?> open() async {
     final text = await maiaEngineChannel.invokeMethod<String>('openPgnFile');
-    return text == null
-        ? null
-        : Isolate.run(() => AnalysisSession.fromPgn(text));
+    return text == null ? null : AnalysisSession.fromPgnAsync(text);
   }
 }

@@ -1,10 +1,22 @@
 import 'dart:typed_data';
+import 'dart:async';
+import 'dart:io';
+
+import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:chess/chess.dart' as chess;
+import 'package:chessground/chessground.dart' as cg;
+import 'package:dartchess/dartchess.dart' as dc;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:maia_chess/main.dart';
+
+import '../test/fixtures/variation_navigation_game.dart';
+import '../test/fixtures/electronic_board.dart';
+import '../test/fixtures/launch_game.dart';
+import '../test/fixtures/nested_takeback_game.dart';
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
@@ -39,10 +51,95 @@ void main() {
         of: panel,
         matching: find.text('Analyzing…'),
       );
-      if (panel.evaluate().isNotEmpty && analyzing.evaluate().isEmpty) return;
+      if (panel.evaluate().isNotEmpty && analyzing.evaluate().isEmpty) {
+        expect(find.textContaining('Stockfish failed:'), findsNothing);
+        return;
+      }
     }
     fail('real Stockfish evaluation did not finish within 24 seconds');
   }
+
+  testWidgets('move 16 returns to the main line with real engines on Android', (
+    tester,
+  ) async {
+    final session = AnalysisSession.fromPgn(variationNavigationPgn);
+    final root = PgnVariationExporter.parseTree(session.pgn).single;
+    final branch = root.children.singleWhere((v) => v.basePly == 30);
+    final position = chess.Chess.fromFEN(branch.baseFen);
+    for (final san in branch.sanMoves) {
+      expect(position.move(san), isTrue);
+    }
+    await tester.pumpWidget(
+      MaterialApp(
+        home: AnalysisBoardPage(
+          initialSession: session,
+          initialCurrentFen: position.fen,
+          maiaElo: 1600,
+        ),
+      ),
+    );
+    await tester.pump();
+    await waitForRealEvaluation(tester);
+    for (var i = 0; i < 2; i++) {
+      await tester.tap(find.byKey(const ValueKey('previous-move-button')));
+      await tester.pump();
+    }
+    await waitForRealEvaluation(tester);
+    final selected = find.byKey(const ValueKey('mainline-move-29'));
+    expect(tester.widget<Material>(selected).color, isNot(Colors.transparent));
+    final board = tester.widget<cg.Chessboard>(find.byType(cg.Chessboard));
+    expect(
+      board.controller.fen,
+      dc.Chess.fromSetup(dc.Setup.parseFen(session.positions[30])).fen,
+    );
+    expect(board.controller.lastMove?.uci, session.uciMoves[29]);
+    await tester.tap(find.byKey(const ValueKey('next-move-button')));
+    await tester.pump();
+    await waitForRealEvaluation(tester);
+    expect(
+      tester
+          .widget<Material>(find.byKey(const ValueKey('mainline-move-30')))
+          .color,
+      isNot(Colors.transparent),
+    );
+    expect(tester.takeException(), isNull);
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
+  });
+
+  testWidgets('pasted PGN crosses the isolate boundary on Android', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: AnalysisBoardPage(
+          initialSession: AnalysisSession.start(),
+          maiaElo: 1600,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('analysis-actions-menu')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Load PGN'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField), variationNavigationPgn);
+    await tester.tap(find.widgetWithText(FilledButton, 'Load'));
+    for (var attempt = 0; attempt < 100; attempt++) {
+      await tester.pump(const Duration(milliseconds: 100));
+      final review = tester.widget<ReviewPage>(find.byType(ReviewPage));
+      if (review.sanMoves.lastOrNull == 'Ra4#') break;
+    }
+    expect(
+      tester.widget<ReviewPage>(find.byType(ReviewPage)).sanMoves.last,
+      'Ra4#',
+    );
+    expect(find.text('Qc3'), findsOneWidget);
+    await waitForRealEvaluation(tester);
+    expect(tester.takeException(), isNull);
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
+  });
 
   testWidgets('real Stockfish survives navigation and graph taps on Android', (
     tester,
@@ -70,7 +167,7 @@ void main() {
 
     await waitForRealEvaluation(tester);
     for (var ply = 1; ply < positions.length; ply++) {
-      await tester.tap(find.byIcon(Icons.chevron_right));
+      await tester.tap(find.byKey(const ValueKey('next-move-button')));
       await tester.pump();
       await waitForRealEvaluation(tester);
       expect(tester.takeException(), isNull, reason: 'real engine ply $ply');
@@ -93,7 +190,7 @@ void main() {
       ),
     );
     await tester.pump();
-    await tester.tap(find.byTooltip('Computer analysis'));
+    await tester.tap(find.byKey(const ValueKey('graph-tab')));
     await tester.pump();
     await tester.tap(find.byKey(const ValueKey('run-computer-analysis')));
     for (var i = 0; i < 600; i++) {
@@ -103,12 +200,24 @@ void main() {
     expect(find.textContaining('Stockfish failed:'), findsNothing);
     expect(find.byType(AnalysisGraph), findsOneWidget);
     for (final alignment in const [-0.9, 0.0, 0.9]) {
-      final rect = tester.getRect(find.byType(AnalysisGraph));
+      // The plot can extend below the clipped panel on compact screens.
+      // Scroll it into view so the tap cannot hit the toolbar underneath it.
+      final plot = find.descendant(
+        of: find.byType(AnalysisGraph),
+        matching: find.byType(GestureDetector),
+      );
+      await Scrollable.ensureVisible(tester.element(plot), alignment: 0.5);
+      await tester.pump();
+      final rect = tester.getRect(plot);
       await tester.tapAt(
         Offset(rect.center.dx + alignment * rect.width / 2, rect.center.dy),
       );
       await tester.pump();
       expect(tester.takeException(), isNull);
+      expect(
+        tester.widget<AnalysisGraph>(find.byType(AnalysisGraph)).selectedPly,
+        ((alignment + 1) / 2 * (positions.length - 1)).round(),
+      );
     }
   });
 
@@ -165,12 +274,12 @@ void main() {
     await tester.pumpAndSettle();
 
     for (var ply = 1; ply < positions.length; ply++) {
-      await tester.tap(find.byIcon(Icons.chevron_right));
+      await tester.tap(find.byKey(const ValueKey('next-move-button')));
       await tester.pumpAndSettle();
       expect(tester.takeException(), isNull, reason: 'failed at ply $ply');
     }
 
-    await tester.tap(find.byTooltip('Computer analysis'));
+    await tester.tap(find.byKey(const ValueKey('graph-tab')));
     await tester.pump();
     await tester.tap(find.byKey(const ValueKey('run-computer-analysis')));
     await tester.pumpAndSettle();
@@ -203,10 +312,628 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    await tester.tap(find.byIcon(Icons.chevron_right));
+    await tester.tap(find.byKey(const ValueKey('next-move-button')));
     await tester.pumpAndSettle();
 
     expect(find.text('#-1'), findsWidgets);
     expect(tester.takeException(), isNull);
   });
+  Future<void> waitFor(WidgetTester tester, bool Function() condition) async {
+    for (var i = 0; i < 300; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+      if (condition()) return;
+    }
+    fail('Android screen or engine did not finish within 30 seconds');
+  }
+
+  Future<void> openRecent(WidgetTester tester, String title) async {
+    final recent = find.text('Recent games');
+    await tester.ensureVisible(recent);
+    await tester.tap(recent);
+    await waitFor(tester, () => find.text(title).evaluate().isNotEmpty);
+    await tester.tap(find.text(title));
+    await tester.pumpAndSettle();
+  }
+
+  testWidgets(
+    'completed Chessnut game in Android Recent games keeps board mode off',
+    (tester) async {
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump();
+      await ActiveSessionStore.clear();
+      final store = await ActiveSessionStore.repository;
+      await store.deleteMany((await store.recent()).map((game) => game.id));
+      await ActiveSessionStore.save({
+        'type': 'game',
+        'recentState': 'completed',
+        'pgn': '[Event "Chessnut completed regression"]\n[Result "0-1"]\n1. f3 e5 2. g4 Qh4# 0-1',
+        'electronicBoard': 'chessnut-go',
+        'pendingPhysicalMaiaMove': 'd8h4',
+      });
+      await ActiveSessionStore.clear();
+      final board = SimulatedElectronicBoard();
+      await tester.pumpWidget(
+        MaterialApp(home: GamePage(electronicBoardTransport: board)),
+      );
+      await waitFor(
+        tester,
+        () => find.text('Recent games').evaluate().isNotEmpty,
+      );
+      await openRecent(tester, 'Chessnut completed regression');
+      await waitFor(
+        tester,
+        () => find.text('Black is victorious').evaluate().isNotEmpty,
+      );
+      expect(
+        find.byKey(const ValueKey('chessnut-status-banner')),
+        findsNothing,
+      );
+      expect(board.connects, 0);
+      await tester.tapAt(const Offset(10, 100));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('game-home-button')));
+      await waitFor(
+        tester,
+        () => find.text('Recent games').evaluate().isNotEmpty,
+      );
+      expect(
+        tester
+            .widget<SwitchListTile>(
+              find.byKey(const ValueKey('chessnut-go-toggle')),
+            )
+            .value,
+        isFalse,
+      );
+      // Selecting another completed record must not inherit the old result-dialog flag.
+      await openRecent(tester, 'Chessnut completed regression');
+      await waitFor(
+        tester,
+        () => find.text('Black is victorious').evaluate().isNotEmpty,
+      );
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pumpAndSettle();
+      await board.close();
+    },
+  );
+
+  testWidgets(
+    'Android Recent game switches to phone with real Maia and retains its archive identity',
+    (tester) async {
+      await ActiveSessionStore.clear();
+      await ActiveSessionStore.save({
+        'type': 'game',
+        'recentState': 'incomplete',
+        'pgn': '[Event "Chessnut phone regression"]\n1. e4 e5 *',
+        'electronicBoard': 'chessnut-go',
+        'clockPaused': true,
+        'playerIsWhite': true,
+        'timePreset': 'unlimited',
+      });
+      await ActiveSessionStore.clear();
+      final before = (await ActiveSessionStore.recent()).singleWhere(
+        (game) => game.title == 'Chessnut phone regression',
+      );
+      final board = SimulatedElectronicBoard();
+      await tester.pumpWidget(
+        MaterialApp(home: GamePage(electronicBoardTransport: board)),
+      );
+      await waitFor(
+        tester,
+        () => find.text('Recent games').evaluate().isNotEmpty,
+      );
+      await openRecent(tester, 'Chessnut phone regression');
+      await waitFor(
+        tester,
+        () => find.text('Play in app').evaluate().isNotEmpty,
+      );
+      await tester.tap(find.text('Play in app'));
+      await tester.pumpAndSettle();
+      final screenBoard = tester.widget<cg.Chessboard>(
+        find.byType(cg.Chessboard),
+      );
+      expect(screenBoard.controller.interactive, isTrue);
+      screenBoard.onMove!(dc.NormalMove.fromUci('g1f3'));
+      await waitFor(
+        tester,
+        () =>
+            tester
+                .widget<cg.Chessboard>(find.byType(cg.Chessboard))
+                .controller
+                .game
+                .sideToMove ==
+            dc.Side.white,
+      );
+      for (var i = 0; i < 100; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+        if (((await ActiveSessionStore.load())?['uciMoves'] as List?)?.length ==
+            4) {
+          break;
+        }
+      }
+      final saved = (await ActiveSessionStore.load())!;
+      expect(saved['uciMoves'], hasLength(4));
+      expect((saved['uciMoves'] as List).take(3), ['e2e4', 'e7e5', 'g1f3']);
+      expect(saved['electronicBoard'], isNull);
+      await tester.tap(find.byKey(const ValueKey('game-home-button')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilledButton, 'Continue'));
+      await waitFor(
+        tester,
+        () => find.text('Recent games').evaluate().isNotEmpty,
+      );
+      final after = (await ActiveSessionStore.recent()).singleWhere(
+        (game) => game.title == 'Chessnut phone regression',
+      );
+      expect(after.id, before.id);
+      expect(after.data['electronicBoard'], isNull);
+      await openRecent(tester, 'Chessnut phone regression');
+      await waitFor(
+        tester,
+        () => find.byType(cg.Chessboard).evaluate().isNotEmpty,
+      );
+      expect(
+        find.byKey(const ValueKey('chessnut-status-banner')),
+        findsNothing,
+      );
+      expect(
+        tester
+            .widget<cg.Chessboard>(find.byType(cg.Chessboard))
+            .controller
+            .interactive,
+        isTrue,
+      );
+      expect(board.connects, 0);
+      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pumpAndSettle();
+      await board.close();
+    },
+  );
+  testWidgets('Android restores and exports legacy pawn-position variations', (
+    tester,
+  ) async {
+    await ActiveSessionStore.clear();
+    final session = AnalysisSession.fromPgn('1. e4 e5 1-0');
+    await ActiveSessionStore.save({
+      ...gameRecord(pgn: session.pgn, result: '1-0'),
+      'variations': [
+        RecordedVariation(
+          basePly: 1,
+          baseFen: dc.Chess.fromSetup(dc.Setup.parseFen(session.positions[1]))
+              .fen,
+          sanMoves: const ['c5', 'Nf3'],
+          annotations: const [
+            {
+              'comments': ['Android legacy note'],
+            },
+          ],
+        ).toJson(),
+      ],
+    });
+    await tester.pumpWidget(const MaterialApp(home: GamePage()));
+    await waitFor(tester, () => find.byType(AlertDialog).evaluate().isNotEmpty);
+    Navigator.of(tester.element(find.byType(AlertDialog))).pop();
+    await tester.pumpAndSettle();
+    final saved = (await ActiveSessionStore.load())!;
+    expect(saved['pgn'], contains('Android legacy note'));
+    final root = PgnVariationExporter.parseTree(saved['pgn'] as String).single;
+    expect(root.sanMoves, ['e4', 'e5']);
+    expect(root.children.single.sanMoves, ['c5', 'Nf3']);
+    await tester.tap(find.byKey(const ValueKey('game-share-menu')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Copy PGN'));
+    await tester.pumpAndSettle();
+    final clipboard = await Clipboard.getData(Clipboard.kTextPlain);
+    expect(clipboard!.text, saved['pgn']);
+    expect(tester.takeException(), isNull);
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pumpAndSettle();
+  });
+
+  testWidgets(
+    'Android nested takebacks stay unique through analysis, clipboard and reopen',
+    (tester) async {
+      await ActiveSessionStore.clear();
+      final preferences = await SharedPreferences.getInstance();
+      await preferences.setBool('humanTiming', false);
+      final maia = ControlledMaia();
+      await ActiveSessionStore.save(
+        gameRecord(
+          pgn: '[Event "Nested takeback regression"]\n$nestedTakebackGame',
+          playerWhite: false,
+          preset: 'unlimited',
+        ),
+      );
+      Future<void> open() async {
+        await tester.pumpWidget(
+          MaterialApp(home: GamePage(maiaEvaluator: maia.call)),
+        );
+        await waitFor(
+          tester,
+          () => find.byType(cg.Chessboard).evaluate().isNotEmpty,
+        );
+      }
+
+      Future<void> action(String label) async {
+        await tester.tap(find.byKey(const ValueKey('game-actions-menu')));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text(label));
+        await tester.pumpAndSettle();
+      }
+
+      void checkLine(String pgn) {
+        var parent = dc.PgnGame.parsePgn(pgn).moves;
+        for (var ply = 0; ply < 23; ply++) {
+          parent = parent.children.first;
+        }
+        expect(parent.children, hasLength(2));
+        final branch = parent.children[1];
+        expect(
+          [branch.data.san, ...branch.mainline().map((n) => n.san)],
+          ['Qxe7', 'Qe2', 'Qd7', 'Qe3'],
+        );
+        expect(RegExp('Queen note').allMatches(pgn), hasLength(1));
+        expect(RegExp('Reply note').allMatches(pgn), hasLength(1));
+      }
+
+      await open();
+      await action('Take back move');
+      await action('Take back move');
+      expect((await ActiveSessionStore.load())!['uciMoves'], hasLength(23));
+      boardOf(tester).onMove!(dc.NormalMove.fromUci('d8e7'));
+      await waitFor(tester, () => maia.requests.isNotEmpty);
+      maia.reply('g1g2');
+      await tester.pumpAndSettle();
+      final before = (await ActiveSessionStore.load())!;
+      checkLine(before['pgn'] as String);
+      for (var visit = 0; visit < 3; visit++) {
+        await action('Analysis Board');
+        await waitForRealEvaluation(tester);
+        Navigator.of(tester.element(find.byType(ReviewPage))).pop();
+        await tester.pumpAndSettle();
+        final saved = (await ActiveSessionStore.load())!;
+        checkLine(saved['pgn'] as String);
+        expect(saved['pgn'], before['pgn']);
+        expect(saved['uciMoves'], before['uciMoves']);
+        await tester.pumpWidget(const SizedBox.shrink());
+        await tester.pumpAndSettle();
+        await open();
+      }
+      await tester.tap(find.byKey(const ValueKey('game-share-menu')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Copy PGN'));
+      await tester.pumpAndSettle();
+      final clipboard = await Clipboard.getData(Clipboard.kTextPlain);
+      expect(clipboard?.text, before['pgn']);
+      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pumpAndSettle();
+    },
+  );
+
+  testWidgets(
+    'Android new-game flow preserves all completed result types in Recent Games',
+    (tester) async {
+      final preferences = await SharedPreferences.getInstance();
+      await preferences.setBool('multiplePremoves', false);
+      await preferences.setBool('premovePenalty', false);
+      for (final (name, movetext, result) in [
+        ('checkmate', '1. f3 e5 2. g4 Qh4# 0-1', '0-1'),
+        (
+          'stalemate',
+          '[FEN "7k/5Q2/6K1/8/8/8/8/8 b - - 0 1"]\n[SetUp "1"]\n1/2-1/2',
+          '1/2-1/2',
+        ),
+        ('resignation', '1. e4 {Keep this note} (1. d4 d5) e5 0-1', '0-1'),
+        ('agreed draw', '1. e4 e5 1/2-1/2', '1/2-1/2'),
+        ('timeout', '1. e4 e5 1-0', '1-0'),
+      ]) {
+        await ActiveSessionStore.clear();
+        final pgn = '[Event "Launch $name"]\n[Result "$result"]\n$movetext';
+        final session = AnalysisSession.fromPgn(pgn);
+        final history = List.generate(
+          session.positions.length,
+          (ply) => [60000 - ply * 137, 60000 - ply * 213],
+        );
+        await ActiveSessionStore.save(
+          gameRecord(
+            pgn: pgn,
+            result: result,
+            preset: 'bullet',
+            history: history,
+            white: 55000,
+            black: name == 'timeout' ? 0 : 56000,
+          ),
+        );
+        await tester.pumpWidget(
+          MaterialApp(home: GamePage(clockFactory: () => TestClock(0))),
+        );
+        await waitFor(
+          tester,
+          () => find.byType(AlertDialog).evaluate().isNotEmpty,
+        );
+        Navigator.of(tester.element(find.byType(AlertDialog))).pop();
+        await tester.pumpAndSettle();
+        // Persist once through the real app before comparing the archived record.
+        await tester.tap(find.byKey(const ValueKey('game-home-button')));
+        await waitFor(
+          tester,
+          () => find.text('Recent games').evaluate().isNotEmpty,
+        );
+        final before = (await ActiveSessionStore.recent()).singleWhere(
+          (record) => record.title == 'Launch $name',
+        );
+        await openRecent(tester, 'Launch $name');
+        await waitFor(
+          tester,
+          () => find.byType(AlertDialog).evaluate().isNotEmpty,
+        );
+        Navigator.of(tester.element(find.byType(AlertDialog))).pop();
+        await tester.pumpAndSettle();
+        await tester.longPress(
+          find.byKey(const ValueKey('game-previous-move-button')),
+        );
+        await tester.pumpAndSettle();
+        if (session.uciMoves.isNotEmpty) {
+          expect(
+            tester.widget<Text>(find.byKey(const ValueKey('white-clock'))).data,
+            '1:00',
+          );
+          expect(
+            tester.widget<Text>(find.byKey(const ValueKey('black-clock'))).data,
+            '1:00',
+          );
+        }
+        await tester.longPress(
+          find.byKey(const ValueKey('game-next-move-button')),
+        );
+        await tester.pumpAndSettle();
+        expect(
+          tester.widget<Text>(find.byKey(const ValueKey('black-clock'))).data,
+          name == 'timeout' ? '0:00.0' : '0:56',
+        );
+        await tester.tap(find.byKey(const ValueKey('game-share-menu')));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Copy PGN'));
+        await tester.pumpAndSettle();
+        final clipboard = await Clipboard.getData(Clipboard.kTextPlain);
+        expect(clipboard!.text, before.data['pgn']);
+        await tester.tap(find.byTooltip('New game'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Cancel'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.byTooltip('New game'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Start new game'));
+        await waitFor(
+          tester,
+          () => find.byTooltip('Reset game').evaluate().isNotEmpty,
+        );
+        final after = (await ActiveSessionStore.recent()).singleWhere(
+          (record) => record.id == before.id,
+        );
+        for (final field in [
+          'pgn',
+          'forcedResult',
+          'whiteMillis',
+          'blackMillis',
+          'clockHistory',
+          'variations',
+        ]) {
+          expect(after.data[field], before.data[field], reason: '$name $field');
+        }
+        expect((await ActiveSessionStore.load())!['uciMoves'], isEmpty);
+        await disposeGame(tester);
+      }
+    },
+  );
+
+  testWidgets(
+    'Android unfinished reset discards only the selected incomplete game',
+    (tester) async {
+      await ActiveSessionStore.clear();
+      await ActiveSessionStore.save({
+        ...gameRecord(pgn: '[Event "Launch unfinished reset"]\n1. e4 e5 *'),
+        'recentState': 'incomplete',
+      });
+      await ActiveSessionStore.clear();
+      final old = (await ActiveSessionStore.recent()).singleWhere(
+        (game) => game.title == 'Launch unfinished reset',
+      );
+      await tester.pumpWidget(
+        MaterialApp(home: GamePage(clockFactory: () => TestClock(0))),
+      );
+      await waitFor(
+        tester,
+        () => find.text('Recent games').evaluate().isNotEmpty,
+      );
+      await openRecent(tester, old.title);
+      await tester.tap(find.byTooltip('Reset game'));
+      await tester.pumpAndSettle();
+      expect(
+        find.text('This game will be permanently erased.'),
+        findsOneWidget,
+      );
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+      expect(
+        (await ActiveSessionStore.recent()).any((game) => game.id == old.id),
+        true,
+      );
+      await tester.tap(find.byTooltip('Reset game'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilledButton, 'Reset'));
+      await waitFor(
+        tester,
+        () => boardOf(tester).controller.fen == chess.Chess.DEFAULT_POSITION,
+      );
+      expect(
+        (await ActiveSessionStore.recent()).any((game) => game.id == old.id),
+        false,
+      );
+      expect(
+        (await ActiveSessionStore.recent())
+            .where((game) => game.title.startsWith('Launch '))
+            .length,
+        5,
+      );
+      await disposeGame(tester);
+    },
+  );
+
+  testWidgets(
+    'Android board queues premoves against real Maia and saves precise clocks',
+    (tester) async {
+      await ActiveSessionStore.clear();
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('multiplePremoves', true);
+      await prefs.setBool('premovePenalty', true);
+      await prefs.setBool('humanTiming', false);
+      final releaseReply = Completer<void>();
+      var requests = 0;
+      await ActiveSessionStore.save(
+        gameRecord(
+          playerWhite: false,
+          pgn: '[Event "Launch real premoves"]\n*',
+          history: [
+            [5000, 5000],
+          ],
+        ),
+      );
+      await tester.pumpWidget(
+        MaterialApp(
+          home: GamePage(
+            clockFactory: () => TestClock(17),
+            maiaEvaluator: (positions, elo) async {
+              requests++;
+              if (requests > 1) return Completer<Float32List>().future;
+              final policy = await MaiaInferenceQueue.predict({
+                'tokens': MaiaEncoding.historicalTokens(positions),
+                'selfElo': elo,
+                'opponentElo': elo,
+              });
+              await releaseReply.future;
+              return policy!;
+            },
+          ),
+        ),
+      );
+      await waitFor(
+        tester,
+        () => find.byType(cg.Chessboard).evaluate().isNotEmpty,
+      );
+      await queueMove(tester, 'g8f6');
+      await queueMove(tester, 'f6g4');
+      expect(find.byKey(const ValueKey('premove-queue')), findsOneWidget);
+      releaseReply.complete();
+      await waitFor(tester, () => requests == 2);
+      Map<String, dynamic>? saved;
+      for (var i = 0; i < 100; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+        saved = await ActiveSessionStore.load();
+        if ((saved?['uciMoves'] as List?)?.length == 2) break;
+      }
+      expect((saved!['uciMoves'] as List).last, 'g8f6');
+      expect((saved['clockHistory'] as List).last, [6983, 6900]);
+      final pgn = dc.PgnGame.parsePgn(saved['pgn'] as String);
+      expect(pgn.headers['TimeControl'], '180+2');
+      expect(
+        pgn.moves.mainline().last.comments,
+        contains('[%clk 0:00:06.900]'),
+      );
+      await tester.tap(find.byKey(const ValueKey('cancel-premoves')));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey('premove-queue')), findsNothing);
+      await disposeGame(tester);
+      await prefs.setBool('multiplePremoves', false);
+      await prefs.setBool('premovePenalty', false);
+    },
+  );
+  testWidgets(
+    'Android Recent games recovers from a failed switch without mixing save IDs',
+    (tester) async {
+      final dataDirectory = await maiaEngineChannel.invokeMethod<String>(
+        'dataDirectory',
+      );
+      final directory = await Directory(dataDirectory!)
+          .createTemp('recent-regression-');
+      addTearDown(() => directory.delete(recursive: true));
+      final store = SessionRepository(directory);
+      Map<String, Object?> record(String event, String moves) => {
+        'type': 'game',
+        'recentState': 'incomplete',
+        'pgn': '[Event "$event"]\n[Result "*"]\n\n$moves *',
+      };
+      final first = record('First saved game', '1. e4');
+      final second = record('Second saved game', '1. d4');
+      await store.save(first);
+      final firstId = (await store.recent()).single.id;
+      await store.startNew();
+      await store.save(second);
+      final secondId = (await store.recent()).first.id;
+      await store.open(firstId);
+      final obstruction = Directory('${directory.path}/active.json.pending');
+      await obstruction.create();
+      Map<String, dynamic>? selected;
+      var attempts = 0;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Builder(
+              builder: (context) {
+                return TextButton(
+                  onPressed: () async {
+                    selected = await Navigator.push<Map<String, dynamic>>(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => RecentGamesPage(
+                          loadGames: store.recent,
+                          openGame: (id) {
+                            attempts++;
+                            return store.open(id);
+                          },
+                        ),
+                      ),
+                    );
+                  },
+                  child: const Text('Open recent'),
+                );
+              },
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.text('Open recent'));
+      await waitFor(
+        tester,
+        () => find.text('Second saved game').evaluate().isNotEmpty,
+      );
+      await tester.tap(find.text('Second saved game'));
+      await waitFor(
+        tester,
+        () => find
+            .text('Could not open saved game. Please try again.')
+            .evaluate()
+            .isNotEmpty,
+      );
+      expect(tester.takeException(), isNull);
+      await obstruction.delete();
+      final resumed = record('First saved game', '1. e4 e5');
+      await store.save(resumed);
+      final games = await store.recent();
+      expect(games.singleWhere((game) => game.id == firstId).data, resumed);
+      expect(games.singleWhere((game) => game.id == secondId).data, second);
+      await tester.tap(find.text('Second saved game'));
+      await waitFor(tester, () => selected != null);
+      expect(attempts, 2);
+      expect(selected, second);
+      expect(await store.load(), second);
+      expect(
+        (await store.recent()).singleWhere((game) => game.id == firstId).data,
+        resumed,
+      );
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pumpAndSettle();
+    },
+  );
 }

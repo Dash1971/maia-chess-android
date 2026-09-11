@@ -389,7 +389,9 @@ void main() {
   });
 
   test('diagnostics persist exception evidence and version metadata', () async {
-    SharedPreferences.setMockInitialValues({});
+    SharedPreferences.setMockInitialValues({
+      gameAnalysisQualityPreferenceKey: 'balanced',
+    });
     PackageInfo.setMockInitialValues(
       appName: 'Mobile Maia',
       packageName: 'com.dash1971.maia_chess',
@@ -408,6 +410,58 @@ void main() {
     expect(report, contains('[test-source]'));
     expect(report, contains('diagnostic-test-error'));
     expect(report, contains('diagnostic-test-stack'));
+    expect(report, contains('retention=maxAgeDays:14'));
+    expect(
+      report,
+      contains('gameAnalysisQuality=balanced depth=14 moveTimeMs=1000'),
+    );
+  });
+
+  test('diagnostics remove expired and excess entries', () async {
+    final old = DateTime.now()
+        .toUtc()
+        .subtract(const Duration(days: 15))
+        .toIso8601String();
+    SharedPreferences.setMockInitialValues({
+      'diagnosticEntriesV1': <String>['$old [expired-entry]'],
+    });
+    for (var index = 0; index < 45; index++) {
+      await AppDiagnostics.recordEvent('retention-entry-$index');
+    }
+
+    final report = await AppDiagnostics.report();
+    final preferences = await SharedPreferences.getInstance();
+    final entries = preferences.getStringList('diagnosticEntriesV1')!;
+    expect(entries, hasLength(40));
+    expect(report, isNot(contains('expired-entry')));
+    expect(report, isNot(contains('retention-entry-0')));
+    expect(report, contains('retention-entry-44'));
+    expect(
+      entries.fold<int>(0, (sum, entry) => sum + entry.length),
+      lessThanOrEqualTo(128000),
+    );
+  });
+
+  test('diagnostics enforce the total character ceiling', () async {
+    final timestamp = DateTime.now().toUtc().toIso8601String();
+    final payload = List.filled(5000, 'x').join();
+    SharedPreferences.setMockInitialValues({
+      'diagnosticEntriesV1': List.generate(
+        40,
+        (index) => '$timestamp [large-entry-$index] $payload',
+      ),
+    });
+
+    final report = await AppDiagnostics.report();
+    final preferences = await SharedPreferences.getInstance();
+    final entries = preferences.getStringList('diagnosticEntriesV1')!;
+    expect(entries, hasLength(25));
+    expect(report, isNot(contains('[large-entry-0]')));
+    expect(report, contains('[large-entry-39]'));
+    expect(
+      entries.fold<int>(0, (sum, entry) => sum + entry.length),
+      lessThanOrEqualTo(128000),
+    );
   });
 
   testWidgets('About shows the package version instead of a hard-coded value', (
@@ -654,6 +708,15 @@ void main() {
     expect(find.text('Rematch'), findsOneWidget);
     expect(find.byKey(const ValueKey('game-home-button')), findsOneWidget);
     expect(find.widgetWithText(TextButton, 'Home'), findsNothing);
+
+    await tester.tapAt(const Offset(20, 20));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('game-home-button')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Leave current game?'), findsNothing);
+    expect(find.text('Your game will be kept in Recent games.'), findsNothing);
+    expect(find.text('Start game'), findsOneWidget);
   });
 
   testWidgets('custom FEN starts Maia only when it is Maia turn', (
@@ -1339,6 +1402,82 @@ void main() {
       savedTree,
     );
     expect(copied, contains('1. e4 e5 ( 1... c5 ) *'));
+  });
+
+  testWidgets('holding analysis arrows jumps to the game endpoints', (
+    tester,
+  ) async {
+    final game = chess.Chess();
+    final positions = <String>[game.fen];
+    for (final san in const ['e4', 'e5', 'Nf3']) {
+      expect(game.move(san), isTrue);
+      positions.add(game.fen);
+    }
+    final root = RecordedVariation(
+      basePly: 0,
+      baseFen: positions.first,
+      sanMoves: const ['e4', 'e5', 'Nf3'],
+    );
+    await tester.pumpWidget(
+      MaterialApp(
+        home: ReviewPage(
+          positions: [positions.first],
+          uciMoves: const [],
+          sanMoves: const [],
+          playerIsWhite: true,
+          pgn: '[Result "*"]\n\n*',
+          initialVariations: [root],
+          initialTreeIsAuthoritative: true,
+          initialCurrentFen: positions[1],
+          onHome: () {},
+          onSessionChanged: (_, _, _) async {},
+          evaluator: (_) async => const StockfishReview(0, 'e2e4'),
+          maiaEvaluator: (_, _) async => null,
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump();
+
+    String positionCore(String fen) => fen.split(' ').take(3).join(' ');
+    var board = tester.widget<cg.Chessboard>(find.byType(cg.Chessboard));
+    expect(positionCore(board.controller.fen), positionCore(positions[1]));
+
+    await tester.longPress(find.byKey(const ValueKey('next-move-button')));
+    await tester.pump();
+    board = tester.widget<cg.Chessboard>(find.byType(cg.Chessboard));
+    expect(positionCore(board.controller.fen), positionCore(positions.last));
+
+    await tester.longPress(find.byKey(const ValueKey('previous-move-button')));
+    await tester.pump();
+    board = tester.widget<cg.Chessboard>(find.byType(cg.Chessboard));
+    expect(positionCore(board.controller.fen), positionCore(positions.first));
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: ReviewPage(
+          positions: positions,
+          uciMoves: const ['e2e4', 'e7e5', 'g1f3'],
+          sanMoves: const ['e4', 'e5', 'Nf3'],
+          playerIsWhite: true,
+          pgn: '[Result "*"]\n\n1. e4 e5 2. Nf3 *',
+          initialCurrentFen: positions[1],
+          onHome: () {},
+          evaluator: (_) async => const StockfishReview(0, 'e2e4'),
+          maiaEvaluator: (_, _) async => null,
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.longPress(find.byKey(const ValueKey('next-move-button')));
+    await tester.pump();
+    board = tester.widget<cg.Chessboard>(find.byType(cg.Chessboard));
+    expect(positionCore(board.controller.fen), positionCore(positions.last));
+
+    await tester.longPress(find.byKey(const ValueKey('previous-move-button')));
+    await tester.pump();
+    board = tester.widget<cg.Chessboard>(find.byType(cg.Chessboard));
+    expect(positionCore(board.controller.fen), positionCore(positions.first));
   });
 
   testWidgets('graph appears before background classifications finish', (

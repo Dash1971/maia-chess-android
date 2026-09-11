@@ -60,6 +60,7 @@ class MaiaEncoding {
     List<double> logits, {
     double temperature = 1.0,
     double topP = 1.0,
+    Random? random,
   }) {
     final safeTopP = topP.clamp(0.0, 1.0);
     if (temperature <= 0) {
@@ -99,18 +100,17 @@ class MaiaEncoding {
     var cumulative = 0.0;
     for (var index = 0; index < weighted.length; index++) {
       final item = weighted[index];
+      // Include the crossing move: the nucleus is the smallest prefix whose
+      // probability mass reaches topP, rather than the prefix below it.
+      nucleus.add(item);
       cumulative += item.weight / fullTotal;
-      if (index == 0 || safeTopP >= 1.0 || cumulative <= safeTopP) {
-        nucleus.add(item);
-      } else {
-        break;
-      }
+      if (safeTopP < 1.0 && cumulative >= safeTopP) break;
     }
     final nucleusTotal = nucleus.fold<double>(
       0,
       (sum, item) => sum + item.weight,
     );
-    var target = _random.nextDouble() * nucleusTotal;
+    var target = (random ?? _random).nextDouble() * nucleusTotal;
     for (final item in nucleus) {
       target -= item.weight;
       if (target <= 0) return item.move;

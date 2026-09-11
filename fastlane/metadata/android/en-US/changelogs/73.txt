@@ -1,0 +1,6 @@
+Mobile Maia 2.1 adds experimental Chessnut Go play with LEDs, sounds,
+takebacks, reconnect recovery, and phone continuation. It also adds configurable
+100 ms and multiple premoves, endgame draw offers, analysis-quality presets,
+hold-to-start/end navigation, historical clocks, and timed PGN clock tags.
+Variation, PGN import, completed-game prompts, Recent Games, storage recovery,
+and saved-game upgrade handling are substantially more reliable.
