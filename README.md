@@ -91,15 +91,21 @@ recovery after process death, restart, or an app update.
 ### Multiple premoves
 
 <p align="center">
-  <img src="docs/screenshots/20260911_v1_multiple_premoves.png" width="46%" alt="Mobile Maia main app showing an elaborate 15-step multiple-premove plan, scrolled to moves 12 through 15">
+  <img src="docs/screenshots/20260911_v1_multiple_premoves.png" width="46%" alt="Mobile Maia main app showing a Mona Lisa-inspired 16-move premove plan ending with the white army reset on its back rank">
 </p>
 
-This example from the stable app queues an elaborate fifteen-step plan; the
-ordered strip is scrolled to moves 12–15 and the board previews the projected
-piece locations. Enable **Allow multiple premoves** to plan up to 64 moves while
-Maia is thinking. After each Maia reply, only the next premove runs, and only
-if it is legal in the actual position; an illegal move cancels everything that
-follows. **Cancel premoves** clears the sequence immediately.
+Inspired by GM Aman Hambleton's
+[“Mona Lisa” checkmate](https://www.chess.com/article/view/how-to-replicate-the-mona-lisa-checkmate),
+this example queues a sixteen-move rook-and-queen plan. The strip is scrolled to
+moves 13–16 and the projected board shows the signature finish: White's army
+reset on its back rank with `Qd1#`. Mobile Maia previews only the player's
+queued moves, not the opponent king's forced walk, so this is an homage rather
+than a move-for-move reconstruction.
+
+Enable **Allow multiple premoves** to plan up to 64 moves while Maia is
+thinking. After each Maia reply, only the next premove runs, and only if it is
+legal in the actual position; an illegal move cancels everything that follows.
+**Cancel premoves** clears the sequence immediately.
 
 Premoves are available only for on-screen games. A separate setting can charge
 exactly 0.1 seconds for each executed premove before applying the normal
