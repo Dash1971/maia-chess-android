@@ -72,9 +72,107 @@ def semantics(pgn):
     return notes, Counter(leaves)
 
 
-def check_restored(before, after):
+def legacy_variations(game):
+    """Encode the separate RecordedVariation list used by stable 2.0 games."""
+    def line(first, ply):
+        result = {'basePly': ply, 'baseFen': first.parent.board().fen(en_passant='fen'),
+                  'sanMoves': [], 'annotations': [], 'children': []}
+        node = first
+        while True:
+            result['sanMoves'].append(node.san())
+            annotation = {}
+            for source, target in [('comment_parts', 'comments'), ('starting_parts', 'startingComments')]:
+                if getattr(node, source, []):
+                    annotation[target] = list(getattr(node, source))
+            if node.nags:
+                annotation['nags'] = sorted(node.nags)
+            result['annotations'].append(annotation)
+            result['children'].extend(line(child, ply + len(result['sanMoves']))
+                                      for child in node.variations[1:])
+            if not node.variations:
+                return result
+            node = node.variations[0]
+    roots, parent, ply = [], game, 0
+    while parent.variations:
+        roots.extend(line(child, ply) for child in parent.variations[1:])
+        parent, ply = parent.variations[0], ply + 1
+    return roots
+
+
+def legacy_semantics(record):
+    """Read main-line PGN plus legacy variation metadata, validating every SAN/FEN."""
+    game = parse_pgn(record['data']['pgn'])
+    require(all(len(node.variations) <= 1 for node in [game, *game.mainline()]),
+            'Legacy baseline must store a main-line-only PGN.')
+    notes, leaves = semantics(record['data']['pgn'])
+    main = tuple(move.uci() for move in game.mainline_moves())
+
+    def walk(line, context):
+        ply = line['basePly']
+        require(isinstance(ply, int) and 0 <= ply <= len(context), 'Invalid legacy variation base ply.')
+        path = context[:ply]
+        board = game.board()
+        for move in path:
+            board.push_uci(move)
+        require(board.fen(en_passant='fen') == line['baseFen'], 'Legacy variation base FEN differs.')
+        annotations = line.get('annotations', [])
+        require(len(annotations) <= len(line['sanMoves']), 'Extra legacy variation annotations.')
+        for index, san in enumerate(line['sanMoves']):
+            move = board.parse_san(san)
+            board.push(move)
+            path = (*path, move.uci())
+            entry = notes.setdefault(path, {'comments': set(), 'starting': set(), 'nags': set()})
+            annotation = annotations[index] if index < len(annotations) else {}
+            for source, target in [('comments', 'comments'), ('startingComments', 'starting'), ('nags', 'nags')]:
+                entry[target].update(annotation.get(source, []))
+        leaves[path] += 1
+        for child in line.get('children', []):
+            walk(child, path)
+    for line in record['data'].get('variations', []):
+        walk(line, main)
+    # A segmented continuation's intermediate endpoint is not a complete line.
+    leaves = Counter({path: count for path, count in leaves.items()
+                      if not any(len(other) > len(path) and other[:len(path)] == path for other in leaves)})
+    return notes, leaves
+
+
+def check_notes(before, old_notes, notes):
+    """Permit only new main-line clock tags matching the saved millisecond history."""
+    expected = {}
+    if before['data'].get('timePreset') != 'unlimited':
+        game = parse_pgn(before['data']['pgn'])
+        board, path = game.board(), ()
+        history = before['data']['clockHistory']
+        for ply, move in enumerate(game.mainline_moves(), 1):
+            millis = history[ply][0 if board.turn else 1]
+            hours, rest = divmod(millis, 3600000)
+            minutes, rest = divmod(rest, 60000)
+            seconds, fraction = divmod(rest, 1000)
+            path = (*path, move.uci())
+            expected[path] = f'[%clk {hours}:{minutes:02}:{seconds:02}.{fraction:03}]'
+            board.push(move)
+    added = 0
+    for path, entry in notes.items():
+        previous = old_notes.get(path, {}).get('comments', set())
+        tag = expected.get(path)
+        if tag in entry['comments'] - previous:
+            entry['comments'].remove(tag)
+            added += 1
+    require(notes == old_notes, 'A variation, comment or NAG changed or disappeared.')
+    return added
+
+
+def check_restored(before, after, legacy_before=False):
     require(after['id'] == before['id'], 'Saved game ID changed.')
+    natural_result_normalized = False
     for key in PRESERVED:
+        if key == 'forcedResult' and before['data'].get(key) != after['data'].get(key) and legacy_before:
+            game = parse_pgn(before['data']['pgn'])
+            outcome = game.end().board().outcome()
+            require(outcome is not None and before['data'].get(key) == outcome.result() == game.headers['Result']
+                    and after['data'].get(key) is None, 'Saved forcedResult changed without the same natural result.')
+            natural_result_normalized = True
+            continue
         require(after['data'].get(key) == before['data'].get(key), f'Saved {key} changed.')
     for record in (before, after):
         game = parse_pgn(record['data']['pgn'])
@@ -82,19 +180,20 @@ def check_restored(before, after):
                 'PGN played main line differs from the saved moves.')
         require(game.board().fen(en_passant='fen') == record['data']['positions'][0],
                 'PGN starting position differs from the saved position.')
-    old_notes, old_paths = semantics(before['data']['pgn'])
+    old_notes, old_paths = legacy_semantics(before) if legacy_before else semantics(before['data']['pgn'])
     notes, paths = semantics(after['data']['pgn'])
-    require(notes == old_notes and paths.keys() == old_paths.keys(),
-            'A variation, comment or NAG changed or disappeared.')
+    clocks_added = check_notes(before, old_notes, notes)
+    require(paths.keys() == old_paths.keys(), 'A complete variation changed or disappeared.')
     require(all(count == 1 for count in paths.values()), 'Duplicate complete variations remain.')
     require(parse_pgn(before['data']['pgn']).headers['Result'] ==
             parse_pgn(after['data']['pgn']).headers['Result'], 'PGN result changed.')
     return {'distinct_complete_lines': len(paths),
             'duplicate_lines_before': sum(old_paths.values()) - len(old_paths),
-            'duplicate_lines_after': 0}
+            'duplicate_lines_after': 0, 'validated_new_clock_annotations': clocks_added,
+            'natural_result_normalized': natural_result_normalized}
 
 
-def seed_record(pgn):
+def seed_record(pgn, legacy_game_format=False):
     game = parse_pgn(pgn)
     board = game.board()
     positions, moves, history = [board.fen(en_passant='fen')], [], [[900000, 900000]]
@@ -114,6 +213,11 @@ def seed_record(pgn):
             'customIncrement': 10, 'elo': 700, 'clockPaused': True}
     if result != '*':
         data['forcedResult'] = result
+    if legacy_game_format:
+        require(all(not node.comment and not node.nags and not getattr(node, 'starting_comment', '')
+                    for node in [game, *game.mainline()]),
+                'Stable 2.0 game fixtures must keep notes/NAGs on variations, not the played main line.')
+        data['variations'] = legacy_variations(game)
     return {'version': 1, 'id': 'release-upgrade-fixture',
             'updatedAt': '2000-01-01T00:00:00Z', 'data': data}
 
@@ -134,7 +238,7 @@ def restored_ui_ready(xml, elo, completed):
         completed and 'Analysis Board' in labels)
 
 
-def check_baseline(fixture, before):
+def check_baseline(fixture, before, legacy_game_format=False):
     # Natural endings can replace the seed's forced-result marker with null.
     # The chess result must still match; subsequent upgrade comparisons check
     # the baseline app's actual saved representation, including this marker.
@@ -144,6 +248,10 @@ def check_baseline(fixture, before):
                     'Baseline did not retain fixture field: ' + field)
     require(parse_pgn(before['data']['pgn']).headers['Result'] ==
             parse_pgn(fixture['data']['pgn']).headers['Result'], 'Baseline changed the game result.')
+    expected, paths = semantics(fixture['data']['pgn'])
+    actual, actual_paths = legacy_semantics(before) if legacy_game_format else semantics(before['data']['pgn'])
+    check_notes(fixture, expected, actual)
+    require(paths.keys() == actual_paths.keys(), 'Baseline did not retain fixture variations.')
 
 
 def wait_for_checkpoint(read_raw, previous, timeout, on_retry=None):
@@ -190,10 +298,11 @@ def verify(args, report):
         require(identity['activity'], 'APK has no launchable activity.')
     require(int(identities[1]['versionCode']) >= int(identities[0]['versionCode']),
             'Candidate version code is lower than baseline; do not bypass Android upgrade rules.')
-    fixture = seed_record(args.fixture.read_text(encoding='utf-8'))
+    fixture = seed_record(args.fixture.read_text(encoding='utf-8'), args.legacy_game_format)
     report.update(baseline_sha256=file_digest(args.baseline_apk),
                   candidate_sha256=file_digest(args.candidate_apk), identities=identities,
-                  fixture_sha256=file_digest(args.fixture), signing='temporary local test key')
+                  fixture_sha256=file_digest(args.fixture), signing='temporary local test key',
+                  legacy_game_format=args.legacy_game_format)
 
     def command(*parts, timeout=60):
         return run(adb, '-s', args.serial, *parts, timeout=timeout)
@@ -276,7 +385,7 @@ def verify(args, report):
             launch(identities[0])
             before = wait_saved(fixture['updatedAt'])
             write_report(args.output / 'before.json', before)
-            check_baseline(fixture, before)
+            check_baseline(fixture, before, args.legacy_game_format)
             shell('am', 'force-stop', args.package)
             raw = {name: read_raw(name) for name in targets}
             stage('Installing candidate and comparing saved game')
@@ -288,7 +397,7 @@ def verify(args, report):
             report['candidate_launch'] = launch(identities[1])
             after = wait_saved(before['updatedAt'])
             write_report(args.output / 'after.json', after)
-            report.update(check_restored(before, after))
+            report.update(check_restored(before, after, args.legacy_game_format))
             # Archives are snapshots, not live mirrors of the active game.
             # Preserve the original bytes, then exercise restoration of that
             # archived snapshot through the app's normal checkpoint reader.
@@ -304,7 +413,7 @@ def verify(args, report):
             launch(identities[1])
             from_archive = wait_saved(json.loads(archive_raw)['updatedAt'])
             write_report(args.output / 'archive-restored.json', from_archive)
-            check_restored(before, from_archive)
+            check_restored(before, from_archive, args.legacy_game_format)
             require(from_archive['data']['pgn'] == after['data']['pgn'],
                     'Archived snapshot restores differently from the upgraded active game.')
             stage('Checking force-stop and restart')
@@ -343,6 +452,8 @@ def main():
     parser.add_argument('--candidate-apk', type=Path, required=True)
     parser.add_argument('--serial', required=True, help='Explicit disposable ARM64 AOSP emulator ID.')
     parser.add_argument('--fixture', type=Path, default=FIXTURE)
+    parser.add_argument('--legacy-game-format', action='store_true',
+                        help='Stable 2.0: seed separate variation metadata and check it before upgrading.')
     parser.add_argument('--output', type=Path, required=True, help='New or empty directory for diagnostics.')
     parser.add_argument('--allow-reset-test-app', action='store_true')
     parser.add_argument('--timeout', type=int, default=30, choices=range(1, 61), metavar='SECONDS')

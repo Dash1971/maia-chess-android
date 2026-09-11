@@ -1,0 +1,6 @@
+[Event "Synthetic stable 2.0 unfinished upgrade"]
+[White "Test White"]
+[Black "Test Black"]
+[Result "*"]
+
+1. e4 (1. d4 {Alternative note} $1 d5) e5 2. Nf3 Nc6 *
