@@ -1,0 +1,5 @@
+Mobile Maia 2.1.1 is a distribution and reproducibility maintenance release
+with the same app features as 2.1.0. The canonical unsigned APK is now built on
+Linux, independently reproduced on a second Linux host, and then signed without
+rebuilding. This enables one developer-signed APK to serve both GitHub/Obtainium
+and F-Droid's reproducible-build path.
