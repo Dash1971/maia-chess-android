@@ -31,7 +31,7 @@ ARM64, and x86_64; its release verifier checks the exact ABI set and 16 KB ELF
 alignment.
 
 The immutable 2.1.1 release-source commit is
-`a638f5c7552eebe69fed986f832520493ac8a16c`.
+`8b039e6af365aa7dbeb206b74530e241ff673a62`.
 
 ## Reproducibility status
 
