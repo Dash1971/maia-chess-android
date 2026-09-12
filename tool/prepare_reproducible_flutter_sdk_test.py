@@ -8,6 +8,7 @@ from prepare_reproducible_flutter_sdk import (
     PATCHED,
     PINNED_FLUTTER_REVISION,
     UNPATCHED,
+    invalidate_flutter_tool_snapshot,
     patch_asset_tool,
     verify_flutter_revision,
 )
@@ -29,6 +30,22 @@ class ReproducibleFlutterSdkTest(unittest.TestCase):
                 asset_tool.write_text(source)
                 with self.assertRaisesRegex(ValueError, "unexpected Flutter"):
                     patch_asset_tool(asset_tool)
+
+    def test_snapshot_invalidation_removes_old_and_current_cache_files(self):
+        with tempfile.TemporaryDirectory() as directory:
+            flutter_root = Path(directory)
+            cache = flutter_root / "bin/cache"
+            cache.mkdir(parents=True)
+            expected = {
+                Path("bin/cache/flutter_tools.snapshot"),
+                Path("bin/cache/flutter_tools.snapshot.old"),
+                Path("bin/cache/flutter_tools.stamp"),
+            }
+            for path in expected:
+                (flutter_root / path).write_text("cached")
+            self.assertEqual(set(invalidate_flutter_tool_snapshot(flutter_root)), expected)
+            self.assertEqual(invalidate_flutter_tool_snapshot(flutter_root), [])
+            self.assertFalse(any((flutter_root / path).exists() for path in expected))
 
     @patch("prepare_reproducible_flutter_sdk.subprocess.run")
     def test_revision_guard(self, run):
