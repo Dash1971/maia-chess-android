@@ -44,6 +44,12 @@ job. A separate Linux host must rebuild the same source commit and produce the
 same APK SHA-256 before signing. The developer signing key remains offline: the
 verified Linux artifact is downloaded and signed without rebuilding it.
 
+Flutter 3.47.1 discovers resolution-aware asset directories with an unsorted
+filesystem listing. That can serialize identical image variants in a different
+order in `AssetManifest.bin`. The release script applies a narrowly guarded
+backport to the pinned Flutter checkout before building: it sorts the discovered
+variant paths and refuses any unexpected Flutter revision or source shape.
+
 ## Verification
 
 For version `2.1.1` and later, the GitHub Actions build and a clean independent
