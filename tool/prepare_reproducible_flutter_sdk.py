@@ -9,6 +9,11 @@ import subprocess
 
 PINNED_FLUTTER_REVISION = "6655482ec06e547f90abf8ae7590466f4415978d"
 ASSET_TOOL = Path("packages/flutter_tools/lib/src/asset.dart")
+FLUTTER_TOOL_CACHE_FILES = (
+    Path("bin/cache/flutter_tools.snapshot"),
+    Path("bin/cache/flutter_tools.snapshot.old"),
+    Path("bin/cache/flutter_tools.stamp"),
+)
 UNPATCHED = """          .expand((Directory dir) => dir.listSync())
           .whereType<File>()
           .toList();"""
@@ -44,6 +49,16 @@ def patch_asset_tool(asset_tool: Path) -> bool:
     return True
 
 
+def invalidate_flutter_tool_snapshot(flutter_root: Path) -> list[Path]:
+    removed = []
+    for relative_path in FLUTTER_TOOL_CACHE_FILES:
+        path = flutter_root / relative_path
+        if path.exists():
+            path.unlink()
+            removed.append(relative_path)
+    return removed
+
+
 def flutter_root_from_args(args: argparse.Namespace) -> Path:
     if args.flutter_root:
         return args.flutter_root.resolve()
@@ -60,7 +75,9 @@ def main() -> None:
     flutter_root = flutter_root_from_args(args)
     verify_flutter_revision(flutter_root)
     changed = patch_asset_tool(flutter_root / ASSET_TOOL)
-    print("patched" if changed else "already patched")
+    removed = invalidate_flutter_tool_snapshot(flutter_root)
+    patch_status = "patched" if changed else "already patched"
+    print(f"{patch_status}; invalidated {len(removed)} Flutter tool cache files")
 
 
 if __name__ == "__main__":

@@ -48,7 +48,8 @@ Flutter 3.47.1 discovers resolution-aware asset directories with an unsorted
 filesystem listing. That can serialize identical image variants in a different
 order in `AssetManifest.bin`. The release script applies a narrowly guarded
 backport to the pinned Flutter checkout before building: it sorts the discovered
-variant paths and refuses any unexpected Flutter revision or source shape.
+variant paths, invalidates any previously compiled Flutter tool snapshot, and
+refuses any unexpected Flutter revision or source shape.
 
 ## Verification
 
