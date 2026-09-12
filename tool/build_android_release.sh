@@ -18,6 +18,7 @@ python3 tool/verify_model.py
 SOURCE_DATE_EPOCH=${SOURCE_DATE_EPOCH:-$(git log -1 --format=%ct)}
 export SOURCE_DATE_EPOCH
 
+python3 tool/prepare_reproducible_flutter_sdk.py --flutter-bin "$flutter_path"
 "$flutter_bin" clean
 "$flutter_bin" pub get --enforce-lockfile
 # Run Flutter's release configuration pass before changing package_config.json.
