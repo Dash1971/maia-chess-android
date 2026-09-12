@@ -22,7 +22,7 @@ Mobile Maia to F-Droid. The Preview package is not part of the submission.
 
 ## Clean build
 
-Version 2.1.0 (`versionCode 73`) uses Flutter 3.47.1 and Java 17. The build
+Version 2.1.1 (`versionCode 74`) uses Flutter 3.47.1 and Java 17. The build
 recipe replaces the Git LFS model pointer from the immutable release commit and
 verifies SHA-256
 `3454b03ae78baa64a87b345fdb1a457265d912caec531039b074f07eda0d8010`
@@ -30,26 +30,27 @@ before compilation. The stable release remains a universal APK for ARMv7,
 ARM64, and x86_64; its release verifier checks the exact ABI set and 16 KB ELF
 alignment.
 
-The immutable 2.1.0 release-source commit is
-`7ad1264f2df1a483a9fc083d7cd885568681df1b`.
+The immutable 2.1.1 release-source commit is
+`77e8a54638f34b8ff20d86387eff61ae11dfa28c`.
 
 ## Reproducibility status
 
-Mobile Maia deliberately disables Dart release obfuscation. On 2026-09-11, two
-clean unsigned builds from the release-source commit, using separate worktrees
-and package caches, were byte-for-byte identical. Both produced a 555,017,993
-byte APK with SHA-256
-`39f60ea87f052100f99258c8a4f22eab3b771c222b2708383e09bb197017c897`.
-Both passed package/version, no-Internet-permission, model, exact-ABI,
-ZIP-alignment, and 16 KB ELF-alignment checks. Two clean signed builds then
-reproduced all 2,500 APK payload entries after Android signature normalization.
-The published developer-signed APK was re-downloaded byte-for-byte and passed
-the full release verifier. It is 555,026,185 bytes with SHA-256
-`26b99c95a5118752316249c3efa12256bf36c646c90a1a5412b3b4dc4a7eae3c`.
+Mobile Maia deliberately disables Dart release obfuscation. The 2.1.0 release
+was reproducible across clean macOS builds, but its native output did not match
+Linux. Investigation in GitHub PR #10 confirmed that NDK 28.2.13676358 contains
+different macOS and Linux compiler builds even though the resolved NDK revision
+is identical.
 
-The release supports F-Droid's developer-signed reproducible-build path using
-`Binaries` and `AllowedAPKSigningKeys`. The allowed signing-certificate
-SHA-256 is
+Version 2.1.1 corrects the release process rather than changing the NDK value.
+Its canonical unsigned APK must be built on GitHub Actions Linux and match a
+clean independent Linux rebuild byte-for-byte before signing. The exact Linux
+artifact is then signed locally without rebuilding it. Build, independent
+comparison, signing, publication, and public-download verification remain
+pending until this preparation change is reviewed and merged.
+
+After those checks pass, the release will support F-Droid's developer-signed
+reproducible-build path using `Binaries` and `AllowedAPKSigningKeys`. The allowed
+signing-certificate SHA-256 remains
 `cd6c07c4efacf52bcccb83009b522c1dcad4a171197505a486f0a58edb6f172e`.
 
 ## Submission recipe
