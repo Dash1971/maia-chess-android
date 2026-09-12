@@ -197,18 +197,27 @@ deliberately feed the checkers corrupted/changed artifacts, missing notes,
 altered clocks, duplicate lines and unsuitable emulator properties so a broken
 checker cannot silently report success for those cases.
 
-The existing **Checks** workflow has an optional `build_android` input. Select
-the desired branch in GitHub Actions and run it with that input enabled, or:
+The existing **Checks** workflow has a `build_android` input. Bind every release
+build to the exact intended source commit:
 
 ```sh
-gh workflow run checks.yml --ref YOUR_BRANCH -f build_android=true
+release_sha=$(git rev-parse YOUR_BRANCH)
+gh workflow run checks.yml --ref YOUR_BRANCH \
+  -f build_android=true \
+  -f expected_source_sha="$release_sha"
 ```
 
+Confirm the completed run's `headSha` equals `release_sha`. The Android job
+also refuses to build when the checked-out commit differs from the supplied
+full SHA.
+
 That job builds the unsigned APK, runs packaging verification, and uploads the
-build log/JSON diagnostics even after failure. The unsigned APK is uploaded
-after success. Both artifact types expire after **14 days**. The ARM64 emulator
-upgrade and native-engine checks remain explicit commands on a suitable host;
-the ordinary Ubuntu CI job does not claim to run them.
+build log/JSON diagnostics even after failure. Successful runs also retain the
+APK SHA-256 and sanitized source/runner/Flutter/Java/NDK/Clang provenance. The
+unsigned APK is uploaded after success. Both artifact types include the source
+SHA in their names and expire after **90 days**. The ARM64 emulator upgrade and
+native-engine checks remain explicit commands on a suitable host; the ordinary
+Ubuntu CI job does not claim to run them.
 
 Keep compact verification summaries, hashes, commands/seeds and sanitized
 fixtures in Git. Keep APKs, full logs and screenshots in ignored local output

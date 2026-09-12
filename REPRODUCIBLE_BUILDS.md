@@ -1,8 +1,8 @@
 # Reproducible Android builds
 
 Mobile Maia's Android release build is reproducible when the same source
-revision, Flutter SDK, Java runtime, Android SDK, and locked Dart dependencies
-are used.
+revision, Flutter SDK, Java runtime, Android SDK, host operating-system family,
+and locked Dart dependencies are used.
 
 Build with:
 
@@ -36,10 +36,21 @@ libraries because the NDK otherwise gives byte-identical native code different
 inputs, preventing a stale native cache from retaining an older `__DATE__`
 value.
 
+Android NDK packages with the same revision contain host-specific compiler
+builds. In particular, NDK 28.2.13676358 produces different native output on
+macOS and Linux. Starting with version 2.1.1, the canonical unsigned release APK
+is therefore built on Linux by the manually dispatched GitHub Actions Android
+job. A separate Linux host must rebuild the same source commit and produce the
+same APK SHA-256 before signing. The developer signing key remains offline: the
+verified Linux artifact is downloaded and signed without rebuilding it.
+
 ## Verification
 
-For version `2.1.0`, two clean unsigned builds from the same revision
-must have identical SHA-256 hashes. To verify a developer-signed APK, use
+For version `2.1.1` and later, the GitHub Actions build and a clean independent
+Linux build from the same revision must have identical SHA-256 hashes. The
+workflow requires the expected full source SHA, refuses a checkout mismatch,
+and retains the APK hash plus source, runner, Flutter, Java, NDK, and Clang
+provenance. To verify a developer-signed APK, use
 [`apksigcopier`](https://github.com/obfusk/apksigcopier) to extract its
 signature, apply that signature to the independently built unsigned APK, and
 compare the reconstructed APK byte-for-byte with the published APK.
