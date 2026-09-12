@@ -31,7 +31,7 @@ ARM64, and x86_64; its release verifier checks the exact ABI set and 16 KB ELF
 alignment.
 
 The immutable 2.1.1 release-source commit is
-`77e8a54638f34b8ff20d86387eff61ae11dfa28c`.
+`a638f5c7552eebe69fed986f832520493ac8a16c`.
 
 ## Reproducibility status
 
@@ -47,6 +47,10 @@ clean independent Linux rebuild byte-for-byte before signing. The exact Linux
 artifact is then signed locally without rebuilding it. Build, independent
 comparison, signing, publication, and public-download verification remain
 pending until this preparation change is reviewed and merged.
+
+The source also backports deterministic sorting for Flutter 3.47.1's
+resolution-aware asset discovery. Without that sort, identical dependency files
+can produce a differently ordered `AssetManifest.bin` across filesystems.
 
 After those checks pass, the release will support F-Droid's developer-signed
 reproducible-build path using `Binaries` and `AllowedAPKSigningKeys`. The allowed
