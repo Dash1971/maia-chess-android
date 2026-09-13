@@ -21,6 +21,8 @@ export SOURCE_DATE_EPOCH
 python3 tool/prepare_reproducible_flutter_sdk.py --flutter-bin "$flutter_path"
 "$flutter_bin" clean
 "$flutter_bin" pub get --enforce-lockfile
+python3 tool/prepare_reproducible_stockfish.py \
+  --package-config .dart_tool/package_config.json
 # Run Flutter's release configuration pass before changing package_config.json.
 # This filters test-only native plugins from the generated release registrant.
 "$flutter_bin" build apk --release --config-only
