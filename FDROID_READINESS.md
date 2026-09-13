@@ -7,18 +7,20 @@ Mobile Maia to F-Droid. The Preview package is not part of the submission.
 
 - F-Droid's source scanner reports no problems when run against a clean
   checkout and a pinned Flutter 3.47.1 source library. The documented,
-  AGPL-3.0-licensed Maia-3 ONNX model is explicitly listed in `scanignore`
-  because it is a large binary model; its provenance and reproducibility are
+  AGPL-3.0-licensed Maia-3 ONNX model's provenance and reproducibility are
   documented in `MODEL_PROVENANCE.md`.
 - Dependencies are resolved from `pubspec.lock` with
   `flutter pub get --enforce-lockfile`.
 - The multistockfish Android libraries are compiled from bundled upstream C++
-  source during the Gradle build; they are not opaque prebuilt libraries.
+  source during the Gradle build; they are not opaque prebuilt libraries. The
+  Stockfish 16 NNUE download must match its complete pinned SHA-256 before CMake
+  can compile any ABI.
 - The Maia-3 ONNX model's licence, source revisions, hashes, and byte-identical
   export procedure are documented in `MODEL_PROVENANCE.md`.
-- F-Droid's APK scanner reports no non-free classes. It identifies the Gradle
-  dependency-information entry in the APK signing block, which is not an app
-  dependency or executable payload.
+- F-Droid's APK scanner currently flags six Google Play Core references retained
+  by Flutter's unused deferred-component embedding. Their removal is tracked as
+  a separate upstream APK-hardening change; it must not weaken the release
+  verification or silently change application behavior.
 
 ## Clean build
 

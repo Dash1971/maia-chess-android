@@ -46,6 +46,11 @@ mkdir -p release-checks
 tool/build_android_release.sh 2>&1 | tee release-checks/build.log
 ```
 
+The wrapper also patches the exact locked `multistockfish_sf16` package so its
+build-time NNUE download is SHA-256 verified. An unexpected package version,
+CMake source shape, partial download, or changed network file must fail before
+an APK can be accepted.
+
 ## Verify the APK
 
 ```sh
