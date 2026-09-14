@@ -14,15 +14,15 @@ Repo: https://github.com/Dash1971/maia-chess-android.git
 Binaries: https://github.com/Dash1971/maia-chess-android/releases/download/v%v/Mobile-Maia-v%v.apk
 
 Builds:
-  - versionName: 2.1.1
-    versionCode: 74
-    commit: 8b039e6af365aa7dbeb206b74530e241ff673a62
+  - versionName: 2.1.2
+    versionCode: 75
+    commit: ebe11cf1c2e973fa50eb99391181c29d2f545937
     output: build/app/outputs/flutter-apk/app-release.apk
     srclibs:
       - flutter@3.47.1
     prebuild:
       - rm assets/models/maia3-79m.onnx
-      - curl -sL -o assets/models/maia3-79m.onnx https://media.githubusercontent.com/media/Dash1971/maia-chess-android/8b039e6af365aa7dbeb206b74530e241ff673a62/assets/models/maia3-79m.onnx
+      - curl -sL -o assets/models/maia3-79m.onnx https://media.githubusercontent.com/media/Dash1971/maia-chess-android/ebe11cf1c2e973fa50eb99391181c29d2f545937/assets/models/maia3-79m.onnx
       - echo '3454b03ae78baa64a87b345fdb1a457265d912caec531039b074f07eda0d8010  assets/models/maia3-79m.onnx' | sha256sum -c -
       - export PUB_CACHE=$(pwd)/.pub-cache
       - python3 tool/prepare_reproducible_flutter_sdk.py --flutter-root $$flutter$$
@@ -44,16 +44,18 @@ AllowedAPKSigningKeys: cd6c07c4efacf52bcccb83009b522c1dcad4a171197505a486f0a58ed
 AutoUpdateMode: Version
 UpdateCheckMode: Tags
 UpdateCheckData: pubspec.yaml|version:\s.+\+(\d+)|.|version:\s(.+)\+
-CurrentVersion: 2.1.1
-CurrentVersionCode: 74
+CurrentVersion: 2.1.2
+CurrentVersionCode: 75
 
 MaintainerNotes: |-
   The bundled Maia-3 ONNX model is AGPL-3.0 licensed. Its immutable source,
   checkpoint, conversion procedure, size, and hashes are documented upstream
   in MODEL_PROVENANCE.md. The Git LFS pointer is replaced from the immutable
   release commit and verified before building.
-  Version 2.1.1 must be built and independently reproduced on Linux before the
+  Version 2.1.2 must be built and independently reproduced on Linux before the
   upstream APK is signed, avoiding host-specific macOS/Linux NDK output. Its
   guarded Flutter 3.47.1 backport sorts resolution-aware asset variants before
   generating AssetManifest.bin. The Stockfish 16 NNUE download is accepted only
-  when its complete SHA-256 matches the pinned upstream network.
+  when its complete SHA-256 matches the pinned upstream network. R8 removes the
+  unused Flutter Play Core bridge while explicit rules retain ONNX Runtime JNI
+  classes and members.
