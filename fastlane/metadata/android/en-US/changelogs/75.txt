@@ -1,0 +1,7 @@
+Mobile Maia 2.1.2 is a distribution-compatibility and build-hardening update
+with the same app features and offline behavior as 2.1.1. Android release
+minification removes Flutter's unused Play Core references for F-Droid while
+explicitly preserving ONNX/JNI entry points. The locked Stockfish NNUE download
+is now verified by SHA-256. Rooted ARM64 and x86_64 integration, saved-game
+upgrade, scanner, packaging, and reproducibility checks protect existing app
+behavior.
