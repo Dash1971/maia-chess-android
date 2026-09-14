@@ -17,14 +17,15 @@ Mobile Maia to F-Droid. The Preview package is not part of the submission.
   can compile any ABI.
 - The Maia-3 ONNX model's licence, source revisions, hashes, and byte-identical
   export procedure are documented in `MODEL_PROVENANCE.md`.
-- F-Droid's APK scanner currently flags six Google Play Core references retained
-  by Flutter's unused deferred-component embedding. Their removal is tracked as
-  a separate upstream APK-hardening change; it must not weaken the release
-  verification or silently change application behavior.
+- F-Droid's APK scanner reports none of the six Google Play Core references
+  retained by Flutter's unused deferred-component embedding in the unminified
+  2.1.1 APK. Version 2.1.2 removes that unreachable bridge with R8 while
+  retaining JNI, plugin, saved-game, and runtime behavior under explicit host,
+  ARM64, x86_64, upgrade, and exact-APK gates.
 
 ## Clean build
 
-Version 2.1.1 (`versionCode 74`) uses Flutter 3.47.1 and Java 17. The build
+Version 2.1.2 (`versionCode 75`) uses Flutter 3.47.1 and Java 17. The build
 recipe replaces the Git LFS model pointer from the immutable release commit and
 verifies SHA-256
 `3454b03ae78baa64a87b345fdb1a457265d912caec531039b074f07eda0d8010`
@@ -32,8 +33,8 @@ before compilation. The stable release remains a universal APK for ARMv7,
 ARM64, and x86_64; its release verifier checks the exact ABI set and 16 KB ELF
 alignment.
 
-The immutable 2.1.1 release-source commit is
-`8b039e6af365aa7dbeb206b74530e241ff673a62`.
+The immutable 2.1.2 release-source commit is
+`ebe11cf1c2e973fa50eb99391181c29d2f545937`.
 
 ## Reproducibility status
 
@@ -43,12 +44,13 @@ Linux. Investigation in GitHub PR #10 confirmed that NDK 28.2.13676358 contains
 different macOS and Linux compiler builds even though the resolved NDK revision
 is identical.
 
-Version 2.1.1 corrects the release process rather than changing the NDK value.
-Its canonical unsigned APK must be built on GitHub Actions Linux and match a
-clean independent Linux rebuild byte-for-byte before signing. The exact Linux
-artifact is then signed locally without rebuilding it. Build, independent
-comparison, signing, publication, and public-download verification remain
-pending until this preparation change is reviewed and merged.
+Version 2.1.1 corrected the release process rather than changing the NDK value.
+Version 2.1.2 keeps that process: its canonical unsigned APK must be built on
+GitHub Actions Linux and match a clean independent Linux rebuild byte-for-byte
+before signing. The exact Linux artifact is then signed locally without
+rebuilding it. Build, independent comparison, signing, publication, and
+public-download verification remain pending until this release preparation is
+reviewed and merged.
 
 The source also backports deterministic sorting for Flutter 3.47.1's
 resolution-aware asset discovery. Without that sort, identical dependency files
