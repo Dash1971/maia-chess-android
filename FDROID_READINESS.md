@@ -1,7 +1,7 @@
 # F-Droid readiness
 
-This document records the reproducible inputs and remaining work for submitting
-Mobile Maia to F-Droid. The Preview package is not part of the submission.
+This document records the reproducible inputs and publication status for Mobile
+Maia on F-Droid. The Preview package is not part of the submission.
 
 ## Source and binary audit
 
@@ -45,24 +45,29 @@ different macOS and Linux compiler builds even though the resolved NDK revision
 is identical.
 
 Version 2.1.1 corrected the release process rather than changing the NDK value.
-Version 2.1.2 keeps that process: its canonical unsigned APK must be built on
-GitHub Actions Linux and match a clean independent Linux rebuild byte-for-byte
-before signing. The exact Linux artifact is then signed locally without
-rebuilding it. Build, independent comparison, signing, publication, and
-public-download verification remain pending until this release preparation is
-reviewed and merged.
+Version 2.1.2 kept that process: its canonical unsigned APK was built on GitHub
+Actions Linux and matched a clean independent Linux rebuild byte-for-byte
+before signing. The exact Linux artifact was then signed locally without
+rebuilding it, published, downloaded again, and verified against the audited
+release artifact.
 
 The source also backports deterministic sorting for Flutter 3.47.1's
 resolution-aware asset discovery. Without that sort, identical dependency files
 can produce a differently ordered `AssetManifest.bin` across filesystems.
 
-After those checks pass, the release will support F-Droid's developer-signed
-reproducible-build path using `Binaries` and `AllowedAPKSigningKeys`. The allowed
-signing-certificate SHA-256 remains
+The release uses F-Droid's developer-signed reproducible-build path with
+`Binaries` and `AllowedAPKSigningKeys`. The allowed signing-certificate SHA-256
+remains
 `cd6c07c4efacf52bcccb83009b522c1dcad4a171197505a486f0a58edb6f172e`.
+
+F-Droid published Mobile Maia 2.1.2 (`versionCode 75`) in its official
+repository on 2026-09-22. The
+[official package page](https://f-droid.org/packages/com.dash1971.maia_chess/)
+and [repository APK](https://f-droid.org/repo/com.dash1971.maia_chess_75.apk)
+are publicly available.
 
 ## Submission recipe
 
-A review copy of the proposed fdroiddata recipe is maintained at
-`fdroid/com.dash1971.maia_chess.yml`. The canonical copy for publication will
-be the version reviewed and merged into F-Droid's fdroiddata repository.
+A review copy of the fdroiddata recipe is maintained at
+`fdroid/com.dash1971.maia_chess.yml`. The canonical published copy is the
+version merged into F-Droid's fdroiddata repository.
