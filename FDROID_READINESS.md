@@ -25,16 +25,16 @@ Maia on F-Droid. The Preview package is not part of the submission.
 
 ## Clean build
 
-Version 2.1.2 (`versionCode 75`) uses Flutter 3.47.1 and Java 17. The build
-recipe replaces the Git LFS model pointer from the immutable release commit and
+Version 2.1.3 (`versionCode 76`) uses Flutter 3.47.1 and Java 17. The build
+recipe materializes the Git LFS model from the immutable release commit and
 verifies SHA-256
 `3454b03ae78baa64a87b345fdb1a457265d912caec531039b074f07eda0d8010`
 before compilation. The stable release remains a universal APK for ARMv7,
 ARM64, and x86_64; its release verifier checks the exact ABI set and 16 KB ELF
 alignment.
 
-The immutable 2.1.2 release-source commit is
-`ebe11cf1c2e973fa50eb99391181c29d2f545937`.
+The immutable 2.1.3 release-source commit is
+`7214afa43a815703b8bef25178837d1879bab05a`.
 
 ## Reproducibility status
 
@@ -44,12 +44,11 @@ Linux. Investigation in GitHub PR #10 confirmed that NDK 28.2.13676358 contains
 different macOS and Linux compiler builds even though the resolved NDK revision
 is identical.
 
-Version 2.1.1 corrected the release process rather than changing the NDK value.
-Version 2.1.2 kept that process: its canonical unsigned APK was built on GitHub
-Actions Linux and matched a clean independent Linux rebuild byte-for-byte
-before signing. The exact Linux artifact was then signed locally without
-rebuilding it, published, downloaded again, and verified against the audited
-release artifact.
+Version 2.1.1 corrected the release process rather than changing the NDK value,
+and version 2.1.2 successfully used that process. Version 2.1.3 must likewise
+build its canonical unsigned APK on GitHub Actions Linux and match a clean
+independent Linux rebuild byte-for-byte before the exact Linux artifact is
+signed locally without rebuilding.
 
 The source also backports deterministic sorting for Flutter 3.47.1's
 resolution-aware asset discovery. Without that sort, identical dependency files
@@ -65,6 +64,12 @@ repository on 2026-09-22. The
 [official package page](https://f-droid.org/packages/com.dash1971.maia_chess/)
 and [repository APK](https://f-droid.org/repo/com.dash1971.maia_chess_75.apk)
 are publicly available.
+
+The 2.1.3 recipe retains F-Droid's accepted Git LFS model materialization,
+pinned Flutter checkout, Stockfish NNUE verification, universal APK output,
+developer-binary URL, and allowed signing certificate. Publication remains
+pending until the exact recipe and public developer-signed APK pass F-Droid's
+scanner, build, reproducibility, and signer checks.
 
 ## Submission recipe
 
