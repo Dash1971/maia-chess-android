@@ -10,6 +10,9 @@ play with Stockfish's best move, or run a complete game review without a daily
 quota. Mobile Maia is an independent community project released under
 AGPL-3.0-only.
 
+Download Mobile Maia from its
+[official F-Droid package page](https://f-droid.org/packages/com.dash1971.maia_chess/).
+
 ## Mobile Maia 2.1
 
 Version 2.1 adds experimental Chessnut Go support, multiple premoves, endgame
@@ -299,6 +302,17 @@ Diagnostics are pruned to at most 14 days, 40 entries, 8,000 characters per
 entry, and 128,000 characters total. They may include app, Android, hardware,
 engine-cache, and privacy-safe Bluetooth state, but never a device serial,
 Bluetooth address or board name, chess position, or PGN.
+
+## Install and update with F-Droid
+
+Mobile Maia is available from the official F-Droid repository. Install the
+[F-Droid client](https://f-droid.org/F-Droid.apk), then search for **Mobile
+Maia** or open the
+[Mobile Maia package page](https://f-droid.org/packages/com.dash1971.maia_chess/)
+on your Android device. F-Droid can install the app and notify you when future
+updates are available.
+
+The package page also provides a direct APK download for manual installation.
 
 ## Install and update with Obtainium
 
