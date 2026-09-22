@@ -21,7 +21,7 @@ require(releaseSigningValues.all { it == null } || releaseSigningValues.all { it
 }
 
 dependencies {
-    implementation("com.microsoft.onnxruntime:onnxruntime-android:1.23.2")
+    implementation("com.microsoft.onnxruntime:onnxruntime-android:1.24.3")
     androidTestImplementation("androidx.test.ext:junit:1.2.1")
     androidTestImplementation("androidx.test:runner:1.6.2")
 }
