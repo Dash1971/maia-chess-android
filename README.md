@@ -15,7 +15,7 @@ Download Mobile Maia from its
 
 ## Mobile Maia 2.1
 
-Version 2.1 adds experimental Chessnut Go support, multiple premoves, endgame
+Version 2.1 adds experimental Chessnut support, multiple premoves, endgame
 draw offers, remembered setup, three full-game analysis presets, historical
 clocks, standard timed-PGN annotations, and stronger game and variation
 recovery. See the [complete 2.1 release notes](docs/release-notes/v2.1.0.md).
@@ -144,24 +144,27 @@ or return Home. A completed game remains in **Recent games** when you choose
 **New game**; resetting an unfinished game uses a separate destructive
 confirmation.
 
-### Chessnut Go electronic-board play
+### Chessnut electronic-board play
 
 <p align="center">
   <img src="docs/screenshots/20260910_v0_chessnut_phone_continuation.png" width="46%" alt="Chessnut connection card with Reconnect and Play in app controls above the board">
 </p>
 
-Experimental Chessnut Go support enters physical moves over Bluetooth and
-lights Maia's reply on the board. Mobile Maia compares the complete sensed
-position, treats temporary piece lifts and partial castling as unfinished, and
-lights mismatched squares when correction is needed. Optional board sounds
-distinguish check, checkmate, and a complete-looking illegal move.
+Experimental Chessnut support has been confirmed with both Chessnut Go and
+Chessnut Pro. It enters physical moves over Bluetooth and lights Maia's reply
+on the board. Mobile Maia compares the complete sensed position, treats
+temporary piece lifts and partial castling as unfinished, and lights mismatched
+squares when correction is needed. Optional board sounds distinguish check,
+checkmate, and a complete-looking illegal move.
 
 Reconnect keeps the game and verifies the physical position before play
 continues. Pending Maia and takeback lights are restored. **Play in app** moves
 the same unfinished game to on-screen input while retaining its moves,
 variations, rating, and orientation. Version 2.1 targets untimed games from the
-standard starting position on Chessnut Go; other Chessnut models, timed board
-games, USB, and Analysis Board input are not yet supported.
+standard starting position. The physical board's **New** button currently has
+no effect in Mobile Maia. Other Chessnut models may use the same protocol but
+have not yet been confirmed; compatibility reports from their users are
+welcome. Timed board games, USB, and Analysis Board input are not yet supported.
 
 ### Analysis Board
 
@@ -425,7 +428,7 @@ are also informed by the open-source
 [Lichess Mobile analysis experience](https://github.com/lichess-org/mobile).
 Mobile Maia is independently implemented and is not affiliated with Lichess.
 
-Experimental Chessnut Go support uses Chessnut's
+Experimental Chessnut support uses Chessnut's
 [published e-board API](https://github.com/chessnutech/Chessnut_eBoards) and
 MIT-licensed [EasyLinkSDK](https://github.com/chessnutech/EasyLinkSDK), and was
 cross-checked against Roberto Marabini's GPL-3.0
