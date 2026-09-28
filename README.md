@@ -151,7 +151,7 @@ confirmation.
 </p>
 
 Experimental Chessnut support has been confirmed with both Chessnut Go and
-Chessnut Pro. It enters physical moves over Bluetooth and lights Maia's reply
+Chessnut Air. It enters physical moves over Bluetooth and lights Maia's reply
 on the board. Mobile Maia compares the complete sensed position, treats
 temporary piece lifts and partial castling as unfinished, and lights mismatched
 squares when correction is needed. Optional board sounds distinguish check,
