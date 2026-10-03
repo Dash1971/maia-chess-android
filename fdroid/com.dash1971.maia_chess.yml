@@ -96,6 +96,7 @@ Builds:
       - python3 tool/verify_model.py
     scandelete:
       - .pub-cache
+      - docs/research/maia3-sampling/assets/mobile-maia-5m-reproduction-asset.zip
     build:
       - export PUB_CACHE=$(pwd)/.pub-cache
       - export SOURCE_DATE_EPOCH=$(git log -1 --format=%ct)
