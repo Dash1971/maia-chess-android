@@ -37,6 +37,16 @@ The repository-local `fdroid/` file is a review copy, not the bot's canonical
 input. After publication, separately verify the public developer APK against
 the F-Droid unsigned build and allowed signer.
 
+Before the final merge/tag, audit the entire tracked release tree, including
+research and generated documentation, for personal paths, identifiers,
+credentials, and other publication-unsafe content. Resolve any public-history
+exposure through a separately approved remediation; a follow-up commit is not
+proof that old objects became inaccessible. Reconcile the candidate's shipped
+features against the README, GitHub release body, and Fastlane changelog.
+Distinguish tests of the exact Stable APK from Preview-device evidence. Record
+the review and remaining limits before publication, not in a post-release
+documentation cleanup.
+
 ```sh
 python3 -m venv /tmp/maia-release-venv
 /tmp/maia-release-venv/bin/pip install -r tool/hardening/requirements.txt
