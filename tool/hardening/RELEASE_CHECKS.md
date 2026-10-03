@@ -12,9 +12,30 @@ Android build-tools 36.0.0 and platform-tools. Set `ANDROID_HOME` and `JAVA_HOME
 for the machine running the checks. `--sdk-root` and `--build-tools-version`
 can override SDK discovery explicitly. Python 3.10 or newer is recommended.
 
-The release wrapper applies the guarded Flutter 3.47.1 asset-variant-order
+The release wrapper applies the guarded pinned-Flutter asset-variant-order
 backport documented in `REPRODUCIBLE_BUILDS.md`. A different Flutter revision or
 unexpected upstream source must fail before the build begins.
+
+## Fail-closed source and listing preflight
+
+Before a release-version PR can pass CI, `python3 tool/check_release_source.py`
+requires a nonempty, version-matched Fastlane changelog named for the
+`pubspec.yaml` versionCode (at most 500 characters). It also rejects tracked
+ZIP/APK/AAB/JAR/AAR and other archive files anywhere in the source tree,
+including research and documentation directories. The same guard runs at the
+start of the manual release Android job. Do not bypass it by deleting the check
+or reclassifying an archive without a reviewed explanation.
+
+This targeted guard is **not** F-Droid's source scanner. Before signing,
+tagging, or publishing, derive the exact build block F-Droid's automatic
+updater would inherit from canonical fdroiddata metadata. On the frozen
+candidate source, run that unmodified block through the pinned official
+F-Droid buildserver's source scan and unsigned build. Stop if either fails or
+the recipe needs a local-only correction. Retain the metadata diff, commands,
+logs, source SHA, and pass result. Repeat after any release-source change.
+The repository-local `fdroid/` file is a review copy, not the bot's canonical
+input. After publication, separately verify the public developer APK against
+the F-Droid unsigned build and allowed signer.
 
 ```sh
 python3 -m venv /tmp/maia-release-venv
