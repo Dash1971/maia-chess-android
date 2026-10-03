@@ -12,8 +12,11 @@ published.** Subsequent qualification and publication results belong in the
 so recording results does not move the qualified source commit.
 This maintenance release puts the current Fastlane listing, screenshots, and
 version-specific changelog into the release source before it is frozen. It
-changes no gameplay, engine, model, dependency, or saved-game code relative to
-2.2.1. See the [release-source notes](docs/release-notes/v2.2.2.md).
+also aligns Play, both analysis controls, and Continue from here to the
+600–2600 Maia rating range, including migration of saved 500 defaults. Engines,
+model weights, and dependencies are unchanged. The final source must be rebuilt
+and qualified after this rating fix; earlier metadata-only candidate results
+do not qualify it. See the [release-source notes](docs/release-notes/v2.2.2.md).
 
 F-Droid imports source-hosted descriptions and graphics from the latest release
 it knows about, as described in its

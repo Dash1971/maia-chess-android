@@ -264,7 +264,9 @@ class _GamePageState extends State<GamePage>
     _gameBoardController = cg.ChessboardController(game: _gameBoardData());
     _gameBoardController.premoveNotifier.addListener(_onPremoveChanged);
     if (widget.startingSide != null) _sideChoice = widget.startingSide!;
-    if (widget.startingElo != null) _elo = widget.startingElo!;
+    if (widget.startingElo != null) {
+      _elo = normalizeMaiaRating(widget.startingElo!);
+    }
     if (widget.startingFen == null) {
       maiaEngineChannel.setMethodCallHandler((call) async {
         if (call.method == 'pgnReceived') {
@@ -351,9 +353,12 @@ class _GamePageState extends State<GamePage>
             MaterialPageRoute<void>(
               builder: (_) => AnalysisBoardPage(
                 initialSession: session,
-                maiaElo: saved['maiaElo'] as int? ?? _analysisElo,
+                maiaElo: _decodeMaiaRating(saved['maiaElo']) ?? _analysisElo,
                 secondMaiaElo: saved.containsKey('secondMaiaElo')
-                    ? saved['secondMaiaElo'] as int?
+                    ? (saved['secondMaiaElo'] == null
+                        ? null
+                        : _decodeMaiaRating(saved['secondMaiaElo']) ??
+                              _secondMaiaElo)
                     : (_secondMaiaEnabled ? _secondMaiaElo : null),
                 gameAnalysisQuality: _gameAnalysisQuality,
                 initialVariations: variations,
@@ -406,9 +411,12 @@ class _GamePageState extends State<GamePage>
                     initialVariations: variations,
                     initialTreeIsAuthoritative:
                         saved['treeIsAuthoritative'] == true,
-                    maiaElo: saved['maiaElo'] as int? ?? _analysisElo,
+                    maiaElo: _decodeMaiaRating(saved['maiaElo']) ?? _analysisElo,
                     secondMaiaElo: saved.containsKey('secondMaiaElo')
-                        ? saved['secondMaiaElo'] as int?
+                        ? (saved['secondMaiaElo'] == null
+                              ? null
+                              : _decodeMaiaRating(saved['secondMaiaElo']) ??
+                                    _secondMaiaElo)
                         : (_secondMaiaEnabled ? _secondMaiaElo : null),
                     gameAnalysisQuality: _gameAnalysisQuality,
                     initialCurrentFen: saved['currentFen'] as String?,
@@ -790,12 +798,10 @@ class _GamePageState extends State<GamePage>
   Future<void> _loadEnginePreferences() async {
     final preferences = await SharedPreferences.getInstance();
     if (!mounted) return;
-    final savedPlayElo = _readValidatedPreference<int>(
+    final savedPlayElo = _readMaiaRatingPreference(
       preferences,
       maiaPlayEloPreferenceKey,
       fallback: 1500,
-      decode: (value) =>
-          value is int && value >= 500 && value <= 2500 ? value : null,
     );
     final savedSide = _readValidatedPreference<PlayerSide>(
       preferences,
@@ -871,12 +877,10 @@ class _GamePageState extends State<GamePage>
           ? value
           : null,
     );
-    final analysisElo = _readValidatedPreference<int>(
+    final analysisElo = _readMaiaRatingPreference(
       preferences,
       'analysisElo',
       fallback: 1600,
-      decode: (value) =>
-          value is int && value >= 500 && value <= 2400 ? value : null,
     );
     final secondMaiaEnabled = _readValidatedPreference<bool>(
       preferences,
@@ -884,12 +888,10 @@ class _GamePageState extends State<GamePage>
       fallback: false,
       decode: (value) => value is bool ? value : null,
     );
-    final secondMaiaElo = _readValidatedPreference<int>(
+    final secondMaiaElo = _readMaiaRatingPreference(
       preferences,
       secondMaiaEloPreferenceKey,
       fallback: 2400,
-      decode: (value) =>
-          value is int && value >= 500 && value <= 2400 ? value : null,
     );
     final gameAnalysisQuality = _readValidatedPreference<GameAnalysisQuality>(
       preferences,
@@ -953,7 +955,7 @@ class _GamePageState extends State<GamePage>
   }
 
   void _changePlayElo(int elo, {required bool persist}) {
-    final normalized = elo.clamp(500, 2500);
+    final normalized = normalizeMaiaRating(elo);
     _playEloChangedSinceLoad = true;
     setState(() => _elo = normalized);
     if (persist) {
@@ -2142,6 +2144,8 @@ class _GamePageState extends State<GamePage>
       unawaited(_saveGameState());
       unawaited(ActiveSessionStore.startNew());
     }
+    // Preserve the archived opponent rating; only the new game uses current bounds.
+    _elo = normalizeMaiaRating(_elo);
     _gameGeneration++;
     _gameInferenceScope.invalidate();
     _clockTimer?.cancel();
@@ -3602,13 +3606,13 @@ class _GamePageState extends State<GamePage>
               },
             ),
             const SizedBox(height: 16),
-            Text('Play Maia rating: $_elo'),
+            Text('Play Maia rating: ${normalizeMaiaRating(_elo)}'),
             Slider(
-              min: 500,
-              max: 2500,
-              divisions: 20,
-              value: _elo.toDouble(),
-              label: '$_elo',
+              min: maiaMinimumRating.toDouble(),
+              max: maiaMaximumRating.toDouble(),
+              divisions: maiaRatingDivisions,
+              value: normalizeMaiaRating(_elo).toDouble(),
+              label: '${normalizeMaiaRating(_elo)}',
               onChanged: (value) =>
                   _changePlayElo(value.round(), persist: false),
               onChangeEnd: (value) =>
@@ -3932,9 +3936,9 @@ class _GamePageState extends State<GamePage>
                   ListTile(
                     title: Text('Maia analysis rating: $_analysisElo'),
                     subtitle: Slider(
-                      min: 500,
-                      max: 2400,
-                      divisions: 19,
+                      min: maiaMinimumRating.toDouble(),
+                      max: maiaMaximumRating.toDouble(),
+                      divisions: maiaRatingDivisions,
                       value: _analysisElo.toDouble(),
                       label: '$_analysisElo',
                       onChanged: (value) =>
@@ -3961,9 +3965,9 @@ class _GamePageState extends State<GamePage>
                         'Second Maia analysis rating: $_secondMaiaElo',
                       ),
                       subtitle: Slider(
-                        min: 500,
-                        max: 2400,
-                        divisions: 19,
+                        min: maiaMinimumRating.toDouble(),
+                        max: maiaMaximumRating.toDouble(),
+                        divisions: maiaRatingDivisions,
                         value: _secondMaiaElo.toDouble(),
                         label: '$_secondMaiaElo',
                         onChanged: (value) =>

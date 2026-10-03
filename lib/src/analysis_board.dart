@@ -63,9 +63,9 @@ class _ContinueFromHereDialogState extends State<_ContinueFromHereDialog> {
             Text('Play Maia rating: $_elo'),
             Slider(
               key: const ValueKey('continuation-rating'),
-              min: 500,
-              max: 2500,
-              divisions: 20,
+              min: maiaMinimumRating.toDouble(),
+              max: maiaMaximumRating.toDouble(),
+              divisions: maiaRatingDivisions,
               value: _elo.toDouble(),
               label: '$_elo',
               onChanged: (value) => setState(() => _elo = value.round()),
@@ -337,12 +337,10 @@ class _AnalysisBoardPageState extends State<AnalysisBoardPage> {
             ? PlayerSide.values.where((side) => side.name == value).firstOrNull
             : null,
       ),
-      elo: _readValidatedPreference<int>(
+      elo: _readMaiaRatingPreference(
         preferences,
         maiaPlayEloPreferenceKey,
         fallback: 1500,
-        decode: (value) =>
-            value is int && value >= 500 && value <= 2500 ? value : null,
       ),
       timePreset: _readValidatedPreference<TimePreset>(
         preferences,
