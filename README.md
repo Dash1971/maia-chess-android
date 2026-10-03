@@ -17,13 +17,26 @@ also provides updates after its separate reproducible-build process completes.
 
 ## Mobile Maia 2.2
 
-Version 2.2 brings Stockfish 19 Light, faster default full-game reviews,
-clearer move classifications and game feedback, stronger recovery and Chessnut
-diagnostics, and a **Continue from here** setup dialog for playing from an
-Analysis Board position. New games now default to **Temperature 1.00 / Top-P
-1.00** for a wider range of Maia openings; valid saved choices are preserved.
-The [sampling report](docs/research/maia3-sampling/REPORT.md) explains the
-strength-versus-variety tradeoff.
+Version 2.2 brings:
+
+- **Two Maia perspectives at once:** optionally compare a second Maia rating in
+  analysis and full-game review, alongside two Stockfish 19 Light lines. For
+  example, see what Maia 1600 and Maia 2400 would each play in the same position.
+- **Richer game feedback:** optional on-device sounds for moves, captures,
+  errors, and game end, plus haptics for moves, checks, errors, and game end.
+- **A more useful review and game library:** faster default full-game analysis,
+  clearer move classifications (including Brilliant moves), and Recent games
+  labeled with the player side, Maia rating, and actual result or Incomplete.
+- **More resilient play:** transactional saved-game checkpoints with a previous
+  readable copy, stronger variation recovery and native-engine checks, and
+  privacy-safe Chessnut diagnostics.
+- **Continue from here:** start a game from an Analysis Board position with a
+  one-game choice of side, Maia rating, and clock.
+
+New games default to **Temperature 1.00 / Top-P 1.00** for a wider range of
+Maia openings; valid saved choices are preserved. The
+[sampling report](docs/research/maia3-sampling/REPORT.md) explains the
+strength-versus-variety tradeoff. See the [full 2.2 release notes](docs/release-notes/v2.2.0.md).
 
 Version 2.1 introduced experimental Chessnut support, multiple premoves,
 endgame draw offers, remembered setup, full-game analysis presets, historical
@@ -70,8 +83,14 @@ millisecond precision; unlimited games do not invent clock data.
 
 Advanced settings control premoves, an optional exact 100 ms premove charge,
 multiple queued premoves, human-like Maia timing, Temperature, Top-P, the Maia
-rating used during review, and full-game analysis quality. **Fast** is the
-new-game and reset default; **Balanced** and **Thorough** offer deeper
+rating used during review, an optional **second Maia engine** at another rating,
+and full-game analysis quality. This example compares Maia 1600 and Maia 2400:
+
+<p align="center">
+  <img src="docs/screenshots/20261003_v0_stable_2_2_dual_maia_settings.png" width="42%" alt="Stable 2.2 settings with second Maia engine enabled, primary analysis rating 1600, and second analysis rating 2400">
+</p>
+
+**Fast** is the new-game and reset default; **Balanced** and **Thorough** offer deeper
 Stockfish searches. Existing saved quality choices are preserved. An inline
 reminder appears when either sampling control differs from 1.00; the
 information button explains the tradeoff and links to the research report.
@@ -102,6 +121,18 @@ weakened tactical engine. The live view shows both players, clocks, material
 imbalance, the move strip, turn status, and game controls. The screen stays
 awake during an active game, and the current position is checkpointed for
 recovery after process death, restart, or an app update.
+
+### Game sounds and haptics
+
+<p align="center">
+  <img src="docs/screenshots/20261003_v0_stable_2_2_game_feedback.png" width="42%" alt="Stable 2.2 Game settings with Game sounds and Haptic feedback enabled">
+</p>
+
+Optional **Game sounds** distinguish moves, captures, invalid moves,
+and game end. **Haptic feedback** adds touch cues for moves, checks, errors,
+and game end. Both run on the phone without a network connection. Phone
+feedback is suppressed while a Chessnut board controls the game; the separate
+**Board sounds** setting controls its own audible cues.
 
 ### Multiple premoves
 
@@ -181,14 +212,16 @@ welcome. Timed board games, USB, and Analysis Board input are not yet supported.
 ### Analysis Board
 
 <p align="center">
-  <img src="docs/screenshots/20261003_v0_stable_2_2_analysis_board.png" width="42%" alt="Stable 2.2 Analysis Board at the starting position with offline Stockfish lines and Maia move probabilities">
+  <img src="docs/screenshots/20261003_v1_stable_2_2_analysis_board.png" width="42%" alt="Stable 2.2 Analysis Board showing two Stockfish lines and Maia 1600 and Maia 2400 move probabilities in a real game position">
 </p>
 
 Use **Analysis Board** to explore without starting a game. Stockfish supplies
-the evaluation and blue best-move arrows while Maia supplies the orange move a
-human at the configured rating is most likely to play. When both engines choose
-the same move, the app draws a two-tone arrow. The board, move tree, selected
-position, orientation, and engine context are restored across restarts.
+two evaluated lines and blue best-move arrows. Maia supplies the move a person
+at the configured rating is most likely to play; turn on the second Maia engine
+to compare two ratings and probabilities side by side. The screen can show all
+four lines together. When engines choose the same move, their arrows overlap or
+combine. The board, move tree, selected position, orientation, and engine
+context are restored across restarts.
 
 ### Move list, opening names, and engine lines
 
@@ -267,7 +300,8 @@ there is no server-side quota.
 The completed review reports separate White and Black accuracy, move totals,
 and opening, middlegame, and endgame sections. Maia's likely human move remains
 available beside Stockfish at every reviewed position, using the configurable
-review rating (1600 by default).
+review rating (1600 by default). Enable the second Maia engine to compare a
+second rating (2400 by default) at the same position.
 
 ### Evaluation graph and move navigation
 
@@ -284,24 +318,29 @@ board when it is flipped.
 ### Move classifications
 
 <p align="center">
-  <img src="docs/screenshots/20260906_v0_review_classifications.jpg" width="46%" alt="Per-side totals for Brilliant, Good, Interesting, Dubious, Mistake, and Blunder moves">
+  <img src="docs/screenshots/20261003_v0_stable_2_2_brilliant_review.png" width="46%" alt="Stable 2.2 review of Byrne–Fischer 1956 showing Fischer's 17...Be6!! classified Brilliant, with the badge on the board and annotation in the move list">
 </p>
 
 Review classifies moves as **Brilliant**, **Good**, **Interesting**,
 **Dubious**, **Mistake**, or **Blunder**, with separate totals for both players.
-The current classification appears on the board and in the move list. You can
+The screenshot shows Fischer's **17...Be6!!** from the 1956 Byrne–Fischer game
+classified Brilliant by the signed Stable 2.2 app. The current classification
+appears on the board and in the move list. You can
 move pieces from any reviewed position to explore a branch without losing the
 original game.
 
 ### Recent games and PGN files
 
 <p align="center">
-  <img src="docs/screenshots/20260906_v0_recent_games.jpg" width="46%" alt="Recent games showing a saved incomplete game">
+  <img src="docs/screenshots/20261003_v0_stable_2_2_recent_games.png" width="46%" alt="Stable 2.2 Recent games showing Maia 1500 — Player with a 1-0 result and Player — Maia 1500 marked Incomplete, both dated">
 </p>
 
 **Recent games** contains completed games and unfinished games explicitly saved
-with Home. It supports multi-select, select all, selected deletion, and delete
-all. An unfinished record becomes the same completed record when play ends.
+with Home. Each entry now identifies the player side and Maia rating (for
+example, **Player — Maia 1600**) and shows the actual result (**1-0**, **0-1**,
+or **1/2-1/2**) or **Incomplete**, plus the saved date. It supports
+multi-select, select all, selected deletion, and delete all. An unfinished
+record becomes the same completed record when play ends.
 Because Android can erase private app data on uninstall, use **Save PGN file**
 or **Share PGN** for an independent copy.
 
