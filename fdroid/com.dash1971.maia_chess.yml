@@ -73,9 +73,9 @@ Builds:
       - $$flutter$$/bin/dart tool/prepare_reproducible_package_config.dart .dart_tool/package_config.json
       - $$flutter$$/bin/flutter build apk --release --no-pub --android-project-arg=mobileMaiaSourceDateEpoch=$SOURCE_DATE_EPOCH
 
-  - versionName: 2.2.0
-    versionCode: 77
-    commit: e5c2392c4d979a47e458ba6f571c72ca60ae817b
+  - versionName: 2.2.1
+    versionCode: 78
+    commit: 05ce04e0e970ee12110b384c95e992508ce1a6b2
     sudo:
       - apt-get update
       - apt-get install -y git-lfs
@@ -96,7 +96,6 @@ Builds:
       - python3 tool/verify_model.py
     scandelete:
       - .pub-cache
-      - docs/research/maia3-sampling/assets/mobile-maia-5m-reproduction-asset.zip
     build:
       - export PUB_CACHE=$(pwd)/.pub-cache
       - export SOURCE_DATE_EPOCH=$(git log -1 --format=%ct)
@@ -117,10 +116,11 @@ MaintainerNotes: |-
   Android from 1.23.2 to 1.24.3 while retaining Stable's explicit R8 rules for
   ONNX Runtime JNI and reflection entry points. Version 2.2.0 pins Flutter
   3.47.5 and Stockfish 19 Light; it retains the same model verification,
-  universal output and developer-signed reproducible-build path.
+  universal output and developer-signed reproducible-build path. Version 2.2.1
+  removes the research-only ZIP and needs no source-scan exclusion for it.
 
 AutoUpdateMode: Version
 UpdateCheckMode: Tags
 UpdateCheckData: pubspec.yaml|version:\s.+\+(\d+)|.|version:\s(.+)\+
-CurrentVersion: 2.2.0
-CurrentVersionCode: 77
+CurrentVersion: 2.2.1
+CurrentVersionCode: 78
