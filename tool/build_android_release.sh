@@ -9,6 +9,9 @@ dart_bin=${DART_BIN:-$(dirname -- "$flutter_path")/dart}
 
 cd "$repo_root"
 
+# Check both the committed source and local metadata before an expensive build.
+python3 tool/check_release_source.py --ref HEAD
+python3 tool/check_release_source.py
 python3 tool/verify_model.py assets/models/maia3-79m.onnx
 
 # A fixed source timestamp and locked dependencies keep independent release

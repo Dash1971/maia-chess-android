@@ -1,28 +1,30 @@
-<p>Mobile Maia is an offline-first chess app built around Maia-3, a human-like chess model developed by the University of Toronto Computational Social Science Lab.</p>
+<p>Mobile Maia is a free, open-source Android chess app for playing against Maia-3, a human-like model from the University of Toronto Computational Social Science Lab, and analysing games alongside Stockfish.</p>
 
-<p>Play against Maia at a selected rating without creating an account or connecting to a server. The Maia-3 model and Stockfish are bundled with the app, so games and analysis remain on your device.</p>
+<p>Everything runs on your device: no account, subscription, ads, or Internet connection is needed. The Maia-3 79M model, Stockfish 19 Light, opening database, saved games, and analysis are available offline.</p>
 
-<p>Features include:</p>
-
+<p>Play:</p>
 <ul>
-<li>Play as White, Black, or a random side</li>
-<li>Maia ratings from 800 to 2200, plus a custom rating</li>
-<li>Unlimited play, clock presets, and custom time controls</li>
-<li>Human-like move timing and adjustable Temperature and Top-P</li>
-<li>Single or multiple premoves, with an optional 100 ms penalty</li>
-<li>Takebacks, endgame draw offers, rematches, and automatic game restoration</li>
-<li>Experimental Chessnut Go play with LEDs, sounds, battery status, reconnect recovery, and phone continuation</li>
-<li>An analysis board with FEN and PGN import and export</li>
-<li>A graphical position editor and persistent analysis variations</li>
-<li>Offline Stockfish evaluation and Maia move comparison</li>
-<li>Fast, Balanced, or Thorough full-game analysis</li>
-<li>Full-game accuracy scores and a navigable evaluation graph</li>
-<li>Brilliant, Good, Interesting, Dubious, Mistake, and Blunder move classifications</li>
-<li>Two Stockfish suggestions and visible Maia/Stockfish agreement</li>
-<li>Lichess-style material difference beside each player</li>
-<li>Offline opening names and ECO codes from the Lichess opening database</li>
-<li>Historical clocks and timed PGN export with standard clock annotations</li>
-<li>PGN export with variations and game metadata</li>
+<li>Choose White, Black, or a random side and a Play Maia rating from 500 to 2500</li>
+<li>Use unlimited play, clock presets, or custom minutes and increment</li>
+<li>Adjust human-like move timing, Temperature, and Top-P</li>
+<li>Use single or multiple premoves, with an optional 100 ms penalty</li>
+<li>Take back moves, offer endgame draws, play rematches, and restore unfinished games</li>
+<li>Enable optional move sounds and haptic feedback</li>
+<li>Find recent games by player side, Maia rating, result, and date</li>
 </ul>
 
-<p>Mobile Maia is independently developed free software. Its source code is available under the GNU Affero General Public License v3.0 only.</p>
+<p>Explore and learn:</p>
+<ul>
+<li>Compare move probabilities from two Maia ratings alongside two Stockfish suggestions</li>
+<li>See agreement between the engines with arrows on the board</li>
+<li>Run Fast, Balanced, or Thorough full-game analysis; Fast is the default for new or reset settings</li>
+<li>Review accuracy, the evaluation graph, and Brilliant, Good, Interesting, Dubious, Mistake, and Blunder annotations</li>
+<li>Import FEN or PGN, edit positions, and build persistent nested variations</li>
+<li>Continue from an analysed position with a choice of side, playing strength, and clock for that game, without changing Home preferences</li>
+<li>Look up offline opening names and ECO codes</li>
+<li>Save and share PGN with variations, annotations, and historical clocks</li>
+</ul>
+
+<p>Experimental Chessnut support includes board LEDs, sounds, battery status, reconnect recovery, and the option to finish a board game on the phone. Board play supports unlimited games from the standard starting position; USB and Analysis Board input are not supported.</p>
+
+<p>The bundled offline model makes the universal APK approximately 435 MiB. Mobile Maia is an independent community project under AGPL-3.0-only and is not an official Maia Chess, Lichess, Stockfish, or Chessnut application.</p>

@@ -18,13 +18,34 @@ unexpected upstream source must fail before the build begins.
 
 ## Fail-closed source and listing preflight
 
-Before a release-version PR can pass CI, `python3 tool/check_release_source.py`
-requires a nonempty, version-matched Fastlane changelog named for the
+Before a release-version PR can pass CI,
+`python3 tool/check_release_source.py --ref HEAD` requires a nonempty,
+version-matched Fastlane changelog named for the
 `pubspec.yaml` versionCode (at most 500 characters). It also rejects tracked
 ZIP/APK/AAB/JAR/AAR and other archive files anywhere in the source tree,
-including research and documentation directories. The same guard runs at the
-start of the manual release Android job. Do not bypass it by deleting the check
+including research and documentation directories. It requires a nonempty
+Fastlane title, short description, and full description within their 50, 80,
+and 4000 character limits, plus a tracked screenshot. The same committed-tree
+guard runs at the start of the manual release Android job; the local build
+wrapper checks both HEAD and the working tree. Do not bypass it by deleting
+the check
 or reclassifying an archive without a reviewed explanation.
+
+`--ref <commit-or-tag>` resolves the revision once and reads only its Git tree.
+A changelog added on `main` or in a dirty working tree cannot satisfy a check of
+an older tag. Use the frozen full SHA before building, and inspect the final
+tag again before publication:
+
+```sh
+python3 tool/check_release_source.py --ref "$release_sha"
+test "$(git rev-parse 'v2.2.2^{commit}')" = "$release_sha"
+python3 tool/check_release_source.py --ref v2.2.2
+```
+
+The version above is an example for the proposed maintenance release, not an
+instruction to create that tag before qualification. The check verifies
+presence and limits, not whether text and screenshots accurately reflect the
+release: that still requires reviewing the listing against the app.
 
 This targeted guard is **not** F-Droid's source scanner. Before signing,
 tagging, or publishing, derive the exact build block F-Droid's automatic
@@ -77,7 +98,7 @@ mkdir -p release-checks
 tool/build_android_release.sh 2>&1 | tee release-checks/build.log
 ```
 
-The wrapper also patches the exact locked `multistockfish_sf16` package so its
+The wrapper also patches the exact locked `multistockfish_light` package so its
 build-time NNUE download is SHA-256 verified. An unexpected package version,
 CMake source shape, partial download, or changed network file must fail before
 an APK can be accepted.
