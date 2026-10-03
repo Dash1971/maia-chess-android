@@ -31,6 +31,10 @@ android {
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
+    buildFeatures {
+        buildConfig = true
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
@@ -38,6 +42,10 @@ android {
 
     defaultConfig {
         applicationId = "com.dash1971.maia_chess"
+        buildConfigField("String", "MAIA_MODEL_ASSET", "\"flutter_assets/assets/models/maia3-79m.onnx\"")
+        buildConfigField("String", "MAIA_MODEL_FILE", "\"maia3-79m-3454b03a-sha256.onnx\"")
+        buildConfigField("long", "MAIA_MODEL_BYTES", "316034244L")
+        buildConfigField("String", "MAIA_MODEL_SHA256", "\"3454b03ae78baa64a87b345fdb1a457265d912caec531039b074f07eda0d8010\"")
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion

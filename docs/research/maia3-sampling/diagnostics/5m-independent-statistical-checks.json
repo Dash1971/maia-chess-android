@@ -1,0 +1,21 @@
+{
+  "complete_5m_games": 600,
+  "unique_ids_and_primary_coverage": true,
+  "continuation_seeds_unique_and_disjoint_from_primary": true,
+  "material_comparison_position_checks": 48285,
+  "material_comparison_mismatches": 0,
+  "pair_color_counts": {
+    "0": {
+      "white_first": 100,
+      "black_first": 100
+    },
+    "1": {
+      "white_first": 100,
+      "black_first": 100
+    },
+    "2": {
+      "white_first": 100,
+      "black_first": 100
+    }
+  }
+}

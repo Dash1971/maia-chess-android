@@ -24,7 +24,7 @@ subprojects {
 val stockfishProjects =
     setOf(
         "multistockfish_chess",
-        "multistockfish_sf16",
+        "multistockfish_light",
         "multistockfish_variant",
     )
 val nativeSourceDateEpoch =
@@ -34,6 +34,12 @@ subprojects {
     if (name in stockfishProjects) {
         plugins.withId("com.android.library") {
             extensions.configure<LibraryExtension> {
+                // Flutter's plugin profile variant inherits Debug. Native engine
+                // performance qualification must use the same optimization path
+                // as Release, while retaining Dart's profile VM/test connection.
+                buildTypes.maybeCreate("profile").externalNativeBuild.cmake {
+                    arguments += "-DCMAKE_BUILD_TYPE=Release"
+                }
                 defaultConfig {
                     externalNativeBuild {
                         cmake {

@@ -1,0 +1,21 @@
+{
+  "passed": true,
+  "positions": 453,
+  "analyses": 489,
+  "requested_depth_counts": {
+    "10": 453,
+    "14": 36
+  },
+  "actual_pv_depth_counts": {
+    "10": 14274,
+    "14": 1075
+  },
+  "positions_with_any_mate_score": {
+    "10": 72,
+    "14": 9
+  },
+  "side_counts": {
+    "white": 227,
+    "black": 226
+  }
+}

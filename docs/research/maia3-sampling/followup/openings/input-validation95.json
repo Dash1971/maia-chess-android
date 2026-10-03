@@ -1,0 +1,16 @@
+{
+  "status": "passed",
+  "counts": {
+    "full95": 2000,
+    "full": 2000,
+    "app_default": 2000
+  },
+  "historical_run_complete": true,
+  "historical_model_matches": true,
+  "new_rollout_sha256": "ce3c372903b09165338aaf9069c9612bdb562e9fdab20c66c9512f511ed58838",
+  "old_rollout_sha256": "72764af564e51e35b1eb636649aa62f8e60e320772a9ec44e54919bf5e1227e6",
+  "human_sha256": "64034d95fd234ce28149cc1ba06b447190b964acdcd63547ce2979c045e2093a",
+  "historical_run_sha256": "8200416f4a5985cf5baebc57a4a4aa67e72a3b9203b4b556cf4a00c46a3a09ad",
+  "new_run_sha256": "34059e7bce37c178918b615b5673831f9cfa21391419661bdf979290280401d3",
+  "script_sha256": "1e77fb800ca6fd28ecae9728de2f812f4c9b741dd6d57c6b441bcb939f004e9f"
+}

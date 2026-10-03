@@ -3,10 +3,9 @@ import 'dart:async';
 import 'package:chess/chess.dart' as chess;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maia_chess/main.dart';
-import 'package:multistockfish/multistockfish.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class FakeStockfish implements Stockfish {
+class FakeStockfish implements StockfishEngineHandle {
   final output = StreamController<String>.broadcast();
   int starts = 0;
   int quits = 0;
@@ -19,20 +18,15 @@ class FakeStockfish implements Stockfish {
   bool hang = false;
   @override
   Stream<String> get stdout => output.stream;
-  @override
-  Future<void> start({
-    StockfishFlavor flavor = StockfishFlavor.sf16,
-    String? variant,
-    String? smallNetPath,
-    String? bigNetPath,
-  }) async {
+  Future<StockfishEngineHandle> create() async {
     if (running) throw StateError('Stockfish is already running');
     starts++;
     running = true;
+    return this;
   }
 
   @override
-  Future<void> quit() async {
+  Future<void> dispose() async {
     quits++;
     running = false;
   }
@@ -73,7 +67,7 @@ void main() {
           'info depth 12 multipv 1 score cp 42 pv ${black ? 'e7e5 e2e4' : 'e2e4 e7e5'}',
           'bestmove ${black ? 'e7e5' : 'e2e4'}',
         ];
-      final analyzer = StockfishAnalyzer.withEngine(engine);
+      final analyzer = StockfishAnalyzer.withFactory(engine.create);
       final fen = chess.Chess.DEFAULT_POSITION.replaceFirst(
         ' w ',
         black ? ' b ' : ' w ',
@@ -103,7 +97,7 @@ void main() {
         final engine = FakeStockfish()
           ..failReady = !missingReply
           ..ignoreReady = missingReply;
-        final analyzer = StockfishAnalyzer.withEngine(engine);
+        final analyzer = StockfishAnalyzer.withFactory(engine.create);
         await expectLater(
           analyzer.evaluate(chess.Chess.DEFAULT_POSITION),
           throwsA(missingReply ? isA<TimeoutException>() : isA<StateError>()),
@@ -123,7 +117,7 @@ void main() {
           // Checked after cleanup below.
         }
         await analyzer.close();
-        await engine.quit();
+        await engine.dispose();
         await engine.output.close();
         expect(leaked, isFalse, reason: 'readiness listener must be cancelled');
         expect(
@@ -139,7 +133,7 @@ void main() {
     'native go failure removes its listener and restarts for the next request',
     () async {
       final engine = FakeStockfish()..failGo = true;
-      final analyzer = StockfishAnalyzer.withEngine(engine);
+      final analyzer = StockfishAnalyzer.withFactory(engine.create);
       await expectLater(
         analyzer.evaluate(chess.Chess.DEFAULT_POSITION),
         throwsStateError,
@@ -161,8 +155,8 @@ void main() {
       final engine = FakeStockfish()
         ..hang = true
         ..failStop = true;
-      final analyzer = StockfishAnalyzer.withEngine(
-        engine,
+      final analyzer = StockfishAnalyzer.withFactory(
+        engine.create,
         searchTimeout: const Duration(milliseconds: 20),
         drainTimeout: const Duration(milliseconds: 10),
       );

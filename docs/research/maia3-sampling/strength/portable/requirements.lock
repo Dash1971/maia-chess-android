@@ -1,0 +1,8 @@
+chess==1.11.2
+flatbuffers==25.12.19
+numpy==2.5.3
+onnxruntime==1.30.0
+packaging==26.3
+protobuf==7.36.2
+python-chess==1.999
+scipy==1.18.1

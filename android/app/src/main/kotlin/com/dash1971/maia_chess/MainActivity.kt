@@ -24,9 +24,10 @@ import java.nio.LongBuffer
 import java.util.concurrent.Executors
 
 private object MaiaEngine {
-    private const val MODEL_ASSET = "flutter_assets/assets/models/maia3-79m.onnx"
-    private const val MODEL_FILE = "maia3-79m-3454b03a-sha256.onnx"
-    private const val EXPECTED_MODEL_BYTES = 316_034_244L
+    private val MODEL_ASSET = BuildConfig.MAIA_MODEL_ASSET
+    private val MODEL_FILE = BuildConfig.MAIA_MODEL_FILE
+    private val EXPECTED_MODEL_BYTES = BuildConfig.MAIA_MODEL_BYTES
+    private val EXPECTED_MODEL_SHA256 = BuildConfig.MAIA_MODEL_SHA256
     private val environment = OrtEnvironment.getEnvironment()
     private val executor = Executors.newSingleThreadExecutor { runnable ->
         Thread(runnable, "maia-inference").apply { isDaemon = true }
@@ -102,7 +103,7 @@ private object MaiaEngine {
             }
             onPhase("maia-model-checksum")
             val sha256 = digest.digest().joinToString("") { "%02x".format(it) }
-            if (sha256 != "3454b03ae78baa64a87b345fdb1a457265d912caec531039b074f07eda0d8010") {
+            if (sha256 != EXPECTED_MODEL_SHA256) {
                 throw IOException("Maia model checksum mismatch")
             }
             if (target.exists() && !target.delete()) {
@@ -114,6 +115,7 @@ private object MaiaEngine {
             // Remove older caches only after the SHA-256-verified copy is durable.
             File(context.cacheDir, "maia3-79m-3454b03a.onnx").delete()
             File(context.cacheDir, "maia3-79m.onnx").delete()
+            File(context.cacheDir, "maia3-5m.onnx").delete()
             return target
         } finally {
             if (temporary.exists()) temporary.delete()
@@ -125,6 +127,7 @@ class MainActivity : FlutterActivity() {
     private val channelName = "maia_chess/engine"
     private var methodChannel: MethodChannel? = null
     private var chessnutBridge: ChessnutBridge? = null
+    private var soundEffectBridge: SoundEffectBridge? = null
     private val documents by lazy { PgnDocuments(this) { methodChannel?.invokeMethod("pgnReceived", null) } }
 
     @Volatile
@@ -302,6 +305,7 @@ class MainActivity : FlutterActivity() {
             }
         }
         chessnutBridge = ChessnutBridge(this, flutterEngine.dartExecutor.binaryMessenger)
+        soundEffectBridge = SoundEffectBridge(applicationContext, flutterEngine.dartExecutor.binaryMessenger)
         setProcessPhase("app-ready")
     }
 
@@ -313,7 +317,13 @@ class MainActivity : FlutterActivity() {
 
     override fun onStart() {
         super.onStart()
+        soundEffectBridge?.resume()
         documents.consumeIntent(intent)
+    }
+
+    override fun onStop() {
+        soundEffectBridge?.pause()
+        super.onStop()
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -401,6 +411,8 @@ class MainActivity : FlutterActivity() {
         engineAttached = false
         chessnutBridge?.close()
         chessnutBridge = null
+        soundEffectBridge?.close()
+        soundEffectBridge = null
         methodChannel?.setMethodCallHandler(null)
         methodChannel = null
         super.cleanUpFlutterEngine(flutterEngine)

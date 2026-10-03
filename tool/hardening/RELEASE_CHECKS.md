@@ -91,7 +91,7 @@ variation fix, for example:
 ```sh
 python3 tool/verify_release_apk.py /path/to/corrected.apk \
   --compare /path/to/beta17.apk \
-  --package com.dash1971.maia_chess.preview \
+  --package com.dash1971.maia_chess \
   --allow-change lib/arm64-v8a/libapp.so \
   --output release-checks/code-change.json
 ```

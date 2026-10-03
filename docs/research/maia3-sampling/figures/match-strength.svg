@@ -1,0 +1,250 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns:xlink="http://www.w3.org/1999/xlink" width="754.92pt" height="398.818828pt" viewBox="0 0 754.92 398.818828" xmlns="http://www.w3.org/2000/svg" version="1.1">
+ <metadata>
+  <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+   <cc:Work>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:date>2026-10-03T10:14:32.253011</dc:date>
+    <dc:format>image/svg+xml</dc:format>
+    <dc:creator>
+     <cc:Agent>
+      <dc:title>Matplotlib v3.11.2, https://matplotlib.org/</dc:title>
+     </cc:Agent>
+    </dc:creator>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <defs>
+  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>
+ </defs>
+ <g id="figure_1">
+  <g id="patch_1">
+   <path d="M 0 398.818828
+L 754.92 398.818828
+L 754.92 -0
+L 0 -0
+z
+" style="fill: #f8faf8"/>
+  </g>
+  <g id="axes_1">
+   <g id="patch_2">
+    <path d="M 122.04 300.356719
+L 747.72 300.356719
+L 747.72 106.316719
+L 122.04 106.316719
+z
+" style="fill: #f8faf8"/>
+   </g>
+   <g id="matplotlib.axis_1">
+    <g id="xtick_1">
+     <g id="line2d_1"/>
+     <g id="text_1">
+      <text style="font-size: 11px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #62747b" x="164.458983" y="312.214141" transform="rotate(-0 164.458983 312.214141)">50</text>
+     </g>
+    </g>
+    <g id="xtick_2">
+     <g id="line2d_2"/>
+     <g id="text_2">
+      <text style="font-size: 11px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #62747b" x="270.506441" y="312.214141" transform="rotate(-0 270.506441 312.214141)">60</text>
+     </g>
+    </g>
+    <g id="xtick_3">
+     <g id="line2d_3"/>
+     <g id="text_3">
+      <text style="font-size: 11px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #62747b" x="376.553898" y="312.214141" transform="rotate(-0 376.553898 312.214141)">70</text>
+     </g>
+    </g>
+    <g id="xtick_4">
+     <g id="line2d_4"/>
+     <g id="text_4">
+      <text style="font-size: 11px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #62747b" x="482.601356" y="312.214141" transform="rotate(-0 482.601356 312.214141)">80</text>
+     </g>
+    </g>
+    <g id="xtick_5">
+     <g id="line2d_5"/>
+     <g id="text_5">
+      <text style="font-size: 11px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #62747b" x="588.648814" y="312.214141" transform="rotate(-0 588.648814 312.214141)">90</text>
+     </g>
+    </g>
+    <g id="text_6">
+     <text style="font-size: 11px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #173c4b" x="434.88" y="327.215" transform="rotate(-0 434.88 327.215)">Points scored against Temperature 1 / Top-P 1 (%)</text>
+    </g>
+   </g>
+   <g id="matplotlib.axis_2">
+    <g id="ytick_1">
+     <g id="line2d_6"/>
+     <g id="text_7">
+      <text style="font-size: 11px; font-family: 'DejaVu Sans'; text-anchor: end; fill: #173c4b" x="110.04" y="148.144982" transform="rotate(-0 110.04 148.144982)">T 0 · P 0</text>
+     </g>
+    </g>
+    <g id="ytick_2">
+     <g id="line2d_7"/>
+     <g id="text_8">
+      <text style="font-size: 11px; font-family: 'DejaVu Sans'; text-anchor: end; fill: #173c4b" x="110.04" y="206.06737" transform="rotate(-0 110.04 206.06737)">T 0.5 · P 0.9</text>
+     </g>
+    </g>
+    <g id="ytick_3">
+     <g id="line2d_8"/>
+     <g id="text_9">
+      <text style="font-size: 11px; font-family: 'DejaVu Sans'; text-anchor: end; fill: #173c4b" x="110.04" y="263.989758" transform="rotate(-0 110.04 263.989758)">T 1 · P 0.95</text>
+     </g>
+    </g>
+   </g>
+   <g id="line2d_9">
+    <path d="M 164.458983 300.356719
+L 164.458983 106.316719
+" clip-path="url(#p61a667f5ee)" style="fill: none; stroke-dasharray: 5.18,2.24; stroke-dashoffset: 0; stroke: #a5b5b1; stroke-width: 1.4"/>
+   </g>
+   <g id="LineCollection_1">
+    <path d="M 525.020339 143.966271
+L 577.160339 143.966271
+" clip-path="url(#p61a667f5ee)" style="fill: none; stroke: #62747b; stroke-width: 2.5"/>
+   </g>
+   <g id="line2d_10">
+    <defs>
+     <path id="m0f43f2aff9" d="M 0 5
+L 0 -5
+" style="stroke: #62747b"/>
+    </defs>
+    <g clip-path="url(#p61a667f5ee)">
+     <use xlink:href="#m0f43f2aff9" x="525.020339" y="143.966271" style="fill: #62747b; stroke: #62747b"/>
+    </g>
+   </g>
+   <g id="line2d_11">
+    <g clip-path="url(#p61a667f5ee)">
+     <use xlink:href="#m0f43f2aff9" x="577.160339" y="143.966271" style="fill: #62747b; stroke: #62747b"/>
+    </g>
+   </g>
+   <g id="LineCollection_2">
+    <path d="M 479.066441 201.888659
+L 540.043729 201.888659
+" clip-path="url(#p61a667f5ee)" style="fill: none; stroke: #173c4b; stroke-width: 2.5"/>
+   </g>
+   <g id="line2d_12">
+    <defs>
+     <path id="md9cf0fbb68" d="M 0 5
+L 0 -5
+" style="stroke: #173c4b"/>
+    </defs>
+    <g clip-path="url(#p61a667f5ee)">
+     <use xlink:href="#md9cf0fbb68" x="479.066441" y="201.888659" style="fill: #173c4b; stroke: #173c4b"/>
+    </g>
+   </g>
+   <g id="line2d_13">
+    <g clip-path="url(#p61a667f5ee)">
+     <use xlink:href="#md9cf0fbb68" x="540.043729" y="201.888659" style="fill: #173c4b; stroke: #173c4b"/>
+    </g>
+   </g>
+   <g id="LineCollection_3">
+    <path d="M 243.552712 259.811047
+L 299.227627 259.811047
+" clip-path="url(#p61a667f5ee)" style="fill: none; stroke: #48879b; stroke-width: 2.5"/>
+   </g>
+   <g id="line2d_14">
+    <defs>
+     <path id="m147c634eaa" d="M 0 5
+L 0 -5
+" style="stroke: #48879b"/>
+    </defs>
+    <g clip-path="url(#p61a667f5ee)">
+     <use xlink:href="#m147c634eaa" x="243.552712" y="259.811047" style="fill: #48879b; stroke: #48879b"/>
+    </g>
+   </g>
+   <g id="line2d_15">
+    <g clip-path="url(#p61a667f5ee)">
+     <use xlink:href="#m147c634eaa" x="299.227627" y="259.811047" style="fill: #48879b; stroke: #48879b"/>
+    </g>
+   </g>
+   <g id="line2d_16">
+    <defs>
+     <path id="m3ade689618" d="M 0 5
+C 1.326016 5 2.597899 4.473168 3.535534 3.535534
+C 4.473168 2.597899 5 1.326016 5 0
+C 5 -1.326016 4.473168 -2.597899 3.535534 -3.535534
+C 2.597899 -4.473168 1.326016 -5 0 -5
+C -1.326016 -5 -2.597899 -4.473168 -3.535534 -3.535534
+C -4.473168 -2.597899 -5 -1.326016 -5 0
+C -5 1.326016 -4.473168 2.597899 -3.535534 3.535534
+C -2.597899 4.473168 -1.326016 5 0 5
+z
+" style="stroke: #62747b"/>
+    </defs>
+    <g clip-path="url(#p61a667f5ee)">
+     <use xlink:href="#m3ade689618" x="551.532203" y="143.966271" style="fill: #62747b; stroke: #62747b"/>
+    </g>
+   </g>
+   <g id="line2d_17">
+    <defs>
+     <path id="m5b86f50861" d="M 0 5
+C 1.326016 5 2.597899 4.473168 3.535534 3.535534
+C 4.473168 2.597899 5 1.326016 5 0
+C 5 -1.326016 4.473168 -2.597899 3.535534 -3.535534
+C 2.597899 -4.473168 1.326016 -5 0 -5
+C -1.326016 -5 -2.597899 -4.473168 -3.535534 -3.535534
+C -4.473168 -2.597899 -5 -1.326016 -5 0
+C -5 1.326016 -4.473168 2.597899 -3.535534 3.535534
+C -2.597899 4.473168 -1.326016 5 0 5
+z
+" style="stroke: #173c4b"/>
+    </defs>
+    <g clip-path="url(#p61a667f5ee)">
+     <use xlink:href="#m5b86f50861" x="509.996949" y="201.888659" style="fill: #173c4b; stroke: #173c4b"/>
+    </g>
+   </g>
+   <g id="line2d_18">
+    <defs>
+     <path id="meda6c0fcc4" d="M 0 5
+C 1.326016 5 2.597899 4.473168 3.535534 3.535534
+C 4.473168 2.597899 5 1.326016 5 0
+C 5 -1.326016 4.473168 -2.597899 3.535534 -3.535534
+C 2.597899 -4.473168 1.326016 -5 0 -5
+C -1.326016 -5 -2.597899 -4.473168 -3.535534 -3.535534
+C -4.473168 -2.597899 -5 -1.326016 -5 0
+C -5 1.326016 -4.473168 2.597899 -3.535534 3.535534
+C -2.597899 4.473168 -1.326016 5 0 5
+z
+" style="stroke: #48879b"/>
+    </defs>
+    <g clip-path="url(#p61a667f5ee)">
+     <use xlink:href="#meda6c0fcc4" x="271.390169" y="259.811047" style="fill: #48879b; stroke: #48879b"/>
+    </g>
+   </g>
+   <g id="patch_3">
+    <path d="M 122.04 300.356719
+L 747.72 300.356719
+" style="fill: none; stroke: #d6e0d9; stroke-width: 0.8; stroke-linejoin: miter; stroke-linecap: square"/>
+   </g>
+   <g id="text_10">
+    <text style="font-weight: 700; font-size: 12px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #62747b" x="589.886034" y="147.083927" transform="rotate(-0 589.886034 147.083927)">86.5%  ·  +323 Elo</text>
+   </g>
+   <g id="text_11">
+    <text style="font-weight: 700; font-size: 12px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #173c4b" x="552.769424" y="205.006315" transform="rotate(-0 552.769424 205.006315)">82.6%  ·  +270 Elo</text>
+   </g>
+   <g id="text_12">
+    <text style="font-weight: 700; font-size: 12px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #48879b" x="311.953322" y="262.928703" transform="rotate(-0 311.953322 262.928703)">60.1%  ·  +71 Elo</text>
+   </g>
+  </g>
+  <g id="text_13">
+   <text style="font-weight: 700; font-size: 21px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #173c4b" x="7.2" y="23.156719" transform="rotate(-0 7.2 23.156719)">Stronger settings trade some variety for wins</text>
+  </g>
+  <g id="text_14">
+   <text style="font-size: 12px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #62747b" x="7.2" y="48.896719" transform="rotate(-0 7.2 48.896719)">Top-P 0.95 scored 60.1% against 1/1: about +71 relative Elo.</text>
+  </g>
+  <g id="text_15">
+   <text style="font-size: 9px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #62747b" x="7.2" y="355.796719" transform="rotate(-0 7.2 355.796719)">A win scores 1 point; a draw scores ½. Dashed line = an even result. Bars show 95% uncertainty intervals.</text>
+  </g>
+  <g id="text_16">
+   <text style="font-size: 9px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #62747b" x="7.2" y="373.616719" transform="rotate(-0 7.2 373.616719)">600 games each for 0/0 and 0.5/0.9; 1,200 for 1/0.95. Colors balanced; Maia3-79M at 1600/1600.</text>
+  </g>
+  <g id="text_17">
+   <text style="font-size: 9px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #62747b" x="7.2" y="389.456719" transform="rotate(-0 7.2 389.456719)">1/0.95 relative strength gain: +71 Elo, with a 95% range of +52 to +90.</text>
+  </g>
+ </g>
+ <defs>
+  <clipPath id="p61a667f5ee">
+   <rect x="122.04" y="106.316719" width="625.68" height="194.04"/>
+  </clipPath>
+ </defs>
+</svg>

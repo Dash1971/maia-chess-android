@@ -49,18 +49,21 @@ class AnalysisBoardPage extends StatefulWidget {
   const AnalysisBoardPage({
     required this.initialSession,
     required this.maiaElo,
+    this.secondMaiaElo,
     this.initialVariations = const [],
     this.initialTreeIsAuthoritative = false,
     this.initialCurrentFen,
     this.initialFlipped = false,
-    this.gameAnalysisQuality = GameAnalysisQuality.thorough,
+    this.gameAnalysisQuality = GameAnalysisQuality.fast,
     this.evaluator,
     this.maiaEvaluator,
+    this.maiaPolicyEvaluator,
     super.key,
   });
 
   final AnalysisSession initialSession;
   final int maiaElo;
+  final int? secondMaiaElo;
   final List<RecordedVariation> initialVariations;
   final bool initialTreeIsAuthoritative;
   final String? initialCurrentFen;
@@ -69,6 +72,8 @@ class AnalysisBoardPage extends StatefulWidget {
   final Future<StockfishReview> Function(String fen)? evaluator;
   final Future<String?> Function(List<String> positions, int elo)?
   maiaEvaluator;
+  final Future<List<double>?> Function(List<String> positions, int elo)?
+  maiaPolicyEvaluator;
 
   @override
   State<AnalysisBoardPage> createState() => _AnalysisBoardPageState();
@@ -108,6 +113,7 @@ class _AnalysisBoardPageState extends State<AnalysisBoardPage> {
     'currentFen': currentFen,
     'flipped': flipped,
     'maiaElo': widget.maiaElo,
+    if (widget.secondMaiaElo != null) 'secondMaiaElo': widget.secondMaiaElo,
   });
 
   void _replace(AnalysisSession session) {
@@ -242,8 +248,10 @@ class _AnalysisBoardPageState extends State<AnalysisBoardPage> {
     gameAnalysisQuality: widget.gameAnalysisQuality,
     onSessionChanged: _saveAnalysisState,
     maiaElo: widget.maiaElo,
+    secondMaiaElo: widget.secondMaiaElo,
     evaluator: widget.evaluator,
     maiaEvaluator: widget.maiaEvaluator,
+    maiaPolicyEvaluator: widget.maiaPolicyEvaluator,
     title: 'Analysis Board',
     onHome: ActiveSessionStore.clear,
     onLoadFen: _loadFen,
@@ -277,6 +285,7 @@ class _BoardEditorPageState extends State<BoardEditorPage> {
   bool _bk = false;
   bool _bq = false;
   String _enPassant = '-';
+  bool _flipped = false;
 
   @override
   void initState() {
@@ -336,7 +345,15 @@ class _BoardEditorPageState extends State<BoardEditorPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Edit Board'),
-        actions: [TextButton(onPressed: _finish, child: const Text('Done'))],
+        actions: [
+          IconButton(
+            key: const ValueKey('board-editor-flip'),
+            tooltip: 'Flip board',
+            onPressed: () => setState(() => _flipped = !_flipped),
+            icon: const Icon(CupertinoIcons.arrow_2_squarepath),
+          ),
+          TextButton(onPressed: _finish, child: const Text('Done')),
+        ],
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -351,7 +368,7 @@ class _BoardEditorPageState extends State<BoardEditorPage> {
                     child: LayoutBuilder(
                       builder: (_, box) => cg.StaticChessboard(
                         size: box.biggest.shortestSide,
-                        orientation: dc.Side.white,
+                        orientation: _flipped ? dc.Side.black : dc.Side.white,
                         fen: _position.fen,
                         settings: const cg.StaticChessboardSettings(
                           colorScheme: cg.ChessboardColorScheme.brown,

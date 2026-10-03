@@ -1,0 +1,12 @@
+{
+  "objects": [
+    {
+      "oid": "ddae2aa893b5ca7ec94d24178871f1c337d09fd72ff38abe8d76b8ecf08cb942",
+      "size": 21346652,
+      "error": {
+        "code": 404,
+        "message": "Object does not exist on the server"
+      }
+    }
+  ]
+}

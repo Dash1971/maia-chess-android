@@ -17,6 +17,7 @@ import '../test/fixtures/variation_navigation_game.dart';
 import '../test/fixtures/electronic_board.dart';
 import '../test/fixtures/launch_game.dart';
 import '../test/fixtures/nested_takeback_game.dart';
+import 'fixtures/maia3_reference.dart';
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
@@ -31,17 +32,91 @@ void main() {
     }),
   );
 
-  testWidgets('real Maia bridge returns a typed policy vector', (tester) async {
-    final response = await MaiaInferenceQueue.predict({
-      'tokens': MaiaEncoding.historicalTokens([chess.Chess.DEFAULT_POSITION]),
-      'selfElo': 1500,
-      'opponentElo': 1500,
-    }, timeout: const Duration(minutes: 3));
-
-    expect(response, isA<Float32List>());
-    expect(response, hasLength(4352));
-    expect(response!.every((value) => value.isFinite), isTrue);
+  testWidgets(
+    'real sound bridge loads, plays, releases and reloads all clips',
+    (tester) async {
+      final sound = SoundEffect();
+      for (var cycle = 0; cycle < 8; cycle++) {
+        await sound.initialize(maxStreams: 2);
+        await Future.wait(
+          GameFeedbackSound.values.map(
+            (id) =>
+                sound.load(id.name, 'assets/sounds/standard/${id.name}.mp3'),
+          ),
+        ).timeout(const Duration(seconds: 5));
+        // Exercise every clip over successive cycles without intentionally
+        // overflowing the two-stream SoundPool while streams are starting.
+        final id =
+            GameFeedbackSound.values[cycle % GameFeedbackSound.values.length];
+        await sound.play(id.name, volume: 0);
+        await sound.release();
+      }
+    },
+  );
+  testWidgets('missing sound fails promptly and permits recovery', (
+    tester,
+  ) async {
+    final sound = SoundEffect();
+    await sound.initialize();
+    await expectLater(
+      sound
+          .load('missing', 'assets/sounds/missing.mp3')
+          .timeout(const Duration(seconds: 5)),
+      throwsA(
+        isA<PlatformException>().having(
+          (error) => error.code,
+          "code",
+          "sound_load_failed",
+        ),
+      ),
+    );
+    await sound
+        .load('move', 'assets/sounds/standard/move.mp3')
+        .timeout(const Duration(seconds: 5));
+    await sound.play('move', volume: 0);
+    await sound.release();
   });
+
+  testWidgets(
+    'real Maia bridge matches official Maia-3 79M references',
+    (tester) async {
+      expect(appFlavor, isNot('dev'));
+      for (final reference in maia3ReferenceCases) {
+        final response = await MaiaInferenceQueue.predict({
+          'tokens': MaiaEncoding.historicalTokens([reference.fen]),
+          'selfElo': reference.selfElo,
+          'opponentElo': reference.opponentElo,
+        }, timeout: const Duration(minutes: 3));
+
+        expect(response, isA<Float32List>(), reason: reference.name);
+        expect(response, hasLength(4352), reason: reference.name);
+        expect(
+          response!.every((value) => value.isFinite),
+          isTrue,
+          reason: reference.name,
+        );
+        final game = chess.Chess.fromFEN(reference.fen);
+        final blackToMove = game.turn == chess.Color.BLACK;
+        for (final expected in reference.legalMoveLogits.entries) {
+          final index = MaiaEncoding.moveIndex(expected.key, blackToMove);
+          expect(
+            response[index],
+            closeTo(expected.value, 0.002),
+            reason: '${reference.name} ${expected.key}',
+          );
+        }
+        final actualTopMove = reference.legalMoveLogits.keys.reduce((
+          best,
+          move,
+        ) {
+          final bestLogit = response[MaiaEncoding.moveIndex(best, blackToMove)];
+          final moveLogit = response[MaiaEncoding.moveIndex(move, blackToMove)];
+          return moveLogit > bestLogit ? move : best;
+        });
+        expect(actualTopMove, reference.topMove, reason: reference.name);
+      }
+    },
+  );
 
   Future<void> waitForRealEvaluation(WidgetTester tester) async {
     for (var i = 0; i < 240; i++) {
@@ -326,12 +401,22 @@ void main() {
     fail('Android screen or engine did not finish within 30 seconds');
   }
 
-  Future<void> openRecent(WidgetTester tester, String title) async {
+  String? fixtureEvent(RecentSession game) =>
+      dc.PgnGame.parsePgn(game.data['pgn'] as String).headers['Event'];
+
+  Future<RecentSession> recentFixture(String event) async =>
+      (await ActiveSessionStore.recent()).singleWhere(
+        (game) => fixtureEvent(game) == event,
+      );
+
+  Future<void> openRecent(WidgetTester tester, String id) async {
     final recent = find.text('Recent games');
     await tester.ensureVisible(recent);
     await tester.tap(recent);
-    await waitFor(tester, () => find.text(title).evaluate().isNotEmpty);
-    await tester.tap(find.text(title));
+    final tile = find.byKey(ValueKey('recent-game-$id'));
+    await waitFor(tester, () => tile.evaluate().isNotEmpty);
+    await tester.ensureVisible(tile);
+    await tester.tap(tile);
     await tester.pumpAndSettle();
   }
 
@@ -359,7 +444,10 @@ void main() {
         tester,
         () => find.text('Recent games').evaluate().isNotEmpty,
       );
-      await openRecent(tester, 'Chessnut completed regression');
+      await openRecent(
+        tester,
+        (await recentFixture('Chessnut completed regression')).id,
+      );
       await waitFor(
         tester,
         () => find.text('Black is victorious').evaluate().isNotEmpty,
@@ -379,13 +467,16 @@ void main() {
       expect(
         tester
             .widget<SwitchListTile>(
-              find.byKey(const ValueKey('chessnut-go-toggle')),
+              find.byKey(const ValueKey('home-chessnut-toggle')),
             )
             .value,
         isFalse,
       );
       // Selecting another completed record must not inherit the old result-dialog flag.
-      await openRecent(tester, 'Chessnut completed regression');
+      await openRecent(
+        tester,
+        (await recentFixture('Chessnut completed regression')).id,
+      );
       await waitFor(
         tester,
         () => find.text('Black is victorious').evaluate().isNotEmpty,
@@ -410,9 +501,7 @@ void main() {
         'timePreset': 'unlimited',
       });
       await ActiveSessionStore.clear();
-      final before = (await ActiveSessionStore.recent()).singleWhere(
-        (game) => game.title == 'Chessnut phone regression',
-      );
+      final before = await recentFixture('Chessnut phone regression');
       final board = SimulatedElectronicBoard();
       await tester.pumpWidget(
         MaterialApp(home: GamePage(electronicBoardTransport: board)),
@@ -421,7 +510,7 @@ void main() {
         tester,
         () => find.text('Recent games').evaluate().isNotEmpty,
       );
-      await openRecent(tester, 'Chessnut phone regression');
+      await openRecent(tester, before.id);
       await waitFor(
         tester,
         () => find.text('Play in app').evaluate().isNotEmpty,
@@ -462,11 +551,11 @@ void main() {
         () => find.text('Recent games').evaluate().isNotEmpty,
       );
       final after = (await ActiveSessionStore.recent()).singleWhere(
-        (game) => game.title == 'Chessnut phone regression',
+        (game) => game.id == before.id,
       );
       expect(after.id, before.id);
       expect(after.data['electronicBoard'], isNull);
-      await openRecent(tester, 'Chessnut phone regression');
+      await openRecent(tester, before.id);
       await waitFor(
         tester,
         () => find.byType(cg.Chessboard).evaluate().isNotEmpty,
@@ -660,10 +749,8 @@ void main() {
           tester,
           () => find.text('Recent games').evaluate().isNotEmpty,
         );
-        final before = (await ActiveSessionStore.recent()).singleWhere(
-          (record) => record.title == 'Launch $name',
-        );
-        await openRecent(tester, 'Launch $name');
+        final before = await recentFixture('Launch $name');
+        await openRecent(tester, before.id);
         await waitFor(
           tester,
           () => find.byType(AlertDialog).evaluate().isNotEmpty,
@@ -737,9 +824,7 @@ void main() {
         'recentState': 'incomplete',
       });
       await ActiveSessionStore.clear();
-      final old = (await ActiveSessionStore.recent()).singleWhere(
-        (game) => game.title == 'Launch unfinished reset',
-      );
+      final old = await recentFixture('Launch unfinished reset');
       await tester.pumpWidget(
         MaterialApp(home: GamePage(clockFactory: () => TestClock(0))),
       );
@@ -747,7 +832,7 @@ void main() {
         tester,
         () => find.text('Recent games').evaluate().isNotEmpty,
       );
-      await openRecent(tester, old.title);
+      await openRecent(tester, old.id);
       await tester.tap(find.byTooltip('Reset game'));
       await tester.pumpAndSettle();
       expect(
@@ -773,7 +858,7 @@ void main() {
       );
       expect(
         (await ActiveSessionStore.recent())
-            .where((game) => game.title.startsWith('Launch '))
+            .where((game) => fixtureEvent(game)?.startsWith('Launch ') == true)
             .length,
         5,
       );
@@ -906,9 +991,14 @@ void main() {
       await tester.tap(find.text('Open recent'));
       await waitFor(
         tester,
-        () => find.text('Second saved game').evaluate().isNotEmpty,
+        () =>
+            find.byKey(ValueKey('recent-game-$secondId')).evaluate().isNotEmpty,
       );
-      await tester.tap(find.text('Second saved game'));
+      expect(
+        find.widgetWithText(ListTile, 'Player — Maia 1600'),
+        findsNWidgets(2),
+      );
+      await tester.tap(find.byKey(ValueKey('recent-game-$secondId')));
       await waitFor(
         tester,
         () => find
@@ -923,7 +1013,7 @@ void main() {
       final games = await store.recent();
       expect(games.singleWhere((game) => game.id == firstId).data, resumed);
       expect(games.singleWhere((game) => game.id == secondId).data, second);
-      await tester.tap(find.text('Second saved game'));
+      await tester.tap(find.byKey(ValueKey('recent-game-$secondId')));
       await waitFor(tester, () => selected != null);
       expect(attempts, 2);
       expect(selected, second);

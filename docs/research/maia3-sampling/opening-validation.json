@@ -1,0 +1,10 @@
+{
+  "observations_checked": 4581,
+  "unique_board_fens": 2341,
+  "books": 3,
+  "book_trajectory_pairs": 450,
+  "independent_distance_max_error": 1.880440247958859e-15,
+  "legal_support_and_probability_normalization": "pass",
+  "argmax_and_baseline_rederived_from_full_policy": "pass",
+  "tv_and_js_recalculation": "pass"
+}

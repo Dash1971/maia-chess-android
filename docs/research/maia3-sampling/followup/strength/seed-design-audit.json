@@ -1,0 +1,35 @@
+{
+  "status": "passed",
+  "new_unique_planned_game_color_seeds": 2400,
+  "seed_min": 6000000000,
+  "seed_max": 6005000399,
+  "old_files_checked": 12,
+  "prior_primary_pilot_and_continuation_unique_seeds": 10196,
+  "overlap_with_prior": 0,
+  "shard_intervals": [
+    [
+      6000000000,
+      6000000399
+    ],
+    [
+      6001000000,
+      6001000399
+    ],
+    [
+      6002000000,
+      6002000399
+    ],
+    [
+      6003000000,
+      6003000399
+    ],
+    [
+      6004000000,
+      6004000399
+    ],
+    [
+      6005000000,
+      6005000399
+    ]
+  ]
+}

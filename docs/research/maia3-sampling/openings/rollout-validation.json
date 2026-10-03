@@ -1,0 +1,14 @@
+{
+  "status": "passed",
+  "games": 4001,
+  "counts": {
+    "argmax": 1,
+    "app_default": 2000,
+    "full": 2000
+  },
+  "legal_plies_replayed": 63996,
+  "max_plies": 16,
+  "min_plies": 7,
+  "label_fen_checks": 63996,
+  "seconds": 4.2384209632873535
+}

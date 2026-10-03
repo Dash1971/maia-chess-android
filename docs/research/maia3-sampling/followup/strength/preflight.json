@@ -1,0 +1,38 @@
+{
+  "status": "passed",
+  "portable_helper_byte_identical": true,
+  "policy_sha256": "766ef7263fb4a7b487eb850e1a07995a8b62b25f8f16f5e8b68e4665fb9b4131",
+  "model_sha256": "3454b03ae78baa64a87b345fdb1a457265d912caec531039b074f07eda0d8010",
+  "reference_fixture_sha256": "5d5f59bd71ee8cf696358e0ab5fd6d554081f86dc61f501e6156021ea0366b6c",
+  "official_logits_parity": [
+    {
+      "name": "initial-1500",
+      "moves_checked": 20,
+      "max_abs_error": 2.09575195313505e-05
+    },
+    {
+      "name": "after-e4-black-1600-vs-2100",
+      "moves_checked": 20,
+      "max_abs_error": 1.9065795896722193e-05
+    },
+    {
+      "name": "ruy-lopez-middlegame-1800",
+      "moves_checked": 28,
+      "max_abs_error": 2.2845190429165996e-05
+    },
+    {
+      "name": "black-promotion-1200",
+      "moves_checked": 7,
+      "max_abs_error": 3.796240235942605e-06
+    }
+  ],
+  "sampler_boundaries": "passed",
+  "dart_raw_fen_and_outcome_cases": 374,
+  "dart_dependency_sha256": "1299cf5dcbf21ddf975cb1cad3be98426f5ed11b5b643c8cd5db18f6f4b925d1",
+  "dart_command": [
+    "<local-workspace>/pr48-flutter-sdk/bin/dart",
+    "--packages=<local-workspace>/stable25-review/.dart_tool/package_config.json",
+    "<local-workspace>/sampling-followup-20261003/strength/check_dart_rules.dart",
+    "<local-workspace>/sampling-followup-20261003/strength/draw-parity-input.json"
+  ]
+}

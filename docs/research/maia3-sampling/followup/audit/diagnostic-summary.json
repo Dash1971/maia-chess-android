@@ -1,0 +1,266 @@
+{
+  "comparison": "Temperature1, TopP.95 inclusive crossing move versus Temperature1, TopP1",
+  "method": "exact expected evaluation gaps on same frozen positions; equal source-pair/ply stratum means; paired game-cluster bootstrap within each sourcepair; cached Stockfish18 alllegal MultiPV at depths10/14; mates mapped\u00b110000cp, individual losses capped1000cp sensitivity",
+  "bootstrap_seed": 2026100301,
+  "bootstrap_replicates": 10000,
+  "depths": {
+    "10": {
+      "positions": 453,
+      "strata": {
+        "pair0_ply24": 25,
+        "pair0_ply40": 29,
+        "pair0_ply60": 22,
+        "pair1_ply24": 30,
+        "pair1_ply40": 28,
+        "pair1_ply60": 16,
+        "pair2_ply24": 30,
+        "pair2_ply40": 27,
+        "pair2_ply60": 20,
+        "pair0_ply25": 25,
+        "pair0_ply41": 29,
+        "pair0_ply61": 22,
+        "pair1_ply25": 29,
+        "pair1_ply41": 28,
+        "pair1_ply61": 16,
+        "pair2_ply25": 30,
+        "pair2_ply41": 27,
+        "pair2_ply61": 20
+      },
+      "means": {
+        "full": {
+          "support": 30.66931549807508,
+          "entropy_bits": 1.9140175785485967,
+          "expected_cp_loss": 336.1094211428073,
+          "expected_cp_loss_capped1000": 80.31876789662516,
+          "prob_loss_gt100": 0.1852703103812875,
+          "prob_loss_gt200": 0.08680229929408381
+        },
+        "p95": {
+          "support": 6.305371487636813,
+          "entropy_bits": 1.6703027051968404,
+          "expected_cp_loss": 319.9949718094248,
+          "expected_cp_loss_capped1000": 74.50885195971452,
+          "prob_loss_gt100": 0.17016254220802035,
+          "prob_loss_gt200": 0.07627986284291702
+        }
+      },
+      "p95_minus_full": {
+        "support": {
+          "mean": -24.363944010438264,
+          "game_cluster95_ci": [
+            -25.290419684530562,
+            -23.44610682237112
+          ]
+        },
+        "entropy_bits": {
+          "mean": -0.24371487335175632,
+          "game_cluster95_ci": [
+            -0.2524781253171341,
+            -0.23479529968829882
+          ]
+        },
+        "expected_cp_loss": {
+          "mean": -16.11444933338256,
+          "game_cluster95_ci": [
+            -21.88577878896055,
+            -10.99088056491824
+          ]
+        },
+        "expected_cp_loss_capped1000": {
+          "mean": -5.809915936910637,
+          "game_cluster95_ci": [
+            -6.507334632118086,
+            -5.1392462689447
+          ]
+        },
+        "prob_loss_gt100": {
+          "mean": -0.015107768173267144,
+          "game_cluster95_ci": [
+            -0.016385347978195228,
+            -0.013832944170334755
+          ]
+        },
+        "prob_loss_gt200": {
+          "mean": -0.010522436451166777,
+          "game_cluster95_ci": [
+            -0.0117385343827884,
+            -0.009322371777567258
+          ]
+        }
+      },
+      "removed_full_policy_mass": {
+        "model_probability_mass_removed": 0.034088292124568674,
+        "full_mass_loss_gt100_removed": 0.02155333243062314,
+        "full_mass_loss_gt200_removed": 0.013228973226725692,
+        "full_mass_loss_le100_removed": 0.012534959693945531
+      },
+      "removed_mass_game_cluster95_ci": {
+        "model_probability_mass_removed": [
+          0.03276510869753816,
+          0.03538778159368524
+        ],
+        "full_mass_loss_gt100_removed": [
+          0.020052686239783915,
+          0.02305932836969686
+        ],
+        "full_mass_loss_gt200_removed": [
+          0.011909946237378849,
+          0.014586845693282705
+        ],
+        "full_mass_loss_le100_removed": [
+          0.011201922876020872,
+          0.013911682735023526
+        ]
+      },
+      "position_direction_counts": {
+        "expected_cp_loss_capped1000": {
+          "p95_lower": 419,
+          "p95_higher": 15,
+          "equal_within1e12": 19
+        },
+        "prob_loss_gt100": {
+          "p95_lower": 410,
+          "p95_higher": 20,
+          "equal_within1e12": 23
+        },
+        "prob_loss_gt200": {
+          "p95_lower": 404,
+          "p95_higher": 16,
+          "equal_within1e12": 33
+        }
+      },
+      "fraction_removed_mass_with_loss_gt100": 0.6322796211632107,
+      "fraction_removed_mass_with_loss_gt200": 0.3880796719994983,
+      "bootstrap_valid_replicates": 10000
+    },
+    "14": {
+      "positions": 36,
+      "strata": {
+        "pair0_ply24": 2,
+        "pair0_ply40": 2,
+        "pair0_ply60": 2,
+        "pair1_ply24": 2,
+        "pair1_ply40": 2,
+        "pair1_ply60": 2,
+        "pair2_ply24": 2,
+        "pair2_ply40": 2,
+        "pair2_ply60": 2,
+        "pair0_ply25": 2,
+        "pair0_ply41": 2,
+        "pair0_ply61": 2,
+        "pair1_ply25": 2,
+        "pair1_ply41": 2,
+        "pair1_ply61": 2,
+        "pair2_ply25": 2,
+        "pair2_ply41": 2,
+        "pair2_ply61": 2
+      },
+      "means": {
+        "full": {
+          "support": 29.86111111111111,
+          "entropy_bits": 1.769774822572702,
+          "expected_cp_loss": 699.8056346768182,
+          "expected_cp_loss_capped1000": 120.86246748430283,
+          "prob_loss_gt100": 0.2200305476513796,
+          "prob_loss_gt200": 0.1330416033333178
+        },
+        "p95": {
+          "support": 5.972222222222222,
+          "entropy_bits": 1.5388385519987346,
+          "expected_cp_loss": 695.2778397465152,
+          "expected_cp_loss_capped1000": 115.42613501015866,
+          "prob_loss_gt100": 0.2076110949629165,
+          "prob_loss_gt200": 0.12194457733163618
+        }
+      },
+      "p95_minus_full": {
+        "support": {
+          "mean": -23.88888888888889,
+          "game_cluster95_ci": [
+            -27.638888888888886,
+            -20.643981481481482
+          ]
+        },
+        "entropy_bits": {
+          "mean": -0.23093627057396734,
+          "game_cluster95_ci": [
+            -0.24819470135241373,
+            -0.21605243598333668
+          ]
+        },
+        "expected_cp_loss": {
+          "mean": -4.527794930302869,
+          "game_cluster95_ci": [
+            -15.529336076277595,
+            5.877613398853942
+          ]
+        },
+        "expected_cp_loss_capped1000": {
+          "mean": -5.436332474144166,
+          "game_cluster95_ci": [
+            -8.418883183145574,
+            -2.7965364131012596
+          ]
+        },
+        "prob_loss_gt100": {
+          "mean": -0.012419452688463102,
+          "game_cluster95_ci": [
+            -0.018799364395988952,
+            -0.006390199353837998
+          ]
+        },
+        "prob_loss_gt200": {
+          "mean": -0.011097026001681609,
+          "game_cluster95_ci": [
+            -0.016737448313719212,
+            -0.006082181785981395
+          ]
+        }
+      },
+      "removed_full_policy_mass": {
+        "model_probability_mass_removed": 0.032515670311933496,
+        "full_mass_loss_gt100_removed": 0.019947256032972746,
+        "full_mass_loss_gt200_removed": 0.015686910171122913,
+        "full_mass_loss_le100_removed": 0.012568414278960738
+      },
+      "removed_mass_game_cluster95_ci": {
+        "model_probability_mass_removed": [
+          0.03070069016939429,
+          0.03392175077255685
+        ],
+        "full_mass_loss_gt100_removed": [
+          0.014716580372751484,
+          0.025791935715024115
+        ],
+        "full_mass_loss_gt200_removed": [
+          0.011788318236893231,
+          0.02050914772743853
+        ],
+        "full_mass_loss_le100_removed": [
+          0.007034403815821339,
+          0.018618276759520994
+        ]
+      },
+      "position_direction_counts": {
+        "expected_cp_loss_capped1000": {
+          "p95_lower": 31,
+          "p95_higher": 3,
+          "equal_within1e12": 2
+        },
+        "prob_loss_gt100": {
+          "p95_lower": 29,
+          "p95_higher": 5,
+          "equal_within1e12": 2
+        },
+        "prob_loss_gt200": {
+          "p95_lower": 32,
+          "p95_higher": 2,
+          "equal_within1e12": 2
+        }
+      },
+      "fraction_removed_mass_with_loss_gt100": 0.6134659332442534,
+      "fraction_removed_mass_with_loss_gt200": 0.48244154343531087,
+      "bootstrap_valid_replicates": 6703
+    }
+  }
+}

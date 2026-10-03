@@ -1,0 +1,7 @@
+# Optional reference regeneration only; never installed by ordinary CI.
+# Validated with Python 3.12. Keep separate from the lightweight test requirements.
+torch==2.8.0
+numpy==2.2.6
+huggingface-hub==0.34.4
+python-chess==1.999
+chess==1.11.2

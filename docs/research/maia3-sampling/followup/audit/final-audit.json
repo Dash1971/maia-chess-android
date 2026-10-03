@@ -1,0 +1,118 @@
+{
+  "status": "passed",
+  "no_model_inference": true,
+  "independent_dart_material_translation": true,
+  "primary": {
+    "status": "passed",
+    "games": 1200,
+    "pgn_games": 1200,
+    "plies_replayed": 107794,
+    "distinct_ids": 1200,
+    "distinct_seeds": 2400,
+    "p95_white": 600,
+    "p95_black": 600,
+    "legality_terminal_timing_result_score_fen_hash_pgn_mismatches": 0,
+    "summary": {
+      "WDL": [
+        671,
+        100,
+        429
+      ],
+      "score": 0.6008333333333333,
+      "relative_match_elo": 71.03990052194632,
+      "score95_ci": [
+        0.5745833333333333,
+        0.6270833333333333
+      ],
+      "relative_match_elo95_ci": [
+        52.2154096355758,
+        90.28538584558005
+      ],
+      "analytic_standard_error_crosscheck": 0.013465791706999491,
+      "bootstrap_replicates": 200000,
+      "bootstrap_seed": 7000000000,
+      "method": "Independent reconstruction of multinomial-equivalent game bootstrap within policy color, 50/50 color weight; percentile score CI and monotone logistic Elo transform.",
+      "cap_games": 0,
+      "caps_worst_best_score": [
+        0.6008333333333333,
+        0.6008333333333333
+      ]
+    },
+    "input_sha256": {
+      "0": {
+        "manifest.json": "438a3d87753198e02b6541f25956a6a318a1ea9c394af4d617d25a2c1593f1f5",
+        "games.jsonl": "2136f73af8232500e387dfa61ed781e5a0cdb13e395983197ad85aa4b6d02e6f",
+        "games.pgn": "f933c6954f0099cd8867ce4ce103776a15bf1c6eb360e148f2d8c35d63e97ca5"
+      },
+      "1": {
+        "manifest.json": "2a16faa040d407260a296f9b91b34d33c23b9835884aae9469b4972f4bbcc45c",
+        "games.jsonl": "ccfcedd035cdab2a2c55132d3afa50f93c931b5cd39e5bc01c2eb76aaf019fba",
+        "games.pgn": "b81212bc5090db0c1468d054c8a25bbab159187c4fcb13df1f20f0c7e4b7f917"
+      },
+      "2": {
+        "manifest.json": "5fd907162ac79ecac36f99f8d755657aff0689ba7e7fcd1533322d6db3f86d8c",
+        "games.jsonl": "df13fffe68a53ad898687ceb8c1714b51d72ef0b7ecc7a77218280ab499667d7",
+        "games.pgn": "3a7755f385ed9bb6c6980e2340cd4c9de5f37c7d3e01e98fe205ad61eecd0111"
+      },
+      "3": {
+        "manifest.json": "a656c0037aa86f534fdda637e248a0427d240bbd18666165abe2c95996cb9f7e",
+        "games.jsonl": "0d455d4e4131eb24ea1b26e01ccbf7822312f97734d9d891d4389734b71912db",
+        "games.pgn": "d2b0f084cf3e6ca24960e1d1ed89754154b0cc8fb223e162479ff13aaa040579"
+      },
+      "4": {
+        "manifest.json": "4c1205f57abb65e453e487a0e4144b5e5dce5c6a1002180a950a6c8f6146eac8",
+        "games.jsonl": "0627a0d62a98c4c562c08394fa40c5aab18e3644321013e28284f10a38758a8b",
+        "games.pgn": "46538e380974b4f55b5e13dd545e9858c112f7d139747675700448d7a7309f5f"
+      },
+      "5": {
+        "manifest.json": "1981bc51be17e5d832416c808c859903496a012f61580ccc75364c2bbb1f25ec",
+        "games.jsonl": "f198bfd9a6e51c2a1b67a466797ddceddbfc047660db55893d44c86812997e6e",
+        "games.pgn": "0194ea6d2265628f4c125b885e25be3871c3d94674262df76a7392ed82f41336"
+      }
+    }
+  },
+  "claim_sensitivity": {
+    "status": "passed",
+    "games": 1200,
+    "truncated_games": 69,
+    "changed_results": 29,
+    "removed_plies": 1556,
+    "summary": {
+      "WDL": [
+        654,
+        129,
+        417
+      ],
+      "score": 0.59875,
+      "relative_match_elo": 69.53219240387646,
+      "score95_ci": [
+        0.5725,
+        0.6245833333333333
+      ],
+      "relative_match_elo95_ci": [
+        50.73574877909367,
+        88.43073674768654
+      ],
+      "analytic_standard_error_crosscheck": 0.013297162308664316,
+      "bootstrap_replicates": 200000,
+      "bootstrap_seed": 7000000000,
+      "method": "Independent reconstruction of multinomial-equivalent game bootstrap within policy color, 50/50 color weight; percentile score CI and monotone logistic Elo transform.",
+      "cap_games": 0,
+      "caps_worst_best_score": [
+        0.59875,
+        0.59875
+      ]
+    },
+    "input_sha256": {
+      "manifest.json": "b9d30d8be24b77b1d92c908f234cdbb453523afc49e3205bf4aeddea1e15d36e",
+      "games.jsonl": "be44dfa5857284b22aee7d4956a1b871a6fe8e997c48ba208e99bbce307791c0",
+      "games.pgn": "b2a3459f5211d04189bd738f63f6514e3473de4806ab5154c18ef66cdeda5bea"
+    },
+    "results_sha256": "df352e2372171337c74a3d08e9c659373a29a3fbc4d30b8d02a7b39c8d4ed5ad"
+  },
+  "audit_source_sha256": "b4d54d605622ef5bb93f1a6c056cc17069d6e4ff85f81e4e2f0d45f4538a89db",
+  "independent_rules_source_sha256": "42fa99e11a31cfa38687a6ffca5c82ed3f26e88252222e16d75214b283f71f8e",
+  "recorded_result_sha256": "e64d68494c22341e192c297cc1020e429aca7cc32ec67be026296b9d6043f995",
+  "recorded_integrity_sha256": "151a24b0d4fe9fa3fefa63a8d0a61bfd6c21b546475306a8b1a49241074b63a1",
+  "interpretation": "Relative match strength conditional on the frozen implementation and protocol; no absolute human Elo calibration. Primary and sensitivity games are correlated and must not be pooled."
+}

@@ -1,0 +1,16 @@
+{
+  "games": 600,
+  "illegal_moves": 0,
+  "prefix_mismatches": 0,
+  "app_draw_mismatches": 0,
+  "pgn_json_mismatches": 0,
+  "results_changed": 12,
+  "added_plies": 890,
+  "terminations": {
+    "checkmate": 517,
+    "stalemate": 16,
+    "threefold_repetition_actual": 62,
+    "insufficient_material": 4,
+    "fifty_moves_actual": 1
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "games": 600,
+  "prospective_claim_continuations": 32,
+  "results_changed": 12,
+  "added_plies": 493,
+  "continuation_seconds_this_run": 37.69439196586609,
+  "terminations": {
+    "checkmate": 556,
+    "stalemate": 19,
+    "insufficient_material": 8,
+    "threefold_repetition_actual": 17
+  }
+}

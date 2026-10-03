@@ -1,0 +1,431 @@
+{
+  "full95": {
+    "8": {
+      "survivors": 1999,
+      "observed_families": 64,
+      "effective_families": 26.83643576891236,
+      "top_families": [
+        {
+          "family": "Queen's Pawn Game",
+          "games": 265,
+          "fraction": 0.1325662831415708
+        },
+        {
+          "family": "Scandinavian Defense",
+          "games": 185,
+          "fraction": 0.09254627313656828
+        },
+        {
+          "family": "Sicilian Defense",
+          "games": 168,
+          "fraction": 0.08404202101050526
+        },
+        {
+          "family": "King's Pawn Game",
+          "games": 119,
+          "fraction": 0.05952976488244122
+        },
+        {
+          "family": "Vienna Game",
+          "games": 108,
+          "fraction": 0.054027013506753374
+        },
+        {
+          "family": "French Defense",
+          "games": 99,
+          "fraction": 0.04952476238119059
+        },
+        {
+          "family": "Caro-Kann Defense",
+          "games": 87,
+          "fraction": 0.04352176088044022
+        },
+        {
+          "family": "Four Knights Game",
+          "games": 81,
+          "fraction": 0.04052026013006503
+        }
+      ]
+    },
+    "12": {
+      "survivors": 1998,
+      "observed_families": 67,
+      "effective_families": 27.16830295467648,
+      "top_families": [
+        {
+          "family": "Queen's Pawn Game",
+          "games": 260,
+          "fraction": 0.13013013013013014
+        },
+        {
+          "family": "Scandinavian Defense",
+          "games": 184,
+          "fraction": 0.0920920920920921
+        },
+        {
+          "family": "Sicilian Defense",
+          "games": 168,
+          "fraction": 0.08408408408408409
+        },
+        {
+          "family": "King's Pawn Game",
+          "games": 119,
+          "fraction": 0.059559559559559556
+        },
+        {
+          "family": "Vienna Game",
+          "games": 106,
+          "fraction": 0.05305305305305305
+        },
+        {
+          "family": "French Defense",
+          "games": 99,
+          "fraction": 0.04954954954954955
+        },
+        {
+          "family": "Italian Game",
+          "games": 96,
+          "fraction": 0.04804804804804805
+        },
+        {
+          "family": "Caro-Kann Defense",
+          "games": 88,
+          "fraction": 0.044044044044044044
+        }
+      ]
+    },
+    "16": {
+      "survivors": 1995,
+      "observed_families": 67,
+      "effective_families": 27.166619291725635,
+      "top_families": [
+        {
+          "family": "Queen's Pawn Game",
+          "games": 260,
+          "fraction": 0.13032581453634084
+        },
+        {
+          "family": "Scandinavian Defense",
+          "games": 183,
+          "fraction": 0.09172932330827067
+        },
+        {
+          "family": "Sicilian Defense",
+          "games": 168,
+          "fraction": 0.08421052631578947
+        },
+        {
+          "family": "King's Pawn Game",
+          "games": 119,
+          "fraction": 0.05964912280701754
+        },
+        {
+          "family": "Vienna Game",
+          "games": 106,
+          "fraction": 0.053132832080200504
+        },
+        {
+          "family": "French Defense",
+          "games": 99,
+          "fraction": 0.04962406015037594
+        },
+        {
+          "family": "Italian Game",
+          "games": 96,
+          "fraction": 0.0481203007518797
+        },
+        {
+          "family": "Caro-Kann Defense",
+          "games": 88,
+          "fraction": 0.04411027568922306
+        }
+      ]
+    }
+  },
+  "full": {
+    "8": {
+      "survivors": 1999,
+      "observed_families": 86,
+      "effective_families": 34.10190742421375,
+      "top_families": [
+        {
+          "family": "Queen's Pawn Game",
+          "games": 246,
+          "fraction": 0.12306153076538269
+        },
+        {
+          "family": "Sicilian Defense",
+          "games": 166,
+          "fraction": 0.0830415207603802
+        },
+        {
+          "family": "Scandinavian Defense",
+          "games": 165,
+          "fraction": 0.08254127063531766
+        },
+        {
+          "family": "French Defense",
+          "games": 120,
+          "fraction": 0.060030015007503754
+        },
+        {
+          "family": "King's Pawn Game",
+          "games": 108,
+          "fraction": 0.054027013506753374
+        },
+        {
+          "family": "Vienna Game",
+          "games": 97,
+          "fraction": 0.04852426213106553
+        },
+        {
+          "family": "Four Knights Game",
+          "games": 75,
+          "fraction": 0.03751875937968985
+        },
+        {
+          "family": "Caro-Kann Defense",
+          "games": 62,
+          "fraction": 0.031015507753876938
+        }
+      ]
+    },
+    "12": {
+      "survivors": 1998,
+      "observed_families": 86,
+      "effective_families": 34.326500136553804,
+      "top_families": [
+        {
+          "family": "Queen's Pawn Game",
+          "games": 245,
+          "fraction": 0.12262262262262262
+        },
+        {
+          "family": "Sicilian Defense",
+          "games": 165,
+          "fraction": 0.08258258258258258
+        },
+        {
+          "family": "Scandinavian Defense",
+          "games": 165,
+          "fraction": 0.08258258258258258
+        },
+        {
+          "family": "French Defense",
+          "games": 120,
+          "fraction": 0.06006006006006006
+        },
+        {
+          "family": "King's Pawn Game",
+          "games": 108,
+          "fraction": 0.05405405405405406
+        },
+        {
+          "family": "Vienna Game",
+          "games": 96,
+          "fraction": 0.04804804804804805
+        },
+        {
+          "family": "Italian Game",
+          "games": 62,
+          "fraction": 0.031031031031031032
+        },
+        {
+          "family": "Caro-Kann Defense",
+          "games": 62,
+          "fraction": 0.031031031031031032
+        }
+      ]
+    },
+    "16": {
+      "survivors": 1996,
+      "observed_families": 85,
+      "effective_families": 34.280514260409234,
+      "top_families": [
+        {
+          "family": "Queen's Pawn Game",
+          "games": 244,
+          "fraction": 0.12224448897795591
+        },
+        {
+          "family": "Sicilian Defense",
+          "games": 165,
+          "fraction": 0.08266533066132264
+        },
+        {
+          "family": "Scandinavian Defense",
+          "games": 165,
+          "fraction": 0.08266533066132264
+        },
+        {
+          "family": "French Defense",
+          "games": 121,
+          "fraction": 0.06062124248496994
+        },
+        {
+          "family": "King's Pawn Game",
+          "games": 108,
+          "fraction": 0.05410821643286573
+        },
+        {
+          "family": "Vienna Game",
+          "games": 96,
+          "fraction": 0.04809619238476954
+        },
+        {
+          "family": "Italian Game",
+          "games": 62,
+          "fraction": 0.031062124248496994
+        },
+        {
+          "family": "Caro-Kann Defense",
+          "games": 62,
+          "fraction": 0.031062124248496994
+        }
+      ]
+    }
+  },
+  "app_default": {
+    "8": {
+      "survivors": 2000,
+      "observed_families": 23,
+      "effective_families": 8.364634191937757,
+      "top_families": [
+        {
+          "family": "Four Knights Game",
+          "games": 618,
+          "fraction": 0.309
+        },
+        {
+          "family": "Italian Game",
+          "games": 386,
+          "fraction": 0.193
+        },
+        {
+          "family": "Queen's Pawn Game",
+          "games": 229,
+          "fraction": 0.1145
+        },
+        {
+          "family": "Scandinavian Defense",
+          "games": 187,
+          "fraction": 0.0935
+        },
+        {
+          "family": "Ruy Lopez",
+          "games": 136,
+          "fraction": 0.068
+        },
+        {
+          "family": "Sicilian Defense",
+          "games": 105,
+          "fraction": 0.0525
+        },
+        {
+          "family": "Bishop's Opening",
+          "games": 102,
+          "fraction": 0.051
+        },
+        {
+          "family": "Philidor Defense",
+          "games": 97,
+          "fraction": 0.0485
+        }
+      ]
+    },
+    "12": {
+      "survivors": 2000,
+      "observed_families": 28,
+      "effective_families": 8.330759502942694,
+      "top_families": [
+        {
+          "family": "Italian Game",
+          "games": 729,
+          "fraction": 0.3645
+        },
+        {
+          "family": "Four Knights Game",
+          "games": 266,
+          "fraction": 0.133
+        },
+        {
+          "family": "Queen's Pawn Game",
+          "games": 217,
+          "fraction": 0.1085
+        },
+        {
+          "family": "Scandinavian Defense",
+          "games": 187,
+          "fraction": 0.0935
+        },
+        {
+          "family": "Ruy Lopez",
+          "games": 150,
+          "fraction": 0.075
+        },
+        {
+          "family": "Sicilian Defense",
+          "games": 105,
+          "fraction": 0.0525
+        },
+        {
+          "family": "Philidor Defense",
+          "games": 97,
+          "fraction": 0.0485
+        },
+        {
+          "family": "Bishop's Opening",
+          "games": 97,
+          "fraction": 0.0485
+        }
+      ]
+    },
+    "16": {
+      "survivors": 1999,
+      "observed_families": 28,
+      "effective_families": 8.34113036926676,
+      "top_families": [
+        {
+          "family": "Italian Game",
+          "games": 729,
+          "fraction": 0.3646823411705853
+        },
+        {
+          "family": "Four Knights Game",
+          "games": 266,
+          "fraction": 0.1330665332666333
+        },
+        {
+          "family": "Queen's Pawn Game",
+          "games": 216,
+          "fraction": 0.10805402701350675
+        },
+        {
+          "family": "Scandinavian Defense",
+          "games": 187,
+          "fraction": 0.09354677338669334
+        },
+        {
+          "family": "Ruy Lopez",
+          "games": 150,
+          "fraction": 0.0750375187593797
+        },
+        {
+          "family": "Sicilian Defense",
+          "games": 105,
+          "fraction": 0.05252626313156578
+        },
+        {
+          "family": "Philidor Defense",
+          "games": 97,
+          "fraction": 0.04852426213106553
+        },
+        {
+          "family": "Bishop's Opening",
+          "games": 97,
+          "fraction": 0.04852426213106553
+        }
+      ]
+    }
+  }
+}

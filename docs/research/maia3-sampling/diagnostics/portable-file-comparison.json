@@ -1,0 +1,11 @@
+{
+  "run_strength.py": true,
+  "mobile_policy.py": false,
+  "app_draw_sensitivity.py": false,
+  "run_supplement.py": true,
+  "verify_policy.py": false,
+  "analyze_strength.py": true,
+  "verify_sensitivity.py": true,
+  "verify_games.py": true,
+  "app_draw_sensitivity_79m.py_vs_portable_app_draw_sensitivity.py": true
+}

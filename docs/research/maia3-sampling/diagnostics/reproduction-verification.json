@@ -1,0 +1,23 @@
+{
+  "summary_balanced.json": {
+    "byte_identical": true,
+    "sha256": "7e72f38b9515e0457f4095e956f4076fe18f67ee6213e51ce5f2704c9af2ec29"
+  },
+  "summary_close_positions.json": {
+    "byte_identical": true,
+    "sha256": "0ec4c1f0283a5ab6ae3aa4c36c4ea210c1097318b25fa01ae03dac6ac085bb6a"
+  },
+  "metrics.csv": {
+    "byte_identical": true,
+    "sha256": "609fd5bbac05931c3b8501b1cffce0f1ce29bf618b701c066e23ab148ea88173"
+  },
+  "fresh_smoke": {
+    "requests": 1,
+    "position_id": "pos-000",
+    "depth": 10,
+    "legal_moves": 43,
+    "max_abs_logit_change": 0.0,
+    "all_requested_depths_matched": true,
+    "changed_cp_move_evaluations": 0
+  }
+}

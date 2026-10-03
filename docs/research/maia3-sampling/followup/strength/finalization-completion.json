@@ -1,0 +1,12 @@
+{
+  "status": "complete",
+  "primary_games": 1200,
+  "claim_sensitivity_games": 1200,
+  "verification_and_analysis_final_exit_codes": [
+    0,
+    0,
+    0
+  ],
+  "note": "Initial finalize watcher completed primary verify/stats and claim-prefix generation, then stopped when the first claim verifier aborted during native library shutdown after passing. Manual resume with non-native hashing completed claim verification and both same-method analyses; see postprocessing-runtime-fix.json. No worker pause, no new inference, no N/source/model/game changes.",
+  "completed_utc": "2026-10-03T00:52:27.164521+00:00"
+}

@@ -1,0 +1,99 @@
+{
+  "purpose": "secondary matched-position diagnostic; not Elo",
+  "depth": 10,
+  "refine_depth": 14,
+  "refine_per_stratum": 2,
+  "position_count": 227,
+  "plies": [
+    24,
+    40,
+    60
+  ],
+  "grid": [
+    [
+      "argmax",
+      0.0,
+      0.0
+    ],
+    [
+      "T0.5_P0.5",
+      0.5,
+      0.5
+    ],
+    [
+      "T0.5_P0.9",
+      0.5,
+      0.9
+    ],
+    [
+      "T0.5_P0.95",
+      0.5,
+      0.95
+    ],
+    [
+      "T0.5_P1",
+      0.5,
+      1.0
+    ],
+    [
+      "T0.9_P0.5",
+      0.9,
+      0.5
+    ],
+    [
+      "T0.9_P0.9",
+      0.9,
+      0.9
+    ],
+    [
+      "T0.9_P0.95",
+      0.9,
+      0.95
+    ],
+    [
+      "T0.9_P1",
+      0.9,
+      1.0
+    ],
+    [
+      "T1_P0.5",
+      1.0,
+      0.5
+    ],
+    [
+      "T1_P0.9",
+      1.0,
+      0.9
+    ],
+    [
+      "T1_P0.95",
+      1.0,
+      0.95
+    ],
+    [
+      "T1_P1",
+      1.0,
+      1.0
+    ]
+  ],
+  "self_elo": 1600,
+  "opponent_elo": 1600,
+  "model_sha256": "3454b03ae78baa64a87b345fdb1a457265d912caec531039b074f07eda0d8010",
+  "stockfish_sha256": "ae4c93fa9676ca7750d0714342fd8a5b1d018000fc6e0f6cedf112067b5ef374",
+  "engine_id": {
+    "name": "Stockfish 18",
+    "author": "the Stockfish developers (see AUTHORS file)"
+  },
+  "threads": 1,
+  "hash_mb": 64,
+  "multipv": "all legal moves",
+  "cp_mate_mapping": 10000,
+  "dedup": "first four FEN fields",
+  "position_selection": "round-robin source-pair and fixed-ply strata from first 30 complete games per pair; exclude finished games at/before ply",
+  "all_sampled_positions_white_to_move": true,
+  "input": "Mobile Maia stable25 repeated current board",
+  "diagnostic_script_sha256": "7a3af1dccd84109cbd01805e6d4f6491a9764721f4863b78de9fc936cfad32d3",
+  "policy_sha256": "8e3f203b9f26b3ce0a7b01b8cf22101a23cb4339306c4f4d3d8df8794cb0bc98",
+  "python": "3.12.13 (main, Mar  3 2026, 12:39:30) [Clang 21.0.0 (clang-2100.0.123.102)]",
+  "platform": "macOS-26.6.2-arm64-arm-64bit"
+}

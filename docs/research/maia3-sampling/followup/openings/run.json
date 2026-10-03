@@ -1,0 +1,35 @@
+{
+  "status": "complete",
+  "temperature": 1.0,
+  "top_p": 0.95,
+  "cutoff": "include crossing move",
+  "self_elo": 1600,
+  "opponent_elo": 1600,
+  "games": 2000,
+  "plies": 16,
+  "threads": 1,
+  "seed_start": 7000000000,
+  "seed_rule": "random.Random(seed_start + game_index), independent game streams",
+  "source_study": "<local-workspace>/sampling-research-20261002",
+  "model": "<local-workspace>/stable-release/build/app/intermediates/flutter/debug/flutter_assets/assets/models/maia3-79m.onnx",
+  "source_sha256": {
+    "conditional": "b724b07aed4e737e0c810ac24e35dae86f0988da8a92d9ca9ed0d3c97f9380b4",
+    "human": "64034d95fd234ce28149cc1ba06b447190b964acdcd63547ce2979c045e2093a",
+    "old_rollouts": "72764af564e51e35b1eb636649aa62f8e60e320772a9ec44e54919bf5e1227e6",
+    "opening_labels": "a91978578a76fc52e2aab69f333608a9195eefc70ca5c8fc66a8bd999a4f73c1",
+    "book": "1a6c727fd7a7a541b2971b45c002337320b774cedbc457c1ffb27193c5f39232",
+    "model": "3454b03ae78baa64a87b345fdb1a457265d912caec531039b074f07eda0d8010",
+    "rollout_source": "126fee34d2356041a08394ec0d484dbb2dbe4aaf665e8f322f0a69e2f2601626",
+    "helper": "8e3f203b9f26b3ce0a7b01b8cf22101a23cb4339306c4f4d3d8df8794cb0bc98"
+  },
+  "python": "3.12.13",
+  "packages": {
+    "onnxruntime": "1.30.0",
+    "numpy": "2.5.3",
+    "python-chess": "1.999"
+  },
+  "completed": 2000,
+  "calls": 18402,
+  "cache_hits": 13577,
+  "seconds": 1631.6112658977509
+}

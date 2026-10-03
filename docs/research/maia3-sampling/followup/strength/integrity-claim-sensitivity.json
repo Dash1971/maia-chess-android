@@ -1,0 +1,19 @@
+{
+  "status": "passed",
+  "games": 1200,
+  "illegal_moves": 0,
+  "first_claim_endpoint_mismatches": 0,
+  "prefix_mismatches": 0,
+  "pgn_json_mismatches": 0,
+  "truncated_games": 69,
+  "changed_results": 29,
+  "caps": 0,
+  "terminations": {
+    "checkmate": 1071,
+    "stalemate": 44,
+    "threefold_repetition": 68,
+    "insufficient_material": 16,
+    "fifty_moves": 1
+  },
+  "verifier_sha256": "6d81b0b4e0d9b41c282c90199b8f4b9d770cbd9f2a1a685428360200ee195310"
+}

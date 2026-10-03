@@ -20,7 +20,7 @@ no useful source secrecy for this AGPL-licensed application, makes crash traces
 less useful, and uses randomized symbol mappings that prevent independent
 builds from matching.
 
-Flutter 3.47.1 does not forward its filesystem-root settings through the
+Flutter 3.47.5 does not forward its filesystem-root settings through the
 Android Gradle task. The release script therefore adds the generated Dart
 plugin registrant to the generated package configuration under the stable URI
 `package:mobile_maia_generated/dart_plugin_registrant.dart`. This prevents an
@@ -36,24 +36,25 @@ libraries because the NDK otherwise gives byte-identical native code different
 inputs, preventing a stale native cache from retaining an older `__DATE__`
 value.
 
-The pinned `multistockfish_sf16` package downloads its Stockfish 16 NNUE network
-during CMake configuration. Before every release build, Mobile Maia applies a
-narrowly guarded patch to that exact package version and source line. CMake must
-verify SHA-256
-`5af11540bbfefcb54e38c5dd000cab4b469dfa7599a1d55be5d2722c20a8929b`
+The pinned `multistockfish_light` package downloads the Stockfish 19 Light NNUE
+network during CMake configuration. Before every release build, Mobile Maia
+applies a narrowly guarded patch to that exact package version and source line.
+CMake must verify SHA-256
+`61e7af4bb97d51eeeb25d322916f86513b5cd3a827ce189c98c6e31946f99e5b`
 and fail the build if the download is incomplete or different. This prevents a
 partial network response from being embedded into only one ABI's native
 library.
 
 Android NDK packages with the same revision contain host-specific compiler
 builds. In particular, NDK 28.2.13676358 produces different native output on
-macOS and Linux. Starting with version 2.1.1, the canonical unsigned release APK
-is therefore built on Linux by the manually dispatched GitHub Actions Android
-job. A separate Linux host must rebuild the same source commit and produce the
-same APK SHA-256 before signing. The developer signing key remains offline: the
-verified Linux artifact is downloaded and signed without rebuilding it.
+macOS and Linux. Starting with Stable version 2.1.1, the canonical
+unsigned release APK is therefore built on Linux by the manually dispatched
+GitHub Actions Android job. A separate Linux host must rebuild the same source
+commit and produce the same APK SHA-256 before signing. The developer signing
+key remains offline: the verified Linux artifact is downloaded and signed
+without rebuilding it.
 
-Flutter 3.47.1 discovers resolution-aware asset directories with an unsorted
+Flutter 3.47.5 discovers resolution-aware asset directories with an unsorted
 filesystem listing. That can serialize identical image variants in a different
 order in `AssetManifest.bin`. The release script applies a narrowly guarded
 backport to the pinned Flutter checkout before building: it sorts the discovered
@@ -62,11 +63,11 @@ refuses any unexpected Flutter revision or source shape.
 
 ## Verification
 
-For version `2.1.1` and later, the GitHub Actions build and a clean independent
-Linux build from the same revision must have identical SHA-256 hashes. The
-workflow requires the expected full source SHA, refuses a checkout mismatch,
-and retains the APK hash plus source, runner, Flutter, Java, NDK, and Clang
-provenance. To verify a developer-signed APK, use
+For Stable version `2.1.1` and later, the GitHub Actions build and a
+clean independent Linux build from the same revision must have identical
+SHA-256 hashes. The workflow requires the expected full source SHA, refuses a
+checkout mismatch, and retains the APK hash plus source, runner, Flutter, Java,
+NDK, and Clang provenance. To verify a developer-signed APK, use
 [`apksigcopier`](https://github.com/obfusk/apksigcopier) to extract its
 signature, apply that signature to the independently built unsigned APK, and
 compare the reconstructed APK byte-for-byte with the published APK.

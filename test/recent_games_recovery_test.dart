@@ -9,6 +9,7 @@ List<RecentSession> _records() => [
     RecentSession(id, DateTime.utc(2026), {
       'type': 'game',
       'recentState': 'completed',
+      'elo': id == 'first' ? 500 : 1500,
       'pgn': '[Event "$id"]\n[Result "1-0"]\n\n1. e4 1-0',
     }),
 ];
@@ -93,7 +94,7 @@ void main() {
         expect(deletions, 0);
         expect(selected, isNull);
       }
-      await tester.tap(find.text('second'));
+      await tester.tap(find.text('Player — Maia 1500'));
       await tester.pumpAndSettle();
       expect(selected, games.last.data);
       expect(find.text('Open recent'), findsOneWidget);
@@ -138,8 +139,8 @@ void main() {
         await tester.pumpAndSettle();
         expect(tester.takeException(), isNull);
         if (attempt == 0) {
-          expect(find.text('first'), findsNothing);
-          expect(find.text('second'), findsOneWidget);
+          expect(find.text('Player — Maia 500'), findsNothing);
+          expect(find.text('Player — Maia 1500'), findsOneWidget);
           expect(find.text('1 selected'), findsOneWidget);
           expect(
             find.text('Could not delete saved games. Please try again.'),
@@ -174,7 +175,7 @@ void main() {
         },
         selected: (value) => selected = value,
       );
-      await tester.tap(find.text('first'));
+      await tester.tap(find.text('Player — Maia 500'));
       await tester.pumpAndSettle();
       expect(
         find.text('Could not open saved game. Please try again.'),
@@ -182,7 +183,7 @@ void main() {
       );
       expect(find.byType(LinearProgressIndicator), findsNothing);
       expect(selected, isNull);
-      await tester.tap(find.text('second'));
+      await tester.tap(find.text('Player — Maia 1500'));
       await tester.pumpAndSettle();
       expect(requested, ['first', 'second']);
       expect(selected, games.last.data);

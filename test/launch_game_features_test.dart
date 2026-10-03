@@ -333,11 +333,11 @@ void main() {
     },
   );
   testWidgets(
-    'advanced premove preferences persist and disabled premoves stay disabled',
+    'settings premove preferences persist and disabled premoves stay disabled',
     (tester) async {
       await tester.pumpWidget(const MaterialApp(home: GamePage()));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Advanced'));
+      await tester.tap(find.byKey(const ValueKey('home-settings-button')));
       await tester.pumpAndSettle();
       SwitchListTile setting(String name) =>
           tester.widget<SwitchListTile>(find.byKey(ValueKey(name)));
@@ -350,7 +350,7 @@ void main() {
       await disposeGame(tester);
       await tester.pumpWidget(const MaterialApp(home: GamePage()));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Advanced'));
+      await tester.tap(find.byKey(const ValueKey('home-settings-button')));
       await tester.pumpAndSettle();
       expect(setting('premove-penalty-setting').value, true);
       expect(setting('multiple-premoves-setting').value, true);

@@ -1,0 +1,24 @@
+{
+  "seed": 20261002,
+  "seed_assignment": "seed + book_index (blitz-May=0, rapid-May=1, rapid-July=2)",
+  "trajectories_per_book": 150,
+  "maximum_position_ply": 15,
+  "observations": 4581,
+  "distinct_full_fens": 2341,
+  "distinct_inference_inputs": 2298,
+  "inference_calls": 2298,
+  "intra_op_threads": 1,
+  "inter_op_threads": 1,
+  "self_elo": 1600,
+  "opponent_elo": 1600,
+  "model_sha256": "3454b03ae78baa64a87b345fdb1a457265d912caec531039b074f07eda0d8010",
+  "python": "3.12.13",
+  "platform": "macOS-26.6.2-arm64-arm-64bit",
+  "source_sha256": {
+    "lichess_1600_blitz_2026-05.bin": "1a6c727fd7a7a541b2971b45c002337320b774cedbc457c1ffb27193c5f39232",
+    "lichess_1600_rapid_2026-07.bin": "e8027e188c34930edae109ae1b65ca88d219f431a326b70769e73c1e9626b7b8",
+    "lichess_1600_rapid_2026-05.bin": "9d64a44813a636998b6c6bf31380d806a9f3e1a26402e25de425950e62683bc6"
+  },
+  "book_builder_commit": "8776f3639a549d7becab232a6c8cd47ac0c982f3",
+  "protocol": "150 independent book-induced paths per book, gather all covered positions up to16plies, all three main settings plus low-cost reversed-number sensitivity; stop on missing book node"
+}

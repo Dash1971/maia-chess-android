@@ -91,8 +91,11 @@ void main() {
         );
     await tester.pumpWidget(const MaterialApp(home: GamePage()));
     await tester.pumpAndSettle();
+    await tester.tap(find.text('Analysis Board'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('analysis-actions-menu')));
+    await tester.pumpAndSettle();
     final open = find.text('Open PGN file');
-    await tester.ensureVisible(open);
     await tester.tap(open);
     await _waitForImport(tester);
     expect(find.textContaining('Could not open PGN'), findsNothing);

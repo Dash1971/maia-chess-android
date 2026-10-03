@@ -1,0 +1,20 @@
+[
+  {
+    "directory": "79m-pair0",
+    "games": 600,
+    "plies_checked": 52183,
+    "illegal_moves": 0,
+    "json_pgn_mismatches": 0,
+    "terminations": {
+      "checkmate": 449,
+      "threefold_repetition": 132,
+      "insufficient_material": 9,
+      "stalemate": 10
+    },
+    "color_counts": {
+      "('argmax', True)": 300,
+      "('argmax', False)": 300
+    },
+    "manifest_target": 600
+  }
+]

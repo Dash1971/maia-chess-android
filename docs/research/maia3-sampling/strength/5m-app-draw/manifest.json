@@ -1,0 +1,15 @@
+{
+  "protocol": "app draw timing sensitivity; preserve primary prefixes; replace prospective claim with future independently sampled moves until raw-FEN repetition3/halfmove100/terminal/cap400",
+  "model": "5m",
+  "model_sha256": "ddae2aa893b5ca7ec94d24178871f1c337d09fd72ff38abe8d76b8ecf08cb942",
+  "input_files": [
+    "sampling-research-20261002/strength/5m/games.jsonl"
+  ],
+  "input_sha256": [
+    "885c7c84c1332280f4cd31dd039a54aecd4ca2f4455301efa77617e24b6cc691"
+  ],
+  "seed": 2026100202,
+  "max_plies": 400,
+  "runner_sha256": "2bdc8da4644e973f551f2b9576218e3bdf7e93abffcd4d0ce3e000cac4dd41fd",
+  "policy_sha256": "8e3f203b9f26b3ce0a7b01b8cf22101a23cb4339306c4f4d3d8df8794cb0bc98"
+}

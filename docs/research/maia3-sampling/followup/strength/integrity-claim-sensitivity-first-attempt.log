@@ -1,0 +1,28 @@
+2026-10-03 09:49:11.395 Python[11568:20561025] 2026-10-03 09:49:11.395426 [W:onnxruntime:Default, telemetry.cc:800 operator()] Failed to persist telemetry device ID; using an in-memory identifier
+2026-10-03 09:49:20.408 Python[11568:20561026] NetworkStorageDB:_openDBReadConnections: failed to open read connection to DB @ <python-cache>/Cache.db.  Error=14. Cause=unable to open database file
+2026-10-03 09:49:20.408 Python[11568:20561026] The read-connection to the DB=<python-cache>/Cache.db is NOT valid.  Unable to determine schema version.
+2026-10-03 09:49:20.408 Python[11568:20561026] NetworkStorageDB:_openDBWriteConnections: failed to open write connection to DB @ <python-cache>/Cache.db.  Error=14. Cause=unable to open database file
+2026-10-03 09:49:20.409 Python[11568:20561026] DEBUG: there is no SQL cache DB located at <python-cache>/Cache.db.
+2026-10-03 09:49:20.409 Python[11568:20561026] DEBUG: there is no SQL cache DB located at <python-cache>/Cache.db-shm.
+2026-10-03 09:49:20.409 Python[11568:20561026] DEBUG: there is no SQL cache DB located at <python-cache>/Cache.db-wal.
+2026-10-03 09:49:21.711 Python[11568:20561094] writeDBwithCachedResponse-ERROR: (_dbWriteConnection=0x905d75c00) insert SQL stmnt. is nil for storage: <python-cache>
+{
+  "status": "passed",
+  "games": 1200,
+  "illegal_moves": 0,
+  "first_claim_endpoint_mismatches": 0,
+  "prefix_mismatches": 0,
+  "pgn_json_mismatches": 0,
+  "truncated_games": 69,
+  "changed_results": 29,
+  "caps": 0,
+  "terminations": {
+    "checkmate": 1071,
+    "stalemate": 44,
+    "threefold_repetition": 68,
+    "insufficient_material": 16,
+    "fifty_moves": 1
+  },
+  "verifier_sha256": "c416e914fbb9cb57138300a31191e176d374fcbd5bd74fc3edca5515e6f7f42e"
+}
+libc++abi: terminating due to uncaught exception of type std::__1::system_error: recursive_mutex lock failed: Invalid argument

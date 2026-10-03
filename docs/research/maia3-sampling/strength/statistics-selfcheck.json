@@ -1,0 +1,12 @@
+{
+  "status": "passed",
+  "synthetic_balanced_200W_200D_200L_score_ci": [
+    0.4675,
+    0.5325
+  ],
+  "synthetic_elo_ci": [
+    -22.615198760895478,
+    22.615198760895485
+  ],
+  "logistic_score_075": 190.84850188786498
+}

@@ -1,0 +1,18 @@
+{
+  "cached_only": true,
+  "source_files": {
+    "diagnostics/raw.jsonl": "a088fbfc43d515c8e3ae39378febcb0098517fe4ee007ca52b0ca2f5f89d77ac",
+    "diagnostics/metrics.csv": "609fd5bbac05931c3b8501b1cffce0f1ce29bf618b701c066e23ab148ea88173",
+    "openings/conditional.json": "b724b07aed4e737e0c810ac24e35dae86f0988da8a92d9ca9ed0d3c97f9380b4"
+  },
+  "script_sha256": "d0e8671b21cba4deba68594096bb82c6ce2cf1fae0ba0201658068455938a49c",
+  "python": "3.12.13 (main, Mar  3 2026, 12:39:30) [Clang 21.0.0 (clang-2100.0.123.102)]",
+  "platform": "macOS-26.6.2-arm64-arm-64bit",
+  "numpy": "2.5.3",
+  "temperature": 1,
+  "top_p_narrow": 0.95,
+  "top_p_reference": 1,
+  "diagnostic_requests": 489,
+  "depth10_positions": 453,
+  "opening_observations": 4581
+}

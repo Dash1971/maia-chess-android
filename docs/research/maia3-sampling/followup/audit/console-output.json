@@ -1,0 +1,181 @@
+{
+  "diagnostic": {
+    "positions": 453,
+    "strata": {
+      "pair0_ply24": 25,
+      "pair0_ply40": 29,
+      "pair0_ply60": 22,
+      "pair1_ply24": 30,
+      "pair1_ply40": 28,
+      "pair1_ply60": 16,
+      "pair2_ply24": 30,
+      "pair2_ply40": 27,
+      "pair2_ply60": 20,
+      "pair0_ply25": 25,
+      "pair0_ply41": 29,
+      "pair0_ply61": 22,
+      "pair1_ply25": 29,
+      "pair1_ply41": 28,
+      "pair1_ply61": 16,
+      "pair2_ply25": 30,
+      "pair2_ply41": 27,
+      "pair2_ply61": 20
+    },
+    "means": {
+      "full": {
+        "support": 30.66931549807508,
+        "entropy_bits": 1.9140175785485967,
+        "expected_cp_loss": 336.1094211428073,
+        "expected_cp_loss_capped1000": 80.31876789662516,
+        "prob_loss_gt100": 0.1852703103812875,
+        "prob_loss_gt200": 0.08680229929408381
+      },
+      "p95": {
+        "support": 6.305371487636813,
+        "entropy_bits": 1.6703027051968404,
+        "expected_cp_loss": 319.9949718094248,
+        "expected_cp_loss_capped1000": 74.50885195971452,
+        "prob_loss_gt100": 0.17016254220802035,
+        "prob_loss_gt200": 0.07627986284291702
+      }
+    },
+    "p95_minus_full": {
+      "support": {
+        "mean": -24.363944010438264,
+        "game_cluster95_ci": [
+          -25.290419684530562,
+          -23.44610682237112
+        ]
+      },
+      "entropy_bits": {
+        "mean": -0.24371487335175632,
+        "game_cluster95_ci": [
+          -0.2524781253171341,
+          -0.23479529968829882
+        ]
+      },
+      "expected_cp_loss": {
+        "mean": -16.11444933338256,
+        "game_cluster95_ci": [
+          -21.88577878896055,
+          -10.99088056491824
+        ]
+      },
+      "expected_cp_loss_capped1000": {
+        "mean": -5.809915936910637,
+        "game_cluster95_ci": [
+          -6.507334632118086,
+          -5.1392462689447
+        ]
+      },
+      "prob_loss_gt100": {
+        "mean": -0.015107768173267144,
+        "game_cluster95_ci": [
+          -0.016385347978195228,
+          -0.013832944170334755
+        ]
+      },
+      "prob_loss_gt200": {
+        "mean": -0.010522436451166777,
+        "game_cluster95_ci": [
+          -0.0117385343827884,
+          -0.009322371777567258
+        ]
+      }
+    },
+    "removed_full_policy_mass": {
+      "model_probability_mass_removed": 0.034088292124568674,
+      "full_mass_loss_gt100_removed": 0.02155333243062314,
+      "full_mass_loss_gt200_removed": 0.013228973226725692,
+      "full_mass_loss_le100_removed": 0.012534959693945531
+    },
+    "removed_mass_game_cluster95_ci": {
+      "model_probability_mass_removed": [
+        0.03276510869753816,
+        0.03538778159368524
+      ],
+      "full_mass_loss_gt100_removed": [
+        0.020052686239783915,
+        0.02305932836969686
+      ],
+      "full_mass_loss_gt200_removed": [
+        0.011909946237378849,
+        0.014586845693282705
+      ],
+      "full_mass_loss_le100_removed": [
+        0.011201922876020872,
+        0.013911682735023526
+      ]
+    },
+    "position_direction_counts": {
+      "expected_cp_loss_capped1000": {
+        "p95_lower": 419,
+        "p95_higher": 15,
+        "equal_within1e12": 19
+      },
+      "prob_loss_gt100": {
+        "p95_lower": 410,
+        "p95_higher": 20,
+        "equal_within1e12": 23
+      },
+      "prob_loss_gt200": {
+        "p95_lower": 404,
+        "p95_higher": 16,
+        "equal_within1e12": 33
+      }
+    },
+    "fraction_removed_mass_with_loss_gt100": 0.6322796211632107,
+    "fraction_removed_mass_with_loss_gt200": 0.3880796719994983,
+    "bootstrap_valid_replicates": 10000
+  },
+  "opening": {
+    "lichess_1600_blitz_2026-05": {
+      "tv_full": 0.11873170444639956,
+      "tv_p95_inclusive": 0.12866967990090786,
+      "tv_p95_upstream": 0.13896265282233577,
+      "inclusive_minus_full_tv": 0.00993797545450828,
+      "upstream_minus_inclusive_tv": 0.010292972921427928,
+      "sampler_tv_inclusive_upstream": 0.026313539227473006,
+      "different_cutoff": 0.97875,
+      "inclusive_model_mass_removed": 0.04087933815554481,
+      "upstream_model_mass_removed": 0.06619924365567922,
+      "inclusive_human_mass_removed": 0.03935730291755396,
+      "upstream_human_mass_removed": 0.06438743267593856,
+      "inclusive_entropy_bits": 1.922992592199904,
+      "upstream_entropy_bits": 1.8030766215265666,
+      "full_entropy_bits": 2.206822191620293
+    },
+    "lichess_1600_rapid_2026-05": {
+      "tv_full": 0.1254982552031621,
+      "tv_p95_inclusive": 0.1331161529867227,
+      "tv_p95_upstream": 0.14370641336574322,
+      "inclusive_minus_full_tv": 0.007617897783560609,
+      "upstream_minus_inclusive_tv": 0.01059026037902052,
+      "sampler_tv_inclusive_upstream": 0.027169722945186384,
+      "different_cutoff": 0.9842681258549931,
+      "inclusive_model_mass_removed": 0.041144306837413706,
+      "upstream_model_mass_removed": 0.06729335051816002,
+      "inclusive_human_mass_removed": 0.03799286130878375,
+      "upstream_human_mass_removed": 0.06397131057230035,
+      "inclusive_entropy_bits": 1.971005682488403,
+      "upstream_entropy_bits": 1.8512463344132524,
+      "full_entropy_bits": 2.254797872008446
+    },
+    "lichess_1600_rapid_2026-07": {
+      "tv_full": 0.1234008755737823,
+      "tv_p95_inclusive": 0.13151448907788524,
+      "tv_p95_upstream": 0.14171928946279938,
+      "inclusive_minus_full_tv": 0.008113613504102918,
+      "upstream_minus_inclusive_tv": 0.01020480038491415,
+      "sampler_tv_inclusive_upstream": 0.026645637913782997,
+      "different_cutoff": 0.9848584595128373,
+      "inclusive_model_mass_removed": 0.04096789951487137,
+      "upstream_model_mass_removed": 0.06663173407384501,
+      "inclusive_human_mass_removed": 0.03958314834048087,
+      "upstream_human_mass_removed": 0.06464674753600501,
+      "inclusive_entropy_bits": 1.9669216501418427,
+      "upstream_entropy_bits": 1.847716199528742,
+      "full_entropy_bits": 2.251216004766284
+    }
+  }
+}

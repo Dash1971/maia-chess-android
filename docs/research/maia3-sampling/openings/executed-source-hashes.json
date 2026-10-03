@@ -1,0 +1,15 @@
+{
+  "recorded_at": "2026-10-02T10:52:55.143533",
+  "note": "Hashes captured before final analysis; experiment.py is unchanged since the 16-ply rollout launch. model_sensitivity.py gained CLI path plumbing after its executed model comparison, without changing numerical logic.",
+  "source_sha256": {
+    "openings/collect.py": "9939fcebedb3f3de9cf9053c69bf5fcd09c4f9811002fe92cc110ccbfa030d18",
+    "openings/exact_two_ply.py": "8baa401a87c63ff9e7bcbaba2ebdb82c9e1337a4beb1ccf0dc0de4295ae87e1f",
+    "openings/recompute_fixture.py": "dbca98e28e5e54932fef8c0542825403384be26dd502c561668096594d2421e7",
+    "openings/sample_two_ply.py": "1c06122a6b7c2ff39cdf46b0877e396803cf8b903e42582507a4e20faa812104",
+    "openings/experiment.py": "849559bd5dd2f6acc0f8a92d8dede04d6fe3847400026fe9026a711b9bfa09dd",
+    "openings/grid_sensitivity.py": "a8725f0e2192f4d7e03ab6f99b4adef340670e86d11f84c790ee287ffd675c88",
+    "openings/model_sensitivity.py": "3a468b26e38f2af5e665198b7b593973958a337045b7c22ec62d5e02cd44435e",
+    "openings/analyze.py": "1fb754ddc943f01bc7a67b1ae6d2b30d575c3c3c4dc2ccea1a5cc5a6ef82826d",
+    "strength/mobile_policy.py": "8e3f203b9f26b3ce0a7b01b8cf22101a23cb4339306c4f4d3d8df8794cb0bc98"
+  }
+}

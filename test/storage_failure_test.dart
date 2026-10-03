@@ -83,6 +83,8 @@ void main() {
                 .toIso8601String(),
             'data': {
               'type': 'game',
+              'elo': i,
+              'playerIsWhite': i.isEven,
               'pgn': '[Event "Game $i"]\n[Result "*"]\n\n1. e4 *',
             },
           }),
@@ -93,8 +95,8 @@ void main() {
       final recent = await store.recent();
       watch.stop();
       expect(recent, hasLength(1000));
-      expect(recent.first.title, 'Game 999');
-      expect(recent.last.title, 'Game 0');
+      expect(recent.first.title, 'Maia 999 — Player');
+      expect(recent.last.title, 'Player — Maia 0');
       expect((await store.open('game-450'))!['pgn'], contains('Game 450'));
       await store.deleteMany(['game-999', 'game-450', 'game-0']);
       final restarted = SessionRepository(directory);

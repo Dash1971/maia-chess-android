@@ -1,0 +1,58 @@
+{
+  "original_files_identical": 153,
+  "editorial_changes": [
+    "APP-NOTE.md",
+    "PROTOCOL.md",
+    "README.md",
+    "REPORT.md",
+    "build_publication.py",
+    "diagnostics/README.md",
+    "diagnostics/statistical-audit.md",
+    "discord-evidence.md",
+    "figures/first-moves.pdf",
+    "figures/first-moves.png",
+    "figures/first-moves.svg",
+    "figures/match-strength.pdf",
+    "figures/match-strength.png",
+    "figures/match-strength.svg",
+    "figures/opening-distance.pdf",
+    "figures/opening-distance.png",
+    "figures/opening-distance.svg",
+    "first_moves.py",
+    "make_figures.py",
+    "openings.md",
+    "openings/run.json",
+    "openings/source/lichess_1600_blitz_2026-05.json",
+    "openings/source/lichess_1600_rapid_2026-05.json",
+    "openings/source/lichess_1600_rapid_2026-07.json",
+    "openings/summary-5m.json",
+    "openings/summary.json",
+    "strength.md",
+    "strength/portable/README.md"
+  ],
+  "missing_original_files": [],
+  "broken_relative_markdown_links": [],
+  "raw_measurement_files_changed": true,
+  "revision_date": "2026-10-03",
+  "followup_games": 1200,
+  "followup_opening_sequences": 2000,
+  "combined_games": 4200,
+  "combined_opening_sequences": 6001,
+  "in_app_report_url_unchanged": true,
+  "independent_followup_audit": "passed",
+  "report_figures": "PNG visual inspection; PNG/SVG/PDF generated from archived values",
+  "ci_helper_correction": {
+    "file": "followup/strength/check_dart_rules.dart",
+    "change": "Braces around throw; no behavior change",
+    "original_preserved": "followup/strength/check_dart_rules.original.dart.txt",
+    "validation": {
+      "flutter_analyze": "passed (Flutter 3.47.5)",
+      "recorded_dart_cases_identical": 374
+    }
+  },
+  "privacy_redaction": {
+    "scope": "personal filesystem paths in published research text and manifests",
+    "historical_original_hashes": "MEASUREMENT-SHA256SUMS and followup/RAW-SHA256SUMS",
+    "numerical_game_records_changed": false
+  }
+}

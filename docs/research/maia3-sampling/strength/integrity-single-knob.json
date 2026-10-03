@@ -1,0 +1,38 @@
+[
+  {
+    "directory": "79m-temp-only",
+    "games": 300,
+    "plies_checked": 23755,
+    "illegal_moves": 0,
+    "json_pgn_mismatches": 0,
+    "terminations": {
+      "checkmate": 276,
+      "stalemate": 4,
+      "threefold_repetition": 18,
+      "insufficient_material": 2
+    },
+    "color_counts": {
+      "('temp_only', True)": 150,
+      "('temp_only', False)": 150
+    },
+    "manifest_target": 300
+  },
+  {
+    "directory": "79m-topp-only",
+    "games": 300,
+    "plies_checked": 26922,
+    "illegal_moves": 0,
+    "json_pgn_mismatches": 0,
+    "terminations": {
+      "checkmate": 268,
+      "stalemate": 12,
+      "insufficient_material": 6,
+      "threefold_repetition": 14
+    },
+    "color_counts": {
+      "('topp_only', True)": 150,
+      "('topp_only', False)": 150
+    },
+    "manifest_target": 300
+  }
+]

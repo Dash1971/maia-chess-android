@@ -1,0 +1,23 @@
+{
+  "lichess_1600_blitz_2026-05": {
+    "observations": 1600,
+    "different_fraction": 0.8225,
+    "mean_sampler_tv": 0.11328801358848148,
+    "mean_human_tv_change_exclusive_minus_inclusive": 0.09958206004610576,
+    "mean_human_js_change_exclusive_minus_inclusive": 0.08844559169488553
+  },
+  "lichess_1600_rapid_2026-05": {
+    "observations": 1462,
+    "different_fraction": 0.8454172366621067,
+    "mean_sampler_tv": 0.10919056383581213,
+    "mean_human_tv_change_exclusive_minus_inclusive": 0.09583422775393939,
+    "mean_human_js_change_exclusive_minus_inclusive": 0.08601965422786263
+  },
+  "lichess_1600_rapid_2026-07": {
+    "observations": 1519,
+    "different_fraction": 0.8341013824884793,
+    "mean_sampler_tv": 0.11302214477344497,
+    "mean_human_tv_change_exclusive_minus_inclusive": 0.09805675547718885,
+    "mean_human_js_change_exclusive_minus_inclusive": 0.08588506558930285
+  }
+}

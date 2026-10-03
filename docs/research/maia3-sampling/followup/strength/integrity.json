@@ -1,0 +1,62 @@
+{
+  "status": "passed",
+  "games": 1200,
+  "pgn_games": 1200,
+  "distinct_game_ids": 1200,
+  "distinct_rng_seeds": 2400,
+  "p95_white": 600,
+  "p95_black": 600,
+  "illegal_moves": 0,
+  "moves_after_terminal": 0,
+  "result_termination_score_fen_hash_mismatches": 0,
+  "pgn_json_mismatches": 0,
+  "manifest_source_mismatches": 0,
+  "unique_complete_movetexts": 1200,
+  "caps": 0,
+  "terminations": {
+    "checkmate": 1100,
+    "stalemate": 46,
+    "insufficient_material": 19,
+    "threefold_repetition_actual": 34,
+    "fifty_moves_actual": 1
+  },
+  "source_hashes": [
+    {
+      "directory": "<local-workspace>/sampling-followup-20261003/strength/shard0",
+      "manifest_sha256": "438a3d87753198e02b6541f25956a6a318a1ea9c394af4d617d25a2c1593f1f5",
+      "jsonl_sha256": "2136f73af8232500e387dfa61ed781e5a0cdb13e395983197ad85aa4b6d02e6f",
+      "pgn_sha256": "f933c6954f0099cd8867ce4ce103776a15bf1c6eb360e148f2d8c35d63e97ca5"
+    },
+    {
+      "directory": "<local-workspace>/sampling-followup-20261003/strength/shard1",
+      "manifest_sha256": "2a16faa040d407260a296f9b91b34d33c23b9835884aae9469b4972f4bbcc45c",
+      "jsonl_sha256": "ccfcedd035cdab2a2c55132d3afa50f93c931b5cd39e5bc01c2eb76aaf019fba",
+      "pgn_sha256": "b81212bc5090db0c1468d054c8a25bbab159187c4fcb13df1f20f0c7e4b7f917"
+    },
+    {
+      "directory": "<local-workspace>/sampling-followup-20261003/strength/shard2",
+      "manifest_sha256": "5fd907162ac79ecac36f99f8d755657aff0689ba7e7fcd1533322d6db3f86d8c",
+      "jsonl_sha256": "df13fffe68a53ad898687ceb8c1714b51d72ef0b7ecc7a77218280ab499667d7",
+      "pgn_sha256": "3a7755f385ed9bb6c6980e2340cd4c9de5f37c7d3e01e98fe205ad61eecd0111"
+    },
+    {
+      "directory": "<local-workspace>/sampling-followup-20261003/strength/shard3",
+      "manifest_sha256": "a656c0037aa86f534fdda637e248a0427d240bbd18666165abe2c95996cb9f7e",
+      "jsonl_sha256": "0d455d4e4131eb24ea1b26e01ccbf7822312f97734d9d891d4389734b71912db",
+      "pgn_sha256": "d2b0f084cf3e6ca24960e1d1ed89754154b0cc8fb223e162479ff13aaa040579"
+    },
+    {
+      "directory": "<local-workspace>/sampling-followup-20261003/strength/shard4",
+      "manifest_sha256": "4c1205f57abb65e453e487a0e4144b5e5dce5c6a1002180a950a6c8f6146eac8",
+      "jsonl_sha256": "0627a0d62a98c4c562c08394fa40c5aab18e3644321013e28284f10a38758a8b",
+      "pgn_sha256": "46538e380974b4f55b5e13dd545e9858c112f7d139747675700448d7a7309f5f"
+    },
+    {
+      "directory": "<local-workspace>/sampling-followup-20261003/strength/shard5",
+      "manifest_sha256": "1981bc51be17e5d832416c808c859903496a012f61580ccc75364c2bbb1f25ec",
+      "jsonl_sha256": "f198bfd9a6e51c2a1b67a466797ddceddbfc047660db55893d44c86812997e6e",
+      "pgn_sha256": "0194ea6d2265628f4c125b885e25be3871c3d94674262df76a7392ed82f41336"
+    }
+  ],
+  "verifier_sha256": "917a5199779d77c077f1f6c7ad1ffbf90e80c7701f8b8d14bcc8609dec805b98"
+}

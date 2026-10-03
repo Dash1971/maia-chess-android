@@ -1,0 +1,38 @@
+{
+  "79m": {
+    "games": 1800,
+    "unique_ids": 1800,
+    "balanced_colors": true,
+    "raw_WDL_score_and_Elo_match_summary": true
+  },
+  "5m": {
+    "games": 600,
+    "unique_ids": 600,
+    "balanced_colors": true,
+    "raw_WDL_score_and_Elo_match_summary": true
+  },
+  "single-knob": {
+    "games": 600,
+    "unique_ids": 600,
+    "balanced_colors": true,
+    "raw_WDL_score_and_Elo_match_summary": true
+  },
+  "79m-app-draw": {
+    "games": 1800,
+    "unique_ids": 1800,
+    "balanced_colors": true,
+    "raw_WDL_score_and_Elo_match_summary": true
+  },
+  "5m-app-draw": {
+    "games": 600,
+    "unique_ids": 600,
+    "balanced_colors": true,
+    "raw_WDL_score_and_Elo_match_summary": true
+  },
+  "single-knob-app-draw": {
+    "games": 600,
+    "unique_ids": 600,
+    "balanced_colors": true,
+    "raw_WDL_score_and_Elo_match_summary": true
+  }
+}

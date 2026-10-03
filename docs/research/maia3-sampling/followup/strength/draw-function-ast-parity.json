@@ -1,0 +1,12 @@
+{
+  "status": "passed",
+  "functions": [
+    "key",
+    "app_outcome"
+  ],
+  "AST_identical": true,
+  "sources": [
+    "sampling-research-20261002/strength/portable/app_draw_sensitivity.py",
+    "sampling-followup-20261003/strength/app_rules.py"
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "status": "passed",
+  "observations": 4581,
+  "legal_support_and_probability_sums": 4581,
+  "independent_cutoff_max_difference": 2.220446049250313e-16,
+  "metric_max_difference": 0.0,
+  "fresh_first_two_ply_max_probability_difference": 1.1102230246251565e-16,
+  "fresh_model_calls": 6,
+  "model_sha256": "3454b03ae78baa64a87b345fdb1a457265d912caec531039b074f07eda0d8010",
+  "seconds": 16.28226089477539,
+  "script_sha256": "6e3e2b62486869136d4353b3ee77b5ba29e966087d19cbe43fad70629a20ce94"
+}

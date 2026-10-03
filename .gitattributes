@@ -1,1 +1,28 @@
 assets/models/maia3-79m.onnx filter=lfs diff=lfs merge=lfs -text
+
+# Recorded research data remain downloadable; avoid enormous generated PR diffs.
+docs/research/maia3-sampling/diagnostics/metrics.csv -diff linguist-generated=true
+docs/research/maia3-sampling/diagnostics/raw.jsonl -diff linguist-generated=true
+docs/research/maia3-sampling/openings/conditional-5m.json -diff linguist-generated=true
+docs/research/maia3-sampling/openings/conditional.json -diff linguist-generated=true
+docs/research/maia3-sampling/openings/cutoff-sensitivity.json -diff linguist-generated=true
+docs/research/maia3-sampling/openings/human-sample.json -diff linguist-generated=true
+docs/research/maia3-sampling/openings/rollouts.json -diff linguist-generated=true
+docs/research/maia3-sampling/strength/5m/games.jsonl -diff linguist-generated=true
+docs/research/maia3-sampling/strength/5m/games.pgn -diff linguist-generated=true
+docs/research/maia3-sampling/strength/5m-app-draw/games.jsonl -diff linguist-generated=true
+docs/research/maia3-sampling/strength/5m-app-draw/games.pgn -diff linguist-generated=true
+docs/research/maia3-sampling/strength/79m-app-draw/games.jsonl -diff linguist-generated=true
+docs/research/maia3-sampling/strength/79m-app-draw/games.pgn -diff linguist-generated=true
+docs/research/maia3-sampling/strength/79m-pair0/games.jsonl -diff linguist-generated=true
+docs/research/maia3-sampling/strength/79m-pair0/games.pgn -diff linguist-generated=true
+docs/research/maia3-sampling/strength/79m-pair1/games.jsonl -diff linguist-generated=true
+docs/research/maia3-sampling/strength/79m-pair1/games.pgn -diff linguist-generated=true
+docs/research/maia3-sampling/strength/79m-pair2/games.jsonl -diff linguist-generated=true
+docs/research/maia3-sampling/strength/79m-pair2/games.pgn -diff linguist-generated=true
+docs/research/maia3-sampling/strength/79m-single-knob-app-draw/games.jsonl -diff linguist-generated=true
+docs/research/maia3-sampling/strength/79m-single-knob-app-draw/games.pgn -diff linguist-generated=true
+docs/research/maia3-sampling/figures/* linguist-generated=true
+docs/research/maia3-sampling/**/*.json linguist-generated=true
+docs/research/maia3-sampling/**/*.pgn -diff linguist-generated=true
+docs/research/maia3-sampling/**/*.diff -whitespace
