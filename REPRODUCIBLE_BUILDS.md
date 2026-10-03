@@ -1,5 +1,9 @@
 # Reproducible Android builds
 
+For the required publication sequence and combined qualification gate, start
+with [the release procedure](docs/RELEASING.md). This document explains build
+mechanics; a reproducible build alone is not publication approval.
+
 Mobile Maia's Android release build is reproducible when the same source
 revision, Flutter SDK, Java runtime, Android SDK, host operating-system family,
 and locked Dart dependencies are used.

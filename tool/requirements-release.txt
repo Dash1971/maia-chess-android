@@ -1,0 +1,3 @@
+# Release qualification only; never an application dependency.
+PyYAML==6.0.2
+apksigcopier==1.1.1

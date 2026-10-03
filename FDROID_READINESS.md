@@ -1,5 +1,9 @@
 # F-Droid readiness
 
+For future releases, follow [docs/RELEASING.md](docs/RELEASING.md). The records
+below describe the 2.2.2 preparation checkpoint; they are not live upstream
+status. Final 2.2.2 qualification and publication evidence is on its GitHub release.
+
 This is a status record, not a publication approval. The Preview package is not
 part of the Stable submission. Updating this repository's review recipe does
 not update F-Droid's canonical metadata or publish an app.

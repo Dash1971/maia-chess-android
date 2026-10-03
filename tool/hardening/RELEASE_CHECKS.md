@@ -1,5 +1,9 @@
 # Repeatable release verification
 
+Start with [the authoritative release procedure](../../docs/RELEASING.md) for
+publication order, F-Droid status, signing and the combined evidence gate. This
+document provides the detailed test commands used by that procedure.
+
 These tools run on macOS or Linux. They accept paths and package/version
 information as arguments; no developer home directory or private download is
 required. Run them from the repository root. Python tooling does not add an
@@ -38,12 +42,13 @@ tag again before publication:
 
 ```sh
 python3 tool/check_release_source.py --ref "$release_sha"
-test "$(git rev-parse 'v2.2.2^{commit}')" = "$release_sha"
-python3 tool/check_release_source.py --ref v2.2.2
+# After qualification and publication, using this candidate's release_tag:
+test "$(git rev-parse "${release_tag}^{commit}")" = "$release_sha"
+python3 tool/check_release_source.py --ref "$release_tag"
 ```
 
-The version above is an example for the proposed maintenance release, not an
-instruction to create that tag before qualification. The check verifies
+Use the version/tag for the actual candidate; never create a tag merely to
+satisfy this check before qualification. The check verifies
 presence and limits, not whether text and screenshots accurately reflect the
 release: that still requires reviewing the listing against the app.
 
@@ -70,7 +75,7 @@ documentation cleanup.
 
 ```sh
 python3 -m venv /tmp/maia-release-venv
-/tmp/maia-release-venv/bin/pip install -r tool/hardening/requirements.txt
+/tmp/maia-release-venv/bin/pip install -r tool/hardening/requirements.txt -r tool/requirements-release.txt
 /tmp/maia-release-venv/bin/python -m unittest discover -s tool -p '*_test.py'
 ```
 
