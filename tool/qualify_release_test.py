@@ -257,6 +257,8 @@ class QualificationWiringTest(unittest.TestCase):
     def test_full_gate_binds_files_source_ci_recipe_and_signature(self):
         result = qualify(self.args)
         self.assertEqual(result['status'], 'passed')
+        self.assertIn('qualified_at', result)
+        self.assertIn('qualify_release.py', result['verification_tool_hashes'])
         self.assertTrue(self.packaging_called)
         self.assertEqual(result['operator_review']['upstream_status'], 'blocked')
         self.assertEqual(result['apk_hashes']['signed_apk'], file_digest(self.root / 'signed_apk'))

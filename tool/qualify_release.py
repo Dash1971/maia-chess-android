@@ -226,13 +226,18 @@ def qualify(args):
     require(latest_source['encoding'] == 'base64', 'Cannot read published source version.')
     check_version_history(version, code, sha, hashes['signed_apk'], latest,
                           base64.b64decode(latest_source['content']).decode(), tag_commit)
-    return {'status': 'passed', 'source_commit': sha, 'version': version, 'version_code': code,
+    return {'status': 'passed', 'qualified_at': datetime.now(timezone.utc).isoformat(),
+            'source_commit': sha, 'version': version, 'version_code': code,
             'ci_run': info['html_url'], 'canonical_metadata': canonical_url,
             'canonical_matches_current': True,
             'published_version_and_tag_checks': 'passed',
             'buildserver_image': evidence['buildserver_image'],
             'fdroidserver_commit': evidence['fdroidserver_commit'], 'apk_hashes': hashes,
             'evidence_sha256': manifest_hash, 'evidence_file_hashes': file_hashes,
+            'verification_tool_hashes': {name: file_digest(Path(__file__).parent / name) for name in
+                                        ('qualify_release.py', 'check_release_source.py',
+                                         'verify_release_apk.py', 'release_common.py', 'verify_model.py',
+                                         'requirements-release.txt')},
             'operator_review': evidence['review'], 'apk_verification': apk,
             'signature_reconstruction': 'byte-identical',
             'scope': 'Prepublication qualification only. No tag, upload, or store publication performed.'}
@@ -244,6 +249,8 @@ def main():
     parser.add_argument('--output', type=Path, required=True)
     sdk_arguments(parser)
     args = parser.parse_args()
+    if args.output.resolve() == args.evidence.resolve():
+        parser.error('Output must be separate from the evidence manifest.')
     if args.output.exists() or args.output.is_symlink():
         parser.error('Choose a new output path; existing files are never overwritten.')
     try:
