@@ -723,7 +723,120 @@ void main() {
     await tester.pump();
     await tester.pumpWidget(const MaiaChessApp());
     await tester.pumpAndSettle();
-    expect(find.text('Maia rating: 2200'), findsOneWidget);
+    expect(find.text('Play Maia rating: 2200'), findsOneWidget);
+  });
+
+  testWidgets(
+    'Continue from here uses home play defaults, not analysis rating',
+    (tester) async {
+      SharedPreferences.setMockInitialValues({
+        maiaPlayEloPreferenceKey: 2200,
+        maiaPlaySidePreferenceKey: PlayerSide.black.name,
+        maiaTimePresetPreferenceKey: TimePreset.custom.name,
+        maiaCustomMinutesPreferenceKey: 12,
+        maiaCustomIncrementPreferenceKey: 4,
+      });
+      await tester.pumpWidget(
+        MaterialApp(
+          home: AnalysisBoardPage(
+            initialSession: AnalysisSession.fromFen(
+              'rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1',
+            ),
+            maiaElo: 1600,
+            evaluator: (_) async => const StockfishReview(0, 'e2e4'),
+            maiaEvaluator: (_, _) async => null,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('analysis-actions-menu')));
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text('Continue from here'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Continue from here'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Play Maia rating: 2200'), findsOneWidget);
+      expect(find.text('Minutes: 12'), findsOneWidget);
+      expect(find.text('Increment: 4 seconds'), findsOneWidget);
+      expect(
+        tester
+            .widget<DropdownButtonFormField<PlayerSide>>(
+              find.byKey(const ValueKey('continuation-side')),
+            )
+            .initialValue,
+        PlayerSide.black,
+      );
+      tester
+          .widget<Slider>(find.byKey(const ValueKey('continuation-rating')))
+          .onChanged!(2000);
+      await tester.pump();
+      await tester.tap(find.byKey(const ValueKey('continuation-start-game')));
+      await tester.pumpAndSettle();
+
+      final game = tester.widget<GamePage>(find.byType(GamePage));
+      expect(game.startingElo, 2000);
+      expect(game.startingSide, PlayerSide.black);
+      expect(game.startingTimePreset, TimePreset.custom);
+      expect(game.startingCustomMinutes, 12);
+      expect(game.startingCustomIncrement, 4);
+      final activeGame = await ActiveSessionStore.load();
+      expect(activeGame?['elo'], 2000);
+      expect(activeGame?['timePreset'], 'custom');
+      expect(activeGame?['customMinutes'], 12);
+      expect(activeGame?['customIncrement'], 4);
+      final preferences = await SharedPreferences.getInstance();
+      expect(preferences.getInt(maiaPlayEloPreferenceKey), 2200);
+      expect(preferences.getString(maiaTimePresetPreferenceKey), 'custom');
+    },
+  );
+
+  testWidgets('Continue from here can override the clock for one game', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues({
+      maiaPlaySidePreferenceKey: PlayerSide.black.name,
+      maiaTimePresetPreferenceKey: TimePreset.unlimited.name,
+    });
+    await tester.pumpWidget(
+      MaterialApp(
+        home: AnalysisBoardPage(
+          initialSession: AnalysisSession.fromFen(
+            'rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1',
+          ),
+          maiaElo: 1600,
+          evaluator: (_) async => const StockfishReview(0, 'e2e4'),
+          maiaEvaluator: (_, _) async => null,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('analysis-actions-menu')));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Continue from here'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Continue from here'));
+    await tester.pumpAndSettle();
+    tester
+        .widget<DropdownButtonFormField<TimePreset>>(
+          find.byKey(const ValueKey('continuation-time-control')),
+        )
+        .onChanged!(TimePreset.blitzFive);
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('continuation-start-game')));
+    await tester.pumpAndSettle();
+
+    expect(
+      tester.widget<GamePage>(find.byType(GamePage)).startingTimePreset,
+      TimePreset.blitzFive,
+    );
+    final activeGame = await ActiveSessionStore.load();
+    expect(activeGame?['timePreset'], TimePreset.blitzFive.name);
+    final preferences = await SharedPreferences.getInstance();
+    expect(
+      preferences.getString(maiaTimePresetPreferenceKey),
+      TimePreset.unlimited.name,
+    );
   });
 
   testWidgets('second Maia engine settings persist across app restarts', (

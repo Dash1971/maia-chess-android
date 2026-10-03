@@ -54,6 +54,9 @@ class GamePage extends StatefulWidget {
     this.startingFen,
     this.startingSide,
     this.startingElo,
+    this.startingTimePreset,
+    this.startingCustomMinutes,
+    this.startingCustomIncrement,
     this.maiaEvaluator,
     this.drawEvaluator,
     this.electronicBoardTransport,
@@ -68,6 +71,9 @@ class GamePage extends StatefulWidget {
   final String? startingFen;
   final PlayerSide? startingSide;
   final int? startingElo;
+  final TimePreset? startingTimePreset;
+  final int? startingCustomMinutes;
+  final int? startingCustomIncrement;
   final Future<Float32List> Function(List<String> positions, int elo)?
   maiaEvaluator;
   final Future<StockfishReview> Function(String fen)? drawEvaluator;
@@ -926,9 +932,10 @@ class _GamePageState extends State<GamePage>
       _preferredCustomIncrement = savedCustomIncrement;
       _timePreset = _useChessnutGo
           ? TimePreset.unlimited
-          : _preferredTimePreset;
-      _customMinutes = _preferredCustomMinutes;
-      _customIncrement = _preferredCustomIncrement;
+          : (widget.startingTimePreset ?? _preferredTimePreset);
+      _customMinutes = widget.startingCustomMinutes ?? _preferredCustomMinutes;
+      _customIncrement =
+          widget.startingCustomIncrement ?? _preferredCustomIncrement;
       _humanTiming = humanTiming;
       _premovesEnabled = premovesEnabled;
       _premovePenalty = premovePenalty;
@@ -3595,7 +3602,7 @@ class _GamePageState extends State<GamePage>
               },
             ),
             const SizedBox(height: 16),
-            Text('Maia rating: $_elo'),
+            Text('Play Maia rating: $_elo'),
             Slider(
               min: 500,
               max: 2500,
