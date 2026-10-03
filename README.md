@@ -5,7 +5,7 @@ human-like [Maia-3](https://github.com/CSSLab/maia3) model and reviewing games
 with Maia and Stockfish. The model, engines, opening data, games, and analysis
 all stay on the phone and work without an account or Internet connection.
 
-Choose a Maia level from 500 to 2500, compare the move a person is likely to
+Choose a Maia level from 600 to 2600, compare the move a person is likely to
 play with Stockfish's best move, or run a complete game review without a daily
 quota. Mobile Maia is an independent community project released under
 AGPL-3.0-only.

@@ -4,7 +4,7 @@
 
 <p>Play:</p>
 <ul>
-<li>Choose White, Black, or a random side and a Play Maia rating from 500 to 2500</li>
+<li>Choose White, Black, or a random side and a Play Maia rating from 600 to 2600</li>
 <li>Use unlimited play, clock presets, or custom minutes and increment</li>
 <li>Adjust human-like move timing, Temperature, and Top-P</li>
 <li>Use single or multiple premoves, with an optional 100 ms penalty</li>

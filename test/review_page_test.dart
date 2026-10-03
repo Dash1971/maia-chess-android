@@ -889,7 +889,7 @@ void main() {
     'multiplePremoves': 0,
     'temperatureV2': -0.1,
     'topPV2': 1.1,
-    'analysisElo': 2500,
+    'analysisElo': 2700,
     secondMaiaEnabledPreferenceKey: 'true',
     secondMaiaEloPreferenceKey: 400,
     gameAnalysisQualityPreferenceKey: 'unsupported',

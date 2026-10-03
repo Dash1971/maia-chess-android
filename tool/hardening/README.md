@@ -25,6 +25,12 @@ The queue stress test uses 1,000 seeded operations with cancellation, background
 work, suspension, resumption, and simulated native errors. It checks that every
 request settles and native execution remains serial.
 
+`test/maia_rating_range_test.dart` checks the 600–2600 rating bounds for Play,
+both analysis controls, and Continue from here; saved-default migration from
+500 to 600; persistence across restart; malformed preferences; legacy game
+restoration; and the ratings sent to the Maia platform channel. These widget
+tests exercise app configuration, not the model’s calibrated playing strength.
+
 ## Independent chess oracle
 
 ```sh

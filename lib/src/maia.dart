@@ -1,5 +1,53 @@
 part of '../main.dart';
 
+const maiaMinimumRating = 600;
+const maiaMaximumRating = 2600;
+const maiaRatingStep = 100;
+const maiaRatingDivisions =
+    (maiaMaximumRating - maiaMinimumRating) ~/ maiaRatingStep;
+
+int normalizeMaiaRating(int rating) =>
+    rating.clamp(maiaMinimumRating, maiaMaximumRating);
+
+int? _decodeMaiaRating(Object? value) {
+  if (value is! int) return null;
+  if (value == 500) return maiaMinimumRating;
+  return value >= maiaMinimumRating && value <= maiaMaximumRating
+      ? value
+      : null;
+}
+
+int _readMaiaRatingPreference(
+  SharedPreferences preferences,
+  String key, {
+  required int fallback,
+}) {
+  final rating = _readValidatedPreference<int>(
+    preferences,
+    key,
+    fallback: fallback,
+    decode: (value) {
+      if (value is int && value == 500) {
+        unawaited(_migrateMaiaRatingPreference(preferences, key));
+        return maiaMinimumRating;
+      }
+      return _decodeMaiaRating(value);
+    },
+  );
+  return rating;
+}
+
+Future<void> _migrateMaiaRatingPreference(
+  SharedPreferences preferences,
+  String key,
+) async {
+  try {
+    await preferences.setInt(key, maiaMinimumRating);
+  } catch (error, stackTrace) {
+    await AppDiagnostics.record('preference-migrate:$key', error, stackTrace);
+  }
+}
+
 class MaiaMoveProbability {
   const MaiaMoveProbability({required this.uci, required this.probability});
 
