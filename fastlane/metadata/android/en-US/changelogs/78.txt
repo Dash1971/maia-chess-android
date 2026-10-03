@@ -1,0 +1,3 @@
+Mobile Maia 2.2.1 removes an unrelated research ZIP from the release source so
+F-Droid can scan and build the app automatically. App features and saved-game
+behavior are unchanged from 2.2.0.

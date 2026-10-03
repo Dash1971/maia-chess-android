@@ -1,0 +1,4 @@
+Mobile Maia 2.2.0 adds a second Maia rating in analysis, optional game sounds
+and haptics, clearer full-game review and Recent games, and a Continue from here
+setup dialog. New and reset games use wider-opening sampling defaults. Saved-game
+recovery and offline engine reliability are improved.
