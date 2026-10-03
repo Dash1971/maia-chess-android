@@ -10,15 +10,25 @@ play with Stockfish's best move, or run a complete game review without a daily
 quota. Mobile Maia is an independent community project released under
 AGPL-3.0-only.
 
-Download Mobile Maia from its
-[official F-Droid package page](https://f-droid.org/packages/com.dash1971.maia_chess/).
+Download Stable 2.2.0 from the
+[GitHub release](https://github.com/Dash1971/maia-chess-android/releases/tag/v2.2.0).
+The [official F-Droid package page](https://f-droid.org/packages/com.dash1971.maia_chess/)
+also provides updates after its separate reproducible-build process completes.
 
-## Mobile Maia 2.1
+## Mobile Maia 2.2
 
-Version 2.1 adds experimental Chessnut support, multiple premoves, endgame
-draw offers, remembered setup, three full-game analysis presets, historical
-clocks, standard timed-PGN annotations, and stronger game and variation
-recovery. See the [complete 2.1 release notes](docs/release-notes/v2.1.0.md).
+Version 2.2 brings Stockfish 19 Light, faster default full-game reviews,
+clearer move classifications and game feedback, stronger recovery and Chessnut
+diagnostics, and a **Continue from here** setup dialog for playing from an
+Analysis Board position. New games now default to **Temperature 1.00 / Top-P
+1.00** for a wider range of Maia openings; valid saved choices are preserved.
+The [sampling report](docs/research/maia3-sampling/REPORT.md) explains the
+strength-versus-variety tradeoff.
+
+Version 2.1 introduced experimental Chessnut support, multiple premoves,
+endgame draw offers, remembered setup, full-game analysis presets, historical
+clocks, timed-PGN annotations, and stronger game and variation recovery. See
+the [complete 2.1 release notes](docs/release-notes/v2.1.0.md).
 
 Active development continues in the separate
 [Mobile Maia Preview repository](https://github.com/Dash1971/maia-chess-android-preview).
@@ -30,14 +40,15 @@ this stable blue-icon app.
 ### Choose a game or analysis workflow
 
 <p align="center">
-  <img src="docs/screenshots/20260906_v0_home_setup.jpg" width="42%" alt="Mobile Maia home screen with side, rating, clock, Analysis Board, Recent games, and Open PGN controls">
+  <img src="docs/screenshots/20261003_v0_stable_2_2_home.png" width="42%" alt="Stable 2.2 home screen with Play Maia rating, side, clock, Chessnut toggle, Analysis Board, Recent games, and Settings">
 </p>
 
 The home screen is the starting point for every workflow. Play as White, Black,
-or a random side; choose a preset or custom Maia rating; then start a game.
+or a random side; choose a preset or custom **Play Maia rating**; then start a game.
 **Analysis Board** opens a free-form position, **Recent games** restores saved
-work, and **Open PGN file** imports a game from Android. Your side, rating,
-clock, custom time values, and advanced settings are remembered locally.
+work, and PGN files can be imported through Analysis Board or Android's Open
+with action. Your side, rating, clock, custom time values, and advanced settings
+are remembered locally.
 
 ### Time controls
 
@@ -54,16 +65,17 @@ millisecond precision; unlimited games do not invent clock data.
 ### Advanced play and review settings
 
 <p align="center">
-  <img src="docs/screenshots/20260906_v0_advanced_settings.jpg" width="42%" alt="Earlier settings screen showing custom sampling values 0.50/0.90, premoves, timing, review rating, quality, and diagnostics">
+  <img src="docs/screenshots/20261003_v0_stable_2_2_engine_settings.png" width="42%" alt="Stable 2.2 engine settings showing Temperature 1.00, Top-P 1.00, Maia analysis rating, and Fast review quality">
 </p>
-
-The screenshot above shows earlier settings; its 0.50/0.90 sampling values are now custom choices.
 
 Advanced settings control premoves, an optional exact 100 ms premove charge,
 multiple queued premoves, human-like Maia timing, Temperature, Top-P, the Maia
-rating used during review, and full-game analysis quality. **Thorough** is the
-default; **Balanced** and **Fast** reduce review time by using shorter
-Stockfish searches. **Copy diagnostics** creates a privacy-safe local report
+rating used during review, and full-game analysis quality. **Fast** is the
+new-game and reset default; **Balanced** and **Thorough** offer deeper
+Stockfish searches. Existing saved quality choices are preserved. An inline
+reminder appears when either sampling control differs from 1.00; the
+information button explains the tradeoff and links to the research report.
+**Copy diagnostics** creates a privacy-safe local report
 for troubleshooting and never uploads it automatically.
 
 ### Maia sampling
@@ -169,7 +181,7 @@ welcome. Timed board games, USB, and Analysis Board input are not yet supported.
 ### Analysis Board
 
 <p align="center">
-  <img src="docs/screenshots/20260906_v0_analysis_board.jpg" width="42%" alt="Analysis Board at the starting position with offline Stockfish and Maia suggestions">
+  <img src="docs/screenshots/20261003_v0_stable_2_2_analysis_board.png" width="42%" alt="Stable 2.2 Analysis Board at the starting position with offline Stockfish lines and Maia move probabilities">
 </p>
 
 Use **Analysis Board** to explore without starting a game. Stockfish supplies
@@ -199,9 +211,17 @@ quick result and then refines the same selected position.
 
 The actions sheet loads FEN or PGN text, opens a PGN file, clears the move tree,
 opens the graphical board editor, or starts a Maia game from the current
-position. **Continue from here** lets you choose White, Black, or a random side
-and confirms whose turn it is. In the editor, select a piece and tap a square to
-add it, or tap the same piece on the board to remove it; side to move and
+position. **Continue from here** opens a one-game setup dialog for side, Play
+Maia rating, and clock, including custom minutes and increment. It begins with
+your saved Home choices, but changes in the dialog do not overwrite them; the
+dialog also confirms whose turn it is.
+
+<p align="center">
+  <img src="docs/screenshots/20261003_v0_stable_2_2_continue_setup.png" width="42%" alt="Stable 2.2 Continue from here dialog with side, Play Maia rating, and time control">
+</p>
+
+In the editor, select a piece and tap a square to add it, or tap the same
+piece on the board to remove it; side to move and
 castling rights are editable too.
 
 ### Save and share analysis
@@ -341,7 +361,7 @@ Maia releases. Android may ask you to confirm each update.
 
 ## Build
 
-Requirements: **Flutter 3.47.1** (pinned in `.fvmrc`), JDK 17, Android SDK 36,
+Requirements: **Flutter 3.47.5** (pinned in `.fvmrc`), JDK 17, Android SDK 36,
 Python 3, and Git LFS. Use the locked dependencies. A GitHub source ZIP contains
 an LFS pointer rather than the 316 MB Maia model, so clone with Git LFS:
 
