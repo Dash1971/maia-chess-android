@@ -10,8 +10,8 @@ play with Stockfish's best move, or run a complete game review without a daily
 quota. Mobile Maia is an independent community project released under
 AGPL-3.0-only.
 
-Download Stable 2.2.1 from the
-[GitHub release](https://github.com/Dash1971/maia-chess-android/releases/tag/v2.2.1).
+Download the latest Stable APK from
+[GitHub releases](https://github.com/Dash1971/maia-chess-android/releases/latest).
 The [official F-Droid package page](https://f-droid.org/packages/com.dash1971.maia_chess/)
 also provides updates after its separate reproducible-build process completes.
 

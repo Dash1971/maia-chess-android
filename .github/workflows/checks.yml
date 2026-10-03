@@ -20,8 +20,8 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - name: Check release source and Fastlane changelog
-        run: python3 tool/check_release_source.py
+      - name: Check committed release source and Fastlane listing
+        run: python3 tool/check_release_source.py --ref HEAD
       - name: Install pinned Flutter
         run: |
           git clone --depth 1 --branch 3.47.5 https://github.com/flutter/flutter.git "$RUNNER_TEMP/flutter"
@@ -42,8 +42,8 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           lfs: true
-      - name: Check release source and Fastlane changelog
-        run: python3 tool/check_release_source.py
+      - name: Check committed release source and Fastlane listing
+        run: python3 tool/check_release_source.py --ref HEAD
       - name: Verify requested source commit
         shell: bash
         env:
