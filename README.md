@@ -10,8 +10,8 @@ play with Stockfish's best move, or run a complete game review without a daily
 quota. Mobile Maia is an independent community project released under
 AGPL-3.0-only.
 
-Download Stable 2.2.0 from the
-[GitHub release](https://github.com/Dash1971/maia-chess-android/releases/tag/v2.2.0).
+Download Stable 2.2.1 from the
+[GitHub release](https://github.com/Dash1971/maia-chess-android/releases/tag/v2.2.1).
 The [official F-Droid package page](https://f-droid.org/packages/com.dash1971.maia_chess/)
 also provides updates after its separate reproducible-build process completes.
 
@@ -236,6 +236,20 @@ dataset supplies offline ECO codes, detailed variation names, and
 transposition-aware matching. Interactive Stockfish analysis first returns a
 quick result and then refines the same selected position.
 
+### Why Stockfish 19 Light?
+
+Mobile Maia bundles Stockfish 19 Light through Lichess multistockfish 0.6.1.
+The move from the older Stockfish 16 integration followed a reproducible native
+crash when an engine was stopped and restarted. The package upgrade and
+per-engine handle lifecycle addressed that crash; choosing Light also keeps a
+small NNUE in the app so analysis and full-game review work immediately and
+entirely offline, without a separate download or setup. Bundling a full NNUE
+for everyone would increase the app's download and storage footprint. Light
+remains the default and offline fallback. An explicitly opt-in full Stockfish 19
+NNUE is a separate proposal, subject to quality, device-performance, storage,
+file-integrity, privacy, reproducibility, and F-Droid checks
+([Preview issue #52](https://github.com/Dash1971/maia-chess-android-preview/issues/52)).
+
 ### Load, edit, continue, and clear positions
 
 <p align="center">
@@ -356,9 +370,10 @@ contains several games.
 </p>
 
 The app has no accounts, ads, subscriptions, tracking, or network dependency.
-The bundled Maia-3 79M model makes the APK approximately 525 MiB, but also keeps
-play and analysis on the device. The About screen shows the installed version,
-AGPL terms, warranty notice, source and licence links, and upstream credits.
+The Stable 2.2.1 APK is 455,572,907 bytes (about 434.5 MiB). It bundles the
+Maia-3 79M model so play and analysis stay on the device. The About screen
+shows the installed version, AGPL terms, warranty notice, source and licence
+links, and upstream credits.
 
 Diagnostics are pruned to at most 14 days, 40 entries, 8,000 characters per
 entry, and 128,000 characters total. They may include app, Android, hardware,
