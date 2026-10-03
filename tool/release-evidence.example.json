@@ -1,0 +1,25 @@
+{
+  "schema": 1,
+  "source_commit": "REPLACE_WITH_FULL_RELEASE_SOURCE_SHA",
+  "ci_run_id": 0,
+  "ci_unsigned_apk": "ci/app-release.apk",
+  "fdroid_unsigned_apk": "independent/app-release.apk",
+  "signed_apk": "signed/Mobile-Maia.apk",
+  "fdroid_recipe": "independent/com.dash1971.maia_chess.yml",
+  "fdroid_log": "independent/build.log",
+  "fdroid_exit_code": "independent/exit-code",
+  "canonical_fdroiddata_commit": "REPLACE_WITH_CANONICAL_METADATA_REPOSITORY_SHA",
+  "buildserver_image": "registry.gitlab.com/fdroid/fdroidserver@sha256:REPLACE_WITH_IMAGE_DIGEST",
+  "fdroidserver_commit": "REPLACE_WITH_FDROIDSERVER_SHA",
+  "review": {
+    "source_commit": "REPLACE_WITH_FULL_RELEASE_SOURCE_SHA",
+    "checked_at": "REPLACE_WITH_ISO_TIMESTAMP_WITH_TIMEZONE",
+    "listing_matches_app": false,
+    "source_publication_reviewed": false,
+    "upstream_status": "unknown",
+    "failed_version_codes": [],
+    "upstream_evidence_url": "https://gitlab.com/fdroid/fdroiddata/-/merge_requests",
+    "notes": "Replace with the inspected request/pipeline, retained old build blocks, and any required maintainer action.",
+    "test_scope": "Replace with tests performed for this source and explicit device/upgrade testing limits."
+  }
+}

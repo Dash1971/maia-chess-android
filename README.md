@@ -455,7 +455,9 @@ python3 tool/verify_release_apk.py \
   --output release-checks/apk.json
 ```
 
-The [release verification guide](tool/hardening/RELEASE_CHECKS.md) includes
+Maintainers and coding agents should start with the
+[release procedure and qualification gate](docs/RELEASING.md) before signing,
+tagging, or publishing. The [release verification guide](tool/hardening/RELEASE_CHECKS.md) includes
 portable APK checks, sanitized saved-game upgrade fixtures, emulator commands,
 and CI artifact retention. See the [hardening guide](tool/hardening/README.md)
 for the full regression suites and independent chess/variation corpora.

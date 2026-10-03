@@ -14,7 +14,7 @@ flutter pub get --enforce-lockfile
 flutter analyze
 flutter test --reporter expanded
 python3 -m venv /tmp/maia-release-venv
-/tmp/maia-release-venv/bin/pip install -r tool/hardening/requirements.txt
+/tmp/maia-release-venv/bin/pip install -r tool/hardening/requirements.txt -r tool/requirements-release.txt
 /tmp/maia-release-venv/bin/python -m unittest discover -s tool -p '*_test.py'
 ```
 
