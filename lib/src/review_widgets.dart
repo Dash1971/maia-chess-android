@@ -35,31 +35,221 @@ class ClassifiedMove {
   bool get whiteMoved => moverIsWhite ?? ply.isOdd;
 }
 
+class MoveClassificationCancelled implements Exception {
+  const MoveClassificationCancelled();
+}
+
+class _MoveClassificationRequest {
+  const _MoveClassificationRequest(
+    this.reply,
+    this.scores,
+    this.positions,
+    this.uciMoves,
+    this.requireReliableComparisons,
+    this.materialCache,
+  );
+
+  final SendPort reply;
+  final List<StockfishReview> scores;
+  final List<String> positions;
+  final List<String> uciMoves;
+  final bool requireReliableComparisons;
+  final Map<String, int> materialCache;
+}
+
+void _runMoveClassification(_MoveClassificationRequest request) {
+  final materialCache = Map<String, int>.of(request.materialCache);
+  final result = MoveClassifier.classify(
+    scores: request.scores,
+    positions: request.positions,
+    uciMoves: request.uciMoves,
+    requireReliableComparisons: request.requireReliableComparisons,
+    materialCache: materialCache,
+  );
+  request.reply.send([0, result, materialCache]);
+}
+
+/// Owns an isolate so leaving Review can stop an unfinished capture search.
+class MoveClassificationJob {
+  MoveClassificationJob._(this._messages) {
+    _subscription = _messages?.listen(_onMessage);
+  }
+
+  final ReceivePort? _messages;
+  final Completer<List<ClassifiedMove>> _result = Completer();
+  final Completer<void> _started = Completer();
+  final Completer<void> _terminated = Completer();
+  StreamSubscription<dynamic>? _subscription;
+  Isolate? _isolate;
+  bool _cancelled = false;
+  Map<String, int> _materialCache = const {};
+
+  Future<List<ClassifiedMove>> get result => _result.future;
+  Future<void> get started => _started.future;
+  Future<void> get terminated => _terminated.future;
+
+  /// Per-run material values, available once [result] completes successfully.
+  Map<String, int> get materialCache => _materialCache;
+
+  static MoveClassificationJob completed(
+    List<ClassifiedMove> result, {
+    Map<String, int>? materialCache,
+  }) {
+    final job = MoveClassificationJob._(null);
+    job._materialCache = Map.unmodifiable(materialCache ?? const {});
+    job._result.complete(result);
+    job._started.complete();
+    job._terminated.complete();
+    return job;
+  }
+
+  static MoveClassificationJob spawn({
+    required List<StockfishReview> scores,
+    required List<String> positions,
+    required List<String> uciMoves,
+    bool requireReliableComparisons = true,
+    Map<String, int>? materialCache,
+  }) {
+    final job = MoveClassificationJob._(ReceivePort());
+    unawaited(
+      job._spawn(
+        scores,
+        positions,
+        uciMoves,
+        requireReliableComparisons,
+        Map.of(materialCache ?? const {}),
+      ),
+    );
+    return job;
+  }
+
+  Future<void> _spawn(
+    List<StockfishReview> scores,
+    List<String> positions,
+    List<String> uciMoves,
+    bool requireReliableComparisons,
+    Map<String, int> materialCache,
+  ) async {
+    try {
+      final port = _messages!.sendPort;
+      final isolate = await Isolate.spawn<_MoveClassificationRequest>(
+        _runMoveClassification,
+        _MoveClassificationRequest(
+          port,
+          scores,
+          positions,
+          uciMoves,
+          requireReliableComparisons,
+          materialCache,
+        ),
+        onError: port,
+        onExit: port,
+      );
+      _isolate = isolate;
+      _started.complete();
+      if (_cancelled || _terminated.isCompleted) {
+        isolate.kill(priority: Isolate.immediate);
+      }
+    } catch (error, stackTrace) {
+      _started.complete();
+      if (!_result.isCompleted) _result.completeError(error, stackTrace);
+      _finish();
+    }
+  }
+
+  void _onMessage(dynamic message) {
+    if (message == null) {
+      if (!_result.isCompleted) {
+        _result.completeError(StateError('Move classifier exited early.'));
+      }
+      _finish();
+    } else if (message is List && message.length == 3 && message[0] == 0) {
+      if (!_result.isCompleted) {
+        _materialCache = Map<String, int>.unmodifiable(
+          (message[2] as Map).cast<String, int>(),
+        );
+        _result.complete(
+          List<ClassifiedMove>.unmodifiable(
+            (message[1] as List).cast<ClassifiedMove>(),
+          ),
+        );
+      }
+    } else if (message is List && message.length == 2) {
+      if (!_result.isCompleted) {
+        _result.completeError(
+          StateError('Move classifier failed: ${message[0]}'),
+        );
+      }
+    }
+  }
+
+  void cancel() {
+    if (_terminated.isCompleted) return;
+    _cancelled = true;
+    if (!_result.isCompleted) {
+      _result.completeError(const MoveClassificationCancelled());
+    }
+    _isolate?.kill(priority: Isolate.immediate);
+  }
+
+  void _finish() {
+    _isolate = null;
+    _subscription?.cancel();
+    _messages?.close();
+    if (!_terminated.isCompleted) _terminated.complete();
+  }
+}
+
 class MoveClassifier {
   // Adapted and translated to Dart from En Croissant v0.15.0's GPL-3.0
   // move-annotation and sacrifice-detection code:
   // https://github.com/franciscoBSalgueiro/en-croissant
-  // Mobile Maia adds bounded search, background-isolate execution, and its
-  // own review data/UI integration. See THIRD_PARTY_NOTICES.md.
-  // This is a visual annotation heuristic, not the engine evaluation. Keep the
-  // quiescence probe deliberately small so a long review can never monopolize
-  // the UI; classification itself also runs outside the main isolate.
-  static const _captureSearchNodeLimit = 64;
+  // Mobile Maia adds background-isolate execution and its own review data/UI
+  // integration. The capture search must examine every legal root move, as in
+  // En Croissant; a shared node cap changes the sacrifice classification.
+  // See THIRD_PARTY_NOTICES.md.
 
   static Future<List<ClassifiedMove>> classifyOffMainIsolate({
     required List<StockfishReview> scores,
     required List<String> positions,
     required List<String> uciMoves,
+    bool requireReliableComparisons = true,
+    Map<String, int>? materialCache,
+  }) => startOffMainIsolate(
+    scores: scores,
+    positions: positions,
+    uciMoves: uciMoves,
+    requireReliableComparisons: requireReliableComparisons,
+    materialCache: materialCache,
+  ).result;
+
+  static MoveClassificationJob startOffMainIsolate({
+    required List<StockfishReview> scores,
+    required List<String> positions,
+    required List<String> uciMoves,
+    bool requireReliableComparisons = true,
+    Map<String, int>? materialCache,
   }) {
     // Threshold-only classification is cheap and common in injected tests or
     // engines without MultiPV. The sacrifice heuristic is the expensive part.
     if (!scores.any((score) => score.lines.length > 1)) {
-      return Future.value(
-        classify(scores: scores, positions: positions, uciMoves: uciMoves),
+      return MoveClassificationJob.completed(
+        classify(
+          scores: scores,
+          positions: positions,
+          uciMoves: uciMoves,
+          requireReliableComparisons: requireReliableComparisons,
+          materialCache: materialCache,
+        ),
+        materialCache: materialCache,
       );
     }
-    return Isolate.run(
-      () => classify(scores: scores, positions: positions, uciMoves: uciMoves),
+    return MoveClassificationJob.spawn(
+      scores: scores,
+      positions: positions,
+      uciMoves: uciMoves,
+      requireReliableComparisons: requireReliableComparisons,
+      materialCache: materialCache,
     );
   }
 
@@ -67,21 +257,25 @@ class MoveClassifier {
     required List<StockfishReview> scores,
     required List<String> positions,
     required List<String> uciMoves,
+    void Function(Map<String, Object?>)? trace,
+    // Only the unpublished provisional pass disables annotation verification.
+    bool requireReliableComparisons = true,
+    Map<String, int>? materialCache,
   }) {
     final count = min(
       uciMoves.length,
       min(max(0, scores.length - 1), max(0, positions.length - 1)),
     );
     final result = <ClassifiedMove>[];
-    final materialEvaluator = _NaiveMaterialEvaluator(
-      nodeLimit: _captureSearchNodeLimit,
-    );
+    final materialEvaluator = _NaiveMaterialEvaluator(cache: materialCache);
     for (var ply = 1; ply <= count; ply++) {
       final whiteMoved = positions[ply - 1].split(' ')[1] == 'w';
       final previous = _normalized(scores[ply - 1], whiteMoved);
       final next = _normalized(scores[ply], whiteMoved);
       final loss = _winChance(previous) - _winChance(next);
       MoveClassification? classification;
+      int? materialBefore;
+      int? materialAfter;
       if (loss > 20) {
         classification = MoveClassification.blunder;
       } else if (loss > 10) {
@@ -96,11 +290,11 @@ class MoveClassifier {
             lines[1].moves.isNotEmpty) {
           final best = _normalizedLine(lines[0], whiteMoved);
           final second = _normalizedLine(lines[1], whiteMoved);
-          final isSacrifice = _isSacrifice(
-            positions[ply - 1],
-            positions[ply],
-            materialEvaluator,
-          );
+          materialBefore = materialEvaluator.evaluate(positions[ply - 1]);
+          materialAfter = -materialEvaluator.evaluate(positions[ply]);
+          final isSacrifice =
+              !chess.Chess.fromFEN(positions[ply]).game_over &&
+              materialBefore > materialAfter + 100;
           if (_winChance(best) - _winChance(second) > 10 &&
               uciMoves[ply - 1] == lines[0].moves.first) {
             if (isSacrifice) {
@@ -118,6 +312,34 @@ class MoveClassifier {
           }
         }
       }
+      final standout =
+          classification == MoveClassification.brilliant ||
+          classification == MoveClassification.good;
+      final annotationReliable =
+          !standout ||
+          hasReliableAnnotation(
+            scores: scores,
+            positions: positions,
+            uciMoves: uciMoves,
+            ply: ply,
+            classification: classification!,
+          );
+      if (requireReliableComparisons && !annotationReliable) {
+        classification = null;
+      }
+      trace?.call({
+        'ply': ply,
+        'move': uciMoves[ply - 1],
+        'beforeFen': positions[ply - 1],
+        'afterFen': positions[ply],
+        'previousCp': previous,
+        'nextCp': next,
+        'loss': loss,
+        'materialBefore': materialBefore,
+        'materialAfter': materialAfter,
+        'classification': classification?.name,
+        'comparisonReliable': annotationReliable,
+      });
       if (classification != null) {
         result.add(
           ClassifiedMove(
@@ -129,6 +351,204 @@ class MoveClassifier {
       }
     }
     return List.unmodifiable(result);
+  }
+
+  /// A quality setting or a stable best-move gap alone does not establish
+  /// an annotation: loss and, for Good, the preceding score also participate.
+  /// Raw reference inputs without engine evidence retain upstream semantics.
+  static bool hasReliableAnnotation({
+    required List<StockfishReview> scores,
+    required List<String> positions,
+    required List<String> uciMoves,
+    required int ply,
+    required MoveClassification classification,
+  }) {
+    if (classification != MoveClassification.brilliant &&
+        classification != MoveClassification.good) {
+      return true;
+    }
+    final before = scores[ply - 1];
+    if (before.evidence?.quality == null) return true;
+    final whiteMoved = positions[ply - 1].split(' ')[1] == 'w';
+    final needsPrevious = classification == MoveClassification.good && ply > 1;
+    final terminalAfter =
+        scores[ply].evidence == null &&
+        chess.Chess.fromFEN(positions[ply]).game_over;
+    final quality = before.evidence!.quality;
+    bool matchingQuality(StockfishReview review) =>
+        review.evidence?.quality == quality;
+    if ((!terminalAfter && !matchingQuality(scores[ply])) ||
+        (needsPrevious && !matchingQuality(scores[ply - 2]))) {
+      return false;
+    }
+    bool terminalMatches(StockfishReview review) =>
+        terminalAfter &&
+        review.evidence == null &&
+        review.evaluation == scores[ply].evaluation &&
+        review.mate == scores[ply].mate;
+    bool sufficient(StockfishReview checked, StockfishReview original) =>
+        _complete(checked) &&
+        matchingQuality(checked) &&
+        checked.evidence!.depth >= (original.evidence?.depth ?? 0);
+    bool agrees(
+      StockfishReview candidateBefore,
+      StockfishReview candidateAfter,
+      StockfishReview? candidatePrevious,
+    ) {
+      if (!_complete(candidateBefore) ||
+          !matchingQuality(candidateBefore) ||
+          (!terminalMatches(candidateAfter) &&
+              (!_complete(candidateAfter) ||
+                  !matchingQuality(candidateAfter))) ||
+          (needsPrevious &&
+              (candidatePrevious == null ||
+                  !_complete(candidatePrevious) ||
+                  !matchingQuality(candidatePrevious)))) {
+        return false;
+      }
+      return _standoutPredicate(
+            before: candidateBefore,
+            after: candidateAfter,
+            beforePrevious: candidatePrevious,
+            whiteMoved: whiteMoved,
+            move: uciMoves[ply - 1],
+            isSacrifice: classification == MoveClassification.brilliant,
+          ) ==
+          classification;
+    }
+
+    final confirmation = before.annotationConfirmation;
+    // An explicit counterexample overrides apparent iterative stability.
+    if (confirmation != null) {
+      if (!sufficient(confirmation.before, before) ||
+          (!terminalMatches(confirmation.after) &&
+              !sufficient(confirmation.after, scores[ply])) ||
+          (needsPrevious &&
+              (confirmation.beforePrevious == null ||
+                  !sufficient(
+                    confirmation.beforePrevious!,
+                    scores[ply - 2],
+                  )))) {
+        return false;
+      }
+      return agrees(
+        confirmation.before,
+        confirmation.after,
+        confirmation.beforePrevious,
+      );
+    }
+    final previousBefore = _previousIteration(before);
+    final previousAfter = terminalAfter
+        ? scores[ply]
+        : _previousIteration(scores[ply]);
+    final previousPrevious = needsPrevious
+        ? _previousIteration(scores[ply - 2])
+        : null;
+    return _complete(before) &&
+        (terminalAfter || _complete(scores[ply])) &&
+        (!needsPrevious || _complete(scores[ply - 2])) &&
+        previousBefore != null &&
+        previousAfter != null &&
+        agrees(previousBefore, previousAfter, previousPrevious);
+  }
+
+  static bool _complete(StockfishReview review) =>
+      review.evidence?.complete == true &&
+      review.lines.isNotEmpty &&
+      review.lines[0].moves.isNotEmpty;
+
+  static StockfishReview? _previousIteration(StockfishReview review) {
+    final lines = review.evidence?.previousLines;
+    if (lines == null || lines.isEmpty || lines[0].moves.isEmpty) return null;
+    return StockfishReview(
+      lines[0].evaluation,
+      lines[0].moves.first,
+      mate: lines[0].mate,
+      lines: lines,
+      evidence: StockfishSearchEvidence(
+        depth: 0,
+        nodes: null,
+        timeMs: null,
+        complete: true,
+        reset: false,
+        quality: review.evidence?.quality,
+      ),
+    );
+  }
+
+  // Pure upstream standout predicate; sacrifice is deterministic for a fixed
+  // move/position and was already calculated once by the owned worker.
+  static MoveClassification? _standoutPredicate({
+    required StockfishReview before,
+    required StockfishReview after,
+    StockfishReview? beforePrevious,
+    required bool whiteMoved,
+    required String move,
+    required bool isSacrifice,
+  }) {
+    final loss =
+        _winChance(_normalized(before, whiteMoved)) -
+        _winChance(_normalized(after, whiteMoved));
+    final lines = before.lines;
+    if (loss > 5 ||
+        lines.length < 2 ||
+        lines[0].moves.isEmpty ||
+        lines[1].moves.isEmpty ||
+        lines[0].moves.first != move ||
+        _winChance(_normalizedLine(lines[0], whiteMoved)) -
+                _winChance(_normalizedLine(lines[1], whiteMoved)) <=
+            10) {
+      return null;
+    }
+    if (isSacrifice) return MoveClassification.brilliant;
+    final prior = beforePrevious == null
+        ? 0
+        : _normalized(beforePrevious, whiteMoved);
+    return _winChance(_normalizedLine(lines[0], whiteMoved)) -
+                _winChance(prior) >
+            5
+        ? MoveClassification.good
+        : null;
+  }
+
+  /// Six search units per run: Brilliant needs before/after, Good also needs
+  /// the predecessor except on the first ply. Skip a costly window when a
+  /// later cheaper candidate can still fit; never change baseline scores.
+  static List<int> confirmationPlies({
+    required List<StockfishReview> scores,
+    required List<String> positions,
+    required List<String> uciMoves,
+    required List<ClassifiedMove> classifiedMoves,
+  }) {
+    final candidates = <int>[];
+    var remaining = 6;
+    for (final classified in classifiedMoves) {
+      final label = classified.classification;
+      final ply = classified.ply;
+      if (label != MoveClassification.brilliant &&
+          label != MoveClassification.good) {
+        continue;
+      }
+      if (ply < 1 ||
+          ply >= scores.length ||
+          ply >= positions.length ||
+          ply > uciMoves.length ||
+          scores[ply - 1].evidence?.quality == null ||
+          hasReliableAnnotation(
+            scores: scores,
+            positions: positions,
+            uciMoves: uciMoves,
+            ply: ply,
+            classification: label,
+          )) {
+        continue;
+      }
+      final cost = label == MoveClassification.good && ply > 1 ? 3 : 2;
+      if (cost > remaining) continue;
+      candidates.add(ply);
+      remaining -= cost;
+    }
+    return candidates;
   }
 
   static int _normalized(StockfishReview review, bool whiteMoved) {
@@ -148,31 +568,24 @@ class MoveClassifier {
   static double _winChance(int centipawns) =>
       50 + 50 * (2 / (1 + exp(-0.00368208 * centipawns)) - 1);
 
-  static bool _isSacrifice(
-    String beforeFen,
-    String afterFen,
-    _NaiveMaterialEvaluator evaluator,
-  ) {
-    final before = evaluator.evaluate(beforeFen);
-    final after = -evaluator.evaluate(afterFen);
-    return before > after + 100;
-  }
+  /// Used by the optional differential harness; never logs private game data.
+  static int materialEvaluation(String fen) =>
+      _NaiveMaterialEvaluator().evaluate(fen);
 
-  static int _materialForTurn(String fen) {
-    const values = {'p': 90, 'n': 300, 'b': 300, 'r': 500, 'q': 1000};
+  static int _materialForTurn(chess.Chess position) {
     var white = 0;
     var black = 0;
-    for (final rune in fen.split(' ').first.runes) {
-      final piece = String.fromCharCode(rune);
-      final value = values[piece.toLowerCase()] ?? 0;
-      if (piece == piece.toUpperCase()) {
+    for (final piece in position.board) {
+      if (piece == null) continue;
+      final value = _pieceValue(piece.type);
+      if (piece.color == chess.Color.WHITE) {
         white += value;
       } else {
         black += value;
       }
     }
     final score = white - black;
-    return fen.split(' ')[1] == 'w' ? score : -score;
+    return position.turn == chess.Color.WHITE ? score : -score;
   }
 
   static int _pieceValue(chess.PieceType piece) => switch (piece.name) {
@@ -185,10 +598,9 @@ class MoveClassifier {
 }
 
 class _NaiveMaterialEvaluator {
-  _NaiveMaterialEvaluator({required this.nodeLimit});
+  _NaiveMaterialEvaluator({Map<String, int>? cache}) : _cache = cache ?? {};
 
-  final int nodeLimit;
-  final Map<String, int> _cache = {};
+  final Map<String, int> _cache;
 
   int evaluate(String fen) => _cache.putIfAbsent(fen, () {
     final position = chess.Chess.fromFEN(fen);
@@ -197,25 +609,25 @@ class _NaiveMaterialEvaluator {
         .cast<chess.Move>()
         .toList(growable: false);
     if (moves.isEmpty) return position.in_checkmate ? -10000 : 0;
-    final budget = _CaptureSearchBudget(nodeLimit);
     var best = -10000;
     for (final move in moves) {
-      final next = chess.Chess.fromFEN(position.fen)..move(move);
-      best = max(best, -_captureSearch(next, -10000, 10000, budget));
-      if (budget.exhausted) break;
+      // The move is already legal; avoid regenerating legal moves at each
+      // capture node. This is the chess.dart equivalent of play_unchecked.
+      position.make_move(move);
+      best = max(best, -_captureSearch(position, -10000, 10000));
+      position.undo_move();
     }
     return best;
   });
 
-  int _captureSearch(
-    chess.Chess position,
-    int alpha,
-    int beta,
-    _CaptureSearchBudget budget,
-  ) {
+  int _captureSearch(chess.Chess position, int alpha, int beta) {
     var lower = alpha;
-    final standPat = MoveClassifier._materialForTurn(position.fen);
-    if (!budget.takeNode()) return standPat;
+    // En Croissant treats mate as -10000 even inside a capture sequence.
+    // Check only when in check, avoiding a second legal-move generation at
+    // the overwhelmingly common non-check nodes.
+    final standPat = position.in_check && position.in_checkmate
+        ? -10000
+        : MoveClassifier._materialForTurn(position);
     if (standPat >= beta) return beta;
     lower = max(lower, standPat);
     final captures =
@@ -230,26 +642,13 @@ class _NaiveMaterialEvaluator {
                     .compareTo(MoveClassifier._pieceValue(a.captured!)),
           );
     for (final capture in captures) {
-      final next = chess.Chess.fromFEN(position.fen)..move(capture);
-      final value = -_captureSearch(next, -beta, -lower, budget);
+      position.make_move(capture);
+      final value = -_captureSearch(position, -beta, -lower);
+      position.undo_move();
       if (value >= beta) return beta;
       lower = max(lower, value);
-      if (budget.exhausted) break;
     }
     return lower;
-  }
-}
-
-class _CaptureSearchBudget {
-  _CaptureSearchBudget(this.remaining);
-
-  int remaining;
-  bool get exhausted => remaining <= 0;
-
-  bool takeNode() {
-    if (remaining <= 0) return false;
-    remaining--;
-    return true;
   }
 }
 
@@ -480,18 +879,39 @@ class GamePhaseDetector {
   }
 }
 
+class ReviewAgreementArrow {
+  const ReviewAgreementArrow({
+    required this.uci,
+    required this.tailColors,
+    required this.headColors,
+  });
+
+  final String uci;
+  final List<Color> tailColors;
+  final List<Color> headColors;
+
+  @override
+  bool operator ==(Object other) =>
+      other is ReviewAgreementArrow &&
+      other.uci == uci &&
+      listEquals(other.tailColors, tailColors) &&
+      listEquals(other.headColors, headColors);
+
+  @override
+  int get hashCode =>
+      Object.hash(uci, Object.hashAll(tailColors), Object.hashAll(headColors));
+}
+
 class ReviewBoardOverlayPainter extends CustomPainter {
   const ReviewBoardOverlayPainter({
     required this.orientation,
-    this.agreementUci,
-    this.agreementTailColor,
+    this.agreementArrows = const [],
     this.annotationSquare,
     this.classification,
   });
 
   final dc.Side orientation;
-  final String? agreementUci;
-  final Color? agreementTailColor;
+  final List<ReviewAgreementArrow> agreementArrows;
   final String? annotationSquare;
   final MoveClassification? classification;
 
@@ -506,36 +926,76 @@ class ReviewBoardOverlayPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final squareSize = size.width / 8;
-    final agreement = agreementUci;
-    if (agreement != null && agreement.length >= 4) {
-      final from = _squareCenter(agreement.substring(0, 2), squareSize);
-      final to = _squareCenter(agreement.substring(2, 4), squareSize);
+    for (final agreement in agreementArrows) {
+      if (agreement.uci.length < 4 ||
+          agreement.tailColors.isEmpty ||
+          agreement.headColors.isEmpty) {
+        continue;
+      }
+      final from = _squareCenter(agreement.uci.substring(0, 2), squareSize);
+      final to = _squareCenter(agreement.uci.substring(2, 4), squareSize);
       final angle = atan2(to.dy - from.dy, to.dx - from.dx);
       final start = from + Offset(cos(angle), sin(angle)) * (squareSize / 3);
       final arrowSize = squareSize * 0.48;
+      final shaftWidth = squareSize / 4;
       const arrowAngle = pi / 5;
       final arrowHeight = arrowSize * sin((pi - arrowAngle * 2) / 2);
       final headOffset = Offset(cos(angle), sin(angle)) * arrowHeight;
-      canvas.drawLine(
-        start,
-        to - headOffset,
-        Paint()
-          ..color = agreementTailColor ?? const Color(0xff3d9be9)
-          ..strokeWidth = squareSize / 4
-          ..strokeCap = StrokeCap.butt,
+      final shaftEnd = to - headOffset;
+      if (agreement.tailColors.length == 1) {
+        canvas.drawLine(
+          start,
+          shaftEnd,
+          Paint()
+            ..color = agreement.tailColors.single
+            ..strokeWidth = shaftWidth
+            ..strokeCap = StrokeCap.butt,
+        );
+      } else {
+        final perpendicular = Offset(-sin(angle), cos(angle));
+        for (var index = 0; index < 2; index++) {
+          final offset =
+              perpendicular * (index == 0 ? -shaftWidth / 4 : shaftWidth / 4);
+          canvas.drawLine(
+            start + offset,
+            shaftEnd + offset,
+            Paint()
+              ..color = agreement.tailColors[index]
+              ..strokeWidth = shaftWidth / 2 + 0.5
+              ..strokeCap = StrokeCap.butt,
+          );
+        }
+      }
+      final left = Offset(
+        to.dx - arrowSize * cos(angle - arrowAngle),
+        to.dy - arrowSize * sin(angle - arrowAngle),
       );
-      final head = Path()
-        ..moveTo(
-          to.dx - arrowSize * cos(angle - arrowAngle),
-          to.dy - arrowSize * sin(angle - arrowAngle),
-        )
-        ..lineTo(to.dx, to.dy)
-        ..lineTo(
-          to.dx - arrowSize * cos(angle + arrowAngle),
-          to.dy - arrowSize * sin(angle + arrowAngle),
-        )
-        ..close();
-      canvas.drawPath(head, Paint()..color = const Color(0xffe89b3c));
+      final right = Offset(
+        to.dx - arrowSize * cos(angle + arrowAngle),
+        to.dy - arrowSize * sin(angle + arrowAngle),
+      );
+      if (agreement.headColors.length == 1) {
+        final head = Path()
+          ..moveTo(left.dx, left.dy)
+          ..lineTo(to.dx, to.dy)
+          ..lineTo(right.dx, right.dy)
+          ..close();
+        canvas.drawPath(head, Paint()..color = agreement.headColors.single);
+      } else {
+        final baseMiddle = (left + right) / 2;
+        final firstHalf = Path()
+          ..moveTo(left.dx, left.dy)
+          ..lineTo(to.dx, to.dy)
+          ..lineTo(baseMiddle.dx, baseMiddle.dy)
+          ..close();
+        final secondHalf = Path()
+          ..moveTo(baseMiddle.dx, baseMiddle.dy)
+          ..lineTo(to.dx, to.dy)
+          ..lineTo(right.dx, right.dy)
+          ..close();
+        canvas.drawPath(firstHalf, Paint()..color = agreement.headColors.first);
+        canvas.drawPath(secondHalf, Paint()..color = agreement.headColors[1]);
+      }
     }
 
     final square = annotationSquare;
@@ -574,8 +1034,7 @@ class ReviewBoardOverlayPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant ReviewBoardOverlayPainter oldDelegate) =>
       oldDelegate.orientation != orientation ||
-      oldDelegate.agreementUci != agreementUci ||
-      oldDelegate.agreementTailColor != agreementTailColor ||
+      !listEquals(oldDelegate.agreementArrows, agreementArrows) ||
       oldDelegate.annotationSquare != annotationSquare ||
       oldDelegate.classification != classification;
 }

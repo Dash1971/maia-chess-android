@@ -1,0 +1,29 @@
+{
+  "reason": "Claim verifier completed its checks and wrote a passed integrity record, then SIGABRT during Python interpreter shutdown in an unnecessary imported ORT native runtime: recursive_mutex lock failed: Invalid argument. Non-inference scripts now import standard-library-only artifact_utils.sha256.",
+  "changed_scripts": [
+    "analyze_results.py",
+    "verify_claim_sensitivity.py"
+  ],
+  "change": "one hashing-helper import in each; no statistical/verification/game/numerical changes",
+  "statistical_functions_AST_identical": true,
+  "primary_numerical_results_exactly_identical": true,
+  "primary_report_other_differences": "analysis source SHA-256 and absolute versus relative input path representation; normalized input paths and every other field identical",
+  "original_analysis_sha256": "7b7661e1ab82c4738686a5517d26704ed5d35fca9c71e6b3c7e87cfe3166a5c7",
+  "final_analysis_sha256": "66581c1be5fa5b937e08c90b316ee3717d59ae8661effbd3b5c0af133f1b2c4f",
+  "primary_worker_exit_codes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "claim_verifier_retry_exit_code": 0,
+  "primary_analysis_retry_exit_code": 0,
+  "claim_analysis_exit_code": 0,
+  "initial_verifier_log": "integrity-claim-sensitivity-first-attempt.log",
+  "original_primary_analysis_source": "analyze_results_executed_primary.py",
+  "original_verifier_source": "verify_claim_sensitivity_first_attempt.py",
+  "fixed_N_preserved": 1200,
+  "new_inference_for_repair": 0
+}

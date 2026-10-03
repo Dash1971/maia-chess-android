@@ -1,0 +1,12 @@
+{
+  "source_sha256": {
+    "conditional": "b724b07aed4e737e0c810ac24e35dae86f0988da8a92d9ca9ed0d3c97f9380b4",
+    "exact_two_ply": "c9e1d2d96397450388a6b7cb30b7f2e67d568078efea803b1809fedff69c794e",
+    "script": "34675b913cf68ad72e6766680781dd7f2fc7a13db69b94ec2fec271a629e3042"
+  },
+  "observations": 4581,
+  "bootstrap_replicates": 2000,
+  "bootstrap_seed": 7000003000,
+  "fixture_policy": "inclusive crossing nucleus, T1/P.95; fixed original human references",
+  "new_model_inferences": 0
+}

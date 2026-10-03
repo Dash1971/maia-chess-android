@@ -1,0 +1,9 @@
+{
+  "app": "f659956d1c35206600cda515f462277c63e58205",
+  "official_maia3": "1e13597c42d4858b7cfd7cfdae01e297263364b2",
+  "prior_benchmark": "cda86a8c7698e29c8c845c945a2eb40beaded7eb",
+  "prior_stack": "0925e2245e37edf090f57fccca9666ba0ca315f5",
+  "onnx_79m_sha256": "3454b03ae78baa64a87b345fdb1a457265d912caec531039b074f07eda0d8010",
+  "onnx_5m_sha256": "ddae2aa893b5ca7ec94d24178871f1c337d09fd72ff38abe8d76b8ecf08cb942",
+  "reference_checkpoint_79m_sha256": "3fc6181d5db789b45a15305732148757ae74efa3e0028e81ba335b462dac45c2"
+}

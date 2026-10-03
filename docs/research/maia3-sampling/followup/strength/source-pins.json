@@ -1,0 +1,18 @@
+{
+  "created_utc": "2026-10-03T00:18:36.606261+00:00",
+  "model_79m_sha256": "3454b03ae78baa64a87b345fdb1a457265d912caec531039b074f07eda0d8010",
+  "reference_checkpoint_79m_sha256": "3fc6181d5db789b45a15305732148757ae74efa3e0028e81ba335b462dac45c2",
+  "prior_app_policy_audited_commit": "f659956d1c35206600cda515f462277c63e58205",
+  "official_maia3_commit": "1e13597c42d4858b7cfd7cfdae01e297263364b2",
+  "portable_helper_source": "sampling-research-20261002/strength/portable/mobile_policy.py",
+  "portable_helper_source_sha256": "766ef7263fb4a7b487eb850e1a07995a8b62b25f8f16f5e8b68e4665fb9b4131",
+  "copy_sha256": "766ef7263fb4a7b487eb850e1a07995a8b62b25f8f16f5e8b68e4665fb9b4131",
+  "app_rule_source": "sampling-research-20261002/strength/portable/app_draw_sensitivity.py",
+  "app_rule_source_sha256": "87de948d7a9122c9d2b621d07b182132cfcb42d724bf5ba3ef343a6dae9ca15e",
+  "app_rule_semantic_preservation": "same key and app_outcome branches and order; reformatted as standalone module",
+  "requirements_sha256": "1a369c8a1fe49eb622cc74961a3d963d6033eee375470912359322bc54043009",
+  "protocol_sha256": "7d5fdf163753d2c53069818a3841948bf15ec99e3ca0017f7c0791f80f0d0dd0",
+  "runner_sha256": "eae9885ac6523aa1252f5bcb48bf94e2abdde03c3487bdb17536ff216ef5d0ef",
+  "preflight_sha256": "72b9fb8af809beabc55858d8bd30a21706d93f9543d4092c58ba0477a46838bd",
+  "local_only": true
+}

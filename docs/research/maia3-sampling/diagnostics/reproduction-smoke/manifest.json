@@ -1,0 +1,33 @@
+{
+  "mode": "fresh-evaluation",
+  "frozen_raw_sha256": "a088fbfc43d515c8e3ae39378febcb0098517fe4ee007ca52b0ca2f5f89d77ac",
+  "frozen_positions_sha256": "dc6ac6d7ad3f5dec638ddf1d625ec18724966795a759d024562e0154a9d432c7",
+  "frozen_request_count": 489,
+  "requested_count": 1,
+  "request_order": "identical to archived raw.jsonl",
+  "model_sha256": "3454b03ae78baa64a87b345fdb1a457265d912caec531039b074f07eda0d8010",
+  "self_elo": 1600,
+  "opponent_elo": 1600,
+  "script_sha256": "7e16b1c6a00a0b276a500dfe993a6b8b8604a4539e173efd7b7c06c709ccc811",
+  "python": "3.12.13 (main, Mar  3 2026, 12:39:30) [Clang 21.0.0 (clang-2100.0.123.102)]",
+  "platform": "macOS-26.6.2-arm64-arm-64bit",
+  "portable_policy_sha256": "766ef7263fb4a7b487eb850e1a07995a8b62b25f8f16f5e8b68e4665fb9b4131",
+  "summary_script_sha256": "238102a5d64120a48bbe6058cfbd32fc9ecbbd8ebf7af830e233c9e686e41647",
+  "close_summary_script_sha256": "858d1b1ca337034d659a70b896f472e66b0fc0fe3395f46cbbc9ef9c3d935324",
+  "stockfish_executable": "/opt/homebrew/Cellar/stockfish/18/bin/stockfish",
+  "stockfish_sha256": "ae4c93fa9676ca7750d0714342fd8a5b1d018000fc6e0f6cedf112067b5ef374",
+  "engine_id": {
+    "name": "Stockfish 18",
+    "author": "the Stockfish developers (see AUTHORS file)"
+  },
+  "threads": 1,
+  "hash_mb": 64,
+  "multipv": "all legal moves",
+  "cp_mate_mapping": 10000,
+  "numpy": "2.5.3",
+  "onnxruntime": "1.30.0",
+  "chess": "1.11.2",
+  "completed": true,
+  "seconds": 3.731947898864746,
+  "full_study": false
+}

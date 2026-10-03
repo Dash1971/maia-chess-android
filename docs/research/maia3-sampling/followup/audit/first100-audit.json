@@ -1,0 +1,32 @@
+{
+  "status": "passed",
+  "games": 100,
+  "plies_replayed": 8630,
+  "selection": "First 100 durable games sorted by game number then shard; outcome-independent snapshot. Audit only, no interim strength estimate.",
+  "per_shard": {
+    "0": 17,
+    "1": 17,
+    "2": 17,
+    "3": 17,
+    "4": 16,
+    "5": 16
+  },
+  "p95_white": 52,
+  "distinct_ids": 100,
+  "distinct_seeds": 200,
+  "legality_terminal_timing_result_score_fen_hash_pgn_mismatches": 0,
+  "snapshot_sha256": "60a4409202a40f6400edc35746f5df57f18648d87a2bccd8f87e239d2b316c4e",
+  "manifest_sha256": {
+    "0": "438a3d87753198e02b6541f25956a6a318a1ea9c394af4d617d25a2c1593f1f5",
+    "1": "2a16faa040d407260a296f9b91b34d33c23b9835884aae9469b4972f4bbcc45c",
+    "2": "5fd907162ac79ecac36f99f8d755657aff0689ba7e7fcd1533322d6db3f86d8c",
+    "3": "a656c0037aa86f534fdda637e248a0427d240bbd18666165abe2c95996cb9f7e",
+    "4": "4c1205f57abb65e453e487a0e4144b5e5dce5c6a1002180a950a6c8f6146eac8",
+    "5": "1981bc51be17e5d832416c808c859903496a012f61580ccc75364c2bbb1f25ec"
+  },
+  "audit_source_sha256": "42fa99e11a31cfa38687a6ffca5c82ed3f26e88252222e16d75214b283f71f8e",
+  "no_model_inference": true,
+  "python_chess_version": "1.11.2",
+  "dart_material_reference": "<pub-cache>/hosted/pub.dev/chess-0.8.1/lib/chess.dart:849",
+  "dart_dependency_sha256": "1299cf5dcbf21ddf975cb1cad3be98426f5ed11b5b643c8cd5db18f6f4b925d1"
+}

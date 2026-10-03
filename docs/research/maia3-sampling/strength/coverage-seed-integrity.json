@@ -1,0 +1,79 @@
+{
+  "79m": {
+    "standard_games": 1800,
+    "sensitivity_rows": 1800,
+    "ids_unique_complete_equal": true,
+    "number_coverage_complete": true,
+    "color_counts": {
+      "0": {
+        "white_first": 300,
+        "black_first": 300
+      },
+      "1": {
+        "white_first": 300,
+        "black_first": 300
+      },
+      "2": {
+        "white_first": 300,
+        "black_first": 300
+      }
+    },
+    "within_study_seeds_unique": true,
+    "within_study_initial_future_disjoint": true,
+    "future_base": 3000000000,
+    "caps_standard": 0,
+    "caps_sensitivity": 0
+  },
+  "single-knob": {
+    "standard_games": 600,
+    "sensitivity_rows": 600,
+    "ids_unique_complete_equal": true,
+    "number_coverage_complete": true,
+    "color_counts": {
+      "1": {
+        "white_first": 150,
+        "black_first": 150
+      },
+      "2": {
+        "white_first": 150,
+        "black_first": 150
+      }
+    },
+    "within_study_seeds_unique": true,
+    "within_study_initial_future_disjoint": true,
+    "future_base": 4000000000,
+    "caps_standard": 0,
+    "caps_sensitivity": 0
+  },
+  "5m": {
+    "standard_games": 600,
+    "sensitivity_rows": 600,
+    "ids_unique_complete_equal": true,
+    "number_coverage_complete": true,
+    "color_counts": {
+      "0": {
+        "white_first": 100,
+        "black_first": 100
+      },
+      "1": {
+        "white_first": 100,
+        "black_first": 100
+      },
+      "2": {
+        "white_first": 100,
+        "black_first": 100
+      }
+    },
+    "within_study_seeds_unique": true,
+    "within_study_initial_future_disjoint": true,
+    "future_base": 2026100202,
+    "caps_standard": 0,
+    "caps_sensitivity": 0
+  },
+  "cross_study": {
+    "all_79m_primary_single_knob_initial_future_streams_disjoint": true,
+    "5m_initial_seeds_reuse_primary_subset": true,
+    "models_not_pooled": true,
+    "note": "Cross-model streams can overlap, including5M futures and single-knob originals; those model sets are separately analyzed, not independent replications."
+  }
+}

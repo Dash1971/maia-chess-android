@@ -1,5 +1,25 @@
 part of '../main.dart';
 
+class MaiaMoveProbability {
+  const MaiaMoveProbability({required this.uci, required this.probability});
+
+  final String uci;
+  final double probability;
+}
+
+class MaiaPositionAnalysis {
+  const MaiaPositionAnalysis(this.moves, {this.hasRawProbabilities = true});
+
+  factory MaiaPositionAnalysis.single(String uci) => MaiaPositionAnalysis([
+    MaiaMoveProbability(uci: uci, probability: 1),
+  ], hasRawProbabilities: false);
+
+  final List<MaiaMoveProbability> moves;
+  final bool hasRawProbabilities;
+
+  String? get topMove => moves.firstOrNull?.uci;
+}
+
 class MaiaEncoding {
   static final Random _random = Random();
 
@@ -141,6 +161,47 @@ class MaiaEncoding {
       if (weights[i] > weights[bestIndex]) bestIndex = i;
     }
     return (probability: probability, topMove: scored[bestIndex].uci);
+  }
+
+  /// Raw Maia policy probabilities normalized over legal moves only.
+  ///
+  /// Temperature and Top-P deliberately do not apply here: this is an
+  /// explanation of the model's policy, not the configured move sampler.
+  static List<MaiaMoveProbability> legalMoveProbabilities(
+    chess.Chess game,
+    List<double> logits,
+  ) {
+    final legalMoves = game
+        .moves({'asObjects': true})
+        .cast<chess.Move>()
+        .toList(growable: false);
+    if (legalMoves.isEmpty) return const [];
+    final scored = legalMoves
+        .map((move) {
+          final moveUci = uci(move);
+          return (
+            uci: moveUci,
+            logit: logits[moveIndex(moveUci, game.turn == chess.Color.BLACK)],
+          );
+        })
+        .toList(growable: false);
+    final maxLogit = scored.map((item) => item.logit).reduce(max);
+    final weights = scored
+        .map((item) => exp(item.logit - maxLogit))
+        .toList(growable: false);
+    final total = weights.reduce((a, b) => a + b);
+    final probabilities = <MaiaMoveProbability>[
+      for (var index = 0; index < scored.length; index++)
+        MaiaMoveProbability(
+          uci: scored[index].uci,
+          probability: weights[index] / total,
+        ),
+    ];
+    probabilities.sort((a, b) {
+      final probabilityOrder = b.probability.compareTo(a.probability);
+      return probabilityOrder != 0 ? probabilityOrder : a.uci.compareTo(b.uci);
+    });
+    return List.unmodifiable(probabilities);
   }
 
   static String uci(chess.Move move) =>

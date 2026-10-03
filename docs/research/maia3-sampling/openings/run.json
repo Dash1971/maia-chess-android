@@ -1,0 +1,30 @@
+{
+  "seed": 20261002,
+  "settings": {
+    "argmax": {
+      "top_p": 0,
+      "temperature": 0
+    },
+    "app_default": {
+      "top_p": 0.9,
+      "temperature": 0.5
+    },
+    "full": {
+      "top_p": 1,
+      "temperature": 1
+    }
+  },
+  "rollouts_per_stochastic_setting": 2000,
+  "plies": 16,
+  "model": "<local-workspace>/stable-release/build/app/intermediates/flutter/debug/flutter_assets/assets/models/maia3-79m.onnx",
+  "model_sha256": "3454b03ae78baa64a87b345fdb1a457265d912caec531039b074f07eda0d8010",
+  "threads": 1,
+  "calls": 25142,
+  "cache_hits": 38854,
+  "elapsed_seconds": 2762.244345188141,
+  "source_sha256": {
+    "lichess_1600_blitz_2026-05.bin": "1a6c727fd7a7a541b2971b45c002337320b774cedbc457c1ffb27193c5f39232",
+    "lichess_1600_rapid_2026-07.bin": "e8027e188c34930edae109ae1b65ca88d219f431a326b70769e73c1e9626b7b8",
+    "lichess_1600_rapid_2026-05.bin": "9d64a44813a636998b6c6bf31380d806a9f3e1a26402e25de425950e62683bc6"
+  }
+}

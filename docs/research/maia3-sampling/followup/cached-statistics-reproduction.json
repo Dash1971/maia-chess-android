@@ -1,0 +1,17 @@
+{
+  "status": "passed",
+  "raw_files_verified": 101,
+  "inference_calls": 0,
+  "statistics": {
+    "primary": {
+      "numeric_values": 75,
+      "maximum_absolute_difference": 0,
+      "source_sha256": "66581c1be5fa5b937e08c90b316ee3717d59ae8661effbd3b5c0af133f1b2c4f"
+    },
+    "claim-sensitivity": {
+      "numeric_values": 75,
+      "maximum_absolute_difference": 0,
+      "source_sha256": "66581c1be5fa5b937e08c90b316ee3717d59ae8661effbd3b5c0af133f1b2c4f"
+    }
+  }
+}

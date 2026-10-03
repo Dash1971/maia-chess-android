@@ -46,15 +46,19 @@ The EasyLinkSDK licence notice follows:
 
 - Project: <https://github.com/franciscoBSalgueiro/en-croissant>
 - Upstream release: [`v0.15.0`](https://github.com/franciscoBSalgueiro/en-croissant/tree/v0.15.0)
-- Pinned source commit: `3a3dbc5911dd0cd4997c30ea3e8932045e314830`
+- Annotated tag object: `3a3dbc5911dd0cd4997c30ea3e8932045e314830`
+- Pinned source commit: `6f2d2628f0fbe11cb62a7dd2f9c102bb52907d53`
 - Relevant source: [`src/utils/score.ts`](https://github.com/franciscoBSalgueiro/en-croissant/blob/v0.15.0/src/utils/score.ts) and [`src-tauri/src/chess.rs`](https://github.com/franciscoBSalgueiro/en-croissant/blob/v0.15.0/src-tauri/src/chess.rs)
 - Copyright: Francisco Salgueiro and En Croissant contributors
 - Licence: GNU General Public License v3.0
 
 Mobile Maia's Game Review move-classification and sacrifice-detection
 heuristics are adapted and translated to Dart from the linked En Croissant
-source. Mobile Maia modifies the upstream implementation with bounded search,
-background-isolate execution, and app-specific review integration. The
+source. Mobile Maia modifies the upstream implementation with
+background-isolate execution, conservative annotation evidence checks in all analysis modes and
+app-specific review integration. The independent test reference under
+`tool/hardening/classification/reference` also includes the upstream scoring,
+annotation and material-search functions. The
 adapted code remains subject to GPL-3.0; Mobile Maia as a combined application
 is distributed under AGPL-3.0-only as permitted by section 13 of AGPL-3.0.
 
@@ -67,7 +71,7 @@ is distributed under AGPL-3.0-only as permitted by section 13 of AGPL-3.0.
 
 `assets/models/maia3-79m.onnx` is a converted form of the released Maia-3 79M
 checkpoint. The corresponding architecture, original checkpoint, inference
-source, and licence are available from the links above. The conversion tool is
+source, and licence are available from the link above. The conversion tool is
 included in `tool/export_maia3_onnx.py`. Exact source revisions, checkpoint and
 conversion hashes, and reproduction instructions are recorded in
 `MODEL_PROVENANCE.md`.
@@ -78,9 +82,9 @@ conversion hashes, and reproduction instructions are recorded in
 - multistockfish: <https://github.com/lichess-org/dart-multistockfish>
 - Licence: GNU General Public License v3.0
 
-The Android application uses the Stockfish 16 engine provided by multistockfish.
-Corresponding source and build instructions are available in the linked
-repositories.
+The Android application uses Stockfish 19 Light through multistockfish 0.6.1
+and its multistockfish_light 0.1.0 native package. Corresponding source and
+build instructions are available in the linked repositories.
 
 ## Flutter Chessground
 
@@ -103,6 +107,23 @@ The game board uses Lichess's default brown colour scheme and Cburnett pieces.
 uses its Font Awesome chess-piece glyphs for the Lichess-style material
 difference display. The upstream generated icon declaration records the
 component authors and licence links.
+
+## Lichess game sounds
+
+- Project: <https://github.com/lichess-org/mobile>
+- Pinned source commit: `56eddc238fe485eb49beb6f3c4b483afd3624b93`
+- Sound assets: `assets/sounds/standard/{move,capture,error,dong}.mp3`
+- Copyright: Lichess Mobile contributors
+- Licence: GNU General Public License v3.0 or later for Lichess Mobile
+
+The four audio clips are unmodified files from the pinned Lichess Mobile
+revision. Mobile Maia uses them for accepted moves, captures, rejected input,
+and game completion. The event mapping and app-specific suppression rules are
+recorded in [`docs/game-feedback-reference.md`](docs/game-feedback-reference.md).
+Audio playback is implemented in Mobile Maia with Android's platform
+`SoundPool` API; no third-party audio plugin is included.
+Mobile Maia as a combined application remains distributed under
+AGPL-3.0-only as permitted by section 13 of AGPL-3.0.
 
 ## dartchess
 

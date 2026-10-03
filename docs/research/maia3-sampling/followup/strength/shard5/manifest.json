@@ -1,0 +1,40 @@
+{
+  "study": "20261003-p95-vs-full",
+  "shard": 5,
+  "games": 200,
+  "total_study_games": 1200,
+  "profiles": {
+    "p95": {
+      "temperature": 1.0,
+      "top_p": 0.95
+    },
+    "full": {
+      "temperature": 1.0,
+      "top_p": 1.0
+    }
+  },
+  "model": "79m",
+  "model_path": "<local-workspace>/stable-release/build/app/intermediates/flutter/debug/flutter_assets/assets/models/maia3-79m.onnx",
+  "model_sha256": "3454b03ae78baa64a87b345fdb1a457265d912caec531039b074f07eda0d8010",
+  "seed": 6005000000,
+  "max_plies": 400,
+  "self_elo": 1600,
+  "opponent_elo": 1600,
+  "draw_rules": "actual app raw-FEN repetition / halfmove100 / natural terminal",
+  "claim_draw": false,
+  "book": false,
+  "search": false,
+  "opening": "standard initial chess position; no forced moves",
+  "history": "current board repeated in eight slots",
+  "threads": 1,
+  "provider": "CPUExecutionProvider",
+  "python": "3.12.13 (main, Mar  3 2026, 12:39:30) [Clang 21.0.0 (clang-2100.0.123.102)]",
+  "numpy": "2.5.3",
+  "onnxruntime": "1.30.0",
+  "chess": "1.11.2",
+  "platform": "macOS-26.6.2-arm64-arm-64bit",
+  "runner_sha256": "eae9885ac6523aa1252f5bcb48bf94e2abdde03c3487bdb17536ff216ef5d0ef",
+  "policy_sha256": "766ef7263fb4a7b487eb850e1a07995a8b62b25f8f16f5e8b68e4665fb9b4131",
+  "app_rules_sha256": "769c5bf6ad767b779297030f1cf85e8eb27df2ce3fedfdaa78ee7bc687cd869b",
+  "protocol_sha256": "7d5fdf163753d2c53069818a3841948bf15ec99e3ca0017f7c0791f80f0d0dd0"
+}

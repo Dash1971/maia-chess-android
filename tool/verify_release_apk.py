@@ -124,7 +124,7 @@ def verify(args):
         require(observed_abis == set(args.allow_abi),
                 'Native ABI set does not match request: ' + ', '.join(sorted(observed_abis)))
         required = {'libapp.so', 'libflutter.so', 'libonnxruntime.so',
-                    'libmultistockfish_chess.so'}
+                    'libmultistockfish_chess.so', 'libmultistockfish_light.so'}
         for abi in args.allow_abi:
             require({'lib/' + abi + '/' + name for name in required} <= libraries.keys(),
                     'A required native engine/library is missing for ' + abi + '.')

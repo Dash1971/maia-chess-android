@@ -1,0 +1,56 @@
+[
+  {
+    "dataset": "79m-pair0",
+    "runner": "run_strength.py",
+    "runner_sha256_matches": true,
+    "policy_sha256_matches": true
+  },
+  {
+    "dataset": "79m-pair1",
+    "runner": "run_strength.py",
+    "runner_sha256_matches": true,
+    "policy_sha256_matches": true
+  },
+  {
+    "dataset": "79m-pair2",
+    "runner": "run_strength.py",
+    "runner_sha256_matches": true,
+    "policy_sha256_matches": true
+  },
+  {
+    "dataset": "79m-temp-only",
+    "runner": "run_supplement.py",
+    "runner_sha256_matches": true,
+    "policy_sha256_matches": true
+  },
+  {
+    "dataset": "79m-topp-only",
+    "runner": "run_supplement.py",
+    "runner_sha256_matches": true,
+    "policy_sha256_matches": true
+  },
+  {
+    "dataset": "5m",
+    "runner": "run_strength.py",
+    "runner_sha256_matches": true,
+    "policy_sha256_matches": true
+  },
+  {
+    "dataset": "79m-app-draw",
+    "runner": "app_draw_sensitivity_79m.py",
+    "runner_sha256_matches": true,
+    "policy_sha256_matches": true
+  },
+  {
+    "dataset": "79m-single-knob-app-draw",
+    "runner": "app_draw_sensitivity_79m.py",
+    "runner_sha256_matches": true,
+    "policy_sha256_matches": true
+  },
+  {
+    "dataset": "5m-app-draw",
+    "runner": "app_draw_sensitivity.py",
+    "runner_sha256_matches": true,
+    "policy_sha256_matches": true
+  }
+]

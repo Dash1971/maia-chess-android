@@ -1,0 +1,31 @@
+{
+  "status": "passed",
+  "games_per_setting": {
+    "full95": 2000,
+    "full": 2000,
+    "app_default": 2000
+  },
+  "label_checks": {
+    "full95": 31979,
+    "full": 31981,
+    "app_default": 31999
+  },
+  "expected_new_first_move_support": [
+    "c2c4",
+    "d2d4",
+    "e2e3",
+    "e2e4",
+    "g1f3"
+  ],
+  "observed_new_first_move_counts": {
+    "e2e4": 1352,
+    "g1f3": 48,
+    "d2d4": 509,
+    "e2e3": 27,
+    "c2c4": 64
+  },
+  "new_seed_checks": 2000,
+  "opening_tsv_sha256": "a91978578a76fc52e2aab69f333608a9195eefc70ca5c8fc66a8bd999a4f73c1",
+  "script_sha256": "52280b8f71604cf9609cf808ef95240dd3015f9cdaf4c0d2e8acea35ea4dacfd",
+  "seconds": 6.734123706817627
+}

@@ -97,6 +97,35 @@ void main() {
     expect(completed.data['pgn'], contains('1-0'));
   });
 
+  test('recent game labels show colors and final result', () {
+    final playerWhite = RecentSession('white', DateTime.utc(2026), {
+      'playerIsWhite': true,
+      'elo': 1600,
+      'recentState': 'completed',
+      'pgn': '[Result "1-0"]\n\n1-0',
+    });
+    final playerBlack = RecentSession('black', DateTime.utc(2026), {
+      'playerIsWhite': false,
+      'elo': 1900,
+      'recentState': 'completed',
+      'forcedResult': '1/2-1/2',
+      'pgn': '[Result "*"]\n\n*',
+    });
+    final incomplete = RecentSession('open', DateTime.utc(2026), {
+      'playerIsWhite': false,
+      'elo': 1100,
+      'recentState': 'incomplete',
+      'pgn': '[Result "*"]\n\n*',
+    });
+
+    expect(playerWhite.title, 'Player — Maia 1600');
+    expect(playerWhite.resultLabel, '1-0');
+    expect(playerBlack.title, 'Maia 1900 — Player');
+    expect(playerBlack.resultLabel, '1/2-1/2');
+    expect(incomplete.title, 'Maia 1100 — Player');
+    expect(incomplete.resultLabel, 'Incomplete');
+  });
+
   test('review checkpoints expose only their saved game', () async {
     await store.save({
       'type': 'review',
@@ -273,14 +302,16 @@ void main() {
       );
       await tester.pumpAndSettle();
 
+      expect(find.text('Player — Maia 500'), findsOneWidget);
+      expect(find.text('Player — Maia 1500'), findsOneWidget);
       expect(find.textContaining('Incomplete · 2026-09-05'), findsOneWidget);
-      expect(find.textContaining('Completed · 2026-09-04'), findsOneWidget);
+      expect(find.textContaining('1-0 · 2026-09-04'), findsOneWidget);
       await tester.tap(find.byKey(const ValueKey('recent-games-menu')));
       await tester.pumpAndSettle();
       expect(find.text('Delete all games'), findsOneWidget);
       await tester.tap(find.text('Select games'));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('First'));
+      await tester.tap(find.text('Player — Maia 500'));
       await tester.pumpAndSettle();
       expect(find.text('1 selected'), findsOneWidget);
       await tester.tap(find.byKey(const ValueKey('select-all-games')));
@@ -289,8 +320,8 @@ void main() {
       await tester.tap(find.byKey(const ValueKey('select-all-games')));
       await tester.pumpAndSettle();
       expect(find.text('0 selected'), findsOneWidget);
-      await tester.tap(find.text('First'));
-      await tester.tap(find.text('Second'));
+      await tester.tap(find.text('Player — Maia 500'));
+      await tester.tap(find.text('Player — Maia 1500'));
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const ValueKey('delete-selected-games')));
       await tester.pumpAndSettle();
@@ -298,7 +329,7 @@ void main() {
       await tester.tap(find.widgetWithText(FilledButton, 'Delete'));
       await tester.pumpAndSettle();
       expect(deletionBatches.single, {'first', 'second'});
-      expect(find.text('Third'), findsOneWidget);
+      expect(find.text('Player — Maia 2000'), findsOneWidget);
 
       await tester.tap(find.byKey(const ValueKey('recent-games-menu')));
       await tester.pumpAndSettle();

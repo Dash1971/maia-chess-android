@@ -1,0 +1,48 @@
+{
+  "source_sha256": "b724b07aed4e737e0c810ac24e35dae86f0988da8a92d9ca9ed0d3c97f9380b4",
+  "observations": 4581,
+  "books": {
+    "lichess_1600_blitz_2026-05": {
+      "tv_p95": 0.12866967990090786,
+      "tv_full": 0.11873170444639959,
+      "tv_previous": 0.29750926670004163,
+      "delta_tv": 0.009937975454508287,
+      "removed_model_mass": 0.04087933815554482,
+      "excluded_human_mass": 0.03935730291755396,
+      "entropy_p95": 1.922992592199904,
+      "support_p95": 6.864375,
+      "support_full": 29.239375,
+      "observations": 1600,
+      "fraction_closer_than_full": 0.280625,
+      "fraction_opening_improvement_retained": 0.944411505956163
+    },
+    "lichess_1600_rapid_2026-05": {
+      "tv_p95": 0.1331161529867227,
+      "tv_full": 0.1254982552031621,
+      "tv_previous": 0.29556899881054827,
+      "delta_tv": 0.0076178977835606124,
+      "removed_model_mass": 0.04114430683741372,
+      "excluded_human_mass": 0.03799286130878375,
+      "entropy_p95": 1.971005682488403,
+      "support_p95": 6.940492476060191,
+      "support_full": 28.967852257181942,
+      "observations": 1462,
+      "fraction_closer_than_full": 0.23461012311901505,
+      "fraction_opening_improvement_retained": 0.9552074764772784
+    },
+    "lichess_1600_rapid_2026-07": {
+      "tv_p95": 0.13151448907788524,
+      "tv_full": 0.1234008755737823,
+      "tv_previous": 0.2910788676347525,
+      "delta_tv": 0.008113613504102923,
+      "removed_model_mass": 0.04096789951487138,
+      "excluded_human_mass": 0.039583148340480864,
+      "entropy_p95": 1.9669216501418427,
+      "support_p95": 6.964450296247532,
+      "support_full": 29.126398946675444,
+      "observations": 1519,
+      "fraction_closer_than_full": 0.2185648452929559,
+      "fraction_opening_improvement_retained": 0.9516119354461694
+    }
+  }
+}

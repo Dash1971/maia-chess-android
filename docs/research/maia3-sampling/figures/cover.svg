@@ -1,0 +1,454 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns:xlink="http://www.w3.org/1999/xlink" width="648pt" height="864pt" viewBox="0 0 648 864" xmlns="http://www.w3.org/2000/svg" version="1.1">
+ <metadata>
+  <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+   <cc:Work>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:date>2026-10-03T10:15:48.350768</dc:date>
+    <dc:format>image/svg+xml</dc:format>
+    <dc:creator>
+     <cc:Agent>
+      <dc:title>Matplotlib v3.11.2, https://matplotlib.org/</dc:title>
+     </cc:Agent>
+    </dc:creator>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <defs>
+  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>
+ </defs>
+ <g id="figure_1">
+  <g id="patch_1">
+   <path d="M 0 864
+L 648 864
+L 648 0
+L 0 0
+z
+" style="fill: #f8faf8"/>
+  </g>
+  <g id="axes_1">
+   <g id="patch_2">
+    <path d="M 43.2 32.4
+L 48 32.4
+L 48 37.2
+L 43.2 37.2
+z
+" clip-path="url(#pd9f5980fd3)" style="fill: #087f83"/>
+   </g>
+   <g id="patch_3">
+    <path d="M 48.6 32.4
+L 53.4 32.4
+L 53.4 37.2
+L 48.6 37.2
+z
+" clip-path="url(#pd9f5980fd3)" style="fill: #cfe2db"/>
+   </g>
+   <g id="patch_4">
+    <path d="M 54 32.4
+L 58.8 32.4
+L 58.8 37.2
+L 54 37.2
+z
+" clip-path="url(#pd9f5980fd3)" style="fill: #087f83"/>
+   </g>
+   <g id="patch_5">
+    <path d="M 59.4 32.4
+L 64.2 32.4
+L 64.2 37.2
+L 59.4 37.2
+z
+" clip-path="url(#pd9f5980fd3)" style="fill: #cfe2db"/>
+   </g>
+   <g id="patch_6">
+    <path d="M 43.2 37.8
+L 48 37.8
+L 48 42.6
+L 43.2 42.6
+z
+" clip-path="url(#pd9f5980fd3)" style="fill: #cfe2db"/>
+   </g>
+   <g id="patch_7">
+    <path d="M 48.6 37.8
+L 53.4 37.8
+L 53.4 42.6
+L 48.6 42.6
+z
+" clip-path="url(#pd9f5980fd3)" style="fill: #087f83"/>
+   </g>
+   <g id="patch_8">
+    <path d="M 54 37.8
+L 58.8 37.8
+L 58.8 42.6
+L 54 42.6
+z
+" clip-path="url(#pd9f5980fd3)" style="fill: #cfe2db"/>
+   </g>
+   <g id="patch_9">
+    <path d="M 59.4 37.8
+L 64.2 37.8
+L 64.2 42.6
+L 59.4 42.6
+z
+" clip-path="url(#pd9f5980fd3)" style="fill: #087f83"/>
+   </g>
+   <g id="patch_10">
+    <path d="M 43.2 43.2
+L 48 43.2
+L 48 48
+L 43.2 48
+z
+" clip-path="url(#pd9f5980fd3)" style="fill: #087f83"/>
+   </g>
+   <g id="patch_11">
+    <path d="M 48.6 43.2
+L 53.4 43.2
+L 53.4 48
+L 48.6 48
+z
+" clip-path="url(#pd9f5980fd3)" style="fill: #cfe2db"/>
+   </g>
+   <g id="patch_12">
+    <path d="M 54 43.2
+L 58.8 43.2
+L 58.8 48
+L 54 48
+z
+" clip-path="url(#pd9f5980fd3)" style="fill: #087f83"/>
+   </g>
+   <g id="patch_13">
+    <path d="M 59.4 43.2
+L 64.2 43.2
+L 64.2 48
+L 59.4 48
+z
+" clip-path="url(#pd9f5980fd3)" style="fill: #cfe2db"/>
+   </g>
+   <g id="patch_14">
+    <path d="M 43.2 48.6
+L 48 48.6
+L 48 53.4
+L 43.2 53.4
+z
+" clip-path="url(#pd9f5980fd3)" style="fill: #cfe2db"/>
+   </g>
+   <g id="patch_15">
+    <path d="M 48.6 48.6
+L 53.4 48.6
+L 53.4 53.4
+L 48.6 53.4
+z
+" clip-path="url(#pd9f5980fd3)" style="fill: #087f83"/>
+   </g>
+   <g id="patch_16">
+    <path d="M 54 48.6
+L 58.8 48.6
+L 58.8 53.4
+L 54 53.4
+z
+" clip-path="url(#pd9f5980fd3)" style="fill: #cfe2db"/>
+   </g>
+   <g id="patch_17">
+    <path d="M 59.4 48.6
+L 64.2 48.6
+L 64.2 53.4
+L 59.4 53.4
+z
+" clip-path="url(#pd9f5980fd3)" style="fill: #087f83"/>
+   </g>
+   <g id="patch_18">
+    <path d="M 43.2 85.8
+L 86.4 85.8
+L 86.4 88.8
+L 43.2 88.8
+z
+" clip-path="url(#pd9f5980fd3)" style="fill: #087f83"/>
+   </g>
+   <g id="patch_19">
+    <path d="M 53.4 233.4
+L 594.6 233.4
+Q 604.8 233.4 604.8 243.6
+L 604.8 349.8
+Q 604.8 360 594.6 360
+L 53.4 360
+Q 43.2 360 43.2 349.8
+L 43.2 243.6
+Q 43.2 233.4 53.4 233.4
+z
+" clip-path="url(#pd9f5980fd3)" style="fill: #e7f1eb"/>
+   </g>
+   <g id="patch_20">
+    <path d="M 384 281.4
+L 384.9 281.4
+L 384.9 336.6
+L 384 336.6
+z
+" clip-path="url(#pd9f5980fd3)" style="fill: #bbd6c8"/>
+   </g>
+   <g id="patch_21">
+    <path d="M 43.2 514.8
+L 604.8 514.8
+L 604.8 515.7
+L 43.2 515.7
+z
+" clip-path="url(#pd9f5980fd3)" style="fill: #dbe4de"/>
+   </g>
+   <g id="patch_22">
+    <path d="M 43.2 565.2
+L 51.6 565.2
+L 51.6 573.6
+L 43.2 573.6
+z
+" clip-path="url(#pd9f5980fd3)" style="fill: #087f83"/>
+   </g>
+   <g id="patch_23">
+    <path d="M 93 565.2
+L 101.4 565.2
+L 101.4 573.6
+L 93 573.6
+z
+" clip-path="url(#pd9f5980fd3)" style="fill: #48879b"/>
+   </g>
+   <g id="patch_24">
+    <path d="M 145.2 565.2
+L 153.6 565.2
+L 153.6 573.6
+L 145.2 573.6
+z
+" clip-path="url(#pd9f5980fd3)" style="fill: #d4ded4"/>
+   </g>
+   <g id="patch_25">
+    <path d="M 186.6 594.6
+L 443.826736 594.6
+L 443.826736 615
+L 186.6 615
+z
+" clip-path="url(#pd9f5980fd3)" style="fill: #087f83"/>
+   </g>
+   <g id="patch_26">
+    <path d="M 443.826736 594.6
+L 550.90936 594.6
+L 550.90936 615
+L 443.826736 615
+z
+" clip-path="url(#pd9f5980fd3)" style="fill: #48879b"/>
+   </g>
+   <g id="patch_27">
+    <path d="M 550.90936 594.6
+L 604.8 594.6
+L 604.8 615
+L 550.90936 615
+z
+" clip-path="url(#pd9f5980fd3)" style="fill: #d4ded4"/>
+   </g>
+   <g id="patch_28">
+    <path d="M 186.6 628.2
+L 548.616918 628.2
+L 548.616918 648.6
+L 186.6 648.6
+z
+" clip-path="url(#pd9f5980fd3)" style="fill: #087f83"/>
+   </g>
+   <g id="patch_29">
+    <path d="M 548.616918 628.2
+L 604.8 628.2
+L 604.8 648.6
+L 548.616918 648.6
+z
+" clip-path="url(#pd9f5980fd3)" style="fill: #48879b"/>
+   </g>
+   <g id="patch_30">
+    <path d="M 186.6 661.8
+L 467.067869 661.8
+L 467.067869 682.2
+L 186.6 682.2
+z
+" clip-path="url(#pd9f5980fd3)" style="fill: #087f83"/>
+   </g>
+   <g id="patch_31">
+    <path d="M 467.067869 661.8
+L 577.557485 661.8
+L 577.557485 682.2
+L 467.067869 682.2
+z
+" clip-path="url(#pd9f5980fd3)" style="fill: #48879b"/>
+   </g>
+   <g id="patch_32">
+    <path d="M 577.557485 661.8
+L 604.8 661.8
+L 604.8 682.2
+L 577.557485 682.2
+z
+" clip-path="url(#pd9f5980fd3)" style="fill: #d4ded4"/>
+   </g>
+   <g id="patch_33">
+    <path d="M 186.6 695.4
+L 453.192495 695.4
+L 453.192495 715.8
+L 186.6 715.8
+z
+" clip-path="url(#pd9f5980fd3)" style="fill: #087f83"/>
+   </g>
+   <g id="patch_34">
+    <path d="M 453.192495 695.4
+L 558.215942 695.4
+L 558.215942 715.8
+L 453.192495 715.8
+z
+" clip-path="url(#pd9f5980fd3)" style="fill: #48879b"/>
+   </g>
+   <g id="patch_35">
+    <path d="M 558.215942 695.4
+L 604.8 695.4
+L 604.8 715.8
+L 558.215942 715.8
+z
+" clip-path="url(#pd9f5980fd3)" style="fill: #d4ded4"/>
+   </g>
+   <g id="patch_36">
+    <path d="M 43.2 760.2
+L 604.8 760.2
+L 604.8 761.1
+L 43.2 761.1
+z
+" clip-path="url(#pd9f5980fd3)" style="fill: #dbe4de"/>
+   </g>
+   <g id="text_1">
+    <text style="font-weight: 700; font-size: 19px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #173c4b" x="73.8" y="48.136289" transform="rotate(-0 73.8 48.136289)">Mobile Maia</text>
+   </g>
+   <g id="text_2">
+    <text style="font-size: 10px; font-family: 'DejaVu Sans'; text-anchor: end; fill: #62747b" x="604.8" y="45.797656" transform="rotate(-0 604.8 45.797656)">SETTINGS GUIDE · OCT 2026</text>
+   </g>
+   <g id="text_3">
+    <text style="font-weight: 700; font-size: 33px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #173c4b" x="43.2" y="131.573555" transform="rotate(-0 43.2 131.573555)">Settings for enjoyable,</text>
+   </g>
+   <g id="text_4">
+    <text style="font-weight: 700; font-size: 33px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #173c4b" x="43.2" y="170.573555" transform="rotate(-0 43.2 170.573555)">more varied chess</text>
+   </g>
+   <g id="text_5">
+    <text style="font-size: 13px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #62747b" x="43.2" y="203.777461" transform="rotate(-0 43.2 203.777461)">Explore more openings. Keep the game interesting.</text>
+   </g>
+   <g id="text_6">
+    <text style="font-weight: 700; font-size: 10px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #087f83" x="63.6" y="259.397656" transform="rotate(-0 63.6 259.397656)">OUR PICK FOR OPENING VARIETY</text>
+   </g>
+   <g id="text_7">
+    <text style="font-weight: 700; font-size: 9.5px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #62747b" x="63.6" y="285.667773" transform="rotate(-0 63.6 285.667773)">TEMPERATURE</text>
+   </g>
+   <g id="text_8">
+    <text style="font-weight: 700; font-size: 9.5px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #62747b" x="224.4" y="285.667773" transform="rotate(-0 224.4 285.667773)">TOP-P</text>
+   </g>
+   <g id="text_9">
+    <text style="font-weight: 700; font-size: 48px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #087f83" x="61.2" y="337.06875" transform="rotate(-0 61.2 337.06875)">1.0</text>
+   </g>
+   <g id="text_10">
+    <text style="font-weight: 700; font-size: 48px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #087f83" x="222" y="337.06875" transform="rotate(-0 222 337.06875)">1.0</text>
+   </g>
+   <g id="text_11">
+    <text style="font-size: 12.5px; font-family: 'DejaVu Sans'; fill: #173c4b" transform="translate(407.4 299.449219)">More openings to explore.</text>
+    <text style="font-size: 12.5px; font-family: 'DejaVu Sans'; fill: #173c4b" transform="translate(407.4 319.449219)">Less repetition early on.</text>
+   </g>
+   <g id="text_12">
+    <text style="font-weight: 700; font-size: 9.5px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #62747b" x="43.2" y="390.067773" transform="rotate(-0 43.2 390.067773)">WHAT 1/1 EXPLORED IN 2,000 SAMPLE OPENINGS</text>
+   </g>
+   <g id="text_13">
+    <text style="font-weight: 700; font-size: 35px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #087f83" x="43.2" y="433.291797" transform="rotate(-0 43.2 433.291797)">85</text>
+   </g>
+   <g id="text_14">
+    <text style="font-weight: 700; font-size: 14px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #173c4b" x="43.2" y="457.237266" transform="rotate(-0 43.2 457.237266)">opening families</text>
+   </g>
+   <g id="text_15">
+    <text style="font-size: 9.5px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #62747b" x="43.2" y="477.068145" transform="rotate(-0 43.2 477.068145)">After 8 full moves</text>
+   </g>
+   <g id="text_16">
+    <text style="font-size: 10.5px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #62747b" x="43.2" y="497.727949" transform="rotate(-0 43.2 497.727949)">1/0.95 explored 67; 0.5/0.9 explored 28.</text>
+   </g>
+   <g id="text_17">
+    <text style="font-weight: 700; font-size: 35px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #173c4b" x="337.8" y="433.291797" transform="rotate(-0 337.8 433.291797)">711</text>
+   </g>
+   <g id="text_18">
+    <text style="font-weight: 700; font-size: 14px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #173c4b" x="337.8" y="457.237266" transform="rotate(-0 337.8 457.237266)">different opening starts</text>
+   </g>
+   <g id="text_19">
+    <text style="font-size: 9.5px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #62747b" x="337.8" y="477.068145" transform="rotate(-0 337.8 477.068145)">After 2 full moves</text>
+   </g>
+   <g id="text_20">
+    <text style="font-size: 10.5px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #62747b" x="337.8" y="497.727949" transform="rotate(-0 337.8 497.727949)">1/0.95 explored 470; 0.5/0.9 explored 43.</text>
+   </g>
+   <g id="text_21">
+    <text style="font-weight: 700; font-size: 17px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #173c4b" x="43.2" y="545.01668" transform="rotate(-0 43.2 545.01668)">How often does each first move appear?</text>
+   </g>
+   <g id="text_22">
+    <text style="font-size: 10px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #62747b" x="57" y="572.597656" transform="rotate(-0 57 572.597656)">e4</text>
+   </g>
+   <g id="text_23">
+    <text style="font-size: 10px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #62747b" x="106.8" y="572.598047" transform="rotate(-0 106.8 572.598047)">d4</text>
+   </g>
+   <g id="text_24">
+    <text style="font-size: 10px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #62747b" x="159" y="572.598047" transform="rotate(-0 159 572.598047)">Other</text>
+   </g>
+   <g id="text_25">
+    <text style="font-size: 10.5px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #173c4b" x="43.2" y="607.527949" transform="rotate(-0 43.2 607.527949)">Human players</text>
+   </g>
+   <g id="text_26">
+    <text style="font-weight: 700; font-size: 10px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #ffffff" x="315.213368" y="607.397656" transform="rotate(-0 315.213368 607.397656)">61.5%</text>
+   </g>
+   <g id="text_27">
+    <text style="font-weight: 700; font-size: 10px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #ffffff" x="497.368048" y="607.397656" transform="rotate(-0 497.368048 607.397656)">25.6%</text>
+   </g>
+   <g id="text_28">
+    <text style="font-weight: 700; font-size: 10px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #173c4b" x="577.85468" y="607.397656" transform="rotate(-0 577.85468 607.397656)">12.9%</text>
+   </g>
+   <g id="text_29">
+    <text style="font-size: 10.5px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #173c4b" x="43.2" y="641.127539" transform="rotate(-0 43.2 641.127539)">T 0.5 / P 0.9</text>
+   </g>
+   <g id="text_30">
+    <text style="font-weight: 700; font-size: 10px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #ffffff" x="367.608459" y="640.997656" transform="rotate(-0 367.608459 640.997656)">86.6%</text>
+   </g>
+   <g id="text_31">
+    <text style="font-weight: 700; font-size: 10px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #ffffff" x="576.708459" y="640.997656" transform="rotate(-0 576.708459 640.997656)">13.4%</text>
+   </g>
+   <g id="text_32">
+    <text style="font-size: 10.5px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #173c4b" x="43.2" y="674.727539" transform="rotate(-0 43.2 674.727539)">T 1 / P 0.95</text>
+   </g>
+   <g id="text_33">
+    <text style="font-weight: 700; font-size: 10px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #ffffff" x="326.833935" y="674.597656" transform="rotate(-0 326.833935 674.597656)">67.1%</text>
+   </g>
+   <g id="text_34">
+    <text style="font-weight: 700; font-size: 10px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #ffffff" x="522.312677" y="674.597656" transform="rotate(-0 522.312677 674.597656)">26.4%</text>
+   </g>
+   <g id="text_35">
+    <text style="font-weight: 700; font-size: 10px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #173c4b" x="591.178743" y="674.597656" transform="rotate(-0 591.178743 674.597656)">6.5%</text>
+   </g>
+   <g id="text_36">
+    <text style="font-weight: 700; font-size: 10.5px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #173c4b" x="43.2" y="708.327539" transform="rotate(-0 43.2 708.327539)">T 1 / P 1</text>
+   </g>
+   <g id="text_37">
+    <text style="font-weight: 700; font-size: 10px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #ffffff" x="319.896248" y="708.197656" transform="rotate(-0 319.896248 708.197656)">63.7%</text>
+   </g>
+   <g id="text_38">
+    <text style="font-weight: 700; font-size: 10px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #ffffff" x="505.704218" y="708.197656" transform="rotate(-0 505.704218 708.197656)">25.1%</text>
+   </g>
+   <g id="text_39">
+    <text style="font-weight: 700; font-size: 10px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #173c4b" x="581.507971" y="708.197656" transform="rotate(-0 581.507971 708.197656)">11.1%</text>
+   </g>
+   <g id="text_40">
+    <text style="font-size: 9px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #62747b" x="43.2" y="740.338242" transform="rotate(-0 43.2 740.338242)">Human comparison: Lichess blitz. T = Temperature; P = Top-P.</text>
+   </g>
+   <g id="text_41">
+    <text style="font-weight: 700; font-size: 13px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #173c4b" x="43.2" y="789.376953" transform="rotate(-0 43.2 789.376953)">Want a stronger opponent? Try 1 / 0.95.</text>
+   </g>
+   <g id="text_42">
+    <text style="font-size: 11px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #62747b" x="43.2" y="811.057852" transform="rotate(-0 43.2 811.057852)">Choose 1 / 1 when a wider opening repertoire matters more to you.</text>
+   </g>
+   <g id="text_43">
+    <text style="font-size: 9px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #62747b" x="43.2" y="838.738242" transform="rotate(-0 43.2 838.738242)">Maia3-79M · 1600 setting · No opening book chooses the moves</text>
+   </g>
+  </g>
+ </g>
+ <defs>
+  <clipPath id="pd9f5980fd3">
+   <rect x="0" y="0" width="648" height="864"/>
+  </clipPath>
+ </defs>
+</svg>

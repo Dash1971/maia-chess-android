@@ -1,0 +1,31 @@
+{
+  "status": "passed",
+  "files": [
+    "summary.json",
+    "actual-two-ply.json"
+  ],
+  "numerical_leaves_compared": 6871,
+  "maximum_absolute_difference": 2.1316282072803006e-14,
+  "tolerance": 1e-12,
+  "omitted_inputs": [
+    "book binaries",
+    "Parquet source groups",
+    "HTTP range cache",
+    "opening TSV"
+  ],
+  "fixture_sha256": {
+    "conditional.json": "b724b07aed4e737e0c810ac24e35dae86f0988da8a92d9ca9ed0d3c97f9380b4",
+    "human-sample.json": "64034d95fd234ce28149cc1ba06b447190b964acdcd63547ce2979c045e2093a",
+    "rollouts.json": "72764af564e51e35b1eb636649aa62f8e60e320772a9ec44e54919bf5e1227e6",
+    "run.json": "8200416f4a5985cf5baebc57a4a4aa67e72a3b9203b4b556cf4a00c46a3a09ad",
+    "exact-two-ply.json": "c9e1d2d96397450388a6b7cb30b7f2e67d568078efea803b1809fedff69c794e"
+  },
+  "note": "No inference or book reconstruction required for this re-analysis. Source labels and target human frequencies are held fixed by the publication fixtures.",
+  "cached_grid_portability": {
+    "status": "passed",
+    "numeric_leaves": 192,
+    "maximum_absolute_difference": 4.440892098500626e-16,
+    "model_required": false,
+    "note": "Executed unmodified grid_sensitivity.py in reduced fixture directory without a model file, source books, TSV, Parquet groups or range cache."
+  }
+}

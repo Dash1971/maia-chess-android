@@ -1,0 +1,138 @@
+{
+  "n": 1200,
+  "wins": 671,
+  "draws": 100,
+  "losses": 429,
+  "score": 0.6008333333333333,
+  "elo_difference": 71.03990052194632,
+  "first": "p95",
+  "second": "full",
+  "score_95_ci": [
+    0.5745833333333333,
+    0.6270833333333333
+  ],
+  "elo_difference_95_ci": [
+    52.2154096355758,
+    90.28538584558005
+  ],
+  "bootstrap_replicates": 200000,
+  "bootstrap_seed": 7000000000,
+  "method": "Resample game scores within first-profile color (multinomial equivalent of independent game bootstrap); equally weight colors; percentile 95% score CI; monotone 400*log10(s/(1-s)) transform. One predeclared contrast. Relative match Elo, not calibrated human Elo.",
+  "two_sided_decisive_binomial_p": 2.9767416829283324e-13,
+  "colors": {
+    "p95_white": {
+      "n": 600,
+      "wins": 361,
+      "draws": 44,
+      "losses": 195,
+      "score": 0.6383333333333333,
+      "elo_difference": 98.69561604803727
+    },
+    "p95_black": {
+      "n": 600,
+      "wins": 310,
+      "draws": 56,
+      "losses": 234,
+      "score": 0.5633333333333334,
+      "elo_difference": 44.246163583163714
+    }
+  },
+  "shards": {
+    "0": {
+      "n": 200,
+      "wins": 106,
+      "draws": 23,
+      "losses": 71,
+      "score": 0.5875,
+      "elo_difference": 61.433567223132
+    },
+    "1": {
+      "n": 200,
+      "wins": 121,
+      "draws": 12,
+      "losses": 67,
+      "score": 0.635,
+      "elo_difference": 96.1923443342004
+    },
+    "2": {
+      "n": 200,
+      "wins": 114,
+      "draws": 14,
+      "losses": 72,
+      "score": 0.605,
+      "elo_difference": 74.06331161040346
+    },
+    "3": {
+      "n": 200,
+      "wins": 102,
+      "draws": 14,
+      "losses": 84,
+      "score": 0.545,
+      "elo_difference": 31.354042247812043
+    },
+    "4": {
+      "n": 200,
+      "wins": 115,
+      "draws": 20,
+      "losses": 65,
+      "score": 0.625,
+      "elo_difference": 88.73949984654256
+    },
+    "5": {
+      "n": 200,
+      "wins": 113,
+      "draws": 17,
+      "losses": 70,
+      "score": 0.6075,
+      "elo_difference": 75.88264847563141
+    }
+  },
+  "terminations": {
+    "checkmate": 1100,
+    "stalemate": 46,
+    "insufficient_material": 19,
+    "threefold_repetition_actual": 34,
+    "fifty_moves_actual": 1
+  },
+  "unique_movetexts": 1200,
+  "plies": {
+    "mean": 89.82833333333333,
+    "median": 84.0,
+    "minimum": 15,
+    "maximum": 269
+  },
+  "total_game_seconds": 11567.342485666275,
+  "cap_sensitivity": {
+    "cap_games": 0,
+    "score_excluding_caps": 0.6008333333333333,
+    "caps_as_p95_win_score": 0.6008333333333333,
+    "caps_as_p95_loss_score": 0.6008333333333333
+  },
+  "inputs": [
+    {
+      "path": "sampling-followup-20261003/strength/shard0/games.jsonl",
+      "sha256": "2136f73af8232500e387dfa61ed781e5a0cdb13e395983197ad85aa4b6d02e6f"
+    },
+    {
+      "path": "sampling-followup-20261003/strength/shard1/games.jsonl",
+      "sha256": "ccfcedd035cdab2a2c55132d3afa50f93c931b5cd39e5bc01c2eb76aaf019fba"
+    },
+    {
+      "path": "sampling-followup-20261003/strength/shard2/games.jsonl",
+      "sha256": "df13fffe68a53ad898687ceb8c1714b51d72ef0b7ecc7a77218280ab499667d7"
+    },
+    {
+      "path": "sampling-followup-20261003/strength/shard3/games.jsonl",
+      "sha256": "0d455d4e4131eb24ea1b26e01ccbf7822312f97734d9d891d4389734b71912db"
+    },
+    {
+      "path": "sampling-followup-20261003/strength/shard4/games.jsonl",
+      "sha256": "0627a0d62a98c4c562c08394fa40c5aab18e3644321013e28284f10a38758a8b"
+    },
+    {
+      "path": "sampling-followup-20261003/strength/shard5/games.jsonl",
+      "sha256": "f198bfd9a6e51c2a1b67a466797ddceddbfc047660db55893d44c86812997e6e"
+    }
+  ],
+  "analysis_sha256": "66581c1be5fa5b937e08c90b316ee3717d59ae8661effbd3b5c0af133f1b2c4f"
+}

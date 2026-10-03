@@ -18,11 +18,11 @@ class MaiaInferenceTest {
     @Test
     fun packagedModelReturnsPolicyVector() {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
-        val model = File(context.cacheDir, "instrumentation-maia3-79m.onnx")
-        context.assets.open("flutter_assets/assets/models/maia3-79m.onnx").use { input ->
+        val model = File(context.cacheDir, "instrumentation-${BuildConfig.MAIA_MODEL_FILE}")
+        context.assets.open(BuildConfig.MAIA_MODEL_ASSET).use { input ->
             FileOutputStream(model).use { output -> input.copyTo(output) }
         }
-        assertTrue(model.length() > 300_000_000)
+        assertEquals(BuildConfig.MAIA_MODEL_BYTES, model.length())
 
         val environment = OrtEnvironment.getEnvironment()
         environment.createSession(model.absolutePath).use { session ->
@@ -53,8 +53,8 @@ class MaiaInferenceTest {
     @Test
     fun packagedModelUsesRequestedElo() {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
-        val model = File(context.cacheDir, "instrumentation-maia3-79m.onnx")
-        context.assets.open("flutter_assets/assets/models/maia3-79m.onnx").use { input ->
+        val model = File(context.cacheDir, "instrumentation-${BuildConfig.MAIA_MODEL_FILE}")
+        context.assets.open(BuildConfig.MAIA_MODEL_ASSET).use { input ->
             FileOutputStream(model).use { output -> input.copyTo(output) }
         }
         val environment = OrtEnvironment.getEnvironment()

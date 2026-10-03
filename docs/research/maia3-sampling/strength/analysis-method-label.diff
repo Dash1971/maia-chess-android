@@ -1,0 +1,11 @@
+--- analyze_strength_5m_executed.py
++++ analyze_strength.py
+@@ -35,7 +35,7 @@
+  for name in sorted(set(r['first'] for r in rows)|set(r['second'] for r in rows)):
+   selected=[(r,r['score_first'] if r['first']==name else 1-r['score_first']) for r in rows if name in [r['first'],r['second']]]
+   scores=np.array([s for r,s in selected]);standings[name]={'n':len(scores),'wins':int((scores==1).sum()),'draws':int((scores==.5).sum()),'losses':int((scores==0).sum()),'score':float(scores.mean())}
+- report={'games':len(rows),'bootstrap_replicates':args.bootstraps,'bootstrap_seed':2026100201,'method':'Resample game scores within each matchup and first-profile color (multinomial equivalent of bootstrap); equally weight colors; transform score using 400*log10(s/(1-s)). CIs marginal 95%; p tests conditional on decisive games, Holm adjusted across 3. Elo is descriptive relative match performance, not human Elo.','pairs':pairs,'standings':standings,'termination_counts':dict(collections.Counter(r['termination'] for r in rows)),'total_game_seconds':sum(r['seconds'] for r in rows),'max_ply_sensitivity':{}}
++ report={'games':len(rows),'bootstrap_replicates':args.bootstraps,'bootstrap_seed':2026100201,'method':f'Resample game scores within each matchup and first-profile color (multinomial equivalent of bootstrap); equally weight colors; transform score using 400*log10(s/(1-s)). CIs marginal 95%; p tests conditional on decisive games, Holm adjusted across {len(pairs)}. Elo is descriptive relative match performance, not human Elo.','pairs':pairs,'standings':standings,'termination_counts':dict(collections.Counter(r['termination'] for r in rows)),'total_game_seconds':sum(r['seconds'] for r in rows),'max_ply_sensitivity':{}}
+  for index,v in sorted(grouped.items()):
+   caps=[r for r in v if r['termination']=='max_plies'];remaining=[r for r in v if r['termination']!='max_plies']
+   report['max_ply_sensitivity'][str(index)]={'cap_games':len(caps),'score_excluding_caps':float(np.mean([r['score_first'] for r in remaining])) if remaining else None,'cap_as_first_win_score':float(np.mean([r['score_first'] if r['termination']!='max_plies' else 1. for r in v])),'cap_as_first_loss_score':float(np.mean([r['score_first'] if r['termination']!='max_plies' else 0. for r in v]))}

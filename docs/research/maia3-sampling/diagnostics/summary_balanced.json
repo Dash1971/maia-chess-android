@@ -1,0 +1,1329 @@
+{
+  "method": "equal weight for each of eighteen source-pair / fixed-ply strata; paired differences; resample contributing games from the original first30 independently within each sourcepair, retaining their sampled positions; 2000 bootstrap replicates; refinement uses its own contributing game clusters",
+  "strata_counts": {
+    "pair0_ply24": 25,
+    "pair0_ply25": 25,
+    "pair0_ply40": 29,
+    "pair0_ply41": 29,
+    "pair0_ply60": 22,
+    "pair0_ply61": 22,
+    "pair1_ply24": 30,
+    "pair1_ply25": 29,
+    "pair1_ply40": 28,
+    "pair1_ply41": 28,
+    "pair1_ply60": 16,
+    "pair1_ply61": 16,
+    "pair2_ply24": 30,
+    "pair2_ply25": 30,
+    "pair2_ply40": 27,
+    "pair2_ply41": 27,
+    "pair2_ply60": 20,
+    "pair2_ply61": 20
+  },
+  "depths": {
+    "10": {
+      "argmax": {
+        "n_positions": 453,
+        "equal_stratum_means": {
+          "support": 1.0,
+          "entropy_bits": 0.0,
+          "expected_cp_loss": 250.0377240821829,
+          "expected_cp_loss_capped1000": 50.951114267100856,
+          "prob_loss_gt100": 0.09420660951791218,
+          "prob_loss_gt200": 0.03773921250453818,
+          "prob_best_cp": 0.4851927687751442,
+          "prob_selected_mate_score": 0.05242655297731926
+        },
+        "cp_loss_delta_vs_baseline": -9.822652936592883,
+        "capped1000_cp_loss_delta_vs_baseline": -4.852656037172911,
+        "game_cluster_bootstrap95_delta": [
+          -48.22437354342648,
+          32.63988858320194
+        ],
+        "paired_differences": {
+          "expected_cp_loss": {
+            "mean": -9.822652936592883,
+            "bootstrap95": [
+              -48.22437354342648,
+              32.63988858320194
+            ]
+          },
+          "expected_cp_loss_capped1000": {
+            "mean": -4.852656037172911,
+            "bootstrap95": [
+              -9.327480580772134,
+              0.05731905733650222
+            ]
+          },
+          "prob_loss_gt100": {
+            "mean": -0.015980242494754954,
+            "bootstrap95": [
+              -0.029295286319582718,
+              -0.0026113801956306453
+            ]
+          },
+          "prob_loss_gt200": {
+            "mean": -0.008230420073213975,
+            "bootstrap95": [
+              -0.014979800860073996,
+              -0.001461194509519298
+            ]
+          }
+        },
+        "bootstrap_valid_replicates": 2000
+      },
+      "T0.5_P0.5": {
+        "n_positions": 453,
+        "equal_stratum_means": {
+          "support": 1.1584908195253023,
+          "entropy_bits": 0.14948338165542582,
+          "expected_cp_loss": 257.4159626101318,
+          "expected_cp_loss_capped1000": 52.17207661760139,
+          "prob_loss_gt100": 0.09196999121073919,
+          "prob_loss_gt200": 0.038398846251838675,
+          "prob_best_cp": 0.4820484948477751,
+          "prob_selected_mate_score": 0.053136161848755054
+        },
+        "cp_loss_delta_vs_baseline": -2.4444144086439366,
+        "capped1000_cp_loss_delta_vs_baseline": -3.6316936866723655,
+        "game_cluster_bootstrap95_delta": [
+          -40.450690120149176,
+          37.5830718969888
+        ],
+        "paired_differences": {
+          "expected_cp_loss": {
+            "mean": -2.4444144086439366,
+            "bootstrap95": [
+              -40.450690120149176,
+              37.5830718969888
+            ]
+          },
+          "expected_cp_loss_capped1000": {
+            "mean": -3.6316936866723655,
+            "bootstrap95": [
+              -8.049664121707595,
+              0.8129443121193003
+            ]
+          },
+          "prob_loss_gt100": {
+            "mean": -0.018216860801927956,
+            "bootstrap95": [
+              -0.026711489557069607,
+              -0.009406607495242216
+            ]
+          },
+          "prob_loss_gt200": {
+            "mean": -0.007570786325913482,
+            "bootstrap95": [
+              -0.01370758117400318,
+              -0.001794338379460797
+            ]
+          }
+        },
+        "bootstrap_valid_replicates": 2000
+      },
+      "T0.5_P0.9": {
+        "n_positions": 453,
+        "equal_stratum_means": {
+          "support": 2.268984079989827,
+          "entropy_bits": 0.7110237558217153,
+          "expected_cp_loss": 259.8603770187758,
+          "expected_cp_loss_capped1000": 55.80377030427377,
+          "prob_loss_gt100": 0.11018685201266715,
+          "prob_loss_gt200": 0.04596963257775215,
+          "prob_best_cp": 0.4648984948823962,
+          "prob_selected_mate_score": 0.056463809445398166
+        },
+        "cp_loss_delta_vs_baseline": 0.0,
+        "capped1000_cp_loss_delta_vs_baseline": 0.0,
+        "game_cluster_bootstrap95_delta": [
+          0.0,
+          0.0
+        ],
+        "paired_differences": {
+          "expected_cp_loss": {
+            "mean": 0.0,
+            "bootstrap95": [
+              0.0,
+              0.0
+            ]
+          },
+          "expected_cp_loss_capped1000": {
+            "mean": 0.0,
+            "bootstrap95": [
+              0.0,
+              0.0
+            ]
+          },
+          "prob_loss_gt100": {
+            "mean": 0.0,
+            "bootstrap95": [
+              0.0,
+              0.0
+            ]
+          },
+          "prob_loss_gt200": {
+            "mean": 0.0,
+            "bootstrap95": [
+              0.0,
+              0.0
+            ]
+          }
+        },
+        "bootstrap_valid_replicates": 2000
+      },
+      "T0.5_P0.95": {
+        "n_positions": 453,
+        "equal_stratum_means": {
+          "support": 2.8445774567422077,
+          "entropy_bits": 0.8206936732351982,
+          "expected_cp_loss": 262.56324486874644,
+          "expected_cp_loss_capped1000": 56.80761589559929,
+          "prob_loss_gt100": 0.11346727259939555,
+          "prob_loss_gt200": 0.04725331405493844,
+          "prob_best_cp": 0.46063432967289775,
+          "prob_selected_mate_score": 0.05612678301690413
+        },
+        "cp_loss_delta_vs_baseline": 2.7028678499706422,
+        "capped1000_cp_loss_delta_vs_baseline": 1.0038455913255193,
+        "game_cluster_bootstrap95_delta": [
+          -5.4915804261317325,
+          9.866086901396548
+        ],
+        "paired_differences": {
+          "expected_cp_loss": {
+            "mean": 2.7028678499706422,
+            "bootstrap95": [
+              -5.4915804261317325,
+              9.866086901396548
+            ]
+          },
+          "expected_cp_loss_capped1000": {
+            "mean": 1.0038455913255193,
+            "bootstrap95": [
+              0.11695616490732155,
+              1.7959855435224916
+            ]
+          },
+          "prob_loss_gt100": {
+            "mean": 0.0032804205867284168,
+            "bootstrap95": [
+              0.0014561216647145936,
+              0.005122032359729388
+            ]
+          },
+          "prob_loss_gt200": {
+            "mean": 0.0012836814771862853,
+            "bootstrap95": [
+              0.00011841985327727565,
+              0.0023236415395311333
+            ]
+          }
+        },
+        "bootstrap_valid_replicates": 2000
+      },
+      "T0.5_P1": {
+        "n_positions": 453,
+        "equal_stratum_means": {
+          "support": 30.66931549807508,
+          "entropy_bits": 0.9799930418363206,
+          "expected_cp_loss": 268.08703073588885,
+          "expected_cp_loss_capped1000": 58.646267811772404,
+          "prob_loss_gt100": 0.11964468575601352,
+          "prob_loss_gt200": 0.05042380487283563,
+          "prob_best_cp": 0.4543087929185521,
+          "prob_selected_mate_score": 0.05590314506891593
+        },
+        "cp_loss_delta_vs_baseline": 8.226653717113038,
+        "capped1000_cp_loss_delta_vs_baseline": 2.8424975074986363,
+        "game_cluster_bootstrap95_delta": [
+          -1.0442529774977032,
+          17.479791386262242
+        ],
+        "paired_differences": {
+          "expected_cp_loss": {
+            "mean": 8.226653717113038,
+            "bootstrap95": [
+              -1.0442529774977032,
+              17.479791386262242
+            ]
+          },
+          "expected_cp_loss_capped1000": {
+            "mean": 2.8424975074986363,
+            "bootstrap95": [
+              1.807997675922841,
+              3.8658969665915612
+            ]
+          },
+          "prob_loss_gt100": {
+            "mean": 0.00945783374334634,
+            "bootstrap95": [
+              0.007089060970118559,
+              0.011831575902056874
+            ]
+          },
+          "prob_loss_gt200": {
+            "mean": 0.004454172295083488,
+            "bootstrap95": [
+              0.0029950412723959746,
+              0.005900324171937185
+            ]
+          }
+        },
+        "bootstrap_valid_replicates": 2000
+      },
+      "T0.9_P0.5": {
+        "n_positions": 453,
+        "equal_stratum_means": {
+          "support": 1.510594394962211,
+          "entropy_bits": 0.43841129038139265,
+          "expected_cp_loss": 250.5899283506352,
+          "expected_cp_loss_capped1000": 53.982528907901354,
+          "prob_loss_gt100": 0.10355448997101896,
+          "prob_loss_gt200": 0.0436167129851046,
+          "prob_best_cp": 0.472129732943271,
+          "prob_selected_mate_score": 0.054927965275796596
+        },
+        "cp_loss_delta_vs_baseline": -9.27044866814058,
+        "capped1000_cp_loss_delta_vs_baseline": -1.8212413963724146,
+        "game_cluster_bootstrap95_delta": [
+          -27.842231393961182,
+          9.697842301982243
+        ],
+        "paired_differences": {
+          "expected_cp_loss": {
+            "mean": -9.27044866814058,
+            "bootstrap95": [
+              -27.842231393961182,
+              9.697842301982243
+            ]
+          },
+          "expected_cp_loss_capped1000": {
+            "mean": -1.8212413963724146,
+            "bootstrap95": [
+              -3.827540359994064,
+              0.2960997011876319
+            ]
+          },
+          "prob_loss_gt100": {
+            "mean": -0.006632362041648192,
+            "bootstrap95": [
+              -0.011469773829193725,
+              -0.0011226870816926605
+            ]
+          },
+          "prob_loss_gt200": {
+            "mean": -0.002352919592647549,
+            "bootstrap95": [
+              -0.005412093229996435,
+              0.0008962806910844481
+            ]
+          }
+        },
+        "bootstrap_valid_replicates": 2000
+      },
+      "T0.9_P0.9": {
+        "n_positions": 453,
+        "equal_stratum_means": {
+          "support": 4.177443169148151,
+          "entropy_bits": 1.353354183680418,
+          "expected_cp_loss": 296.91145011405047,
+          "expected_cp_loss_capped1000": 67.52043691459194,
+          "prob_loss_gt100": 0.1487502819400818,
+          "prob_loss_gt200": 0.0649548318863194,
+          "prob_best_cp": 0.41880876694555147,
+          "prob_selected_mate_score": 0.055844965025947206
+        },
+        "cp_loss_delta_vs_baseline": 37.051073095274745,
+        "capped1000_cp_loss_delta_vs_baseline": 11.716666610318192,
+        "game_cluster_bootstrap95_delta": [
+          9.175404327142486,
+          68.02113101673065
+        ],
+        "paired_differences": {
+          "expected_cp_loss": {
+            "mean": 37.051073095274745,
+            "bootstrap95": [
+              9.175404327142486,
+              68.02113101673065
+            ]
+          },
+          "expected_cp_loss_capped1000": {
+            "mean": 11.716666610318192,
+            "bootstrap95": [
+              8.31450976743406,
+              15.503001380891147
+            ]
+          },
+          "prob_loss_gt100": {
+            "mean": 0.03856342992741466,
+            "bootstrap95": [
+              0.02987169417747819,
+              0.04693490713853923
+            ]
+          },
+          "prob_loss_gt200": {
+            "mean": 0.018985199308567242,
+            "bootstrap95": [
+              0.013868360991879282,
+              0.024438658387094865
+            ]
+          }
+        },
+        "bootstrap_valid_replicates": 2000
+      },
+      "T0.9_P0.95": {
+        "n_positions": 453,
+        "equal_stratum_means": {
+          "support": 5.523895092597201,
+          "entropy_bits": 1.5147390306498787,
+          "expected_cp_loss": 306.69499286412866,
+          "expected_cp_loss_capped1000": 70.42895862011613,
+          "prob_loss_gt100": 0.15746760957735317,
+          "prob_loss_gt200": 0.06960078210491293,
+          "prob_best_cp": 0.41069357634961656,
+          "prob_selected_mate_score": 0.05593084378513454
+        },
+        "cp_loss_delta_vs_baseline": 46.83461584535297,
+        "capped1000_cp_loss_delta_vs_baseline": 14.625188315842358,
+        "game_cluster_bootstrap95_delta": [
+          15.825584245600274,
+          81.47218610782178
+        ],
+        "paired_differences": {
+          "expected_cp_loss": {
+            "mean": 46.83461584535297,
+            "bootstrap95": [
+              15.825584245600274,
+              81.47218610782178
+            ]
+          },
+          "expected_cp_loss_capped1000": {
+            "mean": 14.625188315842358,
+            "bootstrap95": [
+              10.765994688120005,
+              18.907963108419565
+            ]
+          },
+          "prob_loss_gt100": {
+            "mean": 0.04728075756468603,
+            "bootstrap95": [
+              0.03794284413320227,
+              0.05651649769099265
+            ]
+          },
+          "prob_loss_gt200": {
+            "mean": 0.023631149527160784,
+            "bootstrap95": [
+              0.017852678629400154,
+              0.02973276747834189
+            ]
+          }
+        },
+        "bootstrap_valid_replicates": 2000
+      },
+      "T0.9_P1": {
+        "n_positions": 453,
+        "equal_stratum_means": {
+          "support": 30.66931549807508,
+          "entropy_bits": 1.7421592621061501,
+          "expected_cp_loss": 320.9664004634683,
+          "expected_cp_loss_capped1000": 75.28252656502485,
+          "prob_loss_gt100": 0.17079598927454132,
+          "prob_loss_gt200": 0.07813604847985865,
+          "prob_best_cp": 0.4004329621217407,
+          "prob_selected_mate_score": 0.05598358565528502
+        },
+        "cp_loss_delta_vs_baseline": 61.1060234446925,
+        "capped1000_cp_loss_delta_vs_baseline": 19.478756260751073,
+        "game_cluster_bootstrap95_delta": [
+          27.22666377983577,
+          99.43809119528434
+        ],
+        "paired_differences": {
+          "expected_cp_loss": {
+            "mean": 61.1060234446925,
+            "bootstrap95": [
+              27.22666377983577,
+              99.43809119528434
+            ]
+          },
+          "expected_cp_loss_capped1000": {
+            "mean": 19.478756260751073,
+            "bootstrap95": [
+              15.25358692837598,
+              24.219737996299415
+            ]
+          },
+          "prob_loss_gt100": {
+            "mean": 0.06060913726187414,
+            "bootstrap95": [
+              0.0504191782877525,
+              0.07059623826631757
+            ]
+          },
+          "prob_loss_gt200": {
+            "mean": 0.0321664159021065,
+            "bootstrap95": [
+              0.025712725207668576,
+              0.03886594240961971
+            ]
+          }
+        },
+        "bootstrap_valid_replicates": 2000
+      },
+      "T1_P0.5": {
+        "n_positions": 453,
+        "equal_stratum_means": {
+          "support": 1.6205344749262371,
+          "entropy_bits": 0.5197621369183221,
+          "expected_cp_loss": 254.22974039334056,
+          "expected_cp_loss_capped1000": 55.01903131223308,
+          "prob_loss_gt100": 0.10813125624980097,
+          "prob_loss_gt200": 0.04502190724339536,
+          "prob_best_cp": 0.46674333946810026,
+          "prob_selected_mate_score": 0.055227084303228646
+        },
+        "cp_loss_delta_vs_baseline": -5.630636625435205,
+        "capped1000_cp_loss_delta_vs_baseline": -0.784738992040683,
+        "game_cluster_bootstrap95_delta": [
+          -25.27216199040913,
+          15.564567308627439
+        ],
+        "paired_differences": {
+          "expected_cp_loss": {
+            "mean": -5.630636625435205,
+            "bootstrap95": [
+              -25.27216199040913,
+              15.564567308627439
+            ]
+          },
+          "expected_cp_loss_capped1000": {
+            "mean": -0.784738992040683,
+            "bootstrap95": [
+              -2.937511980586845,
+              1.4322283591331488
+            ]
+          },
+          "prob_loss_gt100": {
+            "mean": -0.0020555957628661846,
+            "bootstrap95": [
+              -0.0074279393694592355,
+              0.004085975698629599
+            ]
+          },
+          "prob_loss_gt200": {
+            "mean": -0.0009477253343567903,
+            "bootstrap95": [
+              -0.004156204137633617,
+              0.0021582264346741964
+            ]
+          }
+        },
+        "bootstrap_valid_replicates": 2000
+      },
+      "T1_P0.9": {
+        "n_positions": 453,
+        "equal_stratum_means": {
+          "support": 4.749737675053767,
+          "entropy_bits": 1.5055631821373359,
+          "expected_cp_loss": 311.6665807563696,
+          "expected_cp_loss_capped1000": 71.42071535712714,
+          "prob_loss_gt100": 0.16013109608532383,
+          "prob_loss_gt200": 0.07072621841868033,
+          "prob_best_cp": 0.4059920077011632,
+          "prob_selected_mate_score": 0.056339923942571445
+        },
+        "cp_loss_delta_vs_baseline": 51.80620373759388,
+        "capped1000_cp_loss_delta_vs_baseline": 15.61694505285338,
+        "game_cluster_bootstrap95_delta": [
+          18.618737308500975,
+          88.38151342999244
+        ],
+        "paired_differences": {
+          "expected_cp_loss": {
+            "mean": 51.80620373759388,
+            "bootstrap95": [
+              18.618737308500975,
+              88.38151342999244
+            ]
+          },
+          "expected_cp_loss_capped1000": {
+            "mean": 15.61694505285338,
+            "bootstrap95": [
+              11.568090646978813,
+              20.14534834646238
+            ]
+          },
+          "prob_loss_gt100": {
+            "mean": 0.04994424407265669,
+            "bootstrap95": [
+              0.0396970391064723,
+              0.05991528960773524
+            ]
+          },
+          "prob_loss_gt200": {
+            "mean": 0.024756585840928182,
+            "bootstrap95": [
+              0.01861466447712356,
+              0.03134156978947283
+            ]
+          }
+        },
+        "bootstrap_valid_replicates": 2000
+      },
+      "T1_P0.95": {
+        "n_positions": 453,
+        "equal_stratum_means": {
+          "support": 6.305371487636813,
+          "entropy_bits": 1.6703027051968404,
+          "expected_cp_loss": 319.9949718094248,
+          "expected_cp_loss_capped1000": 74.50885195971452,
+          "prob_loss_gt100": 0.17016254220802038,
+          "prob_loss_gt200": 0.07627986284291702,
+          "prob_best_cp": 0.3973530263742198,
+          "prob_selected_mate_score": 0.05595133837746929
+        },
+        "cp_loss_delta_vs_baseline": 60.13459479064906,
+        "capped1000_cp_loss_delta_vs_baseline": 18.70508165544076,
+        "game_cluster_bootstrap95_delta": [
+          23.203268619425504,
+          101.80336852073359
+        ],
+        "paired_differences": {
+          "expected_cp_loss": {
+            "mean": 60.13459479064906,
+            "bootstrap95": [
+              23.203268619425504,
+              101.80336852073359
+            ]
+          },
+          "expected_cp_loss_capped1000": {
+            "mean": 18.70508165544076,
+            "bootstrap95": [
+              14.10510992575056,
+              23.874620994538073
+            ]
+          },
+          "prob_loss_gt100": {
+            "mean": 0.059975690195353204,
+            "bootstrap95": [
+              0.04903117129663668,
+              0.07095762251362218
+            ]
+          },
+          "prob_loss_gt200": {
+            "mean": 0.030310230265164877,
+            "bootstrap95": [
+              0.023237346657567406,
+              0.037928641968693284
+            ]
+          }
+        },
+        "bootstrap_valid_replicates": 2000
+      },
+      "T1_P1": {
+        "n_positions": 453,
+        "equal_stratum_means": {
+          "support": 30.66931549807508,
+          "entropy_bits": 1.9140175785485967,
+          "expected_cp_loss": 336.1094211428074,
+          "expected_cp_loss_capped1000": 80.31876789662516,
+          "prob_loss_gt100": 0.1852703103812875,
+          "prob_loss_gt200": 0.08680229929408381,
+          "prob_best_cp": 0.3865943629681886,
+          "prob_selected_mate_score": 0.05597144350095308
+        },
+        "cp_loss_delta_vs_baseline": 76.24904412403163,
+        "capped1000_cp_loss_delta_vs_baseline": 24.514997592351396,
+        "game_cluster_bootstrap95_delta": [
+          36.8720258968942,
+          121.01474824602955
+        ],
+        "paired_differences": {
+          "expected_cp_loss": {
+            "mean": 76.24904412403163,
+            "bootstrap95": [
+              36.8720258968942,
+              121.01474824602955
+            ]
+          },
+          "expected_cp_loss_capped1000": {
+            "mean": 24.514997592351396,
+            "bootstrap95": [
+              19.491494478048097,
+              30.125601968107105
+            ]
+          },
+          "prob_loss_gt100": {
+            "mean": 0.07508345836862035,
+            "bootstrap95": [
+              0.0631437554040098,
+              0.08666603751216624
+            ]
+          },
+          "prob_loss_gt200": {
+            "mean": 0.04083266671633165,
+            "bootstrap95": [
+              0.03330852508351214,
+              0.048720514519045605
+            ]
+          }
+        },
+        "bootstrap_valid_replicates": 2000
+      }
+    },
+    "14": {
+      "argmax": {
+        "n_positions": 36,
+        "equal_stratum_means": {
+          "support": 1.0,
+          "entropy_bits": 0.0,
+          "expected_cp_loss": 1025.7222222222222,
+          "expected_cp_loss_capped1000": 134.41666666666666,
+          "prob_loss_gt100": 0.16666666666666666,
+          "prob_loss_gt200": 0.1111111111111111,
+          "prob_best_cp": 0.4722222222222222,
+          "prob_selected_mate_score": 0.08333333333333333
+        },
+        "cp_loss_delta_vs_baseline": 238.40344100530066,
+        "capped1000_cp_loss_delta_vs_baseline": 22.569103577975596,
+        "game_cluster_bootstrap95_delta": [
+          81.99796062802476,
+          367.08601644270715
+        ],
+        "paired_differences": {
+          "expected_cp_loss": {
+            "mean": 238.40344100530066,
+            "bootstrap95": [
+              81.99796062802476,
+              367.08601644270715
+            ]
+          },
+          "expected_cp_loss_capped1000": {
+            "mean": 22.569103577975596,
+            "bootstrap95": [
+              2.164262400333171,
+              40.08655594468047
+            ]
+          },
+          "prob_loss_gt100": {
+            "mean": -0.005421639320668632,
+            "bootstrap95": [
+              -0.0605613511085176,
+              0.04532754754934306
+            ]
+          },
+          "prob_loss_gt200": {
+            "mean": 0.012409536595003136,
+            "bootstrap95": [
+              -0.015993933625842213,
+              0.03724834604184599
+            ]
+          }
+        },
+        "bootstrap_valid_replicates": 1342
+      },
+      "T0.5_P0.5": {
+        "n_positions": 36,
+        "equal_stratum_means": {
+          "support": 1.1388888888888888,
+          "entropy_bits": 0.13612296458810638,
+          "expected_cp_loss": 1027.4135176109737,
+          "expected_cp_loss_capped1000": 136.10796205541817,
+          "prob_loss_gt100": 0.19020244905777878,
+          "prob_loss_gt200": 0.1111111111111111,
+          "prob_best_cp": 0.45816460194198894,
+          "prob_selected_mate_score": 0.08333333333333333
+        },
+        "cp_loss_delta_vs_baseline": 240.09473639405212,
+        "capped1000_cp_loss_delta_vs_baseline": 24.260398966727116,
+        "game_cluster_bootstrap95_delta": [
+          86.64469790893897,
+          368.3473814272988
+        ],
+        "paired_differences": {
+          "expected_cp_loss": {
+            "mean": 240.09473639405212,
+            "bootstrap95": [
+              86.64469790893897,
+              368.3473814272988
+            ]
+          },
+          "expected_cp_loss_capped1000": {
+            "mean": 24.260398966727116,
+            "bootstrap95": [
+              4.356812730709481,
+              40.69981432449752
+            ]
+          },
+          "prob_loss_gt100": {
+            "mean": 0.018114143070443473,
+            "bootstrap95": [
+              -0.026191395901861994,
+              0.056704343320513995
+            ]
+          },
+          "prob_loss_gt200": {
+            "mean": 0.012409536595003136,
+            "bootstrap95": [
+              -0.015993933625842213,
+              0.03724834604184599
+            ]
+          }
+        },
+        "bootstrap_valid_replicates": 1342
+      },
+      "T0.5_P0.9": {
+        "n_positions": 36,
+        "equal_stratum_means": {
+          "support": 2.1944444444444446,
+          "entropy_bits": 0.6972503834255103,
+          "expected_cp_loss": 787.3187812169216,
+          "expected_cp_loss_capped1000": 111.84756308869107,
+          "prob_loss_gt100": 0.1720883059873353,
+          "prob_loss_gt200": 0.09870157451610799,
+          "prob_best_cp": 0.47725619828857746,
+          "prob_selected_mate_score": 0.09263072797698096
+        },
+        "cp_loss_delta_vs_baseline": 0.0,
+        "capped1000_cp_loss_delta_vs_baseline": 0.0,
+        "game_cluster_bootstrap95_delta": [
+          0.0,
+          0.0
+        ],
+        "paired_differences": {
+          "expected_cp_loss": {
+            "mean": 0.0,
+            "bootstrap95": [
+              0.0,
+              0.0
+            ]
+          },
+          "expected_cp_loss_capped1000": {
+            "mean": 0.0,
+            "bootstrap95": [
+              0.0,
+              0.0
+            ]
+          },
+          "prob_loss_gt100": {
+            "mean": 0.0,
+            "bootstrap95": [
+              0.0,
+              0.0
+            ]
+          },
+          "prob_loss_gt200": {
+            "mean": 0.0,
+            "bootstrap95": [
+              0.0,
+              0.0
+            ]
+          }
+        },
+        "bootstrap_valid_replicates": 1342
+      },
+      "T0.5_P0.95": {
+        "n_positions": 36,
+        "equal_stratum_means": {
+          "support": 2.6666666666666665,
+          "entropy_bits": 0.7770480736966024,
+          "expected_cp_loss": 787.2763039803954,
+          "expected_cp_loss_capped1000": 112.48776977730971,
+          "prob_loss_gt100": 0.1731311911298683,
+          "prob_loss_gt200": 0.09977742569559214,
+          "prob_best_cp": 0.4751327174275091,
+          "prob_selected_mate_score": 0.09166377774845223
+        },
+        "cp_loss_delta_vs_baseline": -0.04247723652634949,
+        "capped1000_cp_loss_delta_vs_baseline": 0.6402066886186284,
+        "game_cluster_bootstrap95_delta": [
+          -9.803257743756754,
+          9.209710704147897
+        ],
+        "paired_differences": {
+          "expected_cp_loss": {
+            "mean": -0.04247723652634949,
+            "bootstrap95": [
+              -9.803257743756754,
+              9.209710704147897
+            ]
+          },
+          "expected_cp_loss_capped1000": {
+            "mean": 0.6402066886186284,
+            "bootstrap95": [
+              0.009878579665984277,
+              1.2278915777355837
+            ]
+          },
+          "prob_loss_gt100": {
+            "mean": 0.0010428851425330248,
+            "bootstrap95": [
+              -0.0006674664541984667,
+              0.003138106743064841
+            ]
+          },
+          "prob_loss_gt200": {
+            "mean": 0.0010758511794841568,
+            "bootstrap95": [
+              0.0007042782618494136,
+              0.0013945312270320527
+            ]
+          }
+        },
+        "bootstrap_valid_replicates": 1342
+      },
+      "T0.5_P1": {
+        "n_positions": 36,
+        "equal_stratum_means": {
+          "support": 29.86111111111111,
+          "entropy_bits": 0.9214499044692399,
+          "expected_cp_loss": 781.1143067696554,
+          "expected_cp_loss_capped1000": 113.53939957698418,
+          "prob_loss_gt100": 0.17877930267538458,
+          "prob_loss_gt200": 0.1030186080448378,
+          "prob_best_cp": 0.4703027158454177,
+          "prob_selected_mate_score": 0.09054347944415911
+        },
+        "cp_loss_delta_vs_baseline": -6.204474447266197,
+        "capped1000_cp_loss_delta_vs_baseline": 1.691836488293126,
+        "game_cluster_bootstrap95_delta": [
+          -24.662453874445156,
+          12.054234521004588
+        ],
+        "paired_differences": {
+          "expected_cp_loss": {
+            "mean": -6.204474447266197,
+            "bootstrap95": [
+              -24.662453874445156,
+              12.054234521004588
+            ]
+          },
+          "expected_cp_loss_capped1000": {
+            "mean": 1.691836488293126,
+            "bootstrap95": [
+              0.24615167035712254,
+              3.224425783528873
+            ]
+          },
+          "prob_loss_gt100": {
+            "mean": 0.006690996688049297,
+            "bootstrap95": [
+              0.0037176426268537444,
+              0.010390333015349402
+            ]
+          },
+          "prob_loss_gt200": {
+            "mean": 0.004317033528729811,
+            "bootstrap95": [
+              0.003024362018540849,
+              0.005486454194154702
+            ]
+          }
+        },
+        "bootstrap_valid_replicates": 1342
+      },
+      "T0.9_P0.5": {
+        "n_positions": 36,
+        "equal_stratum_means": {
+          "support": 1.4722222222222223,
+          "entropy_bits": 0.41412537227221075,
+          "expected_cp_loss": 854.1678730205253,
+          "expected_cp_loss_capped1000": 120.9166665788406,
+          "prob_loss_gt100": 0.18222334365943452,
+          "prob_loss_gt200": 0.10575599550471328,
+          "prob_best_cp": 0.4670004862058619,
+          "prob_selected_mate_score": 0.08765274718236464
+        },
+        "cp_loss_delta_vs_baseline": 66.84909180360381,
+        "capped1000_cp_loss_delta_vs_baseline": 9.06910349014953,
+        "game_cluster_bootstrap95_delta": [
+          -56.46291803749448,
+          159.76675484953893
+        ],
+        "paired_differences": {
+          "expected_cp_loss": {
+            "mean": 66.84909180360381,
+            "bootstrap95": [
+              -56.46291803749448,
+              159.76675484953893
+            ]
+          },
+          "expected_cp_loss_capped1000": {
+            "mean": 9.06910349014953,
+            "bootstrap95": [
+              -5.380771344396477,
+              21.236971482062973
+            ]
+          },
+          "prob_loss_gt100": {
+            "mean": 0.010135037672099202,
+            "bootstrap95": [
+              -0.015256407702550049,
+              0.029511156871249365
+            ]
+          },
+          "prob_loss_gt200": {
+            "mean": 0.0070544209886053005,
+            "bootstrap95": [
+              -0.009031497257491885,
+              0.020362756087002793
+            ]
+          }
+        },
+        "bootstrap_valid_replicates": 1342
+      },
+      "T0.9_P0.9": {
+        "n_positions": 36,
+        "equal_stratum_means": {
+          "support": 4.083333333333333,
+          "entropy_bits": 1.2671183082373327,
+          "expected_cp_loss": 707.162622809004,
+          "expected_cp_loss_capped1000": 112.30601329783836,
+          "prob_loss_gt100": 0.194710308009383,
+          "prob_loss_gt200": 0.11357791410139247,
+          "prob_best_cp": 0.4474817747086787,
+          "prob_selected_mate_score": 0.0867974180751239
+        },
+        "cp_loss_delta_vs_baseline": -80.15615840791772,
+        "capped1000_cp_loss_delta_vs_baseline": 0.45845020914730067,
+        "game_cluster_bootstrap95_delta": [
+          -178.17064126435048,
+          32.88837835013423
+        ],
+        "paired_differences": {
+          "expected_cp_loss": {
+            "mean": -80.15615840791772,
+            "bootstrap95": [
+              -178.17064126435048,
+              32.88837835013423
+            ]
+          },
+          "expected_cp_loss_capped1000": {
+            "mean": 0.45845020914730067,
+            "bootstrap95": [
+              -8.372262253924042,
+              10.459122658740018
+            ]
+          },
+          "prob_loss_gt100": {
+            "mean": 0.02262200202204769,
+            "bootstrap95": [
+              0.0032303793024686055,
+              0.04795767777891336
+            ]
+          },
+          "prob_loss_gt200": {
+            "mean": 0.014876339585284516,
+            "bootstrap95": [
+              0.005842928797321565,
+              0.02509453860309457
+            ]
+          }
+        },
+        "bootstrap_valid_replicates": 1342
+      },
+      "T0.9_P0.95": {
+        "n_positions": 36,
+        "equal_stratum_means": {
+          "support": 5.277777777777778,
+          "entropy_bits": 1.3979437861092807,
+          "expected_cp_loss": 707.3715751079486,
+          "expected_cp_loss_capped1000": 113.8362612947959,
+          "prob_loss_gt100": 0.20033688600380636,
+          "prob_loss_gt200": 0.11623254961668773,
+          "prob_best_cp": 0.44392771083852073,
+          "prob_selected_mate_score": 0.08611039237071688
+        },
+        "cp_loss_delta_vs_baseline": -79.94720610897295,
+        "capped1000_cp_loss_delta_vs_baseline": 1.988698206104846,
+        "game_cluster_bootstrap95_delta": [
+          -184.09788855996212,
+          37.30042363061324
+        ],
+        "paired_differences": {
+          "expected_cp_loss": {
+            "mean": -79.94720610897295,
+            "bootstrap95": [
+              -184.09788855996212,
+              37.30042363061324
+            ]
+          },
+          "expected_cp_loss_capped1000": {
+            "mean": 1.988698206104846,
+            "bootstrap95": [
+              -7.103512075727135,
+              12.132512245719044
+            ]
+          },
+          "prob_loss_gt100": {
+            "mean": 0.02824858001647107,
+            "bootstrap95": [
+              0.008374491936011615,
+              0.053987016491670474
+            ]
+          },
+          "prob_loss_gt200": {
+            "mean": 0.017530975100579757,
+            "bootstrap95": [
+              0.007761369010712663,
+              0.028216723849912976
+            ]
+          }
+        },
+        "bootstrap_valid_replicates": 1342
+      },
+      "T0.9_P1": {
+        "n_positions": 36,
+        "equal_stratum_means": {
+          "support": 29.86111111111111,
+          "entropy_bits": 1.6109404132283467,
+          "expected_cp_loss": 704.9244675551181,
+          "expected_cp_loss_capped1000": 117.47785424568107,
+          "prob_loss_gt100": 0.2090207990662647,
+          "prob_loss_gt200": 0.124404333417508,
+          "prob_best_cp": 0.4345781930064207,
+          "prob_selected_mate_score": 0.08523072869520354
+        },
+        "cp_loss_delta_vs_baseline": -82.39431366180341,
+        "capped1000_cp_loss_delta_vs_baseline": 5.630291156989995,
+        "game_cluster_bootstrap95_delta": [
+          -194.8419324674884,
+          42.75112581780109
+        ],
+        "paired_differences": {
+          "expected_cp_loss": {
+            "mean": -82.39431366180341,
+            "bootstrap95": [
+              -194.8419324674884,
+              42.75112581780109
+            ]
+          },
+          "expected_cp_loss_capped1000": {
+            "mean": 5.630291156989995,
+            "bootstrap95": [
+              -4.030958637969209,
+              16.426192277648507
+            ]
+          },
+          "prob_loss_gt100": {
+            "mean": 0.036932493078929395,
+            "bootstrap95": [
+              0.01357287544257713,
+              0.06806867091877869
+            ]
+          },
+          "prob_loss_gt200": {
+            "mean": 0.02570275890140005,
+            "bootstrap95": [
+              0.012093806018931312,
+              0.039671626115454654
+            ]
+          }
+        },
+        "bootstrap_valid_replicates": 1342
+      },
+      "T1_P0.5": {
+        "n_positions": 36,
+        "equal_stratum_means": {
+          "support": 1.5555555555555556,
+          "entropy_bits": 0.47096921665716035,
+          "expected_cp_loss": 848.9790141227193,
+          "expected_cp_loss_capped1000": 121.5192337638854,
+          "prob_loss_gt100": 0.19007708232893672,
+          "prob_loss_gt200": 0.10563739326630432,
+          "prob_best_cp": 0.4562595837428649,
+          "prob_selected_mate_score": 0.08729002557273234
+        },
+        "cp_loss_delta_vs_baseline": 61.660232905797656,
+        "capped1000_cp_loss_delta_vs_baseline": 9.671670675194314,
+        "game_cluster_bootstrap95_delta": [
+          -62.88146879133459,
+          157.00531552328846
+        ],
+        "paired_differences": {
+          "expected_cp_loss": {
+            "mean": 61.660232905797656,
+            "bootstrap95": [
+              -62.88146879133459,
+              157.00531552328846
+            ]
+          },
+          "expected_cp_loss_capped1000": {
+            "mean": 9.671670675194314,
+            "bootstrap95": [
+              -3.62395809230664,
+              20.646140266198916
+            ]
+          },
+          "prob_loss_gt100": {
+            "mean": 0.017988776341601415,
+            "bootstrap95": [
+              0.001317132246255759,
+              0.030296992590286665
+            ]
+          },
+          "prob_loss_gt200": {
+            "mean": 0.006935818750196352,
+            "bootstrap95": [
+              -0.009318687864544048,
+              0.02045092839535863
+            ]
+          }
+        },
+        "bootstrap_valid_replicates": 1342
+      },
+      "T1_P0.9": {
+        "n_positions": 36,
+        "equal_stratum_means": {
+          "support": 4.611111111111111,
+          "entropy_bits": 1.3957204178973062,
+          "expected_cp_loss": 695.4749565074133,
+          "expected_cp_loss_capped1000": 113.71417937173736,
+          "prob_loss_gt100": 0.20395719482146607,
+          "prob_loss_gt200": 0.11799963321724209,
+          "prob_best_cp": 0.44032006278128233,
+          "prob_selected_mate_score": 0.08563006973552836
+        },
+        "cp_loss_delta_vs_baseline": -91.84382470950823,
+        "capped1000_cp_loss_delta_vs_baseline": 1.8666162830462862,
+        "game_cluster_bootstrap95_delta": [
+          -206.55009521731319,
+          39.21155234357486
+        ],
+        "paired_differences": {
+          "expected_cp_loss": {
+            "mean": -91.84382470950823,
+            "bootstrap95": [
+              -206.55009521731319,
+              39.21155234357486
+            ]
+          },
+          "expected_cp_loss_capped1000": {
+            "mean": 1.8666162830462862,
+            "bootstrap95": [
+              -8.014606376710535,
+              13.19442363349418
+            ]
+          },
+          "prob_loss_gt100": {
+            "mean": 0.03186888883413073,
+            "bootstrap95": [
+              0.008852265432664728,
+              0.061579528884470894
+            ]
+          },
+          "prob_loss_gt200": {
+            "mean": 0.019298058701134112,
+            "bootstrap95": [
+              0.007995575604083646,
+              0.031837883017886766
+            ]
+          }
+        },
+        "bootstrap_valid_replicates": 1342
+      },
+      "T1_P0.95": {
+        "n_positions": 36,
+        "equal_stratum_means": {
+          "support": 5.972222222222222,
+          "entropy_bits": 1.5388385519987346,
+          "expected_cp_loss": 695.2778397465152,
+          "expected_cp_loss_capped1000": 115.42613501015866,
+          "prob_loss_gt100": 0.20761109496291646,
+          "prob_loss_gt200": 0.1219445773316362,
+          "prob_best_cp": 0.43521498136030473,
+          "prob_selected_mate_score": 0.08527845179125365
+        },
+        "cp_loss_delta_vs_baseline": -92.04094147040648,
+        "capped1000_cp_loss_delta_vs_baseline": 3.5785719214675833,
+        "game_cluster_bootstrap95_delta": [
+          -209.2263836507076,
+          39.841266803152024
+        ],
+        "paired_differences": {
+          "expected_cp_loss": {
+            "mean": -92.04094147040648,
+            "bootstrap95": [
+              -209.2263836507076,
+              39.841266803152024
+            ]
+          },
+          "expected_cp_loss_capped1000": {
+            "mean": 3.5785719214675833,
+            "bootstrap95": [
+              -5.93986465242806,
+              14.302348224407261
+            ]
+          },
+          "prob_loss_gt100": {
+            "mean": 0.035522788975581185,
+            "bootstrap95": [
+              0.011438342241709079,
+              0.06693564701344207
+            ]
+          },
+          "prob_loss_gt200": {
+            "mean": 0.02324300281552822,
+            "bootstrap95": [
+              0.009443145940148548,
+              0.037382065007001926
+            ]
+          }
+        },
+        "bootstrap_valid_replicates": 1342
+      },
+      "T1_P1": {
+        "n_positions": 36,
+        "equal_stratum_means": {
+          "support": 29.86111111111111,
+          "entropy_bits": 1.769774822572702,
+          "expected_cp_loss": 699.805634676818,
+          "expected_cp_loss_capped1000": 120.86246748430284,
+          "prob_loss_gt100": 0.2200305476513796,
+          "prob_loss_gt200": 0.1330416033333178,
+          "prob_best_cp": 0.42398834896952975,
+          "prob_selected_mate_score": 0.0843112889630148
+        },
+        "cp_loss_delta_vs_baseline": -87.5131465401035,
+        "capped1000_cp_loss_delta_vs_baseline": 9.014904395611756,
+        "game_cluster_bootstrap95_delta": [
+          -214.68119461850932,
+          52.81913888362041
+        ],
+        "paired_differences": {
+          "expected_cp_loss": {
+            "mean": -87.5131465401035,
+            "bootstrap95": [
+              -214.68119461850932,
+              52.81913888362041
+            ]
+          },
+          "expected_cp_loss_capped1000": {
+            "mean": 9.014904395611756,
+            "bootstrap95": [
+              -1.7967465899711033,
+              21.311587347670407
+            ]
+          },
+          "prob_loss_gt100": {
+            "mean": 0.0479422416640443,
+            "bootstrap95": [
+              0.018976884477861437,
+              0.08485693824137217
+            ]
+          },
+          "prob_loss_gt200": {
+            "mean": 0.03434002881720984,
+            "bootstrap95": [
+              0.01700125493906818,
+              0.05211231563502814
+            ]
+          }
+        },
+        "bootstrap_valid_replicates": 1342
+      }
+    }
+  }
+}

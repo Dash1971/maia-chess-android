@@ -1,0 +1,15 @@
+{
+  "games": 1800,
+  "illegal_moves": 0,
+  "prefix_mismatches": 0,
+  "app_draw_mismatches": 0,
+  "pgn_json_mismatches": 0,
+  "results_changed": 28,
+  "added_plies": 1484,
+  "terminations": {
+    "checkmate": 1556,
+    "threefold_repetition_actual": 192,
+    "insufficient_material": 15,
+    "stalemate": 37
+  }
+}

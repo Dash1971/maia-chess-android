@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-"""Make multistockfish_sf16's build-time NNUE download fail closed."""
+"""Make multistockfish_light's build-time NNUE download fail closed."""
 
 import argparse
 import json
@@ -9,18 +9,19 @@ import re
 from urllib.parse import unquote, urljoin, urlparse
 
 
-PACKAGE_NAME = "multistockfish_sf16"
-PACKAGE_VERSION = "0.1.1"
-NNUE_SHA256 = "5af11540bbfefcb54e38c5dd000cab4b469dfa7599a1d55be5d2722c20a8929b"
-CMAKE_PATH = Path("src/CMakeLists.txt")
+PACKAGE_NAME = "multistockfish_light"
+PACKAGE_VERSION = "0.1.0"
+NNUE_SHA256 = "61e7af4bb97d51eeeb25d322916f86513b5cd3a827ce189c98c6e31946f99e5b"
+CMAKE_PATH = Path("android/CMakeLists.txt")
 UNPATCHED = (
     "file(DOWNLOAD https://tests.stockfishchess.org/api/nn/"
-    "nn-5af11540bbfe.nnue ${CMAKE_BINARY_DIR}/nn-5af11540bbfe.nnue)"
+    "nn-61e7af4bb97d.nnue ${CMAKE_BINARY_DIR}/nn-61e7af4bb97d.nnue\n"
+    f"     EXPECTED_HASH SHA256={NNUE_SHA256})"
 )
 PATCHED = f"""set(stockfishNnueUrl
-  \"https://tests.stockfishchess.org/api/nn/nn-5af11540bbfe.nnue\"
+  \"https://tests.stockfishchess.org/api/nn/nn-61e7af4bb97d.nnue\"
 )
-set(stockfishNnuePath \"${{CMAKE_BINARY_DIR}}/nn-5af11540bbfe.nnue\")
+set(stockfishNnuePath \"${{CMAKE_BINARY_DIR}}/nn-61e7af4bb97d.nnue\")
 file(DOWNLOAD
   \"${{stockfishNnueUrl}}\"
   \"${{stockfishNnuePath}}\"

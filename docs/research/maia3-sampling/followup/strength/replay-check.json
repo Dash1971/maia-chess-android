@@ -1,0 +1,84 @@
+{
+  "status": "passed",
+  "games_replayed": 12,
+  "games": [
+    {
+      "id": "p95-full-s0-0000",
+      "plies": 133,
+      "result": "1-0",
+      "exact_move_sequence_match": true
+    },
+    {
+      "id": "p95-full-s0-0001",
+      "plies": 119,
+      "result": "1/2-1/2",
+      "exact_move_sequence_match": true
+    },
+    {
+      "id": "p95-full-s1-0000",
+      "plies": 84,
+      "result": "0-1",
+      "exact_move_sequence_match": true
+    },
+    {
+      "id": "p95-full-s1-0001",
+      "plies": 54,
+      "result": "0-1",
+      "exact_move_sequence_match": true
+    },
+    {
+      "id": "p95-full-s2-0000",
+      "plies": 102,
+      "result": "0-1",
+      "exact_move_sequence_match": true
+    },
+    {
+      "id": "p95-full-s2-0001",
+      "plies": 66,
+      "result": "0-1",
+      "exact_move_sequence_match": true
+    },
+    {
+      "id": "p95-full-s3-0000",
+      "plies": 70,
+      "result": "0-1",
+      "exact_move_sequence_match": true
+    },
+    {
+      "id": "p95-full-s3-0001",
+      "plies": 108,
+      "result": "0-1",
+      "exact_move_sequence_match": true
+    },
+    {
+      "id": "p95-full-s4-0000",
+      "plies": 77,
+      "result": "1-0",
+      "exact_move_sequence_match": true
+    },
+    {
+      "id": "p95-full-s4-0001",
+      "plies": 141,
+      "result": "1-0",
+      "exact_move_sequence_match": true
+    },
+    {
+      "id": "p95-full-s5-0000",
+      "plies": 35,
+      "result": "1-0",
+      "exact_move_sequence_match": true
+    },
+    {
+      "id": "p95-full-s5-0001",
+      "plies": 38,
+      "result": "0-1",
+      "exact_move_sequence_match": true
+    }
+  ],
+  "seconds": 123.3123950958252,
+  "inference_calls": 996,
+  "cache_hits": 31,
+  "model_sha256": "3454b03ae78baa64a87b345fdb1a457265d912caec531039b074f07eda0d8010",
+  "policy_sha256": "766ef7263fb4a7b487eb850e1a07995a8b62b25f8f16f5e8b68e4665fb9b4131",
+  "replay_script_sha256": "7b0851ec6875552224f68d9d16df4b39ce8db27eaf0f4810622b7cef2393c504"
+}

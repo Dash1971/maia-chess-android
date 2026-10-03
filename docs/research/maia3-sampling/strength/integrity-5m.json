@@ -1,0 +1,22 @@
+[
+  {
+    "directory": "5m",
+    "games": 600,
+    "plies_checked": 47395,
+    "illegal_moves": 0,
+    "json_pgn_mismatches": 0,
+    "terminations": {
+      "checkmate": 505,
+      "stalemate": 13,
+      "threefold_repetition": 78,
+      "insufficient_material": 4
+    },
+    "color_counts": {
+      "('argmax', True)": 200,
+      "('baseline', True)": 100,
+      "('argmax', False)": 200,
+      "('baseline', False)": 100
+    },
+    "manifest_target": 600
+  }
+]

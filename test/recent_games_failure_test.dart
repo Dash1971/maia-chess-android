@@ -10,6 +10,7 @@ final _games = [
     RecentSession(id, DateTime.utc(2026), {
       'type': 'game',
       'recentState': 'completed',
+      'elo': id == 'first' ? 500 : 1500,
       'pgn': '[Event "$id"]\n[Result "1-0"]\n\n1. e4 1-0',
     }),
 ];
@@ -50,9 +51,9 @@ void main() {
     );
     await tester.tap(find.text('Recent'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('first'));
+    await tester.tap(find.text('Player — Maia 500'));
     // A second tap can arrive before a new frame disables the controls.
-    await tester.tap(find.text('second'));
+    await tester.tap(find.text('Player — Maia 1500'));
     final requests = List<String>.of(opened);
     await tester.pump();
     await tester.binding.handlePopRoute();
@@ -84,7 +85,7 @@ void main() {
     );
     await tester.pumpAndSettle();
     for (var attempt = 1; attempt <= 2; attempt++) {
-      await tester.tap(find.text('first'));
+      await tester.tap(find.text('Player — Maia 500'));
       await tester.pumpAndSettle();
       expect(tester.takeException(), isNull);
       expect(
@@ -126,10 +127,10 @@ void main() {
           find.text('Could not delete saved games. Please try again.'),
           findsOneWidget,
         );
-        expect(find.text('first'), findsOneWidget);
+        expect(find.text('Player — Maia 500'), findsOneWidget);
       } else {
-        expect(find.text('first'), findsNothing);
-        expect(find.text('second'), findsOneWidget);
+        expect(find.text('Player — Maia 500'), findsNothing);
+        expect(find.text('Player — Maia 1500'), findsOneWidget);
       }
     }
   });

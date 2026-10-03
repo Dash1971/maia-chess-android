@@ -1,0 +1,27 @@
+--- app_draw_sensitivity.py (original5M executed)
++++ app_draw_sensitivity_79m.py / portable app_draw_sensitivity.py
+@@ -16,13 +16,13 @@
+  return None
+ 
+ def main():
+- ap=argparse.ArgumentParser();ap.add_argument('inputs',nargs='+',type=Path);ap.add_argument('--model',choices=['79m','5m'],required=True);ap.add_argument('--output',type=Path,required=True);args=ap.parse_args();args.output.mkdir(parents=True,exist_ok=True)
++ ap=argparse.ArgumentParser();ap.add_argument('inputs',nargs='+',type=Path);ap.add_argument('--model',choices=['79m','5m'],required=True);ap.add_argument('--output',type=Path,required=True);ap.add_argument('--continuation-seed',type=int,default=3000000000);args=ap.parse_args();args.output.mkdir(parents=True,exist_ok=True)
+  rows=[]
+  for path in args.inputs:rows.extend(json.loads(line) for line in path.read_text().splitlines())
+  profiles=dict(PROFILES)
+  for path in args.inputs:profiles.update(json.loads((path.parent/'manifest.json').read_text())['profiles'])
+  rows.sort(key=lambda r:(r['number'],r['pair_index']));model=MODEL79 if args.model=='79m' else MODEL5
+- manifest={'protocol':'app draw timing sensitivity; preserve primary prefixes; replace prospective claim with future independently sampled moves until raw-FEN repetition3/halfmove100/terminal/cap400','model':args.model,'model_sha256':sha256(model),'input_files':[str(p) for p in args.inputs],'input_sha256':[sha256(p) for p in args.inputs],'seed':2026100202,'max_plies':400,'runner_sha256':sha256(__file__),'policy_sha256':sha256(Path(__file__).with_name('mobile_policy.py'))};(args.output/'manifest.json').write_text(json.dumps(manifest,indent=2)+'\n')
++ manifest={'protocol':'app draw timing sensitivity; preserve primary prefixes; replace prospective claim with future independently sampled moves until raw-FEN repetition3/halfmove100/terminal/cap400','model':args.model,'model_sha256':sha256(model),'input_files':[str(p) for p in args.inputs],'input_sha256':[sha256(p) for p in args.inputs],'seed':args.continuation_seed,'max_plies':400,'runner_sha256':sha256(__file__),'policy_sha256':sha256(Path(__file__).with_name('mobile_policy.py'))};(args.output/'manifest.json').write_text(json.dumps(manifest,indent=2)+'\n')
+  output=args.output/'games.jsonl';done={}
+  if output.exists():done={r['id']:r for r in map(json.loads,output.read_text().splitlines())}
+  p=Policy(model,threads=1,cache_limit=15000);continued=0;extra=0;begin=time.time()
+@@ -32,7 +32,7 @@
+   for uci in row['moves_uci']:b.push(chess.Move.from_uci(uci));counts[key(b)]+=1
+   original_outcome=app_outcome(b,counts)
+   is_prospective=row['termination'] in ['threefold_repetition','fifty_moves'] and original_outcome is None
+-  updated=dict(row);updated['primary_result']=row['result'];updated['primary_termination']=row['termination'];updated['primary_plies']=row['plies'];updated['continued_prospective_claim']=is_prospective;updated['sensitivity_seed_white']=2026100202+1000000*row['pair_index']+2*row['number'];updated['sensitivity_seed_black']=updated['sensitivity_seed_white']+1
++  updated=dict(row);updated['primary_result']=row['result'];updated['primary_termination']=row['termination'];updated['primary_plies']=row['plies'];updated['continued_prospective_claim']=is_prospective;updated['sensitivity_seed_white']=args.continuation_seed+1000000*row['pair_index']+2*row['number'];updated['sensitivity_seed_black']=updated['sensitivity_seed_white']+1
+   if is_prospective:
+    continued+=1;rngs={chess.WHITE:random.Random(updated['sensitivity_seed_white']),chess.BLACK:random.Random(updated['sensitivity_seed_black'])};moves=list(row['moves_uci']);t=time.time()
+    while app_outcome(b,counts) is None and b.ply()<400:

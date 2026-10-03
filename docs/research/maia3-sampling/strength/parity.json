@@ -1,0 +1,30 @@
+{
+  "official_reference_parity": [
+    {
+      "name": "initial-1500",
+      "moves_checked": 20,
+      "top_move": "e2e4",
+      "max_abs_error": 2.09575195313505e-05
+    },
+    {
+      "name": "after-e4-black-1600-vs-2100",
+      "moves_checked": 20,
+      "top_move": "e7e5",
+      "max_abs_error": 1.9065795896722193e-05
+    },
+    {
+      "name": "ruy-lopez-middlegame-1800",
+      "moves_checked": 28,
+      "top_move": "d2d4",
+      "max_abs_error": 2.2845190429165996e-05
+    },
+    {
+      "name": "black-promotion-1200",
+      "moves_checked": 7,
+      "top_move": "b2b1q",
+      "max_abs_error": 3.796240235942605e-06
+    }
+  ],
+  "sampler_boundary_checks": "passed",
+  "model_sha256": "3454b03ae78baa64a87b345fdb1a457265d912caec531039b074f07eda0d8010"
+}

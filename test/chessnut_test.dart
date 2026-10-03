@@ -53,6 +53,18 @@ Map<String, String> _after(chess.Chess game, String uci) {
   return ChessnutProtocol.pieceMapFromFen(next.fen);
 }
 
+Future<void> _openSettings(WidgetTester tester) async {
+  await tester.tap(find.byKey(const ValueKey('home-settings-button')));
+  await tester.pumpAndSettle();
+}
+
+Future<void> _enableChessnut(WidgetTester tester) async {
+  final toggle = find.byKey(const ValueKey('home-chessnut-toggle'));
+  await tester.ensureVisible(toggle);
+  await tester.tap(toggle);
+  await tester.pumpAndSettle();
+}
+
 class _FakeElectronicBoard implements ElectronicBoardTransport {
   final StreamController<ElectronicBoardEvent> _events =
       StreamController<ElectronicBoardEvent>.broadcast(sync: true);
@@ -114,6 +126,27 @@ class _FakeElectronicBoard implements ElectronicBoardTransport {
     _events.add(ElectronicBoardEvent(type: 'position', position: pieces));
   }
 
+  void battery(int percent, {bool charging = false}) {
+    _events.add(
+      ElectronicBoardEvent(
+        type: 'battery',
+        batteryPercent: percent,
+        charging: charging,
+      ),
+    );
+  }
+
+  void error(String diagnostic) {
+    _events.add(
+      ElectronicBoardEvent(
+        type: 'status',
+        connectionState: ElectronicBoardConnectionState.error,
+        message: 'Chessnut position could not be decoded.',
+        diagnostic: diagnostic,
+      ),
+    );
+  }
+
   void ready(Map<String, String> pieces) {
     connected = true;
     _events.add(
@@ -161,6 +194,33 @@ void main() {
       () => ChessnutProtocol.decodePosition(const [0x01, 0x24]),
       throwsFormatException,
     );
+  });
+
+  testWidgets('repeated board errors retain diagnostic reasons', (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    final board = _FakeElectronicBoard();
+    await tester.pumpWidget(
+      MaterialApp(home: GamePage(electronicBoardTransport: board)),
+    );
+    await tester.pumpAndSettle();
+    await _enableChessnut(tester);
+
+    const detail =
+        'errorSource=position-decode reason=invalidPayload nativeReady=true gattPresent=true';
+    board.error(detail);
+    board.error(detail);
+    await tester.pumpAndSettle();
+    final entries = (await SharedPreferences.getInstance()).getStringList(
+      'diagnosticEntriesV1',
+    );
+    expect(
+      entries?.where((entry) => entry.contains('chessnut-state=error $detail')),
+      hasLength(2),
+    );
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
+    await board.close();
   });
 
   test('encodes move LEDs in Chessnut row order', () {
@@ -287,11 +347,11 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    final toggle = find.byKey(const ValueKey('chessnut-go-toggle'));
-    await tester.ensureVisible(toggle);
-    await tester.tap(toggle);
-    await tester.pumpAndSettle();
+    await _enableChessnut(tester);
     expect(board.connected, isTrue);
+    board.battery(87, charging: true);
+    await tester.pump();
+    expect(find.text('87% ⚡'), findsOneWidget);
 
     final start = find.widgetWithText(FilledButton, 'Start game');
     await tester.ensureVisible(start);
@@ -339,7 +399,7 @@ void main() {
     board.position(ChessnutProtocol.pieceMapFromFen(game.fen));
     await tester.pump();
     expect(board.ledCommands.last, isEmpty);
-    expect(find.text('Your move on Chessnut Go.'), findsOneWidget);
+    expect(find.text('Your move on Chessnut.'), findsOneWidget);
     final clearIndex = board.ledCommands.lastIndexWhere(
       (command) => command.isEmpty,
     );
@@ -351,6 +411,46 @@ void main() {
       isTrue,
       reason: 'A cancelled LED burst must not relight a completed move.',
     );
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
+    await board.close();
+  });
+
+  testWidgets('Chessnut always starts and returns home with Unlimited time', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues({
+      maiaTimePresetPreferenceKey: TimePreset.blitzFive.name,
+    });
+    final board = _FakeElectronicBoard();
+    await tester.pumpWidget(
+      MaterialApp(home: GamePage(electronicBoardTransport: board)),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('time-preset-blitzFive')), findsOneWidget);
+
+    await _enableChessnut(tester);
+    expect(find.byKey(const ValueKey('time-preset-unlimited')), findsOneWidget);
+    final start = find.widgetWithText(FilledButton, 'Start game');
+    await tester.ensureVisible(start);
+    await tester.tap(start);
+    await tester.pumpAndSettle();
+    expect((await ActiveSessionStore.load())!['timePreset'], 'unlimited');
+
+    await tester.tap(find.byKey(const ValueKey('game-home-button')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, 'Continue'));
+    await tester.pumpAndSettle();
+    expect(
+      tester
+          .widget<SwitchListTile>(
+            find.byKey(const ValueKey('home-chessnut-toggle')),
+          )
+          .value,
+      isTrue,
+    );
+    expect(find.byKey(const ValueKey('time-preset-unlimited')), findsOneWidget);
 
     await tester.pumpWidget(const SizedBox.shrink());
     await tester.pump();
@@ -373,10 +473,7 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    final toggle = find.byKey(const ValueKey('chessnut-go-toggle'));
-    await tester.ensureVisible(toggle);
-    await tester.tap(toggle);
-    await tester.pumpAndSettle();
+    await _enableChessnut(tester);
     final start = find.widgetWithText(FilledButton, 'Start game');
     await tester.ensureVisible(start);
     await tester.tap(start);
@@ -423,11 +520,7 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      await tester.ensureVisible(
-        find.byKey(const ValueKey('chessnut-go-toggle')),
-      );
-      await tester.tap(find.byKey(const ValueKey('chessnut-go-toggle')));
-      await tester.pumpAndSettle();
+      await _enableChessnut(tester);
       await tester.ensureVisible(
         find.widgetWithText(FilledButton, 'Start game'),
       );
@@ -480,16 +573,18 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
+    await _openSettings(tester);
     await tester.ensureVisible(
-      find.byKey(const ValueKey('chessnut-go-toggle')),
+      find.byKey(const ValueKey('chessnut-sounds-toggle')),
     );
-    await tester.tap(find.byKey(const ValueKey('chessnut-go-toggle')));
-    await tester.pumpAndSettle();
     final sounds = tester.widget<SwitchListTile>(
       find.byKey(const ValueKey('chessnut-sounds-toggle')),
     );
     expect(sounds.value, isFalse);
+    await tester.tap(find.byKey(const ValueKey('settings-back-button')));
+    await tester.pumpAndSettle();
 
+    await _enableChessnut(tester);
     await tester.ensureVisible(find.widgetWithText(FilledButton, 'Start game'));
     await tester.tap(find.widgetWithText(FilledButton, 'Start game'));
     await tester.pump();
@@ -524,11 +619,7 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    await tester.ensureVisible(
-      find.byKey(const ValueKey('chessnut-go-toggle')),
-    );
-    await tester.tap(find.byKey(const ValueKey('chessnut-go-toggle')));
-    await tester.pumpAndSettle();
+    await _enableChessnut(tester);
     await tester.ensureVisible(find.widgetWithText(FilledButton, 'Start game'));
     await tester.tap(find.widgetWithText(FilledButton, 'Start game'));
     await tester.pump();
@@ -546,7 +637,7 @@ void main() {
     await tester.tap(find.text('Take back move'));
     await tester.pump();
     expect(
-      find.text('Takeback: restore the lit squares on Chessnut Go.'),
+      find.text('Takeback: restore the lit squares on Chessnut.'),
       findsOneWidget,
     );
     expect(board.ledCommands.last.toSet(), containsAll(const {'e2', 'e4'}));
@@ -562,7 +653,7 @@ void main() {
     );
     await tester.pump();
     expect(
-      find.text('Takeback complete. Your move on Chessnut Go.'),
+      find.text('Takeback complete. Your move on Chessnut.'),
       findsOneWidget,
     );
     await tester.pump();
@@ -585,7 +676,7 @@ void main() {
       MaterialApp(home: GamePage(electronicBoardTransport: board)),
     );
     await tester.pumpAndSettle();
-    final toggle = find.byKey(const ValueKey('chessnut-go-toggle'));
+    final toggle = find.byKey(const ValueKey('home-chessnut-toggle'));
     await tester.ensureVisible(toggle);
     await tester.tap(toggle);
     await tester.pumpAndSettle();

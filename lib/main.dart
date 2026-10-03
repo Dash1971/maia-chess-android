@@ -32,6 +32,9 @@ part 'src/active_session_store.dart';
 part 'src/session_model.dart';
 part 'src/openings.dart';
 part 'src/chessnut.dart';
+part 'src/history_navigation.dart';
+part 'src/sound_effect.dart';
+part 'src/game_feedback.dart';
 part 'src/play.dart';
 part 'src/analysis_board.dart';
 part 'src/review.dart';
@@ -87,7 +90,8 @@ const lichessMultistockfishUrl =
     'https://github.com/lichess-org/dart-multistockfish';
 const enCroissantProjectUrl =
     'https://github.com/franciscoBSalgueiro/en-croissant';
-const mobileMaiaSourceUrl = 'https://github.com/Dash1971/maia-chess-android';
+const mobileMaiaSourceUrl =
+    'https://github.com/Dash1971/maia-chess-android';
 const mobileMaiaLicenseUrl = '$mobileMaiaSourceUrl/blob/main/LICENSE';
 const maiaPlayEloPreferenceKey = 'maiaPlayEloV1';
 const maiaPlaySidePreferenceKey = 'maiaPlaySideV1';
@@ -95,6 +99,8 @@ const maiaTimePresetPreferenceKey = 'maiaTimePresetV1';
 const maiaCustomMinutesPreferenceKey = 'maiaCustomMinutesV1';
 const maiaCustomIncrementPreferenceKey = 'maiaCustomIncrementV1';
 const gameAnalysisQualityPreferenceKey = 'gameAnalysisQualityV1';
+const secondMaiaEnabledPreferenceKey = 'secondMaiaEnabledV1';
+const secondMaiaEloPreferenceKey = 'secondMaiaEloV1';
 
 // Match the Lichess app defaults across live play, Analysis Board, and Game
 // Review: magnify touch drags, lift the piece above the pointer, show the

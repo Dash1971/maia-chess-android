@@ -1,5 +1,144 @@
 part of '../main.dart';
 
+class _ContinuationSettings {
+  const _ContinuationSettings({
+    required this.side,
+    required this.elo,
+    required this.timePreset,
+    required this.customMinutes,
+    required this.customIncrement,
+  });
+
+  final PlayerSide side;
+  final int elo;
+  final TimePreset timePreset;
+  final int customMinutes;
+  final int customIncrement;
+}
+
+class _ContinueFromHereDialog extends StatefulWidget {
+  const _ContinueFromHereDialog({required this.defaults});
+
+  final _ContinuationSettings defaults;
+
+  @override
+  State<_ContinueFromHereDialog> createState() =>
+      _ContinueFromHereDialogState();
+}
+
+class _ContinueFromHereDialogState extends State<_ContinueFromHereDialog> {
+  late PlayerSide _side = widget.defaults.side;
+  late int _elo = widget.defaults.elo;
+  late TimePreset _timePreset = widget.defaults.timePreset;
+  late int _customMinutes = widget.defaults.customMinutes;
+  late int _customIncrement = widget.defaults.customIncrement;
+
+  @override
+  Widget build(BuildContext context) => AlertDialog(
+    title: const Text('Continue from here'),
+    content: SizedBox(
+      width: 400,
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            DropdownButtonFormField<PlayerSide>(
+              key: const ValueKey('continuation-side'),
+              initialValue: _side,
+              decoration: const InputDecoration(labelText: 'Your side'),
+              items: const [
+                DropdownMenuItem(value: PlayerSide.white, child: Text('White')),
+                DropdownMenuItem(value: PlayerSide.black, child: Text('Black')),
+                DropdownMenuItem(
+                  value: PlayerSide.random,
+                  child: Text('Random'),
+                ),
+              ],
+              onChanged: (value) {
+                if (value != null) setState(() => _side = value);
+              },
+            ),
+            const SizedBox(height: 12),
+            Text('Play Maia rating: $_elo'),
+            Slider(
+              key: const ValueKey('continuation-rating'),
+              min: 500,
+              max: 2500,
+              divisions: 20,
+              value: _elo.toDouble(),
+              label: '$_elo',
+              onChanged: (value) => setState(() => _elo = value.round()),
+            ),
+            DropdownButtonFormField<TimePreset>(
+              key: const ValueKey('continuation-time-control'),
+              initialValue: _timePreset,
+              isExpanded: true,
+              decoration: const InputDecoration(labelText: 'Time control'),
+              items: TimePreset.values
+                  .map(
+                    (preset) => DropdownMenuItem(
+                      value: preset,
+                      child: Text(preset.label),
+                    ),
+                  )
+                  .toList(),
+              onChanged: (value) {
+                if (value != null) setState(() => _timePreset = value);
+              },
+            ),
+            if (_timePreset == TimePreset.custom) ...[
+              const SizedBox(height: 12),
+              Text('Minutes: $_customMinutes'),
+              Slider(
+                key: const ValueKey('continuation-custom-minutes'),
+                min: 1,
+                max: 60,
+                divisions: 59,
+                value: _customMinutes.toDouble(),
+                label: '$_customMinutes',
+                onChanged: (value) =>
+                    setState(() => _customMinutes = value.round()),
+              ),
+              Text('Increment: $_customIncrement seconds'),
+              Slider(
+                key: const ValueKey('continuation-custom-increment'),
+                min: 0,
+                max: 30,
+                divisions: 30,
+                value: _customIncrement.toDouble(),
+                label: '$_customIncrement',
+                onChanged: (value) =>
+                    setState(() => _customIncrement = value.round()),
+              ),
+            ],
+          ],
+        ),
+      ),
+    ),
+    actions: [
+      TextButton(
+        onPressed: () => Navigator.pop(context),
+        child: const Text('Cancel'),
+      ),
+      FilledButton(
+        key: const ValueKey('continuation-start-game'),
+        onPressed: () => Navigator.pop(
+          context,
+          _ContinuationSettings(
+            side: _side,
+            elo: _elo,
+            timePreset: _timePreset,
+            customMinutes: _customMinutes,
+            customIncrement: _customIncrement,
+          ),
+        ),
+        child: const Text('Start game'),
+      ),
+    ],
+  );
+}
+
 class _TextInputDialog extends StatefulWidget {
   const _TextInputDialog({required this.title, required this.hint});
 
@@ -49,18 +188,21 @@ class AnalysisBoardPage extends StatefulWidget {
   const AnalysisBoardPage({
     required this.initialSession,
     required this.maiaElo,
+    this.secondMaiaElo,
     this.initialVariations = const [],
     this.initialTreeIsAuthoritative = false,
     this.initialCurrentFen,
     this.initialFlipped = false,
-    this.gameAnalysisQuality = GameAnalysisQuality.thorough,
+    this.gameAnalysisQuality = GameAnalysisQuality.fast,
     this.evaluator,
     this.maiaEvaluator,
+    this.maiaPolicyEvaluator,
     super.key,
   });
 
   final AnalysisSession initialSession;
   final int maiaElo;
+  final int? secondMaiaElo;
   final List<RecordedVariation> initialVariations;
   final bool initialTreeIsAuthoritative;
   final String? initialCurrentFen;
@@ -69,6 +211,8 @@ class AnalysisBoardPage extends StatefulWidget {
   final Future<StockfishReview> Function(String fen)? evaluator;
   final Future<String?> Function(List<String> positions, int elo)?
   maiaEvaluator;
+  final Future<List<double>?> Function(List<String> positions, int elo)?
+  maiaPolicyEvaluator;
 
   @override
   State<AnalysisBoardPage> createState() => _AnalysisBoardPageState();
@@ -108,6 +252,7 @@ class _AnalysisBoardPageState extends State<AnalysisBoardPage> {
     'currentFen': currentFen,
     'flipped': flipped,
     'maiaElo': widget.maiaElo,
+    if (widget.secondMaiaElo != null) 'secondMaiaElo': widget.secondMaiaElo,
   });
 
   void _replace(AnalysisSession session) {
@@ -181,42 +326,63 @@ class _AnalysisBoardPageState extends State<AnalysisBoardPage> {
   }
 
   Future<void> _playFrom(String fen) async {
-    final side = await showDialog<PlayerSide>(
-      context: context,
-      builder: (context) => SimpleDialog(
-        title: const Text('Play from this position'),
-        children: [
-          SimpleDialogOption(
-            onPressed: () => Navigator.pop(context, PlayerSide.white),
-            child: const ListTile(
-              leading: Icon(Icons.light_mode),
-              title: Text('Play White'),
-            ),
-          ),
-          SimpleDialogOption(
-            onPressed: () => Navigator.pop(context, PlayerSide.black),
-            child: const ListTile(
-              leading: Icon(Icons.dark_mode),
-              title: Text('Play Black'),
-            ),
-          ),
-          SimpleDialogOption(
-            onPressed: () => Navigator.pop(context, PlayerSide.random),
-            child: const ListTile(
-              leading: Icon(Icons.casino_outlined),
-              title: Text('Random side'),
-            ),
-          ),
-        ],
+    final preferences = await SharedPreferences.getInstance();
+    if (!mounted) return;
+    final defaults = _ContinuationSettings(
+      side: _readValidatedPreference<PlayerSide>(
+        preferences,
+        maiaPlaySidePreferenceKey,
+        fallback: PlayerSide.white,
+        decode: (value) => value is String
+            ? PlayerSide.values.where((side) => side.name == value).firstOrNull
+            : null,
+      ),
+      elo: _readValidatedPreference<int>(
+        preferences,
+        maiaPlayEloPreferenceKey,
+        fallback: 1500,
+        decode: (value) =>
+            value is int && value >= 500 && value <= 2500 ? value : null,
+      ),
+      timePreset: _readValidatedPreference<TimePreset>(
+        preferences,
+        maiaTimePresetPreferenceKey,
+        fallback: TimePreset.unlimited,
+        decode: (value) => value is String
+            ? TimePreset.values
+                  .where((preset) => preset.name == value)
+                  .firstOrNull
+            : null,
+      ),
+      customMinutes: _readValidatedPreference<int>(
+        preferences,
+        maiaCustomMinutesPreferenceKey,
+        fallback: 10,
+        decode: (value) =>
+            value is int && value >= 1 && value <= 60 ? value : null,
+      ),
+      customIncrement: _readValidatedPreference<int>(
+        preferences,
+        maiaCustomIncrementPreferenceKey,
+        fallback: 0,
+        decode: (value) =>
+            value is int && value >= 0 && value <= 30 ? value : null,
       ),
     );
-    if (side == null || !mounted) return;
+    final selection = await showDialog<_ContinuationSettings>(
+      context: context,
+      builder: (context) => _ContinueFromHereDialog(defaults: defaults),
+    );
+    if (selection == null || !mounted) return;
     await Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (_) => GamePage(
           startingFen: fen,
-          startingSide: side,
-          startingElo: widget.maiaElo,
+          startingSide: selection.side,
+          startingElo: selection.elo,
+          startingTimePreset: selection.timePreset,
+          startingCustomMinutes: selection.customMinutes,
+          startingCustomIncrement: selection.customIncrement,
         ),
       ),
     );
@@ -242,8 +408,10 @@ class _AnalysisBoardPageState extends State<AnalysisBoardPage> {
     gameAnalysisQuality: widget.gameAnalysisQuality,
     onSessionChanged: _saveAnalysisState,
     maiaElo: widget.maiaElo,
+    secondMaiaElo: widget.secondMaiaElo,
     evaluator: widget.evaluator,
     maiaEvaluator: widget.maiaEvaluator,
+    maiaPolicyEvaluator: widget.maiaPolicyEvaluator,
     title: 'Analysis Board',
     onHome: ActiveSessionStore.clear,
     onLoadFen: _loadFen,
@@ -277,6 +445,7 @@ class _BoardEditorPageState extends State<BoardEditorPage> {
   bool _bk = false;
   bool _bq = false;
   String _enPassant = '-';
+  bool _flipped = false;
 
   @override
   void initState() {
@@ -336,7 +505,15 @@ class _BoardEditorPageState extends State<BoardEditorPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Edit Board'),
-        actions: [TextButton(onPressed: _finish, child: const Text('Done'))],
+        actions: [
+          IconButton(
+            key: const ValueKey('board-editor-flip'),
+            tooltip: 'Flip board',
+            onPressed: () => setState(() => _flipped = !_flipped),
+            icon: const Icon(CupertinoIcons.arrow_2_squarepath),
+          ),
+          TextButton(onPressed: _finish, child: const Text('Done')),
+        ],
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -351,7 +528,7 @@ class _BoardEditorPageState extends State<BoardEditorPage> {
                     child: LayoutBuilder(
                       builder: (_, box) => cg.StaticChessboard(
                         size: box.biggest.shortestSide,
-                        orientation: dc.Side.white,
+                        orientation: _flipped ? dc.Side.black : dc.Side.white,
                         fen: _position.fen,
                         settings: const cg.StaticChessboardSettings(
                           colorScheme: cg.ChessboardColorScheme.brown,

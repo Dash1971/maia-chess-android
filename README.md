@@ -54,8 +54,10 @@ millisecond precision; unlimited games do not invent clock data.
 ### Advanced play and review settings
 
 <p align="center">
-  <img src="docs/screenshots/20260906_v0_advanced_settings.jpg" width="42%" alt="Advanced settings for premoves, Maia timing and sampling, review rating, quality, and diagnostics">
+  <img src="docs/screenshots/20260906_v0_advanced_settings.jpg" width="42%" alt="Earlier settings screen showing custom sampling values 0.50/0.90, premoves, timing, review rating, quality, and diagnostics">
 </p>
+
+The screenshot above shows earlier settings; its 0.50/0.90 sampling values are now custom choices.
 
 Advanced settings control premoves, an optional exact 100 ms premove charge,
 multiple queued premoves, human-like Maia timing, Temperature, Top-P, the Maia
@@ -66,17 +68,15 @@ for troubleshooting and never uploads it automatically.
 
 ### Maia sampling
 
-<p align="center">
-  <img src="docs/screenshots/20260906_v0_sampling_help.jpg" width="46%" alt="In-app explanation of Maia Temperature and Top-P">
-</p>
+Maia predicts how often human players would choose each legal move. **Temperature** changes how strongly it favors its most likely moves; **Top-P** cuts off less likely choices.
 
-Maia predicts a probability distribution over legal human moves.
-**Temperature** changes how strongly the app favours the most probable move;
-Temperature 0 always chooses the top prediction. **Top-P** limits sampling to
-the most likely moves whose cumulative probability reaches the chosen value.
-The defaults—Temperature 0.5 and Top-P 0.9—provide variety while filtering
-low-probability outliers. They change playing style and consistency, not the
-model weights or Maia's nominal rating.
+We recommend **Temperature 1.0 / Top-P 1.0** for a varied opening repertoire. At the 1600 setting, Maia's first moves were about **64% e4, 25% d4 and 11% other moves**, close to the Lichess blitz sample we compared it with. Lower settings made Maia stronger, but removed some openings and sidelines.
+
+We also tested **1.0 / 0.95**: it gained about **71 Elo** against 1/1 in 1,200 games, while producing **67 opening families rather than 85** in equal samples of 2,000 openings. It is a useful stronger option; we chose 1/1 to keep the wider repertoire.
+
+The previous **0.5 / 0.9** settings came from our [Maia2](https://github.com/Dash1971/maia2-local-stack) and [Maia3](https://github.com/Dash1971/maia3-local-stack) local stacks, which used opening books to supply variety. Mobile Maia has no opening book, so we now favor variety in Maia's own choices, accepting the reduction in playing strength.
+
+[See the visual report, results and reproducible data](docs/research/maia3-sampling/REPORT.md).
 
 ### Play against a human-like opponent
 

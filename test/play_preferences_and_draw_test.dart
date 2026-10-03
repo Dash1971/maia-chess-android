@@ -98,11 +98,11 @@ void main() {
     );
     expect(
       GameAnalysisQuality.fromStoredName('invalid'),
-      GameAnalysisQuality.thorough,
+      GameAnalysisQuality.fast,
     );
   });
 
-  testWidgets('game analysis quality persists and defaults to Thorough', (
+  testWidgets('game analysis quality persists and defaults to Fast', (
     tester,
   ) async {
     tester.view.physicalSize = const Size(800, 1200);
@@ -112,13 +112,13 @@ void main() {
 
     await tester.pumpWidget(const MaterialApp(home: GamePage()));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Advanced'));
+    await tester.tap(find.byKey(const ValueKey('home-settings-button')));
     await tester.pumpAndSettle();
 
     DropdownButtonFormField<GameAnalysisQuality> field() => tester.widget(
       find.byType(DropdownButtonFormField<GameAnalysisQuality>),
     );
-    expect(field().initialValue, GameAnalysisQuality.thorough);
+    expect(field().initialValue, GameAnalysisQuality.fast);
     await tester.ensureVisible(
       find.byType(DropdownButtonFormField<GameAnalysisQuality>),
     );
@@ -137,11 +137,13 @@ void main() {
     await tester.pump();
     await tester.pumpWidget(const MaterialApp(home: GamePage()));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Advanced'));
+    await tester.tap(find.byKey(const ValueKey('home-settings-button')));
     await tester.pumpAndSettle();
     expect(field().initialValue, GameAnalysisQuality.fast);
-    expect(find.textContaining('Faster, but noisier'), findsOneWidget);
+    expect(find.textContaining('checking standout moves'), findsOneWidget);
 
+    await tester.tap(find.byKey(const ValueKey('settings-back-button')));
+    await tester.pumpAndSettle();
     await tester.ensureVisible(find.text('Analysis Board'));
     await tester.tap(find.text('Analysis Board'));
     await tester.pumpAndSettle();
@@ -149,6 +151,77 @@ void main() {
       tester.widget<ReviewPage>(find.byType(ReviewPage)).gameAnalysisQuality,
       GameAnalysisQuality.fast,
     );
+  });
+
+  testWidgets('an existing Thorough choice survives the default change', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues({
+      gameAnalysisQualityPreferenceKey: 'thorough',
+    });
+    tester.view.physicalSize = const Size(800, 1200);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(const MaterialApp(home: GamePage()));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('home-settings-button')));
+    await tester.pumpAndSettle();
+    expect(
+      tester.widget<DropdownButtonFormField<GameAnalysisQuality>>(
+        find.byType(DropdownButtonFormField<GameAnalysisQuality>),
+      ).initialValue,
+      GameAnalysisQuality.thorough,
+    );
+    await tester.ensureVisible(find.text('Reset engine defaults'));
+    await tester.tap(find.text('Reset engine defaults'));
+    await tester.pumpAndSettle();
+    expect(
+      (await SharedPreferences.getInstance()).getString(
+        gameAnalysisQualityPreferenceKey,
+      ),
+      'fast',
+    );
+  });
+
+  testWidgets('game sound and haptic settings persist independently', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues({
+      gameSoundsPreferenceKey: false,
+      gameHapticsPreferenceKey: true,
+    });
+    tester.view.physicalSize = const Size(800, 1200);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(const MaterialApp(home: GamePage()));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('home-settings-button')));
+    await tester.pumpAndSettle();
+
+    SwitchListTile setting(String key) =>
+        tester.widget<SwitchListTile>(find.byKey(ValueKey(key)));
+    expect(setting('game-sounds-setting').value, isFalse);
+    expect(setting('game-haptics-setting').value, isTrue);
+    setting('game-sounds-setting').onChanged!(true);
+    setting('game-haptics-setting').onChanged!(false);
+    await tester.pumpAndSettle();
+
+    final preferences = await SharedPreferences.getInstance();
+    expect(preferences.getBool(gameSoundsPreferenceKey), isTrue);
+    expect(preferences.getBool(gameHapticsPreferenceKey), isFalse);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
+    await tester.pumpWidget(const MaterialApp(home: GamePage()));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('home-settings-button')));
+    await tester.pumpAndSettle();
+    expect(setting('game-sounds-setting').value, isTrue);
+    expect(setting('game-haptics-setting').value, isFalse);
   });
 
   testWidgets('last side and time-control settings survive a restart', (

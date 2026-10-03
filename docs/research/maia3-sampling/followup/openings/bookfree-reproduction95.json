@@ -1,0 +1,39 @@
+{
+  "status": "passed",
+  "excluded": [
+    "books",
+    "opening TSV",
+    "raw Parquet",
+    "HTTP cache",
+    "model"
+  ],
+  "conditional_outputs": {
+    "conditional95.json": {
+      "identical": true,
+      "sha256": "7d1d57920c24ca747b24390a3b4ecc39f7a20454db4e5ec07751ba7fd8d13d72"
+    },
+    "conditional-summary95.json": {
+      "identical": true,
+      "sha256": "07c44a215af9621388d35ee5bdb885ca577cb6d751988310a495209545d3548a"
+    },
+    "exact-policy95.json": {
+      "identical": true,
+      "sha256": "c14cd00a776d3ababeee8cf9533a1693c8b96cee1a34958a66f029cf88869696"
+    },
+    "conditional-run95.json": {
+      "identical": true,
+      "sha256": "11d4121729a3f13c61871ac44649109a0fbe8fbbcba8d4816838f1b1a3344108"
+    }
+  },
+  "final_analysis": {
+    "files": [
+      "summary95.json",
+      "actual-two-ply95.json",
+      "family-diversity95.json",
+      "input-validation95.json"
+    ],
+    "numeric_values": 9832,
+    "maximum_absolute_difference": 0.0,
+    "excluded_runtime_field": "summary95.json/validation/seconds"
+  }
+}

@@ -1,0 +1,122 @@
+{
+  "games": 600,
+  "bootstrap_replicates": 100000,
+  "bootstrap_seed": 2026100201,
+  "method": "Resample game scores within each matchup and first-profile color (multinomial equivalent of bootstrap); equally weight colors; transform score using 400*log10(s/(1-s)). CIs marginal 95%; p tests conditional on decisive games, Holm adjusted across 2. Elo is descriptive relative match performance, not human Elo.",
+  "pairs": [
+    {
+      "first": "temp_only",
+      "second": "full",
+      "n": 300,
+      "white_first_n": 150,
+      "black_first_n": 150,
+      "wins": 241,
+      "draws": 17,
+      "losses": 42,
+      "score": 0.8316666666666667,
+      "score_95_ci": [
+        0.79,
+        0.87
+      ],
+      "elo_difference": 277.51166873629893,
+      "elo_difference_95_ci": [
+        230.16311862260892,
+        330.2303601247127
+      ],
+      "two_sided_decisive_binomial_p": 4.2469007306864377e-35,
+      "white_first_score": 0.8366666666666667,
+      "black_first_score": 0.8266666666666667,
+      "terminations": {
+        "checkmate": 283,
+        "stalemate": 5,
+        "insufficient_material": 2,
+        "threefold_repetition_actual": 10
+      },
+      "unique_movetexts": 300,
+      "mean_plies": 80.32333333333334,
+      "median_plies": 76.0,
+      "max_plies": 211,
+      "min_plies": 13,
+      "holm_adjusted_p": 8.493801461372875e-35
+    },
+    {
+      "first": "topp_only",
+      "second": "full",
+      "n": 300,
+      "white_first_n": 150,
+      "black_first_n": 150,
+      "wins": 190,
+      "draws": 27,
+      "losses": 83,
+      "score": 0.6783333333333333,
+      "score_95_ci": [
+        0.6266666666666667,
+        0.7283333333333333
+      ],
+      "elo_difference": 129.6148400869785,
+      "elo_difference_95_ci": [
+        89.97593063739933,
+        171.31753302658558
+      ],
+      "two_sided_decisive_binomial_p": 8.10209181622395e-11,
+      "white_first_score": 0.7033333333333334,
+      "black_first_score": 0.6533333333333333,
+      "terminations": {
+        "checkmate": 273,
+        "stalemate": 14,
+        "insufficient_material": 6,
+        "threefold_repetition_actual": 7
+      },
+      "unique_movetexts": 300,
+      "mean_plies": 90.24333333333334,
+      "median_plies": 89.5,
+      "max_plies": 216,
+      "min_plies": 21,
+      "holm_adjusted_p": 8.10209181622395e-11
+    }
+  ],
+  "standings": {
+    "full": {
+      "n": 600,
+      "wins": 125,
+      "draws": 44,
+      "losses": 431,
+      "score": 0.245
+    },
+    "temp_only": {
+      "n": 300,
+      "wins": 241,
+      "draws": 17,
+      "losses": 42,
+      "score": 0.8316666666666667
+    },
+    "topp_only": {
+      "n": 300,
+      "wins": 190,
+      "draws": 27,
+      "losses": 83,
+      "score": 0.6783333333333333
+    }
+  },
+  "termination_counts": {
+    "checkmate": 556,
+    "stalemate": 19,
+    "insufficient_material": 8,
+    "threefold_repetition_actual": 17
+  },
+  "total_game_seconds": 5253.702754020691,
+  "max_ply_sensitivity": {
+    "1": {
+      "cap_games": 0,
+      "score_excluding_caps": 0.8316666666666667,
+      "cap_as_first_win_score": 0.8316666666666667,
+      "cap_as_first_loss_score": 0.8316666666666667
+    },
+    "2": {
+      "cap_games": 0,
+      "score_excluding_caps": 0.6783333333333333,
+      "cap_as_first_win_score": 0.6783333333333333,
+      "cap_as_first_loss_score": 0.6783333333333333
+    }
+  }
+}

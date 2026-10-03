@@ -1,0 +1,5 @@
+{
+  "pilot_games_recreated_exactly": 6,
+  "moves_results_fens_equal": true,
+  "comparison": "Sequential pilot versus isolated one-thread pair workers, same model/runtime/source seeds"
+}

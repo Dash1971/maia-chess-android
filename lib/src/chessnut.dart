@@ -165,13 +165,15 @@ class ChessnutPlatformTransport implements ElectronicBoardTransport {
         type: 'status',
         connectionState: ElectronicBoardConnectionState.error,
         message: 'Invalid Chessnut event.',
+        diagnostic: 'errorSource=event-decode reason=invalidEvent',
       );
     }
     final event = Map<String, dynamic>.from(value);
     final type = event['type'] as String? ?? 'status';
     if (type == 'position') {
+      final rawData = event['data'];
       try {
-        final bytes = (event['data'] as List? ?? const [])
+        final bytes = (rawData as List? ?? const [])
             .map((item) => (item as num).toInt())
             .toList(growable: false);
         return ElectronicBoardEvent(
@@ -183,6 +185,13 @@ class ChessnutPlatformTransport implements ElectronicBoardTransport {
           type: 'status',
           connectionState: ElectronicBoardConnectionState.error,
           message: error.message,
+          // The message comes only from ChessnutProtocol's fixed format checks.
+          // Never include the position bytes or the board's name in diagnostics.
+          diagnostic:
+              'errorSource=position-decode reason=${error.message} '
+              'payloadLength=${rawData is List ? rawData.length : 'unknown'} '
+              'nativeReady=${event['nativeReady'] is bool ? event['nativeReady'] : 'unknown'} '
+              'gattPresent=${event['gattPresent'] is bool ? event['gattPresent'] : 'unknown'}',
         );
       }
     }

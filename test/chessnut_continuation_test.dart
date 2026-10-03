@@ -110,7 +110,7 @@ void main() {
       await tester.tap(find.byKey(const ValueKey('game-home-button')));
       await tester.pumpAndSettle();
       final toggle = tester.widget<SwitchListTile>(
-        find.byKey(const ValueKey('chessnut-go-toggle')),
+        find.byKey(const ValueKey('home-chessnut-toggle')),
       );
       expect(toggle.value, isFalse);
       await disposeGame(tester, board);
@@ -180,7 +180,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(board.connects, 1);
     expect(boardWidget(tester).controller.game.playerSide, cg.PlayerSide.none);
-    expect(find.text('Your move on Chessnut Go.'), findsOneWidget);
+    expect(find.text('Your move on Chessnut.'), findsOneWidget);
     board.status(ElectronicBoardConnectionState.disconnected);
     await tester.pumpAndSettle();
     expect(find.text('Reconnect'), findsOneWidget);
@@ -223,7 +223,7 @@ void main() {
         final fen = boardWidget(tester).controller.fen;
         await tester.tap(find.text('Reconnect'));
         await tester.pump();
-        expect(find.text('Connecting to Chessnut Go…'), findsOneWidget);
+        expect(find.text('Connecting to Chessnut…'), findsOneWidget);
         expect(
           tester
               .widget<TextButton>(

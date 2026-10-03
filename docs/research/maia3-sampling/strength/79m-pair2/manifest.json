@@ -1,0 +1,36 @@
+{
+  "pair_index": 2,
+  "model": "79m",
+  "model_sha256": "3454b03ae78baa64a87b345fdb1a457265d912caec531039b074f07eda0d8010",
+  "profiles": {
+    "argmax": {
+      "temperature": 0.0,
+      "top_p": 0.0
+    },
+    "baseline": {
+      "temperature": 0.5,
+      "top_p": 0.9
+    },
+    "full": {
+      "temperature": 1.0,
+      "top_p": 1.0
+    }
+  },
+  "games_per_pair": 600,
+  "seed": 20261002,
+  "max_plies": 400,
+  "threads": 1,
+  "self_elo": 1600,
+  "opponent_elo": 1600,
+  "opening": "standard chess starting position; no book or forced moves",
+  "history": "current board repeated in 8 slots",
+  "claim_draw": true,
+  "provider": "CPUExecutionProvider",
+  "python": "3.12.13 (main, Mar  3 2026, 12:39:30) [Clang 21.0.0 (clang-2100.0.123.102)]",
+  "numpy": "2.5.3",
+  "onnxruntime": "1.30.0",
+  "chess": "1.11.2",
+  "platform": "macOS-26.6.2-arm64-arm-64bit",
+  "runner_sha256": "8d13ee49b92a49a5b6248a49d7940330a76dd7da8e99053a48280f63d5fe62de",
+  "policy_sha256": "8e3f203b9f26b3ce0a7b01b8cf22101a23cb4339306c4f4d3d8df8794cb0bc98"
+}

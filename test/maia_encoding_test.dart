@@ -52,7 +52,7 @@ void main() {
   test('top-p sampling keeps only the highest probability moves', () {
     final game = chess.Chess();
     final legalMoves = game.moves({'asObjects': true}).cast<chess.Move>();
-    final logits = List<double>.filled(4352, -20);
+    final logits = List<double>.filled(4352, 0);
     logits[MaiaEncoding.moveIndex('e2e4', false)] = 20;
     final move = MaiaEncoding.sampleLegalMove(
       game,
@@ -77,5 +77,29 @@ void main() {
       topP: 0,
     );
     expect(MaiaEncoding.uci(move), 'd2d4');
+  });
+
+  test('raw legal-move probabilities are normalized and ranked', () {
+    final game = chess.Chess();
+    final logits = List<double>.filled(4352, -20);
+    logits[MaiaEncoding.moveIndex('e2e4', false)] = 4;
+    logits[MaiaEncoding.moveIndex('g1f3', false)] = 3;
+    logits[MaiaEncoding.moveIndex('d2d4', false)] = 2;
+    logits[MaiaEncoding.moveIndex('h2h3', false)] = 1;
+
+    final probabilities = MaiaEncoding.legalMoveProbabilities(game, logits);
+
+    expect(probabilities.map((move) => move.uci).take(4), [
+      'e2e4',
+      'g1f3',
+      'd2d4',
+      'h2h3',
+    ]);
+    expect(
+      probabilities.fold<double>(0, (sum, move) => sum + move.probability),
+      closeTo(1, 1e-12),
+    );
+    expect(probabilities.every((move) => move.probability >= 0), isTrue);
+    expect(probabilities.any((move) => move.uci == 'e2e5'), isFalse);
   });
 }

@@ -8,8 +8,8 @@ import prepare_reproducible_stockfish as subject
 
 class PrepareReproducibleStockfishTest(unittest.TestCase):
     def make_package(self, base: Path, *, version: str = subject.PACKAGE_VERSION) -> Path:
-        package = base / "multistockfish_sf16"
-        (package / "src").mkdir(parents=True)
+        package = base / "multistockfish_light"
+        (package / subject.CMAKE_PATH).parent.mkdir(parents=True)
         (package / "pubspec.yaml").write_text(
             f"name: {subject.PACKAGE_NAME}\nversion: {version}\n",
             encoding="utf-8",

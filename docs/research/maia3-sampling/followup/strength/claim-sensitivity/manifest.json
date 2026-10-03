@@ -1,0 +1,43 @@
+{
+  "study": "paired claim-draw endpoint sensitivity; same sampled prefixes",
+  "games": 1200,
+  "claim_draw": true,
+  "new_inference": false,
+  "input_files": [
+    {
+      "path": "<local-workspace>/sampling-followup-20261003/strength/shard0/games.jsonl",
+      "sha256": "2136f73af8232500e387dfa61ed781e5a0cdb13e395983197ad85aa4b6d02e6f"
+    },
+    {
+      "path": "<local-workspace>/sampling-followup-20261003/strength/shard1/games.jsonl",
+      "sha256": "ccfcedd035cdab2a2c55132d3afa50f93c931b5cd39e5bc01c2eb76aaf019fba"
+    },
+    {
+      "path": "<local-workspace>/sampling-followup-20261003/strength/shard2/games.jsonl",
+      "sha256": "df13fffe68a53ad898687ceb8c1714b51d72ef0b7ecc7a77218280ab499667d7"
+    },
+    {
+      "path": "<local-workspace>/sampling-followup-20261003/strength/shard3/games.jsonl",
+      "sha256": "0d455d4e4131eb24ea1b26e01ccbf7822312f97734d9d891d4389734b71912db"
+    },
+    {
+      "path": "<local-workspace>/sampling-followup-20261003/strength/shard4/games.jsonl",
+      "sha256": "0627a0d62a98c4c562c08394fa40c5aab18e3644321013e28284f10a38758a8b"
+    },
+    {
+      "path": "<local-workspace>/sampling-followup-20261003/strength/shard5/games.jsonl",
+      "sha256": "f198bfd9a6e51c2a1b67a466797ddceddbfc047660db55893d44c86812997e6e"
+    }
+  ],
+  "truncated_games": 69,
+  "changed_results": 29,
+  "removed_plies": 1556,
+  "terminations": {
+    "checkmate": 1071,
+    "stalemate": 44,
+    "threefold_repetition": 68,
+    "insufficient_material": 16,
+    "fifty_moves": 1
+  },
+  "runner_sha256": "9404b941024e14f26b6a682db42c550bbff937e061bc9ce4467ecf39fd822668"
+}

@@ -1,0 +1,15 @@
+certifi==2026.7.22
+charset-normalizer==3.5.2
+chess==1.11.2
+flatbuffers==25.12.19
+fsspec==2026.9.0
+idna==3.20
+numpy==2.5.3
+onnxruntime==1.30.0
+packaging==26.3
+protobuf==7.36.2
+pyarrow==25.0.1
+python-chess==1.999
+requests==2.34.2
+scipy==1.18.1
+urllib3==2.8.0

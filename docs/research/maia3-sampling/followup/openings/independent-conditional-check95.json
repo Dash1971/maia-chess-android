@@ -1,0 +1,6 @@
+{
+  "status": "passed",
+  "numeric_values": 15,
+  "max_absolute_difference": 2.220446049250313e-16,
+  "reference": "../conditional-check.json"
+}
