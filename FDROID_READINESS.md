@@ -4,13 +4,16 @@ This is a status record, not a publication approval. The Preview package is not
 part of the Stable submission. Updating this repository's review recipe does
 not update F-Droid's canonical metadata or publish an app.
 
-## Recovery proposal: 2.2.2 (versionCode 79)
+## Recovery release: 2.2.2 (versionCode 79)
 
-**Prepared source only: not built, qualified, tagged, signed, or published.**
+**Status at source preparation: not built, qualified, tagged, signed, or
+published.** Subsequent qualification and publication results belong in the
+[GitHub release](https://github.com/Dash1971/maia-chess-android/releases/tag/v2.2.2),
+so recording results does not move the qualified source commit.
 This maintenance release puts the current Fastlane listing, screenshots, and
 version-specific changelog into the release source before it is frozen. It
 changes no gameplay, engine, model, dependency, or saved-game code relative to
-2.2.1. See the [draft release notes](docs/release-notes/v2.2.2.md).
+2.2.1. See the [release-source notes](docs/release-notes/v2.2.2.md).
 
 F-Droid imports source-hosted descriptions and graphics from the latest release
 it knows about, as described in its
