@@ -48,8 +48,6 @@ Active development continues in the separate
 Its gold-icon app has a separate Android package and can be installed beside
 this stable blue-icon app.
 
-We are looking to add multilingual support in a future release.
-
 ## Feature guide
 
 ### Choose a game or analysis workflow
