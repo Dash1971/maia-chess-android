@@ -75,6 +75,12 @@ background, while you review the current game, or after an engine error. Timed
 PGNs use a standard `TimeControl` header and per-move `[%clk ...]` comments to
 millisecond precision; unlimited games do not invent clock data.
 
+### Human move timing
+
+Human move timing is optional and off by default. When enabled, the app picks a
+new, variable move-time target for each Maia move—usually 0.55–4.5 seconds,
+with about a 6% chance of an extra 1.5–4.5 seconds.
+
 ### Advanced play and review settings
 
 <p align="center">
