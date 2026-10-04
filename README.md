@@ -25,7 +25,8 @@ Version 2.2 brings:
 - **Richer game feedback:** optional on-device sounds for moves, captures,
   errors, and game end, plus haptics for moves, checks, errors, and game end.
 - **A more useful review and game library:** faster default full-game analysis,
-  clearer move classifications (including Brilliant moves), and Recent games
+  improved move classification to make Brilliant moves more likely to be
+  identified correctly, and Recent games
   labeled with the player side, Maia rating, and actual result or Incomplete.
 - **More resilient play:** transactional saved-game checkpoints with a previous
   readable copy, stronger variation recovery and native-engine checks, and
@@ -345,6 +346,8 @@ board when it is flipped.
 
 Review classifies moves as **Brilliant**, **Good**, **Interesting**,
 **Dubious**, **Mistake**, or **Blunder**, with separate totals for both players.
+Version 2.2 refines the classification heuristics so Brilliant moves are more
+likely to receive the correct label; these classification categories are not new.
 The screenshot shows Fischer's **17...Be6!!** from the 1956 Byrne–Fischer game
 classified Brilliant by the signed Stable 2.2 app. The current classification
 appears on the board and in the move list. You can
