@@ -77,9 +77,11 @@ millisecond precision; unlimited games do not invent clock data.
 
 ### Human move timing
 
-Human move timing is optional and off by default. When enabled, the app picks a
-new, variable move-time target for each Maia move—usually 0.55–4.5 seconds,
-with about a 6% chance of an extra 1.5–4.5 seconds.
+Human move timing is optional and off by default. When enabled, Maia varies its pauses to give games a more natural rhythm. Shorter pauses are more common than longer ones.
+
+Each move gets a randomly chosen timing target, normally between 0.55 and 4.5 seconds. About 6% receive an additional 1.5–4.5 seconds. Overall, targets average approximately 2 seconds and can reach about 9 seconds. These pauses are random; they do not reflect how difficult Maia considers the position.
+
+Time spent calculating the move counts toward the target. If the move is ready after 0.2 seconds and the target is 1.8 seconds, the app waits another 1.6 seconds. If calculation already takes 2.3 seconds, it adds no extra wait.
 
 ### Advanced play and review settings
 
