@@ -10,19 +10,19 @@ class AppLocalizationsHi extends AppLocalizations {
   AppLocalizationsHi([String locale = 'hi']) : super(locale);
 
   @override
-  String get about => 'परिचय';
+  String get about => 'के बारे में';
 
   @override
-  String get analysisBoard => 'विश्लेषण बोर्ड';
+  String get analysisBoard => 'विश्लेषण पट';
 
   @override
-  String get back => 'वापस';
+  String get back => 'पीछे';
 
   @override
   String get black => 'काला';
 
   @override
-  String get cancelPremoves => 'पहले से चुनी चालें रद्द करें';
+  String get cancelPremoves => 'पहले से चुनी गयी चालें रद्द करें';
 
   @override
   String get chessnutExperimental => 'Chessnut (प्रायोगिक)';
@@ -46,22 +46,22 @@ class AppLocalizationsHi extends AppLocalizations {
   String get gameSettings => 'खेल सेटिंग्स';
 
   @override
-  String get home => 'मुख्य पृष्ठ';
+  String get home => 'होम';
 
   @override
   String get playMaia => 'Maia के साथ खेलें';
 
   @override
-  String get random => 'कोई भी';
+  String get random => 'कोई भी रंग';
 
   @override
   String get recentGames => 'हाल के खेल';
 
   @override
-  String get resign => 'हार मानें';
+  String get resign => 'हार मान लें';
 
   @override
-  String get settings => 'सेटिंग्स';
+  String get settings => 'व्यवस्था (सेटिंग्स)';
 
   @override
   String get startGame => 'खेल शुरू करें';
@@ -70,13 +70,13 @@ class AppLocalizationsHi extends AppLocalizations {
   String get timeControl => 'समय नियंत्रण';
 
   @override
-  String get white => 'सफ़ेद';
+  String get white => 'सफेद';
 
   @override
   String get unlimited => 'असीमित';
 
   @override
-  String get custom => 'अपनी पसंद';
+  String get custom => 'कस्टम';
 
   @override
   String get seconds => 'सेकंड';
@@ -100,7 +100,7 @@ class AppLocalizationsHi extends AppLocalizations {
   String get minutes => 'मिनट';
 
   @override
-  String get increment => 'हर चाल पर अतिरिक्त समय';
+  String get increment => 'वृद्धि';
 
   @override
   String get gameSounds => 'खेल की आवाज़ें';
@@ -110,14 +110,14 @@ class AppLocalizationsHi extends AppLocalizations {
       'चालों, मोहरे मारने, त्रुटियों और खेल समाप्त होने पर';
 
   @override
-  String get hapticFeedback => 'कंपन द्वारा प्रतिक्रिया';
+  String get hapticFeedback => 'स्पर्श पर प्रतिक्रिया';
 
   @override
   String get touchFeedbackForMovesChecksErrorsAndGameEnd =>
       'चालों, शह, त्रुटियों और खेल समाप्त होने पर कंपन';
 
   @override
-  String get premoves => 'पहले से चुनी चालें';
+  String get premoves => 'पहले से चुनी गयी चालें';
 
   @override
   String get queueAMoveWhileMaiaIsThinking =>
@@ -125,7 +125,7 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get oneHundredMsPremovePenalty =>
-      'पहले से चुनी चाल पर 100 ms समय कटौती';
+      'पहले से चुनी गयी चाल पर 100 ms समय कटौती';
 
   @override
   String get use01SecondsPerPremoveInTimedGames =>
@@ -187,7 +187,7 @@ class AppLocalizationsHi extends AppLocalizations {
   String get diagnosticsCopied => 'निदान जानकारी कॉपी हो गई';
 
   @override
-  String get newGame => 'नया खेल';
+  String get newGame => 'नया खेल ';
 
   @override
   String get resetGame => 'खेल रीसेट करें';
@@ -199,10 +199,10 @@ class AppLocalizationsHi extends AppLocalizations {
   String get savePgnFile => 'PGN फ़ाइल सहेजें';
 
   @override
-  String get sharePgn => 'PGN साझा करें';
+  String get sharePgn => 'पीजीएन शेयर करें';
 
   @override
-  String get copyPgn => 'PGN कॉपी करें';
+  String get copyPgn => 'पीजीएन की नकल लें';
 
   @override
   String get copyFen => 'FEN कॉपी करें';
@@ -214,7 +214,7 @@ class AppLocalizationsHi extends AppLocalizations {
   String get maiaErrorPleaseRetry => 'Maia में त्रुटि। कृपया फिर कोशिश करें।';
 
   @override
-  String get retry => 'फिर कोशिश करें';
+  String get retry => 'फिर से कोशिश करें';
 
   @override
   String get maiaIsThinking => 'Maia सोच रहा है…';
@@ -259,25 +259,25 @@ class AppLocalizationsHi extends AppLocalizations {
   String get startNewGame => 'नया खेल शुरू करें';
 
   @override
-  String get reset => 'रीसेट करें';
+  String get reset => 'फिर से स्थापित (रीसेट) करें';
 
   @override
   String get flipBoard => 'बोर्ड पलटें';
 
   @override
-  String get offerDraw => 'ड्रॉ का प्रस्ताव दें';
+  String get offerDraw => 'खेल को बराबरी पर समाप्त करने का प्रस्ताव दें';
 
   @override
-  String get takeBackMove => 'चालें वापस लें';
+  String get takeBackMove => 'चाल को वापस लें';
 
   @override
-  String get whiteIsVictorious => 'सफ़ेद जीता';
+  String get whiteIsVictorious => 'सफेद विजयी हुआ';
 
   @override
-  String get blackIsVictorious => 'काला जीता';
+  String get blackIsVictorious => 'काला विजयी हुआ';
 
   @override
-  String get theGameIsADraw => 'खेल ड्रॉ है';
+  String get theGameIsADraw => 'खेल ड्रॉ है ।';
 
   @override
   String get theGameHasEnded => 'खेल समाप्त हो गया है';
@@ -295,7 +295,7 @@ class AppLocalizationsHi extends AppLocalizations {
   String get thorough => 'गहन';
 
   @override
-  String get continueFromHere => 'यहाँ से जारी रखें';
+  String get continueFromHere => 'यहा से जारी करें';
 
   @override
   String get load => 'लोड करें';
@@ -313,7 +313,7 @@ class AppLocalizationsHi extends AppLocalizations {
   String get blackPieces => 'काले मोहरे';
 
   @override
-  String get whiteToMove => 'सफ़ेद की चाल';
+  String get whiteToMove => 'सफेद की चाल';
 
   @override
   String get blackToMove => 'काले की चाल';
@@ -337,10 +337,10 @@ class AppLocalizationsHi extends AppLocalizations {
   String get enPassantTarget => 'एन पासां का लक्ष्य खाना';
 
   @override
-  String get startingPosition => 'शुरुआती स्थिति';
+  String get startingPosition => 'शुरू करने की स्थिति:';
 
   @override
-  String get clearBoard => 'बोर्ड खाली करें';
+  String get clearBoard => 'बोर्ड साफ़ करें';
 
   @override
   String get loadFen => 'FEN लोड करें';
@@ -376,22 +376,22 @@ class AppLocalizationsHi extends AppLocalizations {
   String get computerAnalysis => 'कंप्यूटर विश्लेषण';
 
   @override
-  String get backToGame => 'खेल पर वापस जाएँ';
+  String get backToGame => 'खेल पर लौटें।';
 
   @override
-  String get expandVariations => 'वैकल्पिक चालक्रम फैलाएँ';
+  String get expandVariations => 'विविधताओं का विस्तार करें';
 
   @override
   String get collapseVariations => 'वैकल्पिक चालक्रम समेटें';
 
   @override
-  String get promoteVariation => 'चालक्रम को एक स्तर ऊपर करें';
+  String get promoteVariation => 'विविधता को बढ़ावा दें';
 
   @override
-  String get makeMainLine => 'मुख्य चालक्रम बनाएँ';
+  String get makeMainLine => 'मुख्य लाइन बनाएं';
 
   @override
-  String get deleteFromHere => 'यहाँ से हटाएँ';
+  String get deleteFromHere => 'यहां से हटाओ';
 
   @override
   String get analyzing => 'विश्लेषण हो रहा है…';
@@ -523,22 +523,22 @@ class AppLocalizationsHi extends AppLocalizations {
   }
 
   @override
-  String get classificationBrilliant => 'शानदार';
+  String get classificationBrilliant => 'अद्भुत चाल';
 
   @override
-  String get classificationGood => 'अच्छी';
+  String get classificationGood => 'अच्छी चाल';
 
   @override
-  String get classificationInteresting => 'रोचक';
+  String get classificationInteresting => 'दिलचस्प चाल';
 
   @override
-  String get classificationDubious => 'संदिग्ध';
+  String get classificationDubious => 'संदिग्ध चाल';
 
   @override
-  String get classificationMistake => 'गलती';
+  String get classificationMistake => 'ग़लती';
 
   @override
-  String get classificationBlunder => 'गंभीर गलती';
+  String get classificationBlunder => 'भयंकर गलती';
 
   @override
   String get gameReview => 'खेल की समीक्षा';
@@ -628,7 +628,7 @@ class AppLocalizationsHi extends AppLocalizations {
   }
 
   @override
-  String get phaseOpening => 'ओपनिंग';
+  String get phaseOpening => 'प्रारंभिक';
 
   @override
   String get phaseMiddlegame => 'मिडलगेम';
@@ -752,7 +752,7 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get recentEmpty =>
-      'पूरे हुए खेल और मुख्य पृष्ठ पर लौटते समय सहेजे गए अधूरे खेल यहाँ दिखाई देंगे।';
+      'पूरे हुए खेल और होम पर लौटते समय सहेजे गए अधूरे खेल यहाँ दिखाई देंगे।';
 
   @override
   String recentGameSummary(String result, String date) {
@@ -879,10 +879,10 @@ class AppLocalizationsHi extends AppLocalizations {
   String get checkmateYouWin => 'शहमात — आप जीत गए!';
 
   @override
-  String get drawResult => 'ड्रॉ।';
+  String get drawResult => 'खेल बराबरी पे समाप्त';
 
   @override
-  String get drawByAgreement => 'आपसी सहमति से ड्रॉ।';
+  String get drawByAgreement => 'आपसी सहमति से ड्रॉ';
 
   @override
   String get youWin => 'आप जीत गए।';
@@ -1043,7 +1043,7 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String premovesList(String moves) {
-    return 'पहले से चुनी चालें: $moves';
+    return 'पहले से चुनी गयी चालें: $moves';
   }
 
   @override

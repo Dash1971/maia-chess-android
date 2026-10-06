@@ -13,7 +13,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get about => 'Sobre';
 
   @override
-  String get analysisBoard => 'Tabuleiro de análise';
+  String get analysisBoard => 'Análise';
 
   @override
   String get back => 'Voltar';
@@ -22,7 +22,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get black => 'Pretas';
 
   @override
-  String get cancelPremoves => 'Cancelar pré-lances';
+  String get cancelPremoves => 'Cancelar pré-movimentos';
 
   @override
   String get chessnutExperimental => 'Chessnut (experimental)';
@@ -52,13 +52,13 @@ class AppLocalizationsPt extends AppLocalizations {
   String get playMaia => 'Jogar contra o Maia';
 
   @override
-  String get random => 'Aleatório';
+  String get random => 'Cor aleatória';
 
   @override
   String get recentGames => 'Partidas recentes';
 
   @override
-  String get resign => 'Abandonar';
+  String get resign => 'Desistir';
 
   @override
   String get settings => 'Configurações';
@@ -67,13 +67,13 @@ class AppLocalizationsPt extends AppLocalizations {
   String get startGame => 'Iniciar partida';
 
   @override
-  String get timeControl => 'Ritmo de jogo';
+  String get timeControl => 'Ritmo';
 
   @override
   String get white => 'Brancas';
 
   @override
-  String get unlimited => 'Sem limite';
+  String get unlimited => 'Ilimitado';
 
   @override
   String get custom => 'Personalizado';
@@ -110,28 +110,29 @@ class AppLocalizationsPt extends AppLocalizations {
       'Lances, capturas, erros e fim da partida';
 
   @override
-  String get hapticFeedback => 'Vibração';
+  String get hapticFeedback => 'Feedback por toque';
 
   @override
   String get touchFeedbackForMovesChecksErrorsAndGameEnd =>
       'Vibração para lances, xeques, erros e fim da partida';
 
   @override
-  String get premoves => 'Pré-lances';
+  String get premoves => 'Pré-movimentos';
 
   @override
   String get queueAMoveWhileMaiaIsThinking =>
       'Programar um lance enquanto o Maia pensa';
 
   @override
-  String get oneHundredMsPremovePenalty => 'Desconto de 100 ms por pré-lance';
+  String get oneHundredMsPremovePenalty =>
+      'Desconto de 100 ms por pré-movimento';
 
   @override
   String get use01SecondsPerPremoveInTimedGames =>
-      'Consumir 0,1 segundo por pré-lance em partidas com relógio';
+      'Consumir 0,1 segundo por pré-movimento em partidas com relógio';
 
   @override
-  String get allowMultiplePremoves => 'Permitir vários pré-lances';
+  String get allowMultiplePremoves => 'Permitir vários pré-movimentos';
 
   @override
   String get queueASequenceAnIllegalMoveCancelsTheRest =>
@@ -261,22 +262,22 @@ class AppLocalizationsPt extends AppLocalizations {
   String get reset => 'Reiniciar';
 
   @override
-  String get flipBoard => 'Virar tabuleiro';
+  String get flipBoard => 'Girar o tabuleiro';
 
   @override
-  String get offerDraw => 'Oferecer empate';
+  String get offerDraw => 'Propor empate';
 
   @override
-  String get takeBackMove => 'Desfazer lances';
+  String get takeBackMove => 'Voltar jogada';
 
   @override
-  String get whiteIsVictorious => 'As brancas venceram';
+  String get whiteIsVictorious => 'Brancas vencem';
 
   @override
-  String get blackIsVictorious => 'As pretas venceram';
+  String get blackIsVictorious => 'Pretas vencem';
 
   @override
-  String get theGameIsADraw => 'A partida terminou empatada';
+  String get theGameIsADraw => 'A partida terminou em empate.';
 
   @override
   String get theGameHasEnded => 'A partida terminou';
@@ -375,13 +376,13 @@ class AppLocalizationsPt extends AppLocalizations {
   String get computerAnalysis => 'Análise do computador';
 
   @override
-  String get backToGame => 'Voltar à partida';
+  String get backToGame => 'Retorne à partida';
 
   @override
-  String get expandVariations => 'Expandir variantes';
+  String get expandVariations => 'Expandir variações';
 
   @override
-  String get collapseVariations => 'Recolher variantes';
+  String get collapseVariations => 'Recolher variações';
 
   @override
   String get promoteVariation => 'Promover variante';
@@ -522,16 +523,16 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String get classificationBrilliant => 'Brilhante';
+  String get classificationBrilliant => 'Jogada excelente';
 
   @override
-  String get classificationGood => 'Bom';
+  String get classificationGood => 'Boa jogada';
 
   @override
-  String get classificationInteresting => 'Interessante';
+  String get classificationInteresting => 'Jogada interessante';
 
   @override
-  String get classificationDubious => 'Duvidoso';
+  String get classificationDubious => 'Lance questionável';
 
   @override
   String get classificationMistake => 'Erro';
@@ -636,7 +637,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get phaseMiddlegame => 'Meio-jogo';
 
   @override
-  String get phaseEndgame => 'Final';
+  String get phaseEndgame => 'Finais';
 
   @override
   String get pieceKing => 'Rei';
@@ -892,10 +893,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String get checkmateYouWin => 'Xeque-mate — você venceu!';
 
   @override
-  String get drawResult => 'Empate.';
+  String get drawResult => 'Empate';
 
   @override
-  String get drawByAgreement => 'Empate por comum acordo.';
+  String get drawByAgreement => 'Empate por acordo mútuo';
 
   @override
   String get youWin => 'Você venceu.';
@@ -953,7 +954,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get resignEndsImmediately => 'Isso encerrará a partida imediatamente.';
 
   @override
-  String get premoveLimit => 'É possível programar até 64 pré-lances.';
+  String get premoveLimit => 'É possível programar até 64 pré-movimentos.';
 
   @override
   String get chessnutGameRestriction =>
@@ -1056,7 +1057,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String premovesList(String moves) {
-    return 'Pré-lances: $moves';
+    return 'Pré-movimentos: $moves';
   }
 
   @override

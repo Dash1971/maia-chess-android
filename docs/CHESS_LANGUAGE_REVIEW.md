@@ -1,5 +1,8 @@
 # Chess language review — 2026-10-04
 
+> Historical review: terminology choices are superseded where applicable by the
+> [2026-10-06 Lichess baseline](LICHESS_TERMINOLOGY.md).
+
 Reviewed all 296 messages in each of Japanese, Simplified Chinese, Korean and Spanish against the English ARB and their UI context. Lichess is the preferred terminology reference for equivalent features. Native-language chess teaching, federation material and published annotation conventions provide an independent check. These are evidence-informed editorial translations; native-player acceptance is still pending.
 
 Language knowledge helped identify awkward or ambiguous wording, but model training data is not an inspectable or attributable source. The references below are the auditable evidence. ARB remains authoritative; there is no new spreadsheet review workflow. See the [short reviewer guide](NATIVE_REVIEW.md) and [maintenance guide](L10N_REVIEW.md).

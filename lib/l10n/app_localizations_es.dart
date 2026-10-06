@@ -22,7 +22,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get black => 'Negras';
 
   @override
-  String get cancelPremoves => 'Cancelar jugadas anticipadas';
+  String get cancelPremoves => 'Cancelar movimientos anticipados';
 
   @override
   String get chessnutExperimental => 'Chessnut (experimental)';
@@ -52,7 +52,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get playMaia => 'Jugar contra Maia';
 
   @override
-  String get random => 'Aleatorio';
+  String get random => 'Color aleatorio';
 
   @override
   String get recentGames => 'Partidas recientes';
@@ -61,7 +61,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get resign => 'Abandonar';
 
   @override
-  String get settings => 'Ajustes';
+  String get settings => 'Preferencias';
 
   @override
   String get startGame => 'Iniciar partida';
@@ -73,7 +73,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get white => 'Blancas';
 
   @override
-  String get unlimited => 'Sin límite';
+  String get unlimited => 'Ilimitado';
 
   @override
   String get custom => 'Personalizado';
@@ -110,14 +110,14 @@ class AppLocalizationsEs extends AppLocalizations {
       'Jugadas, capturas, errores y final de partida';
 
   @override
-  String get hapticFeedback => 'Respuesta háptica';
+  String get hapticFeedback => 'Respuesta táctil';
 
   @override
   String get touchFeedbackForMovesChecksErrorsAndGameEnd =>
       'Vibración para jugadas, jaques, errores y final de partida';
 
   @override
-  String get premoves => 'Jugadas anticipadas';
+  String get premoves => 'Movimientos anticipados';
 
   @override
   String get queueAMoveWhileMaiaIsThinking =>
@@ -125,14 +125,14 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get oneHundredMsPremovePenalty =>
-      'Descontar 0,1 s por jugada anticipada';
+      'Descontar 0,1 s por movimiento anticipado';
 
   @override
   String get use01SecondsPerPremoveInTimedGames =>
-      'Cada jugada anticipada consume 0,1 segundos de tu reloj';
+      'Cada movimiento anticipado consume 0,1 segundos de tu reloj';
 
   @override
-  String get allowMultiplePremoves => 'Permitir varias jugadas anticipadas';
+  String get allowMultiplePremoves => 'Permitir varios movimientos anticipados';
 
   @override
   String get queueASequenceAnIllegalMoveCancelsTheRest =>
@@ -187,7 +187,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diagnosticsCopied => 'Información de diagnóstico copiada';
 
   @override
-  String get newGame => 'Nueva partida';
+  String get newGame => 'Nueva Partida';
 
   @override
   String get resetGame => 'Reiniciar partida';
@@ -268,16 +268,16 @@ class AppLocalizationsEs extends AppLocalizations {
   String get offerDraw => 'Ofrecer tablas';
 
   @override
-  String get takeBackMove => 'Deshacer';
+  String get takeBackMove => 'Deshacer jugada';
 
   @override
-  String get whiteIsVictorious => 'Ganan las blancas';
+  String get whiteIsVictorious => 'Las blancas ganan';
 
   @override
-  String get blackIsVictorious => 'Ganan las negras';
+  String get blackIsVictorious => 'Las negras ganan';
 
   @override
-  String get theGameIsADraw => 'Tablas';
+  String get theGameIsADraw => 'La partida es tablas.';
 
   @override
   String get theGameHasEnded => 'La partida ha terminado';
@@ -340,7 +340,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get startingPosition => 'Posición inicial';
 
   @override
-  String get clearBoard => 'Vaciar tablero';
+  String get clearBoard => 'Limpiar el tablero';
 
   @override
   String get loadFen => 'Cargar FEN';
@@ -373,7 +373,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get moves => 'Jugadas';
 
   @override
-  String get computerAnalysis => 'Análisis del motor';
+  String get computerAnalysis => 'Análisis del ordenador';
 
   @override
   String get backToGame => 'Volver a la partida';
@@ -522,16 +522,16 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get classificationBrilliant => 'Brillante';
+  String get classificationBrilliant => 'Jugada brillante';
 
   @override
-  String get classificationGood => 'Buena';
+  String get classificationGood => 'Buena jugada';
 
   @override
-  String get classificationInteresting => 'Interesante';
+  String get classificationInteresting => 'Jugada interesante';
 
   @override
-  String get classificationDubious => 'Dudosa';
+  String get classificationDubious => 'Jugada dudosa';
 
   @override
   String get classificationMistake => 'Error';
@@ -669,7 +669,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get recentDeleteFailed =>
-      'No se pudieron eliminar las partidas guardadas. Inténtalo de nuevo.';
+      'No se pudieron borrar las partidas guardadas. Inténtalo de nuevo.';
 
   @override
   String get recentOpenFailed =>
@@ -684,8 +684,8 @@ class AppLocalizationsEs extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '¿Eliminar $countString partidas?',
-      one: '¿Eliminar la partida guardada?',
+      other: '¿Borrar $countString partidas?',
+      one: '¿Borrar la partida guardada?',
     );
     return '$_temp0';
   }
@@ -700,14 +700,14 @@ class AppLocalizationsEs extends AppLocalizations {
       count,
       locale: localeName,
       other:
-          'Estas $countString partidas guardadas se eliminarán definitivamente.',
-      one: 'Esta partida guardada se eliminará definitivamente.',
+          'Estas $countString partidas guardadas se borrarán definitivamente.',
+      one: 'Esta partida guardada se borrará definitivamente.',
     );
     return '$_temp0';
   }
 
   @override
-  String get deleteAction => 'Eliminar';
+  String get deleteAction => 'Borrar';
 
   @override
   String get recentUpdating => 'Actualizando las partidas guardadas';
@@ -722,16 +722,16 @@ class AppLocalizationsEs extends AppLocalizations {
   String get recentSelectAll => 'Seleccionar todas las partidas';
 
   @override
-  String get recentDeleteSelected => 'Eliminar las partidas seleccionadas';
+  String get recentDeleteSelected => 'Borrar las partidas seleccionadas';
 
   @override
   String get recentSelectGames => 'Seleccionar partidas';
 
   @override
-  String get recentDeleteAll => 'Eliminar todas las partidas';
+  String get recentDeleteAll => 'Borrar todas las partidas';
 
   @override
-  String get recentDeleteOne => 'Eliminar la partida guardada';
+  String get recentDeleteOne => 'Borrar la partida guardada';
 
   @override
   String recentSelectedCount(num count) {
@@ -883,10 +883,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get checkmateYouWin => '¡Jaque mate: ganas tú!';
 
   @override
-  String get drawResult => 'Tablas.';
+  String get drawResult => 'Tablas';
 
   @override
-  String get drawByAgreement => 'Tablas por acuerdo.';
+  String get drawByAgreement => 'Tablas de mutuo acuerdo';
 
   @override
   String get youWin => 'Ganas tú.';
@@ -944,7 +944,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get resignEndsImmediately => 'La partida terminará inmediatamente.';
 
   @override
-  String get premoveLimit => 'Puedes preparar hasta 64 jugadas anticipadas.';
+  String get premoveLimit =>
+      'Puedes preparar hasta 64 movimientos anticipados.';
 
   @override
   String get chessnutGameRestriction =>
@@ -1048,7 +1049,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String premovesList(String moves) {
-    return 'Jugadas anticipadas: $moves';
+    return 'Movimientos anticipados: $moves';
   }
 
   @override
