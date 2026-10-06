@@ -11,7 +11,7 @@
 <li>Adjust optional human-like move timing, Temperature, and Top-P; bullet and short blitz use quicker timing targets</li>
 <li>Use single or multiple premoves, with an optional 100 ms penalty</li>
 <li>Take back moves, offer endgame draws, play rematches, and restore unfinished games</li>
-<li>Enable optional move sounds and haptic feedback</li>
+<li>Enable optional move sounds and touch feedback</li>
 <li>Find recent games by player side, Maia rating, and original played date; subtle result colors distinguish wins, losses, draws and unfinished games</li>
 </ul>
 

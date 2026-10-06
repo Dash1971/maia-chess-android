@@ -812,7 +812,7 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String incrementSecondsValue(String seconds) {
-    return 'Добавление на ход (с): $seconds';
+    return 'Добавка: $seconds с';
   }
 
   @override
@@ -887,10 +887,10 @@ class AppLocalizationsRu extends AppLocalizations {
       'Ничья — время истекло, но у соперника недостаточно материала для мата.';
 
   @override
-  String get whiteOutOfTime => 'У белых закончилось время.';
+  String get whiteOutOfTime => 'Белые просрочили время';
 
   @override
-  String get blackOutOfTime => 'У чёрных закончилось время.';
+  String get blackOutOfTime => 'У черных закончилось время';
 
   @override
   String get makeMaiaLitMove =>

@@ -132,7 +132,7 @@
   "@movesCapturesErrorsAndGameEnd": {
     "description": "Settings: Moves, captures, errors, and game end"
   },
-  "hapticFeedback": "Haptic feedback",
+  "hapticFeedback": "Touch feedback",
   "@hapticFeedback": {
     "description": "Settings: Haptic feedback"
   },
@@ -328,7 +328,7 @@
   "@offerDraw": {
     "description": "Live game: Offer draw"
   },
-  "takeBackMove": "Take back move",
+  "takeBackMove": "Takeback",
   "@takeBackMove": {
     "description": "Undo action. Depending on turn and board mode, this can undo one or two plies; avoid promising exactly one ply."
   },
@@ -1055,11 +1055,11 @@
   "@chessnutIsDisconnected": {
     "description": "Play screen: Chessnut is disconnected."
   },
-  "yourMove": "Your move.",
+  "yourMove": "Your turn.",
   "@yourMove": {
     "description": "Play screen: Your move."
   },
-  "yourMoveChessnut": "Your move on Chessnut.",
+  "yourMoveChessnut": "Your turn on Chessnut.",
   "@yourMoveChessnut": {
     "description": "Play screen: Your move on Chessnut."
   },
@@ -1071,7 +1071,7 @@
   "@chessnutStartingPosition": {
     "description": "Play screen: Set up the standard starting position on Chessnut."
   },
-  "takebackCompleteYourMove": "Takeback complete. Your move on Chessnut.",
+  "takebackCompleteYourMove": "Takeback complete. Your turn on Chessnut.",
   "@takebackCompleteYourMove": {
     "description": "Play screen: Takeback complete. Your move on Chessnut."
   },
@@ -1163,7 +1163,7 @@
   "@youResigned": {
     "description": "Play screen: You resigned — Maia wins."
   },
-  "moveTakenBack": "Move taken back. Your move.",
+  "moveTakenBack": "Move taken back. Your turn.",
   "@moveTakenBack": {
     "description": "Play screen: Move taken back. Your move."
   },

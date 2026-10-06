@@ -430,7 +430,7 @@ class AppLocalizationsDe extends AppLocalizations {
       'Starte die Computer-Analyse, um das Bewertungsdiagramm und die Genauigkeit für Weiß und Schwarz zu berechnen.';
 
   @override
-  String get pgnCopied => 'PGN kopiert';
+  String get pgnCopied => 'PGN kopiert.';
 
   @override
   String get fenCopied => 'FEN kopiert';
@@ -867,10 +867,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Remis — Zeitüberschreitung bei unzureichendem Mattmaterial des Gegners.';
 
   @override
-  String get whiteOutOfTime => 'Weiß hat die Zeit überschritten.';
+  String get whiteOutOfTime => 'Zeitüberschreitung von Weiß';
 
   @override
-  String get blackOutOfTime => 'Schwarz hat die Zeit überschritten.';
+  String get blackOutOfTime => 'Zeitüberschreitung von Schwarz';
 
   @override
   String get makeMaiaLitMove => 'Führe Maias angezeigten Zug auf Chessnut aus.';

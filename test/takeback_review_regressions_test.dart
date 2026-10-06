@@ -78,9 +78,9 @@ void main() {
     }
 
     await open();
-    await action(tester, 'Take back move');
+    await action(tester, 'Takeback');
     expect((await ActiveSessionStore.load())!['uciMoves'], hasLength(25));
-    await action(tester, 'Take back move');
+    await action(tester, 'Takeback');
     expect((await ActiveSessionStore.load())!['uciMoves'], hasLength(23));
     boardOf(tester).onMove!(dc.NormalMove.fromUci('d8e7'));
     await tester.pumpAndSettle();

@@ -193,7 +193,7 @@ class AppLocalizationsHi extends AppLocalizations {
   String get resetGame => 'खेल रीसेट करें';
 
   @override
-  String get shareAndExport => 'साझा और निर्यात करें';
+  String get shareAndExport => 'साझा करें और निर्यात करें';
 
   @override
   String get savePgnFile => 'PGN फ़ाइल सहेजें';
@@ -295,7 +295,7 @@ class AppLocalizationsHi extends AppLocalizations {
   String get thorough => 'गहन';
 
   @override
-  String get continueFromHere => 'यहा से जारी करें';
+  String get continueFromHere => 'यहाँ से जारी करें';
 
   @override
   String get load => 'लोड करें';
@@ -379,13 +379,13 @@ class AppLocalizationsHi extends AppLocalizations {
   String get backToGame => 'खेल पर लौटें।';
 
   @override
-  String get expandVariations => 'विविधताओं का विस्तार करें';
+  String get expandVariations => 'वैकल्पिक चालक्रम दिखाएँ';
 
   @override
   String get collapseVariations => 'वैकल्पिक चालक्रम समेटें';
 
   @override
-  String get promoteVariation => 'विविधता को बढ़ावा दें';
+  String get promoteVariation => 'वैकल्पिक चालक्रम का स्तर बढ़ाएँ';
 
   @override
   String get makeMainLine => 'मुख्य लाइन बनाएं';
@@ -628,7 +628,7 @@ class AppLocalizationsHi extends AppLocalizations {
   }
 
   @override
-  String get phaseOpening => 'प्रारंभिक';
+  String get phaseOpening => 'ओपनिंग';
 
   @override
   String get phaseMiddlegame => 'मिडलगेम';

@@ -180,7 +180,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(board.connects, 1);
     expect(boardWidget(tester).controller.game.playerSide, cg.PlayerSide.none);
-    expect(find.text('Your move on Chessnut.'), findsOneWidget);
+    expect(find.text('Your turn on Chessnut.'), findsOneWidget);
     board.status(ElectronicBoardConnectionState.disconnected);
     await tester.pumpAndSettle();
     expect(find.text('Reconnect'), findsOneWidget);

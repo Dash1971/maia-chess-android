@@ -420,7 +420,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get analysisExplanation => 'コンピューター解析で評価値グラフと白・黒それぞれの指し手の正確度を表示します。';
 
   @override
-  String get pgnCopied => 'PGNをコピーしました';
+  String get pgnCopied => 'PGNをコピーしました。';
 
   @override
   String get fenCopied => 'FENをコピーしました';
@@ -578,13 +578,13 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get phaseOpening => 'オープニング';
+  String get phaseOpening => '序盤';
 
   @override
-  String get phaseMiddlegame => 'ミドルゲーム';
+  String get phaseMiddlegame => '中盤';
 
   @override
-  String get phaseEndgame => 'エンドゲーム';
+  String get phaseEndgame => '終盤';
 
   @override
   String get pieceKing => 'キング';
@@ -769,14 +769,14 @@ class AppLocalizationsJa extends AppLocalizations {
   String get restoreLitSquares => '手を戻すには、Chessnutの点灯したマスの駒を元に戻してください。';
 
   @override
-  String get completeMaiaLitMove => 'Chessnutの点灯したマスに従って、Maiaの指し手を完了してください。';
+  String get completeMaiaLitMove => 'Chessnutの点灯したマスに従って、Maiaの手を最後まで指してください。';
 
   @override
   String get illegalChessnutPosition =>
       '合法な手を指した後の局面ではありません。点灯したマスの駒を修正してください。';
 
   @override
-  String get completeYourChessnutMove => 'Chessnutであなたの手を完了してください。';
+  String get completeYourChessnutMove => 'Chessnutで指しかけた手を最後まで指してください。';
 
   @override
   String get connectChessnutFirst => '開始前にChessnutを接続してください。';
@@ -789,10 +789,10 @@ class AppLocalizationsJa extends AppLocalizations {
       '引き分け — 時間切れですが、相手は残りの駒でチェックメイトできません。';
 
   @override
-  String get whiteOutOfTime => '白の時間が切れました。';
+  String get whiteOutOfTime => '白が時間切れになりました';
 
   @override
-  String get blackOutOfTime => '黒の時間が切れました。';
+  String get blackOutOfTime => '黒が時間切れになりました';
 
   @override
   String get makeMaiaLitMove => 'Chessnutの点灯したマスに従って、Maiaの指し手を盤上で再現してください。';

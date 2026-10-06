@@ -418,7 +418,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get analysisExplanation => '运行电脑分析以生成评估图表和白方、黑方的准确度。';
 
   @override
-  String get pgnCopied => '已复制 PGN';
+  String get pgnCopied => 'PGN 复制成功！';
 
   @override
   String get fenCopied => '已复制 FEN';
@@ -782,10 +782,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get timeoutInsufficientMaterial => '和棋——虽然超时，但对方子力不足以将杀。';
 
   @override
-  String get whiteOutOfTime => '白方超时。';
+  String get whiteOutOfTime => '白方超时';
 
   @override
-  String get blackOutOfTime => '黑方超时。';
+  String get blackOutOfTime => '黑方超时';
 
   @override
   String get makeMaiaLitMove => '请在 Chessnut 上按亮灯指示走出 Maia 的着法。';

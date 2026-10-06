@@ -1,7 +1,7 @@
 # Stable 2.3.0 upstream and dependency review — 2026-10-06
 
 Preparation checkpoint, not final-source publication qualification. Promote the
-features tested in Preview 2.3.0-beta.7 while retaining Stable's established
+features tested in Preview 2.3.0-beta.9 while retaining Stable's established
 native engines/toolchain. The only added runtime dependency entries are the
 Flutter SDK localization library and `intl` 0.20.3, both already used by Preview.
 

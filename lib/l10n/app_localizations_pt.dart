@@ -428,7 +428,7 @@ class AppLocalizationsPt extends AppLocalizations {
       'Execute a análise do computador para gerar o gráfico de avaliação e a precisão das brancas e das pretas.';
 
   @override
-  String get pgnCopied => 'PGN copiado';
+  String get pgnCopied => 'PGN copiado.';
 
   @override
   String get fenCopied => 'FEN copiada';
@@ -877,10 +877,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'Empate — tempo esgotado, mas o adversário não tem material suficiente para dar mate.';
 
   @override
-  String get whiteOutOfTime => 'O tempo das brancas acabou.';
+  String get whiteOutOfTime => 'Brancas ficaram sem tempo';
 
   @override
-  String get blackOutOfTime => 'O tempo das pretas acabou.';
+  String get blackOutOfTime => 'Pretas ficaram sem tempo';
 
   @override
   String get makeMaiaLitMove =>
@@ -918,7 +918,7 @@ class AppLocalizationsPt extends AppLocalizations {
       'Não foi possível avaliar a oferta de empate.';
 
   @override
-  String get youResigned => 'Você abandonou — o Maia venceu.';
+  String get youResigned => 'Você desistiu — o Maia venceu.';
 
   @override
   String get moveTakenBack => 'Lances desfeitos. Sua vez.';
@@ -945,10 +945,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String get checkCheckmateIllegalMoves => 'Xeque, xeque-mate e lances ilegais';
 
   @override
-  String get offerDrawQuestion => 'Oferecer empate?';
+  String get offerDrawQuestion => 'Propor empate?';
 
   @override
-  String get resignGameQuestion => 'Abandonar a partida?';
+  String get resignGameQuestion => 'Desistir da partida?';
 
   @override
   String get resignEndsImmediately => 'Isso encerrará a partida imediatamente.';

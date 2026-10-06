@@ -431,7 +431,7 @@ class AppLocalizationsFr extends AppLocalizations {
       'Lancez l’analyse de l’ordinateur pour obtenir le graphique d’évaluation et la précision des Blancs et des Noirs.';
 
   @override
-  String get pgnCopied => 'PGN copié';
+  String get pgnCopied => 'PGN copié.';
 
   @override
   String get fenCopied => 'FEN copiée';
@@ -631,10 +631,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get phaseOpening => 'Ouverture';
 
   @override
-  String get phaseMiddlegame => 'Milieu de jeu';
+  String get phaseMiddlegame => 'Milieu de partie';
 
   @override
-  String get phaseEndgame => 'Finale';
+  String get phaseEndgame => 'Fin de partie';
 
   @override
   String get pieceKing => 'Roi';
@@ -819,10 +819,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get chessnutIsDisconnected => 'Chessnut est déconnecté.';
 
   @override
-  String get yourMove => 'À vous de jouer.';
+  String get yourMove => 'À votre tour.';
 
   @override
-  String get yourMoveChessnut => 'À vous de jouer sur Chessnut.';
+  String get yourMoveChessnut => 'À votre tour sur Chessnut.';
 
   @override
   String get chessnutReady => 'Chessnut est prêt.';
@@ -833,7 +833,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get takebackCompleteYourMove =>
-      'Retour effectué. À vous de jouer sur Chessnut.';
+      'Retour effectué. À votre tour sur Chessnut.';
 
   @override
   String get takebackCompleteThinking => 'Retour effectué. Maia réfléchit…';
@@ -864,10 +864,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Partie nulle — temps écoulé, matériel adverse insuffisant pour mater.';
 
   @override
-  String get whiteOutOfTime => 'Les Blancs ont épuisé leur temps.';
+  String get whiteOutOfTime => 'Les blancs sont tombés au temps';
 
   @override
-  String get blackOutOfTime => 'Les Noirs ont épuisé leur temps.';
+  String get blackOutOfTime => 'Les noirs sont tombés au temps';
 
   @override
   String get makeMaiaLitMove =>
@@ -908,7 +908,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get youResigned => 'Vous avez abandonné — Maia gagne.';
 
   @override
-  String get moveTakenBack => 'Retour effectué. À vous de jouer.';
+  String get moveTakenBack => 'Retour effectué. À votre tour.';
 
   @override
   String get connectingChessnut => 'Connexion à Chessnut…';

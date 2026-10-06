@@ -178,7 +178,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get beepForCheckCheckmateAndCompletedIllegalMoves =>
-      'Avisos de jaque, jaque mate y jugadas ilegales.';
+      'Avisos sonoros de jaque y jaque mate, y de jugadas ilegales una vez completadas.';
 
   @override
   String get copyDiagnostics => 'Copiar información de diagnóstico';
@@ -428,7 +428,7 @@ class AppLocalizationsEs extends AppLocalizations {
       'Ejecuta el análisis para generar el gráfico de evaluación y la precisión de blancas y negras.';
 
   @override
-  String get pgnCopied => 'PGN copiado';
+  String get pgnCopied => 'PGN copiado.';
 
   @override
   String get fenCopied => 'FEN copiado';
@@ -867,10 +867,10 @@ class AppLocalizationsEs extends AppLocalizations {
       'Tablas por tiempo agotado: el otro bando no tiene material suficiente para dar mate.';
 
   @override
-  String get whiteOutOfTime => 'Las blancas agotaron su tiempo.';
+  String get whiteOutOfTime => 'Las blancas se quedaron sin tiempo';
 
   @override
-  String get blackOutOfTime => 'Las negras agotaron su tiempo.';
+  String get blackOutOfTime => 'Las negras se quedaron sin tiempo';
 
   @override
   String get makeMaiaLitMove =>

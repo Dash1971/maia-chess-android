@@ -174,7 +174,7 @@ recovery after process death, restart, or an app update.
 </p>
 
 Optional **Game sounds** distinguish moves, captures, invalid moves,
-and game end. **Haptic feedback** adds touch cues for moves, checks, errors,
+and game end. **Touch feedback** adds touch cues for moves, checks, errors,
 and game end. Both run on the phone without a network connection. Phone
 feedback is suppressed while a Chessnut board controls the game; the separate
 **Board sounds** setting controls its own audible cues.
@@ -215,7 +215,7 @@ through played positions. Hold Back to jump to the starting position and hold
 Forward to return to the latest position. Historical positions are read-only;
 completed games also show the clock values belonging to the selected ply.
 
-**Take back move** restores the playable board and clock while preserving the
+**Takeback** restores the playable board and clock while preserving the
 abandoned continuation as a PGN variation. In sufficiently reduced endgames,
 **Offer draw** asks for confirmation and lets local Stockfish decide whether
 Maia accepts. Accepted offers are saved as draws by agreement.

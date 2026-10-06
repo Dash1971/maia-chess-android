@@ -421,7 +421,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get analysisExplanation => '컴퓨터 분석을 실행하면 평가 그래프와 백·흑의 정확도가 표시됩니다.';
 
   @override
-  String get pgnCopied => 'PGN 복사됨';
+  String get pgnCopied => 'PGN 복사 완료.';
 
   @override
   String get fenCopied => 'FEN 복사됨';
@@ -487,7 +487,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String analysisProgress(int completed, int total) {
-    return '$total개 포지션 중 $completed개 분석 중…';
+    return '분석 중… $total개 포지션 중 $completed개 완료';
   }
 
   @override
@@ -790,10 +790,10 @@ class AppLocalizationsKo extends AppLocalizations {
       '무승부 — 시간이 초과되었지만 시간이 남은 쪽에 체크메이트할 기물이 부족합니다.';
 
   @override
-  String get whiteOutOfTime => '백의 시간이 끝났습니다.';
+  String get whiteOutOfTime => '백 시간 초과';
 
   @override
-  String get blackOutOfTime => '흑의 시간이 끝났습니다.';
+  String get blackOutOfTime => '흑 시간 초과';
 
   @override
   String get makeMaiaLitMove => 'Chessnut에서 불빛으로 표시된 Maia의 수를 두세요.';

@@ -84,7 +84,7 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const ValueKey('game-actions-menu')));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Take back move'));
+      await tester.tap(find.text('Takeback'));
       await tester.pumpAndSettle();
       final saved = (await ActiveSessionStore.load())!;
       final lines = (saved['variations'] as List)
@@ -256,7 +256,7 @@ void main() {
         Future<void> takeBack(int count) async {
           await tester.tap(find.byKey(const ValueKey('game-actions-menu')));
           await tester.pumpAndSettle();
-          await tester.tap(find.text('Take back move'));
+          await tester.tap(find.text('Takeback'));
           await tester.pumpAndSettle();
           for (var i = 0; i < count; i++) {
             expected.undo();

@@ -1,6 +1,8 @@
 # Lichess terminology baseline — 2026-10-06
 
-Lichess is authoritative for direct equivalents in **all ten supported languages**.
+Mobile Maia follows Lichess as its baseline for clear, uncluttered chess UI/UX
+and free/open-source design philosophy. Consistent terminology is part of that
+approach. Lichess is authoritative for direct equivalents in **all ten supported languages**.
 This applies to chess terms and matching UI actions, not to Mobile Maia's engine
 behavior or analysis algorithms. Maia-specific text still needs its own translation.
 
@@ -48,9 +50,44 @@ The reference records every adaptation rather than silently overriding upstream:
 - Missing upstream translations keep the existing native-language wording.
 - Hindi annotation labels omit stray punctuation/zero-width formatting, and the
   clear-board label corrects an upstream spelling error.
+- Hindi variation actions describe alternative chess lines, rather than the
+  upstream literal wording about diversity; continue-from-here corrects a spelling
+  error. Game-phase labels use upstream `opening` / `middlegame` / `endgame`, rather
+  than the puzzle-theme keys (which include a Hindi adjective for opening).
 
 Do not copy Lichess wording when it would make a different action sound equivalent.
 Conversely, stylistic preference alone is not a reason to depart from its vocabulary.
+Match the action and grammar, not just the English text: our initial-position
+`START` label is not the study-start command, and our Moves tab is not a Puzzle
+Storm move count. Similarly, completed-game labels need the gender/number of a
+single game, not a list of completed tournaments.
+
+## Follow-up review after Preview beta.8
+
+Reviewed all 302 messages in each of the ten catalogs again, including app-specific
+sampling help, Chessnut recovery, saved-game messages and accessibility text. This
+is an editorial review, not native-speaker approval. The follow-up makes 51 small
+message corrections across the ten catalogs, including six English labels/statuses.
+
+- Added missing direct equivalents for White/Black running out of time and the
+  PGN-copied confirmation to the pinned reference (now 70 concepts). Missing
+  upstream translations retain documented fallbacks.
+- Matched Portuguese draw/resignation confirmations and Russian increment
+  accessibility text to the terminology already used by their controls.
+- Clarified Spanish board-sound help: the illegal-move beep follows a completed
+  move, not a piece still being moved. Improved Japanese instructions for finishing
+  a physical-board move and Korean analysis progress wording for completed positions.
+- Corrected the Hindi grammar and chess-variation meanings described above; the
+  game-phase labels now use the more directly applicable upstream keys.
+
+The final pre-publication pass also aligned English Touch feedback and Takeback,
+and English/French turn announcements. Existing punctuation, screen titles,
+piece-picker articles and compact category headings have explicit context reasons
+in the reference. Chinese turn messages retain the app’s consistent 你 form, and
+Korean status messages address the player rather than copying a first-person label.
+
+The Temperature/Top-P explanations were reviewed and retained. No gameplay,
+engine behavior, saved-data formats, language selection or analysis logic changed.
 
 ## Maintenance and verification
 

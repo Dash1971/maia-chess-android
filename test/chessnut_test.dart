@@ -399,7 +399,7 @@ void main() {
     board.position(ChessnutProtocol.pieceMapFromFen(game.fen));
     await tester.pump();
     expect(board.ledCommands.last, isEmpty);
-    expect(find.text('Your move on Chessnut.'), findsOneWidget);
+    expect(find.text('Your turn on Chessnut.'), findsOneWidget);
     final clearIndex = board.ledCommands.lastIndexWhere(
       (command) => command.isEmpty,
     );
@@ -633,8 +633,8 @@ void main() {
 
     await tester.tap(find.byKey(const ValueKey('game-actions-menu')));
     await tester.pumpAndSettle();
-    expect(find.text('Take back move'), findsOneWidget);
-    await tester.tap(find.text('Take back move'));
+    expect(find.text('Takeback'), findsOneWidget);
+    await tester.tap(find.text('Takeback'));
     await tester.pump();
     expect(
       find.text('Takeback: restore the lit squares on Chessnut.'),
@@ -653,7 +653,7 @@ void main() {
     );
     await tester.pump();
     expect(
-      find.text('Takeback complete. Your move on Chessnut.'),
+      find.text('Takeback complete. Your turn on Chessnut.'),
       findsOneWidget,
     );
     await tester.pump();
