@@ -468,7 +468,7 @@ void main() {
       } else if (action == 'takeback') {
         await tester.tap(find.byKey(const ValueKey('game-actions-menu')));
         await tester.pumpAndSettle();
-        await tester.tap(find.text('Take back move'));
+        await tester.tap(find.text('Takeback'));
       } else {
         await tester.tap(find.byKey(const ValueKey('new-game-button')));
         await tester.pumpAndSettle();
@@ -644,7 +644,7 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const ValueKey('game-actions-menu')));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Take back move'));
+      await tester.tap(find.text('Takeback'));
       await tester.pumpAndSettle();
       boardOf(tester).onMove!(dc.NormalMove.fromUci('f1c4'));
       await tester.pumpAndSettle();
@@ -693,7 +693,7 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const ValueKey('game-actions-menu')));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Take back move'));
+      await tester.tap(find.text('Takeback'));
       await tester.pumpAndSettle();
 
       final saved = (await ActiveSessionStore.load())!;
@@ -924,7 +924,7 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const ValueKey('game-actions-menu')));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Take back move'));
+      await tester.tap(find.text('Takeback'));
       await tester.pumpAndSettle();
       final saved = (await ActiveSessionStore.load())!;
       // White has started a new turn; Black retains the time used before undo.

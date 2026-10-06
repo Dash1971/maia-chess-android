@@ -29,24 +29,35 @@ void main() {
       expect(find.text('Edit Board'), findsNothing);
       expect(tester.takeException(), isNull);
     });
-    testWidgets('classification labels use the selected locale in $locale', (
+    testWidgets('classification labels fit compact 200% text in $locale', (
       tester,
     ) async {
+      tester.view.physicalSize = const Size(360, 800);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
       await tester.pumpWidget(
         MaterialApp(
           locale: Locale(locale),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
+          builder: (context, child) => MediaQuery(
+            data: MediaQuery.of(context)
+                .copyWith(textScaler: const TextScaler.linear(2)),
+            child: child!,
+          ),
           home: Scaffold(
-            body: MoveClassificationSummary(
-              moves: const [
-                ClassifiedMove(
-                  ply: 1,
-                  classification: MoveClassification.brilliant,
-                ),
-              ],
-              selectedPly: 0,
-              onSelected: (_) {},
+            body: SingleChildScrollView(
+              child: MoveClassificationSummary(
+                moves: const [
+                  ClassifiedMove(
+                    ply: 1,
+                    classification: MoveClassification.brilliant,
+                  ),
+                ],
+                selectedPly: 0,
+                onSelected: (_) {},
+              ),
             ),
           ),
         ),

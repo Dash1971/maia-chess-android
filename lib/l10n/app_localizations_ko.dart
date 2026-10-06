@@ -13,7 +13,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get about => '앱 정보';
 
   @override
-  String get analysisBoard => '분석 보드';
+  String get analysisBoard => '분석';
 
   @override
   String get back => '뒤로';
@@ -58,7 +58,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get recentGames => '최근 대국';
 
   @override
-  String get resign => '기권';
+  String get resign => '기권하기';
 
   @override
   String get settings => '설정';
@@ -109,7 +109,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get movesCapturesErrorsAndGameEnd => '기물 이동, 잡기, 오류 및 대국 종료 시 소리';
 
   @override
-  String get hapticFeedback => '햅틱 피드백';
+  String get hapticFeedback => '터치 피드백';
 
   @override
   String get touchFeedbackForMovesChecksErrorsAndGameEnd =>
@@ -184,7 +184,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get diagnosticsCopied => '진단 정보가 복사되었습니다';
 
   @override
-  String get newGame => '새 대국';
+  String get newGame => '새 게임';
 
   @override
   String get resetGame => '대국 초기화';
@@ -211,7 +211,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get maiaErrorPleaseRetry => 'Maia에 오류가 발생했습니다. 다시 시도해 주세요.';
 
   @override
-  String get retry => '다시 시도';
+  String get retry => '재시도';
 
   @override
   String get maiaIsThinking => 'Maia가 생각하는 중…';
@@ -259,7 +259,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get flipBoard => '보드 돌리기';
 
   @override
-  String get offerDraw => '무승부 제안';
+  String get offerDraw => '무승부 요청';
 
   @override
   String get takeBackMove => '무르기';
@@ -271,13 +271,13 @@ class AppLocalizationsKo extends AppLocalizations {
   String get blackIsVictorious => '흑 승리';
 
   @override
-  String get theGameIsADraw => '무승부';
+  String get theGameIsADraw => '무승부 대국입니다.';
 
   @override
   String get theGameHasEnded => '대국 종료';
 
   @override
-  String get rematch => '재대국';
+  String get rematch => '재대결';
 
   @override
   String get fast => '빠름';
@@ -289,7 +289,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get thorough => '정밀';
 
   @override
-  String get continueFromHere => '여기서 계속 두기';
+  String get continueFromHere => '여기서부터 시작';
 
   @override
   String get load => '불러오기';
@@ -334,7 +334,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get startingPosition => '시작 포지션';
 
   @override
-  String get clearBoard => '보드 비우기';
+  String get clearBoard => '보드 지우기';
 
   @override
   String get loadFen => 'FEN 불러오기';
@@ -382,10 +382,10 @@ class AppLocalizationsKo extends AppLocalizations {
   String get promoteVariation => '라인 승격하기';
 
   @override
-  String get makeMainLine => '주 라인으로 설정';
+  String get makeMainLine => '주 라인으로 하기';
 
   @override
-  String get deleteFromHere => '여기부터 삭제';
+  String get deleteFromHere => '여기서부터 삭제';
 
   @override
   String get analyzing => '분석 중…';
@@ -421,7 +421,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get analysisExplanation => '컴퓨터 분석을 실행하면 평가 그래프와 백·흑의 정확도가 표시됩니다.';
 
   @override
-  String get pgnCopied => 'PGN 복사됨';
+  String get pgnCopied => 'PGN 복사 완료.';
 
   @override
   String get fenCopied => 'FEN 복사됨';
@@ -487,7 +487,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String analysisProgress(int completed, int total) {
-    return '$total개 포지션 중 $completed개 분석 중…';
+    return '분석 중… $total개 포지션 중 $completed개 완료';
   }
 
   @override
@@ -790,10 +790,10 @@ class AppLocalizationsKo extends AppLocalizations {
       '무승부 — 시간이 초과되었지만 시간이 남은 쪽에 체크메이트할 기물이 부족합니다.';
 
   @override
-  String get whiteOutOfTime => '백의 시간이 끝났습니다.';
+  String get whiteOutOfTime => '백 시간 초과';
 
   @override
-  String get blackOutOfTime => '흑의 시간이 끝났습니다.';
+  String get blackOutOfTime => '흑 시간 초과';
 
   @override
   String get makeMaiaLitMove => 'Chessnut에서 불빛으로 표시된 Maia의 수를 두세요.';
@@ -805,10 +805,10 @@ class AppLocalizationsKo extends AppLocalizations {
   String get checkmateYouWin => '체크메이트 — 당신이 이겼습니다!';
 
   @override
-  String get drawResult => '무승부입니다.';
+  String get drawResult => '무승부';
 
   @override
-  String get drawByAgreement => '합의에 따른 무승부입니다.';
+  String get drawByAgreement => '상호 동의에 의한 무승부';
 
   @override
   String get youWin => '당신이 이겼습니다.';
@@ -967,7 +967,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String premovesList(String moves) {
-    return '미리 입력한 수: $moves';
+    return '미리두기: $moves';
   }
 
   @override

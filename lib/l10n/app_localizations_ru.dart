@@ -13,7 +13,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get about => 'О приложении';
 
   @override
-  String get analysisBoard => 'Доска анализа';
+  String get analysisBoard => 'Анализировать партию';
 
   @override
   String get back => 'Назад';
@@ -22,7 +22,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get black => 'Чёрные';
 
   @override
-  String get cancelPremoves => 'Отменить предходы';
+  String get cancelPremoves => 'Отменить предварительные ходы';
 
   @override
   String get chessnutExperimental => 'Chessnut (экспериментально)';
@@ -55,7 +55,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get random => 'Случайный цвет';
 
   @override
-  String get recentGames => 'Недавние партии';
+  String get recentGames => 'Недавние игры';
 
   @override
   String get resign => 'Сдаться';
@@ -73,10 +73,10 @@ class AppLocalizationsRu extends AppLocalizations {
   String get white => 'Белые';
 
   @override
-  String get unlimited => 'Без ограничения времени';
+  String get unlimited => 'Отсутствует';
 
   @override
-  String get custom => 'Свой контроль';
+  String get custom => 'Своя игра';
 
   @override
   String get seconds => 'секунды';
@@ -91,7 +91,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get systemDefault => 'Как в системе';
 
   @override
-  String get language => 'Язык';
+  String get language => 'Язык (Language)';
 
   @override
   String get playMaiaRating => 'Рейтинг Maia в игре';
@@ -100,7 +100,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get minutes => 'Минуты';
 
   @override
-  String get increment => 'Добавление на ход';
+  String get increment => 'Добавка';
 
   @override
   String get gameSounds => 'Звуки игры';
@@ -110,28 +110,29 @@ class AppLocalizationsRu extends AppLocalizations {
       'Ходы, взятия, ошибки и завершение партии';
 
   @override
-  String get hapticFeedback => 'Виброотклик';
+  String get hapticFeedback => 'Реакция на касание';
 
   @override
   String get touchFeedbackForMovesChecksErrorsAndGameEnd =>
       'Виброотклик при ходах, шахах, ошибках и завершении партии';
 
   @override
-  String get premoves => 'Предходы';
+  String get premoves => 'Предварительные ходы';
 
   @override
   String get queueAMoveWhileMaiaIsThinking =>
       'Задавайте ход заранее, пока Maia думает';
 
   @override
-  String get oneHundredMsPremovePenalty => '100 мс на предход';
+  String get oneHundredMsPremovePenalty => '100 мс на предварительный ход';
 
   @override
   String get use01SecondsPerPremoveInTimedGames =>
-      'В партиях с часами каждый предход расходует 0,1 секунды';
+      'В партиях с часами каждый предварительный ход расходует 0,1 секунды';
 
   @override
-  String get allowMultiplePremoves => 'Разрешить несколько предходов';
+  String get allowMultiplePremoves =>
+      'Разрешить несколько предварительных ходов';
 
   @override
   String get queueASequenceAnIllegalMoveCancelsTheRest =>
@@ -186,7 +187,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get diagnosticsCopied => 'Диагностика скопирована';
 
   @override
-  String get newGame => 'Новая партия';
+  String get newGame => 'Новая игра';
 
   @override
   String get resetGame => 'Начать партию заново';
@@ -201,7 +202,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get sharePgn => 'Поделиться PGN';
 
   @override
-  String get copyPgn => 'Скопировать PGN';
+  String get copyPgn => 'Копировать PGN';
 
   @override
   String get copyFen => 'Скопировать FEN';
@@ -232,10 +233,10 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get yourGameWillBeKeptInRecentGames =>
-      'Ваша партия сохранится в разделе «Недавние партии».';
+      'Ваша партия сохранится в разделе «Недавние игры».';
 
   @override
-  String get cancel => 'Отмена';
+  String get cancel => 'Отменить';
 
   @override
   String get continueAction => 'Продолжить';
@@ -248,7 +249,7 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get yourCompletedGameWillRemainInRecentGames =>
-      'Завершённая партия останется в разделе «Недавние партии».';
+      'Завершённая партия останется в разделе «Недавние игры».';
 
   @override
   String get thisGameWillBePermanentlyErased =>
@@ -276,7 +277,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get blackIsVictorious => 'Победа чёрных';
 
   @override
-  String get theGameIsADraw => 'Ничья';
+  String get theGameIsADraw => 'Игра окончилась вничью.';
 
   @override
   String get theGameHasEnded => 'Партия завершена';
@@ -375,7 +376,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get computerAnalysis => 'Компьютерный анализ';
 
   @override
-  String get backToGame => 'Вернуться к партии';
+  String get backToGame => 'Вернуться к игре';
 
   @override
   String get expandVariations => 'Развернуть варианты';
@@ -387,10 +388,10 @@ class AppLocalizationsRu extends AppLocalizations {
   String get promoteVariation => 'Повысить приоритет варианта';
 
   @override
-  String get makeMainLine => 'Сделать вариант главным';
+  String get makeMainLine => 'Сделать этот вариант главным';
 
   @override
-  String get deleteFromHere => 'Удалить начиная отсюда';
+  String get deleteFromHere => 'Удалить с этого места';
 
   @override
   String get analyzing => 'Анализ…';
@@ -522,16 +523,16 @@ class AppLocalizationsRu extends AppLocalizations {
   }
 
   @override
-  String get classificationBrilliant => 'Отличный';
+  String get classificationBrilliant => 'Отличный ход';
 
   @override
-  String get classificationGood => 'Хороший';
+  String get classificationGood => 'Хороший ход';
 
   @override
-  String get classificationInteresting => 'Интересный';
+  String get classificationInteresting => 'Интересный ход';
 
   @override
-  String get classificationDubious => 'Сомнительный';
+  String get classificationDubious => 'Сомнительный ход';
 
   @override
   String get classificationMistake => 'Ошибка';
@@ -811,7 +812,7 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String incrementSecondsValue(String seconds) {
-    return 'Добавление на ход (с): $seconds';
+    return 'Добавка: $seconds с';
   }
 
   @override
@@ -886,10 +887,10 @@ class AppLocalizationsRu extends AppLocalizations {
       'Ничья — время истекло, но у соперника недостаточно материала для мата.';
 
   @override
-  String get whiteOutOfTime => 'У белых закончилось время.';
+  String get whiteOutOfTime => 'Белые просрочили время';
 
   @override
-  String get blackOutOfTime => 'У чёрных закончилось время.';
+  String get blackOutOfTime => 'У черных закончилось время';
 
   @override
   String get makeMaiaLitMove =>
@@ -902,10 +903,10 @@ class AppLocalizationsRu extends AppLocalizations {
   String get checkmateYouWin => 'Мат — вы победили!';
 
   @override
-  String get drawResult => 'Ничья.';
+  String get drawResult => 'Ничья';
 
   @override
-  String get drawByAgreement => 'Ничья по соглашению.';
+  String get drawByAgreement => 'Ничья по обоюдному согласию';
 
   @override
   String get youWin => 'Вы победили.';
@@ -962,7 +963,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get resignEndsImmediately => 'Это немедленно завершит партию.';
 
   @override
-  String get premoveLimit => 'Можно задать до 64 предходов.';
+  String get premoveLimit => 'Можно задать до 64 предварительных ходов.';
 
   @override
   String get chessnutGameRestriction =>
@@ -1065,7 +1066,7 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String premovesList(String moves) {
-    return 'Предходы: $moves';
+    return 'Предварительные ходы: $moves';
   }
 
   @override

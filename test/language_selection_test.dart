@@ -76,7 +76,7 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('settings-back-button')));
     await tester.pumpAndSettle();
     expect(find.text('対局開始'), findsOneWidget);
-    expect(find.text('解析ボード'), findsOneWidget);
+    expect(find.text('棋譜解析'), findsOneWidget);
 
     await tester.pumpWidget(const SizedBox.shrink());
     await tester.pumpWidget(const MaiaChessApp());

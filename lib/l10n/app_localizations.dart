@@ -315,7 +315,7 @@ abstract class AppLocalizations {
   /// Settings: Haptic feedback
   ///
   /// In en, this message translates to:
-  /// **'Haptic feedback'**
+  /// **'Touch feedback'**
   String get hapticFeedback;
 
   /// Settings: Touch feedback for moves, checks, errors, and game end
@@ -609,7 +609,7 @@ abstract class AppLocalizations {
   /// Undo action. Depending on turn and board mode, this can undo one or two plies; avoid promising exactly one ply.
   ///
   /// In en, this message translates to:
-  /// **'Take back move'**
+  /// **'Takeback'**
   String get takeBackMove;
 
   /// Live game: White is victorious
@@ -1449,13 +1449,13 @@ abstract class AppLocalizations {
   /// Play screen: Your move.
   ///
   /// In en, this message translates to:
-  /// **'Your move.'**
+  /// **'Your turn.'**
   String get yourMove;
 
   /// Play screen: Your move on Chessnut.
   ///
   /// In en, this message translates to:
-  /// **'Your move on Chessnut.'**
+  /// **'Your turn on Chessnut.'**
   String get yourMoveChessnut;
 
   /// Play screen: Chessnut is ready.
@@ -1473,7 +1473,7 @@ abstract class AppLocalizations {
   /// Play screen: Takeback complete. Your move on Chessnut.
   ///
   /// In en, this message translates to:
-  /// **'Takeback complete. Your move on Chessnut.'**
+  /// **'Takeback complete. Your turn on Chessnut.'**
   String get takebackCompleteYourMove;
 
   /// Play screen: Takeback complete. Maia is thinking…
@@ -1611,7 +1611,7 @@ abstract class AppLocalizations {
   /// Play screen: Move taken back. Your move.
   ///
   /// In en, this message translates to:
-  /// **'Move taken back. Your move.'**
+  /// **'Move taken back. Your turn.'**
   String get moveTakenBack;
 
   /// Play screen: Connecting to Chessnut…

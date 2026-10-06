@@ -32,6 +32,7 @@ jobs:
         run: |
           flutter gen-l10n
           python3 tool/check_localization.py
+          python3 tool/check_lichess_terminology.py
           git diff --exit-code -- lib/l10n pubspec.lock
       - run: flutter analyze
       - run: flutter test --reporter expanded

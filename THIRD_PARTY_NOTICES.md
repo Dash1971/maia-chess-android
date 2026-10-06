@@ -158,3 +158,18 @@ A–E source files. The bundled CC0 legal text is retained beside the dataset.
 
 - Project: <https://github.com/flutter/flutter>
 - Licence: BSD 3-Clause
+
+## Lichess UI translations
+
+- Project: <https://github.com/lichess-org/mobile>
+- Pinned source: `99dd3e0e4859afc7de37290b3f1905045af92004`
+- Source catalogs: `lib/l10n/app_{en,ja,zh,ko,es,de,fr,ru,hi,pt_BR}.arb`
+- Copyright: Lichess contributors and community translators
+- Licence: GNU General Public License v3.0 or later
+
+Shared chess and UI terminology is adapted from these catalogs. The exact
+reference strings and context adaptations are recorded in
+`docs/lichess-terminology.json`; review and maintenance are documented in
+`docs/LICHESS_TERMINOLOGY.md`. The adapted material remains subject to GPL-3.0;
+Mobile Maia as a combined application is distributed under AGPL-3.0-only as
+permitted by section 13 of AGPL-3.0.

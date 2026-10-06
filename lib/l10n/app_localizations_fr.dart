@@ -13,7 +13,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get about => 'À propos';
 
   @override
-  String get analysisBoard => 'Échiquier d’analyse';
+  String get analysisBoard => 'Échiquier d\'analyse';
 
   @override
   String get back => 'Retour';
@@ -34,7 +34,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get disconnect => 'Déconnecter';
 
   @override
-  String get engineSettings => 'Paramètres du moteur';
+  String get engineSettings => 'Paramètres du moteur d\'analyse';
 
   @override
   String get gameMenu => 'Menu de la partie';
@@ -52,7 +52,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get playMaia => 'Jouer contre Maia';
 
   @override
-  String get random => 'Aléatoire';
+  String get random => 'Couleur aléatoire';
 
   @override
   String get recentGames => 'Parties récentes';
@@ -110,7 +110,7 @@ class AppLocalizationsFr extends AppLocalizations {
       'Coups, prises, erreurs et fin de partie';
 
   @override
-  String get hapticFeedback => 'Retour haptique';
+  String get hapticFeedback => 'Retour tactile';
 
   @override
   String get touchFeedbackForMovesChecksErrorsAndGameEnd =>
@@ -204,7 +204,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get sharePgn => 'Partager le PGN';
 
   @override
-  String get copyPgn => 'Copier le PGN';
+  String get copyPgn => 'Copier le fichier PGN';
 
   @override
   String get copyFen => 'Copier la FEN';
@@ -264,13 +264,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get reset => 'Réinitialiser';
 
   @override
-  String get flipBoard => 'Tourner l’échiquier';
+  String get flipBoard => 'Tourner l\'échiquier';
 
   @override
   String get offerDraw => 'Proposer la nulle';
 
   @override
-  String get takeBackMove => 'Revenir en arrière';
+  String get takeBackMove => 'Annuler le coup';
 
   @override
   String get whiteIsVictorious => 'Victoire des Blancs';
@@ -279,7 +279,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get blackIsVictorious => 'Victoire des Noirs';
 
   @override
-  String get theGameIsADraw => 'La partie est nulle';
+  String get theGameIsADraw => 'La partie est nulle.';
 
   @override
   String get theGameHasEnded => 'La partie est terminée';
@@ -297,7 +297,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get thorough => 'Approfondie';
 
   @override
-  String get continueFromHere => 'Continuer à partir d’ici';
+  String get continueFromHere => 'Continuer depuis cette position';
 
   @override
   String get load => 'Charger';
@@ -339,10 +339,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get enPassantTarget => 'Case cible de la prise en passant';
 
   @override
-  String get startingPosition => 'Position initiale';
+  String get startingPosition => 'Position de départ';
 
   @override
-  String get clearBoard => 'Vider l’échiquier';
+  String get clearBoard => 'Vider l\'échiquier';
 
   @override
   String get loadFen => 'Charger une FEN';
@@ -375,7 +375,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get moves => 'Coups';
 
   @override
-  String get computerAnalysis => 'Analyse de l’ordinateur';
+  String get computerAnalysis => 'Analyse de l\'ordinateur';
 
   @override
   String get backToGame => 'Retour à la partie';
@@ -393,7 +393,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get makeMainLine => 'En faire la variante principale';
 
   @override
-  String get deleteFromHere => 'Supprimer à partir d’ici';
+  String get deleteFromHere => 'Supprimer à partir d\'ici';
 
   @override
   String get analyzing => 'Analyse en cours…';
@@ -431,7 +431,7 @@ class AppLocalizationsFr extends AppLocalizations {
       'Lancez l’analyse de l’ordinateur pour obtenir le graphique d’évaluation et la précision des Blancs et des Noirs.';
 
   @override
-  String get pgnCopied => 'PGN copié';
+  String get pgnCopied => 'PGN copié.';
 
   @override
   String get fenCopied => 'FEN copiée';
@@ -525,16 +525,16 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get classificationBrilliant => 'Brillant';
+  String get classificationBrilliant => 'Excellent coup';
 
   @override
-  String get classificationGood => 'Bon';
+  String get classificationGood => 'Bon coup';
 
   @override
-  String get classificationInteresting => 'Intéressant';
+  String get classificationInteresting => 'Coup intéressant';
 
   @override
-  String get classificationDubious => 'Douteux';
+  String get classificationDubious => 'Coup douteux';
 
   @override
   String get classificationMistake => 'Erreur';
@@ -634,7 +634,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get phaseMiddlegame => 'Milieu de partie';
 
   @override
-  String get phaseEndgame => 'Finale';
+  String get phaseEndgame => 'Fin de partie';
 
   @override
   String get pieceKing => 'Roi';
@@ -710,7 +710,7 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get deleteAction => 'Supprimer';
+  String get deleteAction => 'Effacer';
 
   @override
   String get recentUpdating => 'Mise à jour des parties enregistrées';
@@ -819,10 +819,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get chessnutIsDisconnected => 'Chessnut est déconnecté.';
 
   @override
-  String get yourMove => 'À vous de jouer.';
+  String get yourMove => 'À votre tour.';
 
   @override
-  String get yourMoveChessnut => 'À vous de jouer sur Chessnut.';
+  String get yourMoveChessnut => 'À votre tour sur Chessnut.';
 
   @override
   String get chessnutReady => 'Chessnut est prêt.';
@@ -833,7 +833,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get takebackCompleteYourMove =>
-      'Retour effectué. À vous de jouer sur Chessnut.';
+      'Retour effectué. À votre tour sur Chessnut.';
 
   @override
   String get takebackCompleteThinking => 'Retour effectué. Maia réfléchit…';
@@ -864,10 +864,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Partie nulle — temps écoulé, matériel adverse insuffisant pour mater.';
 
   @override
-  String get whiteOutOfTime => 'Les Blancs ont épuisé leur temps.';
+  String get whiteOutOfTime => 'Les blancs sont tombés au temps';
 
   @override
-  String get blackOutOfTime => 'Les Noirs ont épuisé leur temps.';
+  String get blackOutOfTime => 'Les noirs sont tombés au temps';
 
   @override
   String get makeMaiaLitMove =>
@@ -880,10 +880,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get checkmateYouWin => 'Échec et mat — vous gagnez !';
 
   @override
-  String get drawResult => 'Partie nulle.';
+  String get drawResult => 'Partie nulle';
 
   @override
-  String get drawByAgreement => 'Partie nulle par accord mutuel.';
+  String get drawByAgreement => 'Partie nulle par accord mutuel';
 
   @override
   String get youWin => 'Vous gagnez.';
@@ -908,7 +908,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get youResigned => 'Vous avez abandonné — Maia gagne.';
 
   @override
-  String get moveTakenBack => 'Retour effectué. À vous de jouer.';
+  String get moveTakenBack => 'Retour effectué. À votre tour.';
 
   @override
   String get connectingChessnut => 'Connexion à Chessnut…';

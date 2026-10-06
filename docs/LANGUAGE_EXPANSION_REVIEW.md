@@ -1,5 +1,8 @@
 # German, French, Russian, Hindi and Brazilian Portuguese chess-language review
 
+> Historical review: terminology choices are superseded where applicable by the
+> [2026-10-06 Lichess baseline](LICHESS_TERMINOLOGY.md).
+
 Research date: 2026-10-05. Each new ARB contains all 296 English message IDs, with unchanged placeholder contracts; translator metadata remains authoritative in the English ARB. These are source-researched, machine-authored translations; **native-speaking chess-player approval is pending**. Reviewers should edit their ARB using the [short reviewer guide](NATIVE_REVIEW.md).
 
 ## Lichess conventions and independent sources

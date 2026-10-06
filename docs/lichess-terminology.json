@@ -1,0 +1,1564 @@
+{
+  "source": "https://github.com/lichess-org/mobile",
+  "revision": "99dd3e0e4859afc7de37290b3f1905045af92004",
+  "catalog_path": "lib/l10n/app_{locale}.arb",
+  "locale_mapping": {
+    "en": "en",
+    "ja": "ja",
+    "zh": "zh",
+    "ko": "ko",
+    "es": "es",
+    "de": "de",
+    "fr": "fr",
+    "ru": "ru",
+    "hi": "hi",
+    "pt": "pt_BR"
+  },
+  "entries": {
+    "about": {
+      "upstream_key": "about",
+      "upstream": {
+        "en": "About",
+        "ja": "Lichess 概要",
+        "zh": "关于",
+        "ko": "Lichess 개요",
+        "es": "Acerca de",
+        "de": "Über",
+        "fr": "À propos",
+        "ru": "О сайте",
+        "hi": "के बारे में",
+        "pt": "Sobre"
+      },
+      "adaptations": {
+        "ja": {
+          "value": "アプリについて",
+          "reason": "About this application, not About Lichess."
+        },
+        "ko": {
+          "value": "앱 정보",
+          "reason": "About this application, not About Lichess."
+        },
+        "ru": {
+          "value": "О приложении",
+          "reason": "About this application, not About a website."
+        }
+      }
+    },
+    "analysisBoard": {
+      "upstream_key": "analysis",
+      "upstream": {
+        "en": "Analysis board",
+        "ja": "棋譜解析",
+        "zh": "分析面板",
+        "ko": "분석",
+        "es": "Tablero de análisis",
+        "de": "Analysebrett",
+        "fr": "Échiquier d'analyse",
+        "ru": "Анализировать партию",
+        "hi": "विश्लेषण पट",
+        "pt": "Análise"
+      },
+      "adaptations": {
+        "en": {
+          "value": "Analysis Board",
+          "reason": "Use title capitalization consistently with the named Analysis Board screen."
+        }
+      }
+    },
+    "back": {
+      "upstream_key": "studyBack",
+      "upstream": {
+        "en": "Back",
+        "ja": "戻る",
+        "zh": "返回",
+        "ko": "뒤로",
+        "es": "Volver",
+        "de": "Zurück",
+        "fr": "Retour",
+        "ru": "Назад",
+        "hi": "पीछे",
+        "pt": "Voltar"
+      },
+      "adaptations": {}
+    },
+    "black": {
+      "upstream_key": "black",
+      "upstream": {
+        "en": "Black",
+        "ja": "黒",
+        "zh": "黑方",
+        "ko": "흑",
+        "es": "Negras",
+        "de": "Schwarz",
+        "fr": "Noirs",
+        "ru": "Чёрные",
+        "hi": "काला",
+        "pt": "Pretas"
+      },
+      "adaptations": {}
+    },
+    "engineSettings": {
+      "upstream_key": "engineSettings",
+      "upstream": {
+        "en": "Engine settings",
+        "ja": "エンジンの設定",
+        "zh": "引擎设置",
+        "ko": "엔진 설정",
+        "es": "Ajustes del motor",
+        "de": "Engine-Einstellungen",
+        "fr": "Paramètres du moteur d'analyse",
+        "ru": "Настройки движка",
+        "hi": null,
+        "pt": "Configurações do motor"
+      },
+      "adaptations": {
+        "hi": {
+          "value": "इंजन सेटिंग्स",
+          "reason": "No translation for this key in the pinned upstream catalog; retain the native Mobile Maia wording."
+        }
+      }
+    },
+    "home": {
+      "upstream_key": "mobileHomeTab",
+      "upstream": {
+        "en": "Home",
+        "ja": "ホーム",
+        "zh": "首页",
+        "ko": "홈",
+        "es": "Inicio",
+        "de": "Start",
+        "fr": "Accueil",
+        "ru": "Главная",
+        "hi": "होम",
+        "pt": "Início"
+      },
+      "adaptations": {}
+    },
+    "recentGames": {
+      "upstream_key": "recentGames",
+      "upstream": {
+        "en": "Recent games",
+        "ja": "最近の対局",
+        "zh": "最近对局",
+        "ko": "최근 대국",
+        "es": "Partidas recientes",
+        "de": "Neueste Partien",
+        "fr": "Parties récentes",
+        "ru": "Недавние игры",
+        "hi": "हाल के खेल",
+        "pt": "Partidas recentes"
+      },
+      "adaptations": {}
+    },
+    "resign": {
+      "upstream_key": "resign",
+      "upstream": {
+        "en": "Resign",
+        "ja": "投了",
+        "zh": "认输",
+        "ko": "기권하기",
+        "es": "Abandonar",
+        "de": "Aufgeben",
+        "fr": "Abandonner",
+        "ru": "Сдаться",
+        "hi": "हार मान लें",
+        "pt": "Desistir"
+      },
+      "adaptations": {}
+    },
+    "settings": {
+      "upstream_key": "settingsSettings",
+      "upstream": {
+        "en": "Settings",
+        "ja": "設定",
+        "zh": "设置",
+        "ko": "설정",
+        "es": "Preferencias",
+        "de": "Einstellungen",
+        "fr": "Paramètres",
+        "ru": "Настройки",
+        "hi": "व्यवस्था (सेटिंग्स)",
+        "pt": "Configurações"
+      },
+      "adaptations": {}
+    },
+    "timeControl": {
+      "upstream_key": "timeControl",
+      "upstream": {
+        "en": "Time control",
+        "ja": "持時間",
+        "zh": "时间限制",
+        "ko": "시간 제한",
+        "es": "Control de tiempo",
+        "de": "Bedenkzeit",
+        "fr": "Cadence",
+        "ru": "Контроль времени",
+        "hi": "समय नियंत्रण",
+        "pt": "Ritmo"
+      },
+      "adaptations": {}
+    },
+    "white": {
+      "upstream_key": "white",
+      "upstream": {
+        "en": "White",
+        "ja": "白",
+        "zh": "白方",
+        "ko": "백",
+        "es": "Blancas",
+        "de": "Weiß",
+        "fr": "Blancs",
+        "ru": "Белые",
+        "hi": "सफेद",
+        "pt": "Brancas"
+      },
+      "adaptations": {}
+    },
+    "unlimited": {
+      "upstream_key": "unlimited",
+      "upstream": {
+        "en": "Unlimited",
+        "ja": "無制限",
+        "zh": "无限制",
+        "ko": "무제한",
+        "es": "Ilimitado",
+        "de": "Unbegrenzt",
+        "fr": "Illimité",
+        "ru": "Отсутствует",
+        "hi": "असीमित",
+        "pt": "Ilimitado"
+      },
+      "adaptations": {}
+    },
+    "custom": {
+      "upstream_key": "custom",
+      "upstream": {
+        "en": "Custom",
+        "ja": "自由設定",
+        "zh": "自定义",
+        "ko": "사용자 지정",
+        "es": "Personalizado",
+        "de": "Andere Spielzeit",
+        "fr": "Personnalisée",
+        "ru": "Своя игра",
+        "hi": "कस्टम",
+        "pt": "Personalizado"
+      },
+      "adaptations": {}
+    },
+    "language": {
+      "upstream_key": "language",
+      "upstream": {
+        "en": "Language",
+        "ja": "言語",
+        "zh": "语言",
+        "ko": "언어",
+        "es": "Idioma",
+        "de": "Sprache",
+        "fr": "Langue",
+        "ru": "Язык (Language)",
+        "hi": "भाषा",
+        "pt": "Idioma"
+      },
+      "adaptations": {}
+    },
+    "increment": {
+      "upstream_key": "increment",
+      "upstream": {
+        "en": "Increment",
+        "ja": "追加時間",
+        "zh": "每步加秒",
+        "ko": "추가 시간",
+        "es": "Incremento",
+        "de": "Inkrement",
+        "fr": "Incrément",
+        "ru": "Добавка",
+        "hi": "वृद्धि",
+        "pt": "Incremento"
+      },
+      "adaptations": {}
+    },
+    "newGame": {
+      "upstream_key": "mobileNewGame",
+      "upstream": {
+        "en": "New game",
+        "ja": "新しい対局",
+        "zh": "新的对局",
+        "ko": "새 게임",
+        "es": "Nueva Partida",
+        "de": "Neue Partie",
+        "fr": "Nouvelle partie",
+        "ru": "Новая игра",
+        "hi": "नया खेल ",
+        "pt": "Nova partida"
+      },
+      "adaptations": {}
+    },
+    "sharePgn": {
+      "upstream_key": "mobileShareGamePGN",
+      "upstream": {
+        "en": "Share PGN",
+        "ja": "PGN を共有",
+        "zh": "分享 PGN",
+        "ko": "PGN 공유",
+        "es": "Compartir PGN",
+        "de": "PGN teilen",
+        "fr": "Partager le PGN",
+        "ru": "Поделиться PGN",
+        "hi": "पीजीएन शेयर करें",
+        "pt": "Compartilhar PGN"
+      },
+      "adaptations": {}
+    },
+    "copyPgn": {
+      "upstream_key": "studyCopyChapterPgn",
+      "upstream": {
+        "en": "Copy PGN",
+        "ja": "PGN をコピー",
+        "zh": "复制 PGN",
+        "ko": "PGN 복사",
+        "es": "Copiar PGN",
+        "de": "PGN kopieren",
+        "fr": "Copier le fichier PGN",
+        "ru": "Копировать PGN",
+        "hi": "पीजीएन की नकल लें",
+        "pt": "Copiar PGN"
+      },
+      "adaptations": {}
+    },
+    "retry": {
+      "upstream_key": "retry",
+      "upstream": {
+        "en": "Retry",
+        "ja": "もう一度",
+        "zh": "重试",
+        "ko": "재시도",
+        "es": "Reintentar",
+        "de": "Erneut versuchen",
+        "fr": "Réessayer",
+        "ru": "Повторить",
+        "hi": "फिर से कोशिश करें",
+        "pt": "Tentar novamente"
+      },
+      "adaptations": {}
+    },
+    "cancel": {
+      "upstream_key": "cancel",
+      "upstream": {
+        "en": "Cancel",
+        "ja": "キャンセル",
+        "zh": "取消",
+        "ko": "취소",
+        "es": "Cancelar",
+        "de": "Abbrechen",
+        "fr": "Annuler",
+        "ru": "Отменить",
+        "hi": "रद्द करें",
+        "pt": "Cancelar"
+      },
+      "adaptations": {}
+    },
+    "reset": {
+      "upstream_key": "reset",
+      "upstream": {
+        "en": "Reset",
+        "ja": "リセット",
+        "zh": "重置",
+        "ko": "초기화",
+        "es": "Reiniciar",
+        "de": "Zurücksetzen",
+        "fr": "Réinitialiser",
+        "ru": "Сбросить",
+        "hi": "फिर से स्थापित (रीसेट) करें",
+        "pt": "Reiniciar"
+      },
+      "adaptations": {}
+    },
+    "flipBoard": {
+      "upstream_key": "flipBoard",
+      "upstream": {
+        "en": "Flip board",
+        "ja": "盤の上下反転",
+        "zh": "翻转棋盘",
+        "ko": "보드 돌리기",
+        "es": "Girar el tablero",
+        "de": "Brett drehen",
+        "fr": "Tourner l'échiquier",
+        "ru": "Перевернуть доску",
+        "hi": "बोर्ड पलटें",
+        "pt": "Girar o tabuleiro"
+      },
+      "adaptations": {}
+    },
+    "offerDraw": {
+      "upstream_key": "offerDraw",
+      "upstream": {
+        "en": "Offer draw",
+        "ja": "引き分けを提案する",
+        "zh": "提出和棋",
+        "ko": "무승부 요청",
+        "es": "Ofrecer tablas",
+        "de": "Remis anbieten",
+        "fr": "Proposer la nulle",
+        "ru": "Предложить ничью",
+        "hi": "खेल को बराबरी पर समाप्त करने का प्रस्ताव दें",
+        "pt": "Propor empate"
+      },
+      "adaptations": {}
+    },
+    "whiteIsVictorious": {
+      "upstream_key": "whiteIsVictorious",
+      "upstream": {
+        "en": "White is victorious",
+        "ja": "白の勝ちです",
+        "zh": "白方胜局",
+        "ko": "백 승리",
+        "es": "Las blancas ganan",
+        "de": "Weiß gewinnt",
+        "fr": "Victoire des Blancs",
+        "ru": "Победа белых",
+        "hi": "सफेद विजयी हुआ",
+        "pt": "Brancas vencem"
+      },
+      "adaptations": {}
+    },
+    "blackIsVictorious": {
+      "upstream_key": "blackIsVictorious",
+      "upstream": {
+        "en": "Black is victorious",
+        "ja": "黒の勝ちです",
+        "zh": "黑方胜局",
+        "ko": "흑 승리",
+        "es": "Las negras ganan",
+        "de": "Schwarz gewinnt",
+        "fr": "Victoire des Noirs",
+        "ru": "Победа чёрных",
+        "hi": "काला विजयी हुआ",
+        "pt": "Pretas vencem"
+      },
+      "adaptations": {}
+    },
+    "theGameIsADraw": {
+      "upstream_key": "theGameIsADraw",
+      "upstream": {
+        "en": "The game is a draw.",
+        "ja": "ドロー（引き分け）です。",
+        "zh": "对局和棋。",
+        "ko": "무승부 대국입니다.",
+        "es": "La partida es tablas.",
+        "de": "Das Spiel ist Remis.",
+        "fr": "La partie est nulle.",
+        "ru": "Игра окончилась вничью.",
+        "hi": "खेल ड्रॉ है ।",
+        "pt": "A partida terminou em empate."
+      },
+      "adaptations": {
+        "en": {
+          "value": "The game is a draw",
+          "reason": "This is a result-dialog heading; omit the sentence-ending full stop."
+        }
+      }
+    },
+    "rematch": {
+      "upstream_key": "rematch",
+      "upstream": {
+        "en": "Rematch",
+        "ja": "再対局",
+        "zh": "重赛",
+        "ko": "재대결",
+        "es": "Revancha",
+        "de": "Revanche",
+        "fr": "Revanche",
+        "ru": "Реванш",
+        "hi": "फिर से खेलें",
+        "pt": "Revanche"
+      },
+      "adaptations": {}
+    },
+    "continueFromHere": {
+      "upstream_key": "continueFromHere",
+      "upstream": {
+        "en": "Continue from here",
+        "ja": "この局面から対局",
+        "zh": "从此处继续",
+        "ko": "여기서부터 시작",
+        "es": "Continuar desde aquí",
+        "de": "Von hier aus weiterspielen",
+        "fr": "Continuer depuis cette position",
+        "ru": "Продолжить с этой позиции",
+        "hi": "यहा से जारी करें",
+        "pt": "Continuar daqui"
+      },
+      "adaptations": {
+        "hi": {
+          "value": "यहाँ से जारी करें",
+          "reason": "Correct the upstream Hindi spelling यहा to यहाँ; the action is unchanged."
+        }
+      }
+    },
+    "done": {
+      "upstream_key": "done",
+      "upstream": {
+        "en": "Done",
+        "ja": null,
+        "zh": null,
+        "ko": null,
+        "es": "Listo",
+        "de": null,
+        "fr": null,
+        "ru": null,
+        "hi": null,
+        "pt": null
+      },
+      "adaptations": {
+        "ja": {
+          "value": "完了",
+          "reason": "No translation for this key in the pinned upstream catalog; retain the native Mobile Maia wording."
+        },
+        "zh": {
+          "value": "完成",
+          "reason": "No translation for this key in the pinned upstream catalog; retain the native Mobile Maia wording."
+        },
+        "ko": {
+          "value": "완료",
+          "reason": "No translation for this key in the pinned upstream catalog; retain the native Mobile Maia wording."
+        },
+        "de": {
+          "value": "Fertig",
+          "reason": "No translation for this key in the pinned upstream catalog; retain the native Mobile Maia wording."
+        },
+        "fr": {
+          "value": "Terminé",
+          "reason": "No translation for this key in the pinned upstream catalog; retain the native Mobile Maia wording."
+        },
+        "ru": {
+          "value": "Готово",
+          "reason": "No translation for this key in the pinned upstream catalog; retain the native Mobile Maia wording."
+        },
+        "hi": {
+          "value": "हो गया",
+          "reason": "No translation for this key in the pinned upstream catalog; retain the native Mobile Maia wording."
+        },
+        "pt": {
+          "value": "Concluir",
+          "reason": "No translation for this key in the pinned upstream catalog; retain the native Mobile Maia wording."
+        }
+      }
+    },
+    "castlingRights": {
+      "upstream_key": "castling",
+      "upstream": {
+        "en": "Castling rights",
+        "ja": "キャスリング",
+        "zh": "王车易位",
+        "ko": "캐슬링 권리",
+        "es": "Enroque",
+        "de": "Rochade",
+        "fr": "Roque",
+        "ru": "Рокировка",
+        "hi": "केस्लिंग",
+        "pt": "Roque"
+      },
+      "adaptations": {
+        "ja": {
+          "value": "キャスリングの権利",
+          "reason": "This editor label explicitly describes castling rights, not the move itself; same chess term with the required qualifier."
+        },
+        "zh": {
+          "value": "王车易位权",
+          "reason": "This editor label explicitly describes castling rights, not the move itself; same chess term with the required qualifier."
+        },
+        "es": {
+          "value": "Derechos de enroque",
+          "reason": "This editor label explicitly describes castling rights, not the move itself; same chess term with the required qualifier."
+        },
+        "de": {
+          "value": "Rochaderechte",
+          "reason": "This editor label explicitly describes castling rights, not the move itself; same chess term with the required qualifier."
+        },
+        "fr": {
+          "value": "Droits de roque",
+          "reason": "This editor label explicitly describes castling rights, not the move itself; same chess term with the required qualifier."
+        },
+        "ru": {
+          "value": "Право на рокировку",
+          "reason": "This editor label explicitly describes castling rights, not the move itself; same chess term with the required qualifier."
+        },
+        "hi": {
+          "value": "कैसलिंग के अधिकार",
+          "reason": "This editor label explicitly describes castling rights, not the move itself; same chess term with the required qualifier."
+        },
+        "pt": {
+          "value": "Direitos de roque",
+          "reason": "This editor label explicitly describes castling rights, not the move itself; same chess term with the required qualifier."
+        }
+      }
+    },
+    "startingPosition": {
+      "upstream_key": "startPosition",
+      "upstream": {
+        "en": "Starting position",
+        "ja": "開始局面",
+        "zh": "起始局面",
+        "ko": "시작 포지션",
+        "es": "Posición inicial",
+        "de": "Anfangsposition",
+        "fr": "Position de départ",
+        "ru": "Начальная позиция",
+        "hi": "शुरू करने की स्थिति:",
+        "pt": "Posição inicial"
+      },
+      "adaptations": {}
+    },
+    "clearBoard": {
+      "upstream_key": "clearBoard",
+      "upstream": {
+        "en": "Clear board",
+        "ja": "盤面をクリアする",
+        "zh": "清空棋盘",
+        "ko": "보드 지우기",
+        "es": "Limpiar el tablero",
+        "de": "Brett räumen",
+        "fr": "Vider l'échiquier",
+        "ru": "Очистить доску",
+        "hi": "बोर्ड सॉफ करें",
+        "pt": "Limpar tabuleiro"
+      },
+      "adaptations": {
+        "hi": {
+          "value": "बोर्ड साफ़ करें",
+          "reason": "Correct spelling or remove annotation punctuation/zero-width formatting from the upstream label."
+        }
+      }
+    },
+    "boardEditor": {
+      "upstream_key": "boardEditor",
+      "upstream": {
+        "en": "Board editor",
+        "ja": "盤面入力",
+        "zh": "棋盘编辑器",
+        "ko": "보드 편집기",
+        "es": "Editor de tablero",
+        "de": "Stellung aufbauen",
+        "fr": "Éditeur de position",
+        "ru": "Редактор доски",
+        "hi": "बोर्ड संपादक",
+        "pt": "Editor de tabuleiro"
+      },
+      "adaptations": {
+        "en": {
+          "value": "Board Editor",
+          "reason": "Use title capitalization consistently with the named Board Editor screen."
+        }
+      }
+    },
+    "computerAnalysis": {
+      "upstream_key": "computerAnalysis",
+      "upstream": {
+        "en": "Computer analysis",
+        "ja": "コンピューター解析",
+        "zh": "电脑分析",
+        "ko": "컴퓨터 분석",
+        "es": "Análisis del ordenador",
+        "de": "Computer-Analyse",
+        "fr": "Analyse de l'ordinateur",
+        "ru": "Компьютерный анализ",
+        "hi": "कंप्यूटर विश्लेषण",
+        "pt": "Análise do computador"
+      },
+      "adaptations": {}
+    },
+    "backToGame": {
+      "upstream_key": "backToGame",
+      "upstream": {
+        "en": "Back to game",
+        "ja": "ゲームに戻る",
+        "zh": "返回对局",
+        "ko": "대국으로 돌아가기",
+        "es": "Volver a la partida",
+        "de": "Zurück zur Partie",
+        "fr": "Retour à la partie",
+        "ru": "Вернуться к игре",
+        "hi": "खेल पर लौटें।",
+        "pt": "Retorne à partida"
+      },
+      "adaptations": {}
+    },
+    "expandVariations": {
+      "upstream_key": "expandVariations",
+      "upstream": {
+        "en": "Expand variations",
+        "ja": "変化手順を表示する",
+        "zh": "展开变着",
+        "ko": "라인 펼치기",
+        "es": "Abrir variantes",
+        "de": "Varianten ausklappen",
+        "fr": "Afficher les variantes",
+        "ru": "Развернуть варианты",
+        "hi": "विविधताओं का विस्तार करें",
+        "pt": "Expandir variações"
+      },
+      "adaptations": {
+        "hi": {
+          "value": "वैकल्पिक चालक्रम दिखाएँ",
+          "reason": "Describe showing folded alternative chess lines, not expanding diversity; use the same term as collapseVariations."
+        }
+      }
+    },
+    "collapseVariations": {
+      "upstream_key": "collapseVariations",
+      "upstream": {
+        "en": "Collapse variations",
+        "ja": "変化手順をかくす",
+        "zh": "折叠变着",
+        "ko": "라인 접기",
+        "es": "Cerrar variantes",
+        "de": "Varianten einklappen",
+        "fr": "Masquer les variantes",
+        "ru": "Свернуть варианты",
+        "hi": "विविधताओं को मिटाये",
+        "pt": "Recolher variações"
+      },
+      "adaptations": {
+        "hi": {
+          "value": "वैकल्पिक चालक्रम समेटें",
+          "reason": "Collapses without deleting; upstream wording says erase."
+        }
+      }
+    },
+    "promoteVariation": {
+      "upstream_key": "promoteVariation",
+      "upstream": {
+        "en": "Promote variation",
+        "ja": "変化を主手順にする",
+        "zh": "提升变着",
+        "ko": "라인 승격하기",
+        "es": "Promocionar variante",
+        "de": "Variante aufwerten",
+        "fr": "Promouvoir la variante",
+        "ru": "Повысить приоритет варианта",
+        "hi": "विविधता को बढ़ावा दें",
+        "pt": "Promover variante"
+      },
+      "adaptations": {
+        "ja": {
+          "value": "変化を上位の手順にする",
+          "reason": "Promotes one level; making the main line is a separate action."
+        },
+        "hi": {
+          "value": "वैकल्पिक चालक्रम का स्तर बढ़ाएँ",
+          "reason": "Describe promoting an alternative chess line by one level, not encouraging diversity; making it the main line is a separate action."
+        }
+      }
+    },
+    "makeMainLine": {
+      "upstream_key": "makeMainLine",
+      "upstream": {
+        "en": "Make main line",
+        "ja": "主手順にする",
+        "zh": "设为主线",
+        "ko": "주 라인으로 하기",
+        "es": "Convertir en línea principal",
+        "de": "Zur Hauptvariante machen",
+        "fr": "En faire la variante principale",
+        "ru": "Сделать этот вариант главным",
+        "hi": "मुख्य लाइन बनाएं",
+        "pt": "Transformar em linha principal"
+      },
+      "adaptations": {}
+    },
+    "deleteFromHere": {
+      "upstream_key": "deleteFromHere",
+      "upstream": {
+        "en": "Delete from here",
+        "ja": "これ以降を削除",
+        "zh": "从此处开始删除",
+        "ko": "여기서부터 삭제",
+        "es": "Borrar a partir de aquí",
+        "de": "Ab hier löschen",
+        "fr": "Supprimer à partir d'ici",
+        "ru": "Удалить с этого места",
+        "hi": "यहां से हटाओ",
+        "pt": "Excluir a partir daqui"
+      },
+      "adaptations": {}
+    },
+    "accuracy": {
+      "upstream_key": "accuracy",
+      "upstream": {
+        "en": "Accuracy",
+        "ja": "正確度",
+        "zh": "准确度",
+        "ko": "정확도",
+        "es": "Precisión",
+        "de": "Genauigkeit",
+        "fr": "Précision",
+        "ru": "Точность",
+        "hi": null,
+        "pt": "Precisão"
+      },
+      "adaptations": {
+        "hi": {
+          "value": "सटीकता",
+          "reason": "No translation for this key in the pinned upstream catalog; retain the native Mobile Maia wording."
+        }
+      }
+    },
+    "classificationMistake": {
+      "upstream_key": "studyMistake",
+      "upstream": {
+        "en": "Mistake",
+        "ja": "悪手",
+        "zh": "错着",
+        "ko": "실수",
+        "es": "Error",
+        "de": "Fehler",
+        "fr": "Erreur",
+        "ru": "Ошибка",
+        "hi": "ग़लती",
+        "pt": "Erro"
+      },
+      "adaptations": {}
+    },
+    "classificationBlunder": {
+      "upstream_key": "studyBlunder",
+      "upstream": {
+        "en": "Blunder",
+        "ja": "大悪手",
+        "zh": "败着",
+        "ko": "블런더",
+        "es": "Error grave",
+        "de": "Grober Patzer",
+        "fr": "Gaffe",
+        "ru": "Зевок",
+        "hi": "भयंकर गलती",
+        "pt": "Erro grave"
+      },
+      "adaptations": {}
+    },
+    "phaseOpening": {
+      "upstream_key": "opening",
+      "upstream": {
+        "en": "Opening",
+        "ja": "序盤",
+        "zh": "开局",
+        "ko": "오프닝",
+        "es": "Apertura",
+        "de": "Eröffnung",
+        "fr": "Ouverture",
+        "ru": "Дебют",
+        "hi": "ओपनिंग",
+        "pt": "Abertura"
+      },
+      "adaptations": {}
+    },
+    "phaseMiddlegame": {
+      "upstream_key": "middlegame",
+      "upstream": {
+        "en": "Middlegame",
+        "ja": "中盤",
+        "zh": "中局",
+        "ko": "미들게임",
+        "es": "Medio juego",
+        "de": "Mittelspiel",
+        "fr": "Milieu de partie",
+        "ru": "Миттельшпиль",
+        "hi": "मिडलगेम",
+        "pt": "Meio-jogo"
+      },
+      "adaptations": {}
+    },
+    "phaseEndgame": {
+      "upstream_key": "endgame",
+      "upstream": {
+        "en": "Endgame",
+        "ja": "終盤",
+        "zh": "残局",
+        "ko": "엔드게임",
+        "es": "Final",
+        "de": "Endspiel",
+        "fr": "Fin de partie",
+        "ru": "Эндшпиль",
+        "hi": "एंडगेम",
+        "pt": "Finais"
+      },
+      "adaptations": {}
+    },
+    "deleteAction": {
+      "upstream_key": "delete",
+      "upstream": {
+        "en": "Delete",
+        "ja": "削除",
+        "zh": "删除",
+        "ko": "삭제",
+        "es": "Borrar",
+        "de": "Löschen",
+        "fr": "Effacer",
+        "ru": "Удалить",
+        "hi": "हटाएँ",
+        "pt": "Excluir"
+      },
+      "adaptations": {}
+    },
+    "close": {
+      "upstream_key": "close",
+      "upstream": {
+        "en": "Close",
+        "ja": "閉じる",
+        "zh": "关闭",
+        "ko": "닫기",
+        "es": "Cerrar",
+        "de": "Schließen",
+        "fr": "Fermer",
+        "ru": "Закрыть",
+        "hi": "बंद करें",
+        "pt": "Fechar"
+      },
+      "adaptations": {}
+    },
+    "hapticFeedback": {
+      "upstream_key": "mobileSettingsTouchFeedback",
+      "upstream": {
+        "en": "Touch feedback",
+        "ja": "触覚フィードバック",
+        "zh": "触控反馈",
+        "ko": "터치 피드백",
+        "es": "Respuesta táctil",
+        "de": "Haptisches Feedback",
+        "fr": "Retour tactile",
+        "ru": "Реакция на касание",
+        "hi": "स्पर्श पर प्रतिक्रिया",
+        "pt": "Feedback por toque"
+      },
+      "adaptations": {}
+    },
+    "takeBackMove": {
+      "upstream_key": "takeback",
+      "upstream": {
+        "en": "Takeback",
+        "ja": "待った",
+        "zh": "悔棋",
+        "ko": "무르기",
+        "es": "Deshacer jugada",
+        "de": "Zugrücknahme",
+        "fr": "Annuler le coup",
+        "ru": "Вернуть ход",
+        "hi": "चाल को वापस लें",
+        "pt": "Voltar jogada"
+      },
+      "adaptations": {}
+    },
+    "whiteToMove": {
+      "upstream_key": "whitePlays",
+      "upstream": {
+        "en": "White to play",
+        "ja": "白の手番",
+        "zh": "白方走棋",
+        "ko": "백 차례",
+        "es": "Juegan las blancas",
+        "de": "Weiß am Zug",
+        "fr": "Trait aux Blancs",
+        "ru": "Ход белых",
+        "hi": "सफेद की चाल",
+        "pt": "Brancas jogam"
+      },
+      "adaptations": {
+        "en": {
+          "value": "White to move",
+          "reason": "Use the conventional FEN/board-editor side-to-move wording for the position being edited."
+        }
+      }
+    },
+    "blackToMove": {
+      "upstream_key": "blackPlays",
+      "upstream": {
+        "en": "Black to play",
+        "ja": "黒の手番",
+        "zh": "黑方走棋",
+        "ko": "흑 차례",
+        "es": "Juegan las negras",
+        "de": "Schwarz am Zug",
+        "fr": "Trait aux Noirs",
+        "ru": "Ход чёрных",
+        "hi": "काले की चाल",
+        "pt": "Pretas jogam"
+      },
+      "adaptations": {
+        "en": {
+          "value": "Black to move",
+          "reason": "Use the conventional FEN/board-editor side-to-move wording for the position being edited."
+        }
+      }
+    },
+    "classificationBrilliant": {
+      "upstream_key": "studyBrilliantMove",
+      "upstream": {
+        "en": "Brilliant move",
+        "ja": "妙手",
+        "zh": "妙着",
+        "ko": "매우 좋은 수",
+        "es": "Jugada brillante",
+        "de": "Brillanter Zug",
+        "fr": "Excellent coup",
+        "ru": "Отличный ход",
+        "hi": "अद्भुत चाल​।",
+        "pt": "Jogada excelente"
+      },
+      "adaptations": {
+        "en": {
+          "value": "Brilliant",
+          "reason": "Use the annotation name as a category heading in the compact move-count table; move is supplied by the surrounding context and accessibility message."
+        },
+        "hi": {
+          "value": "अद्भुत चाल",
+          "reason": "Correct spelling or remove annotation punctuation/zero-width formatting from the upstream label."
+        }
+      }
+    },
+    "classificationGood": {
+      "upstream_key": "studyGoodMove",
+      "upstream": {
+        "en": "Good move",
+        "ja": "好手",
+        "zh": "好着",
+        "ko": "좋은 수",
+        "es": "Buena jugada",
+        "de": "Guter Zug",
+        "fr": "Bon coup",
+        "ru": "Хороший ход",
+        "hi": "अच्छी चाल!",
+        "pt": "Boa jogada"
+      },
+      "adaptations": {
+        "en": {
+          "value": "Good",
+          "reason": "Use the annotation name as a category heading in the compact move-count table; move is supplied by the surrounding context and accessibility message."
+        },
+        "hi": {
+          "value": "अच्छी चाल",
+          "reason": "Correct spelling or remove annotation punctuation/zero-width formatting from the upstream label."
+        }
+      }
+    },
+    "classificationInteresting": {
+      "upstream_key": "studyInterestingMove",
+      "upstream": {
+        "en": "Interesting move",
+        "ja": "面白い手",
+        "zh": "趣味着法",
+        "ko": "흥미로운 수",
+        "es": "Jugada interesante",
+        "de": "Interessanter Zug",
+        "fr": "Coup intéressant",
+        "ru": "Интересный ход",
+        "hi": "दिलचस्प चाल​ |",
+        "pt": "Jogada interessante"
+      },
+      "adaptations": {
+        "en": {
+          "value": "Interesting",
+          "reason": "Use the annotation name as a category heading in the compact move-count table; move is supplied by the surrounding context and accessibility message."
+        },
+        "hi": {
+          "value": "दिलचस्प चाल",
+          "reason": "Correct spelling or remove annotation punctuation/zero-width formatting from the upstream label."
+        }
+      }
+    },
+    "classificationDubious": {
+      "upstream_key": "studyDubiousMove",
+      "upstream": {
+        "en": "Dubious move",
+        "ja": "疑問手",
+        "zh": "可疑着法",
+        "ko": "애매한 수",
+        "es": "Jugada dudosa",
+        "de": "Fragwürdiger Zug",
+        "fr": "Coup douteux",
+        "ru": "Сомнительный ход",
+        "hi": "संदिग्ध चाल",
+        "pt": "Lance questionável"
+      },
+      "adaptations": {
+        "en": {
+          "value": "Dubious",
+          "reason": "Use the annotation name as a category heading in the compact move-count table; move is supplied by the surrounding context and accessibility message."
+        }
+      }
+    },
+    "random": {
+      "upstream_key": "randomColor",
+      "upstream": {
+        "en": "Random side",
+        "ja": "ランダム",
+        "zh": "随机",
+        "ko": "무작위",
+        "es": "Color aleatorio",
+        "de": "Zufällige Farbe",
+        "fr": "Couleur aléatoire",
+        "ru": "Случайный цвет",
+        "hi": "कोई भी रंग",
+        "pt": "Cor aleatória"
+      },
+      "adaptations": {
+        "en": {
+          "value": "Random",
+          "reason": "The adjacent Your side control supplies the noun; the compact choice only needs Random."
+        }
+      }
+    },
+    "drawByAgreement": {
+      "upstream_key": "drawByMutualAgreement",
+      "upstream": {
+        "en": "Draw by agreement",
+        "ja": "合意によるドロー",
+        "zh": "双方同意和棋",
+        "ko": "상호 동의에 의한 무승부",
+        "es": "Tablas de mutuo acuerdo",
+        "de": "Remis durch Einigung",
+        "fr": "Partie nulle par accord mutuel",
+        "ru": "Ничья по обоюдному согласию",
+        "hi": "आपसी सहमति से ड्रॉ",
+        "pt": "Empate por acordo mútuo"
+      },
+      "adaptations": {
+        "en": {
+          "value": "Draw by agreement.",
+          "reason": "This is an in-game status sentence; retain its ending full stop."
+        }
+      }
+    },
+    "drawResult": {
+      "upstream_key": "draw",
+      "upstream": {
+        "en": "Draw",
+        "ja": "引き分け",
+        "zh": "平局",
+        "ko": "무승부",
+        "es": "Tablas",
+        "de": "Remis",
+        "fr": "Partie nulle",
+        "ru": "Ничья",
+        "hi": "खेल बराबरी पे समाप्त",
+        "pt": "Empate"
+      },
+      "adaptations": {
+        "en": {
+          "value": "Draw.",
+          "reason": "This is an in-game status sentence; retain its ending full stop."
+        }
+      }
+    },
+    "premoves": {
+      "upstream_key": "preferencesPremovesPlayingDuringOpponentTurn",
+      "upstream": {
+        "en": "Premoves (playing during opponent turn)",
+        "ja": "プリムーブ（相手の手番中に次の自分の手を入力する）",
+        "zh": "预走棋（在对手回合时走棋）",
+        "ko": "미리두기 (상대 차례일 때 수를 두기)",
+        "es": "Movimientos anticipados (programar jugadas durante el turno del oponente)",
+        "de": "Vorauszüge (Premoves), während der Gegner am Zug ist",
+        "fr": "Pré-coups",
+        "ru": "Предварительный ход (пока ходит противник)",
+        "hi": "पहले से चुनी गयी चालें (प्रतिद्वंद्वी की बारी के दौरान खेलना)",
+        "pt": "Pré-movimentos (jogadas durante o turno do oponente)"
+      },
+      "adaptations": {
+        "en": {
+          "value": "Premoves",
+          "reason": "Use the upstream term as the setting heading; explanatory text is shown separately."
+        },
+        "ja": {
+          "value": "プリムーブ",
+          "reason": "Use the upstream term as a concise plural heading; explanatory text is shown separately."
+        },
+        "zh": {
+          "value": "预走棋",
+          "reason": "Use the upstream term as a concise plural heading; explanatory text is shown separately."
+        },
+        "ko": {
+          "value": "미리두기",
+          "reason": "Use the upstream term as a concise plural heading; explanatory text is shown separately."
+        },
+        "es": {
+          "value": "Movimientos anticipados",
+          "reason": "Use the upstream term as a concise plural heading; explanatory text is shown separately."
+        },
+        "de": {
+          "value": "Vorauszüge",
+          "reason": "Use the upstream term as a concise plural heading; explanatory text is shown separately."
+        },
+        "ru": {
+          "value": "Предварительные ходы",
+          "reason": "Use the upstream term as a concise plural heading; explanatory text is shown separately."
+        },
+        "hi": {
+          "value": "पहले से चुनी गयी चालें",
+          "reason": "Use the upstream term as a concise plural heading; explanatory text is shown separately."
+        },
+        "pt": {
+          "value": "Pré-movimentos",
+          "reason": "Use the upstream term as a concise plural heading; explanatory text is shown separately."
+        }
+      }
+    },
+    "pieceKing": {
+      "upstream_key": "learnTheKing",
+      "upstream": {
+        "en": "The king",
+        "ja": "キング",
+        "zh": "王",
+        "ko": "킹",
+        "es": "El Rey",
+        "de": "Der König",
+        "fr": "Le Roi",
+        "ru": "Король",
+        "hi": "राजा",
+        "pt": "O rei"
+      },
+      "adaptations": {
+        "en": {
+          "value": "King",
+          "reason": "Piece-picker noun; omit the article used in the upstream lesson title."
+        },
+        "es": {
+          "value": "Rey",
+          "reason": "Piece-picker noun; omit the article used in the upstream lesson title."
+        },
+        "de": {
+          "value": "König",
+          "reason": "Piece-picker noun; omit the article used in the upstream lesson title."
+        },
+        "fr": {
+          "value": "Roi",
+          "reason": "Piece-picker noun; omit the article used in the upstream lesson title."
+        },
+        "pt": {
+          "value": "Rei",
+          "reason": "Piece-picker noun; omit the article used in the upstream lesson title."
+        }
+      }
+    },
+    "pieceQueen": {
+      "upstream_key": "learnTheQueen",
+      "upstream": {
+        "en": "The queen",
+        "ja": "クイーン",
+        "zh": "后",
+        "ko": "퀸",
+        "es": "La Dama",
+        "de": "Die Dame",
+        "fr": "La dame",
+        "ru": "Ферзь",
+        "hi": "वज़ीर",
+        "pt": "A dama"
+      },
+      "adaptations": {
+        "en": {
+          "value": "Queen",
+          "reason": "Piece-picker noun; omit the article used in the upstream lesson title."
+        },
+        "es": {
+          "value": "Dama",
+          "reason": "Piece-picker noun; omit the article used in the upstream lesson title."
+        },
+        "de": {
+          "value": "Dame",
+          "reason": "Piece-picker noun; omit the article used in the upstream lesson title."
+        },
+        "fr": {
+          "value": "Dame",
+          "reason": "Piece-picker noun; omit the article used in the upstream lesson title."
+        },
+        "pt": {
+          "value": "Dama",
+          "reason": "Piece-picker noun; omit the article used in the upstream lesson title."
+        }
+      }
+    },
+    "pieceRook": {
+      "upstream_key": "learnTheRook",
+      "upstream": {
+        "en": "The rook",
+        "ja": "ルーク",
+        "zh": "车",
+        "ko": "룩",
+        "es": "La Torre",
+        "de": "Der Turm",
+        "fr": "La tour",
+        "ru": "Ладья",
+        "hi": "हाथी",
+        "pt": "A torre"
+      },
+      "adaptations": {
+        "en": {
+          "value": "Rook",
+          "reason": "Piece-picker noun; omit the article used in the upstream lesson title."
+        },
+        "es": {
+          "value": "Torre",
+          "reason": "Piece-picker noun; omit the article used in the upstream lesson title."
+        },
+        "de": {
+          "value": "Turm",
+          "reason": "Piece-picker noun; omit the article used in the upstream lesson title."
+        },
+        "fr": {
+          "value": "Tour",
+          "reason": "Piece-picker noun; omit the article used in the upstream lesson title."
+        },
+        "pt": {
+          "value": "Torre",
+          "reason": "Piece-picker noun; omit the article used in the upstream lesson title."
+        }
+      }
+    },
+    "pieceBishop": {
+      "upstream_key": "learnTheBishop",
+      "upstream": {
+        "en": "The bishop",
+        "ja": "ビショップ",
+        "zh": "象",
+        "ko": "비숍",
+        "es": "El Alfil",
+        "de": "Der Läufer",
+        "fr": "Le Fou",
+        "ru": "Слон",
+        "hi": "ऊँट",
+        "pt": "O bispo"
+      },
+      "adaptations": {
+        "en": {
+          "value": "Bishop",
+          "reason": "Piece-picker noun; omit the article used in the upstream lesson title."
+        },
+        "es": {
+          "value": "Alfil",
+          "reason": "Piece-picker noun; omit the article used in the upstream lesson title."
+        },
+        "de": {
+          "value": "Läufer",
+          "reason": "Piece-picker noun; omit the article used in the upstream lesson title."
+        },
+        "fr": {
+          "value": "Fou",
+          "reason": "Piece-picker noun; omit the article used in the upstream lesson title."
+        },
+        "pt": {
+          "value": "Bispo",
+          "reason": "Piece-picker noun; omit the article used in the upstream lesson title."
+        }
+      }
+    },
+    "pieceKnight": {
+      "upstream_key": "learnTheKnight",
+      "upstream": {
+        "en": "The knight",
+        "ja": "ナイト",
+        "zh": "马",
+        "ko": "나이트",
+        "es": "El Caballo",
+        "de": "Der Springer",
+        "fr": "Le Cavalier",
+        "ru": "Конь",
+        "hi": "घोड़ा",
+        "pt": "O cavalo"
+      },
+      "adaptations": {
+        "en": {
+          "value": "Knight",
+          "reason": "Piece-picker noun; omit the article used in the upstream lesson title."
+        },
+        "es": {
+          "value": "Caballo",
+          "reason": "Piece-picker noun; omit the article used in the upstream lesson title."
+        },
+        "de": {
+          "value": "Springer",
+          "reason": "Piece-picker noun; omit the article used in the upstream lesson title."
+        },
+        "fr": {
+          "value": "Cavalier",
+          "reason": "Piece-picker noun; omit the article used in the upstream lesson title."
+        },
+        "pt": {
+          "value": "Cavalo",
+          "reason": "Piece-picker noun; omit the article used in the upstream lesson title."
+        }
+      }
+    },
+    "piecePawn": {
+      "upstream_key": "learnThePawn",
+      "upstream": {
+        "en": "The pawn",
+        "ja": "ポーン",
+        "zh": "兵",
+        "ko": "폰",
+        "es": "El Peón",
+        "de": "Der Bauer",
+        "fr": "Le pion",
+        "ru": "Пешка",
+        "hi": "प्यादा",
+        "pt": "O peão"
+      },
+      "adaptations": {
+        "en": {
+          "value": "Pawn",
+          "reason": "Piece-picker noun; omit the article used in the upstream lesson title."
+        },
+        "es": {
+          "value": "Peón",
+          "reason": "Piece-picker noun; omit the article used in the upstream lesson title."
+        },
+        "de": {
+          "value": "Bauer",
+          "reason": "Piece-picker noun; omit the article used in the upstream lesson title."
+        },
+        "fr": {
+          "value": "Pion",
+          "reason": "Piece-picker noun; omit the article used in the upstream lesson title."
+        },
+        "pt": {
+          "value": "Peão",
+          "reason": "Piece-picker noun; omit the article used in the upstream lesson title."
+        }
+      }
+    },
+    "whiteOutOfTime": {
+      "upstream_key": "whiteRanOutOfTime",
+      "upstream": {
+        "en": "White ran out of time",
+        "ja": "白が時間切れになりました",
+        "zh": "白方超时",
+        "ko": "백 시간 초과",
+        "es": "Las blancas se quedaron sin tiempo",
+        "de": "Zeitüberschreitung von Weiß",
+        "fr": "Les blancs sont tombés au temps",
+        "ru": "Белые просрочили время",
+        "hi": null,
+        "pt": "Brancas ficaram sem tempo"
+      },
+      "adaptations": {
+        "en": {
+          "value": "White ran out of time.",
+          "reason": "Retain existing English status-message punctuation."
+        },
+        "hi": {
+          "value": "सफ़ेद का समय समाप्त हो गया।",
+          "reason": "No translation for this key in the pinned upstream catalog; retain the native-language fallback."
+        }
+      }
+    },
+    "blackOutOfTime": {
+      "upstream_key": "blackRanOutOfTime",
+      "upstream": {
+        "en": "Black ran out of time",
+        "ja": "黒が時間切れになりました",
+        "zh": "黑方超时",
+        "ko": "흑 시간 초과",
+        "es": "Las negras se quedaron sin tiempo",
+        "de": "Zeitüberschreitung von Schwarz",
+        "fr": "Les noirs sont tombés au temps",
+        "ru": "У черных закончилось время",
+        "hi": null,
+        "pt": "Pretas ficaram sem tempo"
+      },
+      "adaptations": {
+        "en": {
+          "value": "Black ran out of time.",
+          "reason": "Retain existing English status-message punctuation."
+        },
+        "hi": {
+          "value": "काले का समय समाप्त हो गया।",
+          "reason": "No translation for this key in the pinned upstream catalog; retain the native-language fallback."
+        }
+      }
+    },
+    "pgnCopied": {
+      "upstream_key": "mobilePgnCopied",
+      "upstream": {
+        "en": "PGN copied.",
+        "ja": "PGNをコピーしました。",
+        "zh": "PGN 复制成功！",
+        "ko": "PGN 복사 완료.",
+        "es": "PGN copiado.",
+        "de": "PGN kopiert.",
+        "fr": "PGN copié.",
+        "ru": null,
+        "hi": null,
+        "pt": "PGN copiado."
+      },
+      "adaptations": {
+        "en": {
+          "value": "PGN copied",
+          "reason": "Retain existing English status-message punctuation."
+        },
+        "ru": {
+          "value": "PGN скопирован",
+          "reason": "No translation for this key in the pinned upstream catalog; retain the native-language fallback."
+        },
+        "hi": {
+          "value": "PGN कॉपी हो गया",
+          "reason": "No translation for this key in the pinned upstream catalog; retain the native-language fallback."
+        }
+      }
+    },
+    "yourMove": {
+      "upstream_key": "yourTurn",
+      "upstream": {
+        "en": "Your turn",
+        "ja": "あなたの手番です",
+        "zh": "轮到您走棋",
+        "ko": "내 차례",
+        "es": "Tu turno",
+        "de": "Du bist am Zug",
+        "fr": "À votre tour",
+        "ru": "Ваш ход",
+        "hi": "आपकी चाल",
+        "pt": "Sua vez"
+      },
+      "adaptations": {
+        "en": {
+          "value": "Your turn.",
+          "reason": "Add sentence punctuation to the upstream turn announcement, matching in-game status messages."
+        },
+        "ja": {
+          "value": "あなたの手番です。",
+          "reason": "Add sentence punctuation to the upstream turn announcement, matching in-game status messages."
+        },
+        "zh": {
+          "value": "轮到你走棋。",
+          "reason": "Use 你 consistently with the app’s direct player instructions instead of switching to the formal 您; retain the same turn announcement and sentence punctuation."
+        },
+        "ko": {
+          "value": "당신 차례입니다.",
+          "reason": "Address the player in this status message; upstream 내 차례 means my turn and is a first-person label. Preserve the turn meaning in a sentence addressed to the user."
+        },
+        "es": {
+          "value": "Tu turno.",
+          "reason": "Add sentence punctuation to the upstream turn announcement, matching in-game status messages."
+        },
+        "de": {
+          "value": "Du bist am Zug.",
+          "reason": "Add sentence punctuation to the upstream turn announcement, matching in-game status messages."
+        },
+        "fr": {
+          "value": "À votre tour.",
+          "reason": "Add sentence punctuation to the upstream turn announcement, matching in-game status messages."
+        },
+        "ru": {
+          "value": "Ваш ход.",
+          "reason": "Add sentence punctuation to the upstream turn announcement, matching in-game status messages."
+        },
+        "hi": {
+          "value": "आपकी चाल।",
+          "reason": "Add sentence punctuation to the upstream turn announcement, matching in-game status messages."
+        },
+        "pt": {
+          "value": "Sua vez.",
+          "reason": "Add sentence punctuation to the upstream turn announcement, matching in-game status messages."
+        }
+      }
+    }
+  }
+}

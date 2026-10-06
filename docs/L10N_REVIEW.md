@@ -1,6 +1,6 @@
 # Localization and translation review
 
-Mobile Maia supplies English, German, French, Russian, Hindi, Brazilian Portuguese, Japanese, Simplified Chinese, Korean and Spanish UI catalogs. The catalogs currently contain **299 messages each** and cover game setup and play, settings and help, Chessnut connection/recovery, saved games, PGN import/export, analysis and move classifications, the board editor, and diagnostic recovery.
+Mobile Maia supplies English, German, French, Russian, Hindi, Brazilian Portuguese, Japanese, Simplified Chinese, Korean and Spanish UI catalogs. The catalogs currently contain **302 messages each** and cover game setup and play, settings and help, Chessnut connection/recovery, saved games, PGN import/export, analysis and move classifications, the board editor, and diagnostic recovery.
 
 The translations have received an editorial and automated review, but **have not been approved by native-speaking chess players**. Catalog completeness is not a claim of linguistic certification. The preferred human-review handoff is the language ARB plus the [short reviewer guide](NATIVE_REVIEW.md). The existing `l10n_review.csv` remains a synchronized maintenance aid. Do not publish reviewer identities or private game/device screenshots without permission.
 
@@ -20,7 +20,7 @@ For every UI text change:
 
 1. Add or update a stable message ID in all ten ARBs. Describe the screen, chess meaning and placeholder purpose in the English `@message` metadata. Do not use English sentences as lookup keys.
 2. Use generated getters/methods through `l10n(context)` at the point of rendering. Translate complete messages, with placeholders and ICU plurals/selects where appropriate. Do not concatenate translated sentence fragments or persist translated status text.
-3. Run `flutter gen-l10n`, then `python3 tool/check_localization.py --write-review`. This refreshes the CSV and source-location hints, preserves reviewer notes, and marks changed messages as needing review.
+3. Run `flutter gen-l10n`, then `python3 tool/check_localization.py --write-review` and `python3 tool/check_lichess_terminology.py`. This refreshes the CSV and source-location hints, preserves reviewer notes, and marks changed messages as needing review.
 4. Run `flutter analyze`, `flutter test`, and `python3 -m unittest discover -s tool -p '*_test.py'` in a Python environment with `tool/hardening/requirements.txt` installed. Commit ARBs, generated Dart, the updated CSV, and relevant regression tests together.
 5. Inspect changed screens in the Dev app, including a compact screen and 200% text. Host widget tests use test fonts; they cannot establish real CJK glyph quality. Request native-speaker review before describing a translation as approved.
 
@@ -49,8 +49,8 @@ Format displayed numbers and dates for the chosen locale, including German, Fren
 - Takeback can undo different numbers of plies depending on turn and board mode. Do not promise exactly one ply.
 - Castling controls enable castling rights; kingside means short castling, queenside means long castling.
 - Classification names are chess annotations, not praise for the user. Keep them consistent between the move list, summaries and tooltips.
-- Prefer Lichess conventions for equivalent features, corroborated by native chess writing. Record justified deviations when semantics differ or a more explicit label is needed. Do not rename Maia's `!?` and `?!` annotations merely to match another site's analysis categories.
-- Use neutral Spanish and conventional international-chess vocabulary in CJK languages. Chinese here means international chess, not xiangqi; Japanese labels must not imply shogi rules.
+- Lichess is authoritative for direct equivalents in every supported language. Follow [the pinned terminology baseline](LICHESS_TERMINOLOGY.md), including its documented context adaptations. Use Lichess study annotations for `!?` and `?!`; do not change Mobile Maia's classification algorithms.
+- Use Lichess's single Spanish catalog and conventional international-chess vocabulary in CJK languages. Chinese here means international chess, not xiangqi; Japanese labels must not imply shogi rules.
 
 ## Regression coverage
 

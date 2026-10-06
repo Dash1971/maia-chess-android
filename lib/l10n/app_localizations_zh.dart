@@ -13,7 +13,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get about => '关于';
 
   @override
-  String get analysisBoard => '分析棋盘';
+  String get analysisBoard => '分析面板';
 
   @override
   String get back => '返回';
@@ -46,7 +46,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get gameSettings => '对局设置';
 
   @override
-  String get home => '主页';
+  String get home => '首页';
 
   @override
   String get playMaia => '与 Maia 对弈';
@@ -55,7 +55,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get random => '随机';
 
   @override
-  String get recentGames => '最近的对局';
+  String get recentGames => '最近对局';
 
   @override
   String get resign => '认输';
@@ -67,13 +67,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get startGame => '开始对局';
 
   @override
-  String get timeControl => '用时设置';
+  String get timeControl => '时间限制';
 
   @override
   String get white => '白方';
 
   @override
-  String get unlimited => '无时限';
+  String get unlimited => '无限制';
 
   @override
   String get custom => '自定义';
@@ -109,7 +109,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get movesCapturesErrorsAndGameEnd => '走棋、吃子、错误及对局结束时的音效';
 
   @override
-  String get hapticFeedback => '触觉反馈';
+  String get hapticFeedback => '触控反馈';
 
   @override
   String get touchFeedbackForMovesChecksErrorsAndGameEnd => '走棋、将军、错误及对局结束时的振动';
@@ -181,7 +181,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diagnosticsCopied => '已复制诊断信息';
 
   @override
-  String get newGame => '新对局';
+  String get newGame => '新的对局';
 
   @override
   String get resetGame => '重置对局';
@@ -226,7 +226,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get leaveCurrentGame => '离开当前对局？';
 
   @override
-  String get yourGameWillBeKeptInRecentGames => '对局将保留在“最近的对局”中。';
+  String get yourGameWillBeKeptInRecentGames => '对局将保留在“最近对局”中。';
 
   @override
   String get cancel => '取消';
@@ -241,7 +241,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get resetGameQuestion => '重置对局？';
 
   @override
-  String get yourCompletedGameWillRemainInRecentGames => '已结束的对局仍会保留在“最近的对局”中。';
+  String get yourCompletedGameWillRemainInRecentGames => '已结束的对局仍会保留在“最近对局”中。';
 
   @override
   String get thisGameWillBePermanentlyErased => '该对局将被永久删除。';
@@ -262,19 +262,19 @@ class AppLocalizationsZh extends AppLocalizations {
   String get takeBackMove => '悔棋';
 
   @override
-  String get whiteIsVictorious => '白方获胜';
+  String get whiteIsVictorious => '白方胜局';
 
   @override
-  String get blackIsVictorious => '黑方获胜';
+  String get blackIsVictorious => '黑方胜局';
 
   @override
-  String get theGameIsADraw => '和棋';
+  String get theGameIsADraw => '对局和棋。';
 
   @override
   String get theGameHasEnded => '对局已结束';
 
   @override
-  String get rematch => '再来一局';
+  String get rematch => '重赛';
 
   @override
   String get fast => '快速';
@@ -286,7 +286,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get thorough => '详细';
 
   @override
-  String get continueFromHere => '从此处继续对局';
+  String get continueFromHere => '从此处继续';
 
   @override
   String get load => '加载';
@@ -328,7 +328,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get enPassantTarget => '吃过路兵目标格';
 
   @override
-  String get startingPosition => '初始局面';
+  String get startingPosition => '起始局面';
 
   @override
   String get clearBoard => '清空棋盘';
@@ -382,7 +382,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get makeMainLine => '设为主线';
 
   @override
-  String get deleteFromHere => '从此处删除';
+  String get deleteFromHere => '从此处开始删除';
 
   @override
   String get analyzing => '分析中…';
@@ -418,7 +418,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get analysisExplanation => '运行电脑分析以生成评估图表和白方、黑方的准确度。';
 
   @override
-  String get pgnCopied => '已复制 PGN';
+  String get pgnCopied => 'PGN 复制成功！';
 
   @override
   String get fenCopied => '已复制 FEN';
@@ -508,7 +508,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get classificationGood => '好着';
 
   @override
-  String get classificationInteresting => '值得注意的着法';
+  String get classificationInteresting => '趣味着法';
 
   @override
   String get classificationDubious => '可疑着法';
@@ -681,7 +681,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get recentLoadFailed => '无法加载已保存的对局。请重试。';
 
   @override
-  String get recentEmpty => '已完成的对局，以及返回主页时保存的未完成对局，会显示在这里。';
+  String get recentEmpty => '已完成的对局，以及返回首页时保存的未完成对局，会显示在这里。';
 
   @override
   String recentGameSummary(String result, String date) {
@@ -782,10 +782,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get timeoutInsufficientMaterial => '和棋——虽然超时，但对方子力不足以将杀。';
 
   @override
-  String get whiteOutOfTime => '白方超时。';
+  String get whiteOutOfTime => '白方超时';
 
   @override
-  String get blackOutOfTime => '黑方超时。';
+  String get blackOutOfTime => '黑方超时';
 
   @override
   String get makeMaiaLitMove => '请在 Chessnut 上按亮灯指示走出 Maia 的着法。';
@@ -797,10 +797,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get checkmateYouWin => '将杀——你获胜！';
 
   @override
-  String get drawResult => '和棋。';
+  String get drawResult => '平局';
 
   @override
-  String get drawByAgreement => '双方同意和棋。';
+  String get drawByAgreement => '双方同意和棋';
 
   @override
   String get youWin => '你获胜。';

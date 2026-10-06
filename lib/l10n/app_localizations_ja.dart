@@ -13,7 +13,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get about => 'アプリについて';
 
   @override
-  String get analysisBoard => '解析ボード';
+  String get analysisBoard => '棋譜解析';
 
   @override
   String get back => '戻る';
@@ -34,7 +34,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get disconnect => '切断';
 
   @override
-  String get engineSettings => 'エンジン設定';
+  String get engineSettings => 'エンジンの設定';
 
   @override
   String get gameMenu => '対局メニュー';
@@ -67,7 +67,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get startGame => '対局開始';
 
   @override
-  String get timeControl => '持ち時間';
+  String get timeControl => '持時間';
 
   @override
   String get white => '白';
@@ -76,7 +76,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get unlimited => '無制限';
 
   @override
-  String get custom => 'カスタム';
+  String get custom => '自由設定';
 
   @override
   String get seconds => '秒';
@@ -100,7 +100,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get minutes => '分';
 
   @override
-  String get increment => '1手ごとの追加時間';
+  String get increment => '追加時間';
 
   @override
   String get gameSounds => '対局の効果音';
@@ -109,7 +109,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get movesCapturesErrorsAndGameEnd => '指し手、駒取り、エラー、対局終了時の音';
 
   @override
-  String get hapticFeedback => '振動フィードバック';
+  String get hapticFeedback => '触覚フィードバック';
 
   @override
   String get touchFeedbackForMovesChecksErrorsAndGameEnd =>
@@ -195,10 +195,10 @@ class AppLocalizationsJa extends AppLocalizations {
   String get savePgnFile => 'PGNファイルを保存';
 
   @override
-  String get sharePgn => 'PGNを共有';
+  String get sharePgn => 'PGN を共有';
 
   @override
-  String get copyPgn => 'PGNをコピー';
+  String get copyPgn => 'PGN をコピー';
 
   @override
   String get copyFen => 'FENをコピー';
@@ -210,7 +210,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get maiaErrorPleaseRetry => 'Maiaでエラーが発生しました。再試行してください。';
 
   @override
-  String get retry => '再試行';
+  String get retry => 'もう一度';
 
   @override
   String get maiaIsThinking => 'Maiaが思考中…';
@@ -258,19 +258,19 @@ class AppLocalizationsJa extends AppLocalizations {
   String get flipBoard => '盤の上下反転';
 
   @override
-  String get offerDraw => '引き分けを提案';
+  String get offerDraw => '引き分けを提案する';
 
   @override
-  String get takeBackMove => '手を戻す';
+  String get takeBackMove => '待った';
 
   @override
-  String get whiteIsVictorious => '白の勝ち';
+  String get whiteIsVictorious => '白の勝ちです';
 
   @override
-  String get blackIsVictorious => '黒の勝ち';
+  String get blackIsVictorious => '黒の勝ちです';
 
   @override
-  String get theGameIsADraw => '引き分け';
+  String get theGameIsADraw => 'ドロー（引き分け）です。';
 
   @override
   String get theGameHasEnded => '対局終了';
@@ -288,7 +288,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get thorough => '詳細';
 
   @override
-  String get continueFromHere => 'ここから対局';
+  String get continueFromHere => 'この局面から対局';
 
   @override
   String get load => '読み込む';
@@ -330,10 +330,10 @@ class AppLocalizationsJa extends AppLocalizations {
   String get enPassantTarget => 'アンパッサンの対象マス';
 
   @override
-  String get startingPosition => '初期配置';
+  String get startingPosition => '開始局面';
 
   @override
-  String get clearBoard => '駒をすべて取り除く';
+  String get clearBoard => '盤面をクリアする';
 
   @override
   String get loadFen => 'FENを読み込む';
@@ -348,7 +348,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get clearMoves => '指し手を消去';
 
   @override
-  String get boardEditor => '盤面エディター';
+  String get boardEditor => '盤面入力';
 
   @override
   String get endPosition => '最後の局面';
@@ -369,7 +369,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get computerAnalysis => 'コンピューター解析';
 
   @override
-  String get backToGame => '対局に戻る';
+  String get backToGame => 'ゲームに戻る';
 
   @override
   String get expandVariations => '変化手順を表示する';
@@ -384,7 +384,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get makeMainLine => '主手順にする';
 
   @override
-  String get deleteFromHere => 'ここから削除';
+  String get deleteFromHere => 'これ以降を削除';
 
   @override
   String get analyzing => '解析中…';
@@ -420,7 +420,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get analysisExplanation => 'コンピューター解析で評価値グラフと白・黒それぞれの指し手の正確度を表示します。';
 
   @override
-  String get pgnCopied => 'PGNをコピーしました';
+  String get pgnCopied => 'PGNをコピーしました。';
 
   @override
   String get fenCopied => 'FENをコピーしました';
@@ -769,14 +769,14 @@ class AppLocalizationsJa extends AppLocalizations {
   String get restoreLitSquares => '手を戻すには、Chessnutの点灯したマスの駒を元に戻してください。';
 
   @override
-  String get completeMaiaLitMove => 'Chessnutの点灯したマスに従って、Maiaの指し手を完了してください。';
+  String get completeMaiaLitMove => 'Chessnutの点灯したマスに従って、Maiaの手を最後まで指してください。';
 
   @override
   String get illegalChessnutPosition =>
       '合法な手を指した後の局面ではありません。点灯したマスの駒を修正してください。';
 
   @override
-  String get completeYourChessnutMove => 'Chessnutであなたの手を完了してください。';
+  String get completeYourChessnutMove => 'Chessnutで指しかけた手を最後まで指してください。';
 
   @override
   String get connectChessnutFirst => '開始前にChessnutを接続してください。';
@@ -789,10 +789,10 @@ class AppLocalizationsJa extends AppLocalizations {
       '引き分け — 時間切れですが、相手は残りの駒でチェックメイトできません。';
 
   @override
-  String get whiteOutOfTime => '白の時間が切れました。';
+  String get whiteOutOfTime => '白が時間切れになりました';
 
   @override
-  String get blackOutOfTime => '黒の時間が切れました。';
+  String get blackOutOfTime => '黒が時間切れになりました';
 
   @override
   String get makeMaiaLitMove => 'Chessnutの点灯したマスに従って、Maiaの指し手を盤上で再現してください。';
@@ -804,10 +804,10 @@ class AppLocalizationsJa extends AppLocalizations {
   String get checkmateYouWin => 'チェックメイト — あなたの勝ちです！';
 
   @override
-  String get drawResult => '引き分け。';
+  String get drawResult => '引き分け';
 
   @override
-  String get drawByAgreement => '合意による引き分け。';
+  String get drawByAgreement => '合意によるドロー';
 
   @override
   String get youWin => 'あなたの勝ちです。';

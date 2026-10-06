@@ -110,7 +110,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Moves, captures, errors, and game end';
 
   @override
-  String get hapticFeedback => 'Haptic feedback';
+  String get hapticFeedback => 'Touch feedback';
 
   @override
   String get touchFeedbackForMovesChecksErrorsAndGameEnd =>
@@ -267,7 +267,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get offerDraw => 'Offer draw';
 
   @override
-  String get takeBackMove => 'Take back move';
+  String get takeBackMove => 'Takeback';
 
   @override
   String get whiteIsVictorious => 'White is victorious';
@@ -809,10 +809,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chessnutIsDisconnected => 'Chessnut is disconnected.';
 
   @override
-  String get yourMove => 'Your move.';
+  String get yourMove => 'Your turn.';
 
   @override
-  String get yourMoveChessnut => 'Your move on Chessnut.';
+  String get yourMoveChessnut => 'Your turn on Chessnut.';
 
   @override
   String get chessnutReady => 'Chessnut is ready.';
@@ -823,7 +823,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get takebackCompleteYourMove =>
-      'Takeback complete. Your move on Chessnut.';
+      'Takeback complete. Your turn on Chessnut.';
 
   @override
   String get takebackCompleteThinking => 'Takeback complete. Maia is thinking…';
@@ -895,7 +895,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get youResigned => 'You resigned — Maia wins.';
 
   @override
-  String get moveTakenBack => 'Move taken back. Your move.';
+  String get moveTakenBack => 'Move taken back. Your turn.';
 
   @override
   String get connectingChessnut => 'Connecting to Chessnut…';

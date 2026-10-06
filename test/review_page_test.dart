@@ -1027,7 +1027,7 @@ void main() {
     expect(find.text('Flip board'), findsOneWidget);
     expect(find.text('Analysis Board'), findsOneWidget);
     expect(find.text('Resign'), findsOneWidget);
-    expect(find.text('Take back move'), findsOneWidget);
+    expect(find.text('Takeback'), findsOneWidget);
     expect(find.text('Reset game'), findsOneWidget);
     await tester.tap(find.text('Flip board'));
     await tester.pumpAndSettle();
@@ -1193,7 +1193,7 @@ void main() {
       }
 
       expect(predictions, expectedPredictions, reason: '$fen / $side');
-      expect(find.text('Your move.'), findsNothing);
+      expect(find.text('Your turn.'), findsNothing);
       expect(find.text('Maia3 1600elo'), findsOneWidget);
       expect(find.textContaining('offline'), findsNothing);
       final board = tester.widget<cg.Chessboard>(

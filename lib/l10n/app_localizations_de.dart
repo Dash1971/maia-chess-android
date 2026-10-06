@@ -10,7 +10,7 @@ class AppLocalizationsDe extends AppLocalizations {
   AppLocalizationsDe([String locale = 'de']) : super(locale);
 
   @override
-  String get about => 'Über die App';
+  String get about => 'Über';
 
   @override
   String get analysisBoard => 'Analysebrett';
@@ -46,16 +46,16 @@ class AppLocalizationsDe extends AppLocalizations {
   String get gameSettings => 'Partieeinstellungen';
 
   @override
-  String get home => 'Startseite';
+  String get home => 'Start';
 
   @override
   String get playMaia => 'Gegen Maia spielen';
 
   @override
-  String get random => 'Zufällig';
+  String get random => 'Zufällige Farbe';
 
   @override
-  String get recentGames => 'Letzte Partien';
+  String get recentGames => 'Neueste Partien';
 
   @override
   String get resign => 'Aufgeben';
@@ -76,7 +76,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get unlimited => 'Unbegrenzt';
 
   @override
-  String get custom => 'Benutzerdefiniert';
+  String get custom => 'Andere Spielzeit';
 
   @override
   String get seconds => 'Sekunden';
@@ -233,7 +233,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get yourGameWillBeKeptInRecentGames =>
-      'Deine Partie wird unter „Letzte Partien“ gespeichert.';
+      'Deine Partie wird unter „Neueste Partien“ gespeichert.';
 
   @override
   String get cancel => 'Abbrechen';
@@ -249,7 +249,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get yourCompletedGameWillRemainInRecentGames =>
-      'Deine beendete Partie bleibt unter „Letzte Partien“ gespeichert.';
+      'Deine beendete Partie bleibt unter „Neueste Partien“ gespeichert.';
 
   @override
   String get thisGameWillBePermanentlyErased =>
@@ -277,7 +277,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get blackIsVictorious => 'Schwarz gewinnt';
 
   @override
-  String get theGameIsADraw => 'Die Partie endet remis';
+  String get theGameIsADraw => 'Das Spiel ist Remis.';
 
   @override
   String get theGameHasEnded => 'Die Partie ist beendet';
@@ -337,7 +337,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get enPassantTarget => 'En-passant-Zielfeld';
 
   @override
-  String get startingPosition => 'Grundstellung';
+  String get startingPosition => 'Anfangsposition';
 
   @override
   String get clearBoard => 'Brett räumen';
@@ -379,10 +379,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get backToGame => 'Zurück zur Partie';
 
   @override
-  String get expandVariations => 'Varianten einblenden';
+  String get expandVariations => 'Varianten ausklappen';
 
   @override
-  String get collapseVariations => 'Varianten ausblenden';
+  String get collapseVariations => 'Varianten einklappen';
 
   @override
   String get promoteVariation => 'Variante aufwerten';
@@ -430,7 +430,7 @@ class AppLocalizationsDe extends AppLocalizations {
       'Starte die Computer-Analyse, um das Bewertungsdiagramm und die Genauigkeit für Weiß und Schwarz zu berechnen.';
 
   @override
-  String get pgnCopied => 'PGN kopiert';
+  String get pgnCopied => 'PGN kopiert.';
 
   @override
   String get fenCopied => 'FEN kopiert';
@@ -524,16 +524,16 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String get classificationBrilliant => 'Brillant';
+  String get classificationBrilliant => 'Brillanter Zug';
 
   @override
-  String get classificationGood => 'Gut';
+  String get classificationGood => 'Guter Zug';
 
   @override
-  String get classificationInteresting => 'Interessant';
+  String get classificationInteresting => 'Interessanter Zug';
 
   @override
-  String get classificationDubious => 'Fragwürdig';
+  String get classificationDubious => 'Fragwürdiger Zug';
 
   @override
   String get classificationMistake => 'Fehler';
@@ -867,10 +867,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Remis — Zeitüberschreitung bei unzureichendem Mattmaterial des Gegners.';
 
   @override
-  String get whiteOutOfTime => 'Weiß hat die Zeit überschritten.';
+  String get whiteOutOfTime => 'Zeitüberschreitung von Weiß';
 
   @override
-  String get blackOutOfTime => 'Schwarz hat die Zeit überschritten.';
+  String get blackOutOfTime => 'Zeitüberschreitung von Schwarz';
 
   @override
   String get makeMaiaLitMove => 'Führe Maias angezeigten Zug auf Chessnut aus.';
@@ -882,10 +882,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get checkmateYouWin => 'Schachmatt — du gewinnst!';
 
   @override
-  String get drawResult => 'Remis.';
+  String get drawResult => 'Remis';
 
   @override
-  String get drawByAgreement => 'Remis durch Einigung.';
+  String get drawByAgreement => 'Remis durch Einigung';
 
   @override
   String get youWin => 'Du gewinnst.';
