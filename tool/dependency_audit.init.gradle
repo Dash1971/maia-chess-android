@@ -1,6 +1,8 @@
 // Read-only dependency resolution for release audits. No APK/model build needed.
 import groovy.json.JsonOutput
+import groovy.json.JsonSlurper
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier
 import org.gradle.api.artifacts.result.UnresolvedDependencyResult
 
 gradle.projectsEvaluated {
@@ -8,11 +10,25 @@ gradle.projectsEvaluated {
     if (app == null) return // Ignore Flutter's included Gradle build.
     app.tasks.register('writeReleaseDependencyAudit') {
         doLast {
+            // Flutter can configure the app even when pub get stopped before writing
+            // its plugin manifest. That would silently omit plugins' Maven edges.
+            def manifest = new File(gradle.rootProject.projectDir, '../.flutter-plugins-dependencies')
+            if (!manifest.isFile()) throw new GradleException('Run a successful locked flutter pub get before auditing')
+            def androidPlugins = new JsonSlurper().parse(manifest).plugins.android
+            def expectedPlugins = androidPlugins.findAll {
+                it.native_build != false && it.dev_dependency != true
+            }.collect { it.name }.sort()
+            if (expectedPlugins.isEmpty()) throw new GradleException('Missing Android plugin manifest entries')
             def resolution = app.configurations.getByName('releaseRuntimeClasspath').incoming.resolutionResult
             def unresolved = resolution.allDependencies.findAll { it instanceof UnresolvedDependencyResult }
             if (!unresolved.isEmpty()) {
                 throw new GradleException('Incomplete release dependency graph: ' + unresolved*.attempted)
             }
+            def projectPaths = resolution.allComponents.collect { component ->
+                component.id instanceof ProjectComponentIdentifier ? component.id.projectPath : null
+            }.findAll { it != null }
+            def missingPlugins = expectedPlugins.findAll { !projectPaths.contains(":" + it) }
+            if (!missingPlugins.isEmpty()) throw new GradleException('Plugins absent from release graph: ' + missingPlugins)
             def packages = resolution.allComponents.collect { component ->
                 def id = component.id
                 id instanceof ModuleComponentIdentifier ?
@@ -22,7 +38,7 @@ gradle.projectsEvaluated {
             def output = new File(gradle.rootProject.projectDir, '../release-checks/maven-dependencies.json')
             output.parentFile.mkdirs()
             output.text = JsonOutput.prettyPrint(JsonOutput.toJson([
-                schema: 1, configuration: 'releaseRuntimeClasspath', packages: packages
+                schema: 1, configuration: 'releaseRuntimeClasspath', android_plugins: expectedPlugins, packages: packages
             ])) + '\n'
         }
     }

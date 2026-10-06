@@ -19,7 +19,8 @@ The `dependencies` job runs on pull requests, pushes and manual release runs.
 It resolves the **release** Android Maven graph without building the APK, then
 queries OSV for locked Pub packages, resolved Maven packages, declared AGP/Kotlin
 plugins/Gradle core and direct pinned Python release/test tools. It retains the inventory
-and timestamped results. Known active advisories, unresolved dependencies,
+and timestamped results. A missing Flutter plugin manifest or plugins absent
+from the resolved graph blocks the audit. Known active advisories, unresolved dependencies,
 malformed responses or persistent network errors fail the job. Fix or review
 findings; do not turn an unavailable advisory service into a clean result.
 

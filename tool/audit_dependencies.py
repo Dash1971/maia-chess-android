@@ -37,6 +37,11 @@ def inventory(root, maven):
         raise ValueError('Empty Pub lockfile')
     if maven.get('schema') != 1 or maven.get('configuration') != 'releaseRuntimeClasspath':
         raise ValueError('Expected resolved releaseRuntimeClasspath inventory')
+    plugins = maven.get('android_plugins')
+    if not isinstance(plugins, list) or not all(isinstance(p, str) for p in plugins) or not {
+        'package_info_plus', 'shared_preferences_android'
+    }.issubset(plugins):
+        raise ValueError('Android inventory is missing the app plugin graph')
     android = maven.get('packages')
     if not isinstance(android, list) or not android:
         raise ValueError('Empty Android inventory')

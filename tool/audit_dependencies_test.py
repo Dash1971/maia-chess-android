@@ -72,12 +72,14 @@ class DependencyAuditTest(unittest.TestCase):
                 'description': {'url': 'https://pub.dev'}, 'version': '1.0.0'},
                 'flutter': {'source': 'sdk', 'version': '0.0.0'}}}
             (root / 'pubspec.lock').write_text(json.dumps(lock))
-            maven = {'schema': 1, 'configuration': 'releaseRuntimeClasspath', 'packages': [
+            maven = {'schema': 1, 'configuration': 'releaseRuntimeClasspath',
+                'android_plugins': ['package_info_plus', 'shared_preferences_android'], 'packages': [
                 {'ecosystem': 'Maven', 'name': 'com.microsoft.onnxruntime:onnxruntime-android', 'version': '1.24.3'}]}
             result = inventory(root, maven)
             self.assertIn(PACKAGE, result)
             self.assertEqual(len(result), 7)
-            for bad in [{}, {**maven, 'packages': []}, {**maven, 'configuration': 'debugRuntimeClasspath'},
+            for bad in [{}, {**maven, 'android_plugins': []}, {**maven, 'android_plugins': ['package_info_plus']},
+                        {**maven, 'android_plugins': None}, {**maven, 'packages': []}, {**maven, 'configuration': 'debugRuntimeClasspath'},
                         {**maven, 'packages': [{'ecosystem': 'Maven', 'name': 'other', 'version': '1'}]}]:
                 with self.assertRaises(ValueError):
                     inventory(root, bad)

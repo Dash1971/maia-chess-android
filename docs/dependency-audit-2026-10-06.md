@@ -7,15 +7,22 @@ Flutter SDK localization library and `intl` 0.20.3, both already used by Preview
 
 ## Advisory check
 
-At 2026-10-06 10:22 JST, the new audit queried [OSV](https://osv.dev/) for
-**116 distinct package/version entries**: 59 locked Pub packages, 50 resolved
+At 2026-10-06 10:33 JST, the new audit queried [OSV](https://osv.dev/) for
+**155 distinct package/version entries**: 59 locked Pub packages, 89 resolved
 Android release Maven modules plus declared AGP/Kotlin plugins and Gradle core, and four
 pinned Python release/test tools. No active advisory matches were returned.
 One earlier preliminary request received HTTP 503 and correctly failed; the
 completed audit includes bounded retries and does not silently skip failures.
 
+Comparison with clean Linux CI exposed that the initial local 116-entry scan
+had omitted Flutter plugins because local `pub get` had not finished writing its
+plugin manifest. The completed local and CI graphs now both cover 155 entries.
+The audit explicitly rejects a missing manifest or plugins absent from the
+resolved release graph; the missing-manifest negative check passed. Use the
+completed scan reported here, not the superseded partial snapshot.
+
 - Pub lock SHA-256: `fa12b3dea734d731b33220c24133b38addef5e7dda4fb7311e118fc2eca8e650`
-- Resolved Maven inventory SHA-256: `78d265345f1a1c1b885ab262eff9db62ba75048938cad0869dfbf0e06fa096cd`
+- Resolved Maven inventory SHA-256: `fb86342460cc72cf29eb98f688ce14eef17a725cf1632fa0d2ff289ce3d646c6`
 - `flutter pub outdated --json` reported no current package affected by a Pub
   advisory. It did report newer versions, considered below.
 - Android release dependency resolution completed locally without an APK/model
@@ -69,7 +76,8 @@ its live versions can be newer than cached web changelog pages.
 ## Continuing protection
 
 The new `dependencies` CI job runs on each PR, main push and manual release run.
-It refuses unresolved graphs, unknown package sources, dynamic versions,
+It refuses missing plugin manifests, omitted plugin projects, unresolved graphs,
+unknown package sources, dynamic versions,
 malformed/incomplete OSV responses and persistent network failures. It follows
 pagination and ignores only explicitly withdrawn advisories. No blanket ignore
 list is introduced. The publication gate now requires this job in addition to
