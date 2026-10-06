@@ -10,7 +10,8 @@ AutoName: Mobile Maia
 
 RepoType: git
 Repo: https://github.com/Dash1971/maia-chess-android.git
-Binaries: https://github.com/Dash1971/maia-chess-android/releases/download/v%v/Mobile-Maia-v%v.apk
+Binaries:
+  https://github.com/Dash1971/maia-chess-android/releases/download/v%v/Mobile-Maia-v%v.apk
 
 Builds:
   - versionName: 2.1.2
@@ -73,9 +74,9 @@ Builds:
       - $$flutter$$/bin/dart tool/prepare_reproducible_package_config.dart .dart_tool/package_config.json
       - $$flutter$$/bin/flutter build apk --release --no-pub --android-project-arg=mobileMaiaSourceDateEpoch=$SOURCE_DATE_EPOCH
 
-  - versionName: 2.2.1
-    versionCode: 78
-    commit: 05ce04e0e970ee12110b384c95e992508ce1a6b2
+  - versionName: 2.2.2
+    versionCode: 79
+    commit: 9e0bec93b4102cf04e1405324cf323bbcf249f2b
     sudo:
       - apt-get update
       - apt-get install -y git-lfs
@@ -103,36 +104,36 @@ Builds:
       - $$flutter$$/bin/dart tool/prepare_reproducible_package_config.dart .dart_tool/package_config.json
       - $$flutter$$/bin/flutter build apk --release --no-pub --android-project-arg=mobileMaiaSourceDateEpoch=$SOURCE_DATE_EPOCH
 
-  # Proposed release: create this tag only after final-source qualification.
-  - versionName: 2.2.2
-    versionCode: 79
-    commit: v2.2.2
+  # Proposed only: replace tag with the frozen full SHA in qualification evidence.
+  - versionName: 2.3.0
+    versionCode: 80
+    commit: v2.3.0
     sudo:
-      - apt-get update
-      - apt-get install -y git-lfs
-      - git lfs install
+    - apt-get update
+    - apt-get install -y git-lfs
+    - git lfs install
     output: build/app/outputs/flutter-apk/app-release.apk
     srclibs:
-      - flutter@stable
+    - flutter@stable
     prebuild:
-      - git lfs pull
-      - export PUB_CACHE=$(pwd)/.pub-cache
-      - flutterVersion=$(sed -n -E 's/.*"flutter"\s*:\s*"([^"]+)".*/\1/p' .fvmrc)
-      - '[[ $flutterVersion ]]'
-      - git -C $$flutter$$ checkout -f $flutterVersion
-      - python3 tool/prepare_reproducible_flutter_sdk.py --flutter-root $$flutter$$
-      - $$flutter$$/bin/flutter config --no-analytics
-      - $$flutter$$/bin/flutter pub get --enforce-lockfile
-      - python3 tool/prepare_reproducible_stockfish.py --package-config .dart_tool/package_config.json
-      - python3 tool/verify_model.py
+    - git lfs pull
+    - export PUB_CACHE=$(pwd)/.pub-cache
+    - flutterVersion=$(sed -n -E 's/.*"flutter"\s*:\s*"([^"]+)".*/\1/p' .fvmrc)
+    - '[[ $flutterVersion ]]'
+    - git -C $$flutter$$ checkout -f $flutterVersion
+    - python3 tool/prepare_reproducible_flutter_sdk.py --flutter-root $$flutter$$
+    - $$flutter$$/bin/flutter config --no-analytics
+    - $$flutter$$/bin/flutter pub get --enforce-lockfile
+    - python3 tool/prepare_reproducible_stockfish.py --package-config .dart_tool/package_config.json
+    - python3 tool/verify_model.py
     scandelete:
-      - .pub-cache
+    - .pub-cache
     build:
-      - export PUB_CACHE=$(pwd)/.pub-cache
-      - export SOURCE_DATE_EPOCH=$(git log -1 --format=%ct)
-      - $$flutter$$/bin/flutter build apk --release --config-only
-      - $$flutter$$/bin/dart tool/prepare_reproducible_package_config.dart .dart_tool/package_config.json
-      - $$flutter$$/bin/flutter build apk --release --no-pub --android-project-arg=mobileMaiaSourceDateEpoch=$SOURCE_DATE_EPOCH
+    - export PUB_CACHE=$(pwd)/.pub-cache
+    - export SOURCE_DATE_EPOCH=$(git log -1 --format=%ct)
+    - $$flutter$$/bin/flutter build apk --release --config-only
+    - $$flutter$$/bin/dart tool/prepare_reproducible_package_config.dart .dart_tool/package_config.json
+    - $$flutter$$/bin/flutter build apk --release --no-pub --android-project-arg=mobileMaiaSourceDateEpoch=$SOURCE_DATE_EPOCH
 
 AllowedAPKSigningKeys: cd6c07c4efacf52bcccb83009b522c1dcad4a171197505a486f0a58edb6f172e
 
@@ -143,15 +144,10 @@ MaintainerNotes: |-
   source tree, before building. The Flutter version is extracted from the
   upstream .fvmrc and checked out before the reproducibility patch runs. The
   guarded Flutter and Stockfish preparation steps are required for
-  deterministic, reproducible builds. Version 2.1.3 updates ONNX Runtime for
-  Android from 1.23.2 to 1.24.3 while retaining Stable's explicit R8 rules for
-  ONNX Runtime JNI and reflection entry points. Version 2.2.0 pins Flutter
-  3.47.5 and Stockfish 19 Light; it retains the same model verification,
-  universal output and developer-signed reproducible-build path. Version 2.2.1
-  removes the research-only ZIP and needs no source-scan exclusion for it.
+  deterministic, reproducible builds.
 
 AutoUpdateMode: Version
 UpdateCheckMode: Tags
 UpdateCheckData: pubspec.yaml|version:\s.+\+(\d+)|.|version:\s(.+)\+
-CurrentVersion: 2.2.2
-CurrentVersionCode: 79
+CurrentVersion: 2.3.0
+CurrentVersionCode: 80

@@ -15,34 +15,35 @@ Download the latest Stable APK from
 The [official F-Droid package page](https://f-droid.org/packages/com.dash1971.maia_chess/)
 also provides updates after its separate reproducible-build process completes.
 
-## Mobile Maia 2.2
+## Mobile Maia 2.3
 
-Version 2.2 brings:
+Version 2.3 adds:
 
-- **Two Maia perspectives at once:** optionally compare a second Maia rating in
-  analysis and full-game review, alongside two Stockfish 19 Light lines. For
-  example, see what Maia 1600 and Maia 2400 would each play in the same position.
-- **Richer game feedback:** optional on-device sounds for moves, captures,
-  errors, and game end, plus haptics for moves, checks, errors, and game end.
-- **A more useful review and game library:** faster default full-game analysis,
-  improved move classification to make Brilliant moves more likely to be
-  identified correctly, and Recent games
-  labeled with the player side, Maia rating, and actual result or Incomplete.
-- **More resilient play:** transactional saved-game checkpoints with a previous
-  readable copy, stronger variation recovery and native-engine checks, and
-  privacy-safe Chessnut diagnostics.
-- **Continue from here:** start a game from an Analysis Board position with a
-  one-game choice of side, Maia rating, and clock.
+- **Ten interface languages:** English, Japanese, Simplified Chinese, Korean,
+  Spanish, German, French, Russian, Hindi and Brazilian Portuguese. Follow the
+  device language or choose one in Settings; the choice is remembered locally.
+- **A clearer game library:** Recent games keeps the original played date and
+  chronological order when you open or analyse a game. Only the result is
+  coloured: green for your win, red for your loss, amber for a draw and muted
+  blue for an unfinished game.
+- **The complete Lichess-style quick controls:** 1+0, 2+1, 3+0, 3+2, 5+0, 5+3,
+  10+0, 10+5, 15+10, 30+0 and 30+20, alongside Unlimited and Custom. The same
+  choices are available in Continue from here.
+- **Quicker optional human timing for short games:** 1+0 averages about one
+  second per move; 2+1, 3+0 and 3+2 average about 1.5 seconds. Longer controls
+  retain the existing rhythm. Calculation time counts toward these targets.
 
-New games default to **Temperature 1.00 / Top-P 1.00** for a wider range of
-Maia openings; valid saved choices are preserved. The
+The Maia-3 79M model, Stockfish 19 Light and established engine settings are
+unchanged. Existing games and valid preferences are preserved. See the
+[2.3 release notes](docs/release-notes/v2.3.0.md).
+
+Version 2.2 added two Maia analysis perspectives, game sounds and haptics,
+stronger review and recovery, and Continue from here setup. New games default
+to **Temperature 1.00 / Top-P 1.00**; valid saved choices are preserved. The
 [sampling report](docs/research/maia3-sampling/REPORT.md) explains the
-strength-versus-variety tradeoff. See the [full 2.2 release notes](docs/release-notes/v2.2.0.md).
-
-Version 2.1 introduced experimental Chessnut support, multiple premoves,
-endgame draw offers, remembered setup, full-game analysis presets, historical
-clocks, timed-PGN annotations, and stronger game and variation recovery. See
-the [complete 2.1 release notes](docs/release-notes/v2.1.0.md).
+strength-versus-variety tradeoff. Earlier changes are documented in the
+[2.2 notes](docs/release-notes/v2.2.0.md) and
+[2.1 notes](docs/release-notes/v2.1.0.md).
 
 Active development continues in the separate
 [Mobile Maia Preview repository](https://github.com/Dash1971/maia-chess-android-preview).
@@ -51,10 +52,15 @@ this stable blue-icon app.
 
 ## Feature guide
 
+The refreshed 2.3 Home, Settings, clock-menu and Recent Games images below are
+renders of the actual Flutter screens (sample records in Recent Games), not
+Android APK qualification evidence. Unchanged board/review screenshots are
+retained from earlier Stable releases. See [capture provenance](docs/release-notes/v2.3.0.md#screenshots).
+
 ### Choose a game or analysis workflow
 
 <p align="center">
-  <img src="docs/screenshots/20261003_v0_stable_2_2_home.png" width="42%" alt="Stable 2.2 home screen with Play Maia rating, side, clock, Chessnut toggle, Analysis Board, Recent games, and Settings">
+  <img src="docs/screenshots/20261006_v0_stable_2_3_home.png" width="42%" alt="Stable 2.3 Home screen with Play Maia rating, side, clock, Chessnut toggle, Analysis Board, Recent games, and Settings">
 </p>
 
 The home screen is the starting point for every workflow. Play as White, Black,
@@ -67,22 +73,52 @@ are remembered locally.
 ### Time controls
 
 <p align="center">
-  <img src="docs/screenshots/20260906_v0_time_control_menu.jpg" width="42%" alt="Mobile Maia time-control menu with Unlimited, preset, and custom clocks">
+  <img src="docs/screenshots/20261006_v0_stable_2_3_time_controls.png" width="42%" alt="Mobile Maia time-control menu including 10+5, 30+0 and 30+20">
 </p>
 
-Games are unlimited by default. Lichess-style presets and custom minutes plus
-increment are also available. Training clocks pause while the app is in the
+Games are unlimited by default. The quick controls follow Lichess's order:
+**1+0, 2+1, 3+0, 3+2, 5+0, 5+3, 10+0, 10+5, 15+10, 30+0, 30+20**.
+The first number is minutes per player; the second is seconds added after each
+move. Custom minutes and increment are also available. Training clocks pause while the app is in the
 background, while you review the current game, or after an engine error. Timed
 PGNs use a standard `TimeControl` header and per-move `[%clk ...]` comments to
 millisecond precision; unlimited games do not invent clock data.
 
 ### Human move timing
 
-Human move timing is optional and off by default. When enabled, Maia varies its pauses to give games a more natural rhythm. Shorter pauses are more common than longer ones.
+Human move timing is optional and off by default. When enabled, Maia varies
+its pauses to give games a more natural rhythm. Shorter pauses are more common
+than longer ones. The configured time control selects the timing automatically:
 
-Each move gets a randomly chosen timing target, normally between 0.55 and 4.5 seconds. About 6% receive an additional 1.5–4.5 seconds. Overall, targets average approximately 2 seconds and can reach about 9 seconds. These pauses are random; they do not reflect how difficult Maia considers the position.
+| Time control | Average move-time target | Maximum target |
+| --- | --- | --- |
+| 1+0 | About 1 second | 3 seconds |
+| 2+1, 3+0, 3+2 | About 1.5 seconds | 4.5 seconds |
+| 5+0 and longer presets; Unlimited | About 2 seconds | About 9 seconds |
 
-Time spent calculating the move counts toward the target. If the move is ready after 0.2 seconds and the target is 1.8 seconds, the app waits another 1.6 seconds. If calculation already takes 2.3 seconds, it adds no extra wait.
+The default draw is normally 0.55–4.5 seconds, with a 6% chance of an additional
+1.5–4.5 seconds. Faster tiers scale that whole sample and then cap it. Matching
+Custom controls use the same faster tiers; other Custom controls keep the
+original distribution. These are random pauses, not a measure of position
+difficulty, and they do not shorten automatically when the remaining clock is low.
+
+Calculation time counts toward the target. If the move is ready after 0.2
+seconds and the target is 1.8 seconds, the app waits another 1.6 seconds. If
+calculation already takes 2.3 seconds, it adds no extra wait. Actual times can
+therefore exceed the target, and timed games can still end on the clock.
+
+### Interface language
+
+<p align="center">
+  <img src="docs/screenshots/20261006_v0_stable_2_3_settings.png" width="42%" alt="Mobile Maia Settings with the Language selector above Game settings">
+</p>
+
+Open **Settings → Language** to follow the system or select English, 日本語,
+简体中文, 한국어, Español, Deutsch, Français, Русский, हिन्दी or Português (Brasil).
+Languages are listed by their native names. Switching updates the interface
+without rewriting PGN notation, historical game data or engine values.
+Unsupported device languages fall back to English; Simplified Chinese is not
+silently substituted for a Traditional Chinese system preference.
 
 ### Advanced play and review settings
 
@@ -357,13 +393,19 @@ original game.
 ### Recent games and PGN files
 
 <p align="center">
-  <img src="docs/screenshots/20261003_v0_stable_2_2_recent_games.png" width="46%" alt="Stable 2.2 Recent games showing Maia 1500 — Player with a 1-0 result and Player — Maia 1500 marked Incomplete, both dated">
+  <img src="docs/screenshots/20261006_v0_stable_2_3_recent_games.png" width="46%" alt="Recent games with player-relative result colors and original played dates">
 </p>
 
 **Recent games** contains completed games and unfinished games explicitly saved
 with Home. Each entry now identifies the player side and Maia rating (for
 example, **Player — Maia 1600**) and shows the actual result (**1-0**, **0-1**,
-or **1/2-1/2**) or **Incomplete**, plus the saved date. It supports
+or **1/2-1/2**) or **Incomplete**, plus the original played date. Opening or
+analysing a record changes neither its date nor its chronological position.
+Older records without a reliable played date show **Date unknown**.
+Only the result text is coloured: green for the player's win, red for a loss,
+amber for a draw and blue for incomplete. A `1-0` is therefore green if you
+played White and red if you played Black; unknown results stay neutral.
+It supports
 multi-select, select all, selected deletion, and delete all. An unfinished
 record becomes the same completed record when play ends.
 Because Android can erase private app data on uninstall, use **Save PGN file**
@@ -381,7 +423,7 @@ contains several games.
 </p>
 
 The app has no accounts, ads, subscriptions, tracking, or network dependency.
-The Stable 2.2.1 APK is 455,572,907 bytes (about 434.5 MiB). It bundles the
+The download is several hundred megabytes because it bundles the
 Maia-3 79M model so play and analysis stay on the device. The About screen
 shows the installed version, AGPL terms, warranty notice, source and licence
 links, and upstream credits.
@@ -465,6 +507,9 @@ python3 tool/verify_release_apk.py \
   --allow-abi armeabi-v7a --allow-abi arm64-v8a --allow-abi x86_64 \
   --output release-checks/apk.json
 ```
+
+Dependency advisory checks run in CI without adding runtime app work. Their
+coverage and the required upstream review are documented in the release guide.
 
 Maintainers and coding agents should start with the
 [release procedure and qualification gate](docs/RELEASING.md) before signing,

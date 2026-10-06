@@ -4,6 +4,9 @@ Before preparing, signing, tagging, or publishing a Stable release, read
 [`docs/RELEASING.md`](docs/RELEASING.md). That is the authoritative release
 procedure; follow its gates even for metadata-only releases.
 
+- Review upstream releases and security advisories at each Stable promotion;
+  the exact-source `dependencies` CI job must pass before publication. See
+  release-guide section 0 for coverage limits and upgrade decisions.
 - Freeze one full source commit, including accurate Fastlane metadata. A later
   commit on `main` cannot repair an existing release tag.
 - Qualify that exact commit using GitHub CI and an independent Linux build with

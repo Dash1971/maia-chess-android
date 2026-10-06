@@ -20,6 +20,15 @@ enum MoveClassification {
   final String symbol;
   final String label;
   final Color color;
+
+  String localizedLabel(BuildContext context) => switch (this) {
+    MoveClassification.brilliant => l10n(context).classificationBrilliant,
+    MoveClassification.good => l10n(context).classificationGood,
+    MoveClassification.interesting => l10n(context).classificationInteresting,
+    MoveClassification.dubious => l10n(context).classificationDubious,
+    MoveClassification.mistake => l10n(context).classificationMistake,
+    MoveClassification.blunder => l10n(context).classificationBlunder,
+  };
 }
 
 class ClassifiedMove {
@@ -675,7 +684,11 @@ class MoveClassificationSummary extends StatelessWidget {
       final next =
           matches.where((move) => move.ply > selectedPly).firstOrNull ??
           matches.firstOrNull;
-      final label = '${matches.length} $side ${classification.label} moves';
+      final label = l10n(context).classificationCount(
+        matches.length,
+        side,
+        classification.localizedLabel(context),
+      );
       return SizedBox(
         width: 48,
         height: 48,
@@ -683,9 +696,9 @@ class MoveClassificationSummary extends StatelessWidget {
           button: matches.isNotEmpty,
           selected: selected,
           label: label,
-          hint: matches.isEmpty ? null : 'Go to next',
+          hint: matches.isEmpty ? null : l10n(context).goToNext,
           child: Tooltip(
-            message: matches.isEmpty ? label : '$label · tap for next',
+            message: matches.isEmpty ? label : l10n(context).tapForNext(label),
             child: InkWell(
               borderRadius: BorderRadius.circular(4),
               onTap: next == null ? null : () => onSelected(next.ply),
@@ -696,7 +709,9 @@ class MoveClassificationSummary extends StatelessWidget {
                       : Colors.transparent,
                   borderRadius: BorderRadius.circular(4),
                 ),
-                child: Center(child: Text('${matches.length}')),
+                child: Center(
+                  child: Text(displayNumber(context, matches.length)),
+                ),
               ),
             ),
           ),
@@ -710,16 +725,22 @@ class MoveClassificationSummary extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         child: Column(
           children: [
-            const Row(
+            Row(
               children: [
                 SizedBox(
                   width: 48,
-                  child: Text('W', textAlign: TextAlign.center),
+                  child: Text(
+                    l10n(context).whiteShort,
+                    textAlign: TextAlign.center,
+                  ),
                 ),
                 Expanded(child: SizedBox.shrink()),
                 SizedBox(
                   width: 48,
-                  child: Text('B', textAlign: TextAlign.center),
+                  child: Text(
+                    l10n(context).blackShort,
+                    textAlign: TextAlign.center,
+                  ),
                 ),
               ],
             ),
@@ -744,7 +765,7 @@ class MoveClassificationSummary extends StatelessWidget {
                     style: TextStyle(color: classification.color),
                     child: Row(
                       children: [
-                        countButton(white, 'White', classification),
+                        countButton(white, l10n(context).white, classification),
                         SizedBox(
                           width: 42,
                           child: Text(
@@ -755,11 +776,11 @@ class MoveClassificationSummary extends StatelessWidget {
                         ),
                         Expanded(
                           child: Text(
-                            classification.label,
+                            classification.localizedLabel(context),
                             style: const TextStyle(fontWeight: FontWeight.w600),
                           ),
                         ),
-                        countButton(black, 'Black', classification),
+                        countButton(black, l10n(context).black, classification),
                       ],
                     ),
                   );
@@ -1132,8 +1153,8 @@ class AccuracySummary extends StatelessWidget {
       startsWithWhite: startsWithWhite,
     );
     String label(double? value) => value == null
-        ? 'Not enough moves'
-        : '${value.clamp(0, 100).toStringAsFixed(1)}%';
+        ? l10n(context).notEnoughMoves
+        : '${displayNumber(context, value.clamp(0, 100), decimalDigits: 1)}%';
     Widget playerAccuracy(String side, double? value) => Expanded(
       child: Column(
         children: [
@@ -1150,7 +1171,7 @@ class AccuracySummary extends StatelessWidget {
       ),
     );
     return Semantics(
-      label: 'Game accuracy',
+      label: l10n(context).gameAccuracy,
       child: Card(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -1162,16 +1183,16 @@ class AccuracySummary extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const Text(
-                      'Accuracy',
+                    Text(
+                      l10n(context).accuracy,
                       style: TextStyle(fontWeight: FontWeight.w700),
                     ),
                     const SizedBox(height: 4),
                     Row(
                       children: [
-                        playerAccuracy('White', accuracy.white),
+                        playerAccuracy(l10n(context).white, accuracy.white),
                         const SizedBox(width: 12),
-                        playerAccuracy('Black', accuracy.black),
+                        playerAccuracy(l10n(context).black, accuracy.black),
                       ],
                     ),
                   ],
@@ -1205,16 +1226,19 @@ class AnalysisGraph extends StatelessWidget {
   Widget build(BuildContext context) {
     final selected = scores[selectedPly.clamp(0, scores.length - 1)];
     final scoreLabel = selected.mate == null
-        ? '${selected.evaluation >= 0 ? '+' : ''}${(selected.evaluation / 100).toStringAsFixed(1)}'
+        ? '${selected.evaluation >= 0 ? '+' : ''}${displayNumber(context, selected.evaluation / 100, decimalDigits: 1)}'
         : '#${selected.mate}';
     final boundedPly = selectedPly.clamp(0, scores.length - 1);
     return Semantics(
-      label: 'Computer analysis graph',
-      value: 'Position $boundedPly of ${scores.length - 1}, $scoreLabel',
+      label: l10n(context).analysisGraph,
+      value: l10n(context)
+          .graphPosition(boundedPly, scores.length - 1, scoreLabel),
       increasedValue: boundedPly < scores.length - 1
-          ? 'Position ${boundedPly + 1}'
+          ? l10n(context).positionNumber(boundedPly + 1)
           : null,
-      decreasedValue: boundedPly > 0 ? 'Position ${boundedPly - 1}' : null,
+      decreasedValue: boundedPly > 0
+          ? l10n(context).positionNumber(boundedPly - 1)
+          : null,
       onIncrease: boundedPly < scores.length - 1
           ? () => onSelected(boundedPly + 1)
           : null,
@@ -1225,7 +1249,8 @@ class AnalysisGraph extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.only(bottom: 4),
             child: Text(
-              'Position $boundedPly of ${scores.length - 1}  ·  $scoreLabel',
+              l10n(context)
+                  .graphPosition(boundedPly, scores.length - 1, scoreLabel),
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.labelMedium,
             ),
@@ -1247,6 +1272,9 @@ class AnalysisGraph extends StatelessWidget {
                 },
                 child: CustomPaint(
                   painter: AnalysisGraphPainter(
+                    openingLabel: l10n(context).phaseOpening,
+                    middlegameLabel: l10n(context).phaseMiddlegame,
+                    endgameLabel: l10n(context).phaseEndgame,
                     scores: scores,
                     positions: positions,
                     classifications: classifications,
@@ -1268,8 +1296,14 @@ class AnalysisGraphPainter extends CustomPainter {
     this.positions = const [],
     this.classifications = const [],
     required this.selectedPly,
+    this.openingLabel = 'Opening',
+    this.middlegameLabel = 'Middlegame',
+    this.endgameLabel = 'Endgame',
   });
 
+  final String openingLabel;
+  final String middlegameLabel;
+  final String endgameLabel;
   final List<StockfishReview> scores;
   final List<String> positions;
   final List<ClassifiedMove> classifications;
@@ -1360,10 +1394,10 @@ class AnalysisGraphPainter extends CustomPainter {
     }
 
     final initialPhase = phases.endgamePly == 0
-        ? 'Endgame'
+        ? endgameLabel
         : phases.middlegamePly == 0
-        ? 'Middlegame'
-        : 'Opening';
+        ? middlegameLabel
+        : openingLabel;
     final opening = TextPainter(
       text: TextSpan(
         text: initialPhase,
@@ -1377,10 +1411,10 @@ class AnalysisGraphPainter extends CustomPainter {
     )..layout();
     opening.paint(canvas, const Offset(5, 4));
     if (phases.middlegamePly != null) {
-      phaseLine(phases.middlegamePly!, 'Middlegame');
+      phaseLine(phases.middlegamePly!, middlegameLabel);
     }
     if (phases.endgamePly != null) {
-      phaseLine(phases.endgamePly!, 'Endgame');
+      phaseLine(phases.endgamePly!, endgameLabel);
     }
     for (final move in classifications) {
       if (move.ply < 0 || move.ply >= points.length) continue;
@@ -1419,7 +1453,10 @@ class AnalysisGraphPainter extends CustomPainter {
       oldDelegate.selectedPly != selectedPly ||
       oldDelegate.scores != scores ||
       oldDelegate.positions != positions ||
-      oldDelegate.classifications != classifications;
+      oldDelegate.classifications != classifications ||
+      oldDelegate.openingLabel != openingLabel ||
+      oldDelegate.middlegameLabel != middlegameLabel ||
+      oldDelegate.endgameLabel != endgameLabel;
 }
 
 class EvaluationBar extends StatelessWidget {
@@ -1486,7 +1523,7 @@ class EvaluationBar extends StatelessWidget {
                     child: FittedBox(
                       fit: BoxFit.scaleDown,
                       child: Text(
-                        _scoreLabel(score, mate),
+                        _scoreLabel(context, score, mate),
                         key: const ValueKey('evaluation-score-label'),
                         maxLines: 1,
                         style: TextStyle(
@@ -1507,11 +1544,11 @@ class EvaluationBar extends StatelessWidget {
     );
   }
 
-  String _scoreLabel(int? score, int? mate) {
+  String _scoreLabel(BuildContext context, int? score, int? mate) {
     if (mate != null) return '#$mate';
     if (score == null) return '';
     final pawns = score / 100;
-    return '${pawns >= 0 ? '+' : ''}${pawns.toStringAsFixed(1)}';
+    return '${pawns >= 0 ? '+' : ''}${displayNumber(context, pawns, decimalDigits: 1)}';
   }
 }
 
@@ -1582,13 +1619,6 @@ class MaterialDifference extends StatelessWidget {
     'q': IconData(0xf445, fontFamily: 'LichessIcons'),
     'r': IconData(0xf447, fontFamily: 'LichessIcons'),
   };
-  static const _names = {
-    'q': 'queen',
-    'r': 'rook',
-    'b': 'bishop',
-    'n': 'knight',
-    'p': 'pawn',
-  };
   // Match dartchess Role.values as used by Lichess Mobile: low-value pieces
   // first, then queen (king is omitted because it cannot be a material extra).
   static const _order = ['p', 'n', 'b', 'r', 'q'];
@@ -1617,20 +1647,29 @@ class MaterialDifference extends StatelessWidget {
         ),
       );
       if (count > 0) {
-        spoken.add('$count ${_names[role]}${count == 1 ? '' : 's'}');
+        spoken.add(switch (role) {
+          'p' => l10n(context).materialPawn(count),
+          'n' => l10n(context).materialKnight(count),
+          'b' => l10n(context).materialBishop(count),
+          'r' => l10n(context).materialRook(count),
+          'q' => l10n(context).materialQueen(count),
+          _ => '',
+        });
       }
     }
-    final sideName = side == chess.Color.WHITE ? 'White' : 'Black';
+    final sideName = side == chess.Color.WHITE
+        ? l10n(context).white
+        : l10n(context).black;
     final score = difference.score > 0 ? '+${difference.score}' : '';
     final description = [
       if (spoken.isNotEmpty) spoken.join(', '),
-      if (score.isNotEmpty) '$score material advantage',
+      if (score.isNotEmpty) l10n(context).materialAdvantage(score),
     ].join(', ');
     return Semantics(
       key: ValueKey(
         side == chess.Color.WHITE ? 'white-material' : 'black-material',
       ),
-      label: '$sideName material${description.isEmpty ? '' : ': $description'}',
+      label: l10n(context).materialDescription(sideName, description),
       child: ExcludeSemantics(
         child: Row(
           mainAxisSize: MainAxisSize.min,

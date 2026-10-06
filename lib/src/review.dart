@@ -1,5 +1,7 @@
 part of '../main.dart';
 
+enum _ReviewAnalysisStatus { failed, stopped }
+
 const primaryMaiaAnalysisColor = Color(0xffe89b3c);
 const secondaryMaiaAnalysisColor = Color(0xffe85d68);
 
@@ -21,7 +23,7 @@ class ReviewPage extends StatefulWidget {
     this.maiaEvaluator,
     this.maiaPolicyEvaluator,
     this.classifier,
-    this.title = 'Game review',
+    this.title,
     this.onLoadFen,
     this.onLoadPgn,
     this.onLoadPgnFile,
@@ -55,7 +57,7 @@ class ReviewPage extends StatefulWidget {
   final Future<List<double>?> Function(List<String> positions, int elo)?
   maiaPolicyEvaluator;
   final MoveClassificationRunner? classifier;
-  final String title;
+  final String? title;
   final Future<void> Function()? onLoadFen;
   final Future<void> Function()? onLoadPgn;
   final Future<void> Function()? onLoadPgnFile;
@@ -87,7 +89,7 @@ class _ReviewPageState extends State<ReviewPage>
   final Map<int, StockfishReview> _reviews = {};
   final Set<int> _loading = {};
   final Map<int, Future<void>> _pendingAnalyses = {};
-  String? _analysisError;
+  _ReviewAnalysisStatus? _analysisError;
   bool _flipped = false;
   bool _fullAnalysisRunning = false;
   bool _fullAnalysisClassifying = false;
@@ -117,7 +119,7 @@ class _ReviewPageState extends State<ReviewPage>
   bool _variationLoading = false;
   bool _variationMaiaLoading = false;
   bool _secondVariationMaiaLoading = false;
-  String? _variationError;
+  _ReviewAnalysisStatus? _variationError;
   final Map<String, StockfishReview> _variationReviewCache = {};
   final Map<String, Future<StockfishReview>> _pendingVariationReviews = {};
   final Map<String, MaiaPositionAnalysis> _variationMaiaCache = {};
@@ -974,7 +976,7 @@ class _ReviewPageState extends State<ReviewPage>
       return;
     } catch (error, stackTrace) {
       if (mounted && fen == _currentFen) {
-        setState(() => _variationError = 'Stockfish failed: $error');
+        setState(() => _variationError = _ReviewAnalysisStatus.failed);
       }
       unawaited(
         AppDiagnostics.record('stockfish-variation', error, stackTrace),
@@ -1229,25 +1231,25 @@ class _ReviewPageState extends State<ReviewPage>
                 leading: const Icon(Icons.subtitles_off),
                 title: Text(
                   _collapsedVariationKeys.contains(_variationKey(line))
-                      ? 'Expand variations'
-                      : 'Collapse variations',
+                      ? l10n(context).expandVariations
+                      : l10n(context).collapseVariations,
                 ),
                 onTap: () => Navigator.pop(context, 'collapse'),
               ),
               ListTile(
                 leading: const Icon(Icons.expand_less),
-                title: const Text('Promote variation'),
+                title: Text(l10n(context).promoteVariation),
                 onTap: () => Navigator.pop(context, 'promote'),
               ),
               ListTile(
                 leading: const Icon(Icons.check),
-                title: const Text('Make main line'),
+                title: Text(l10n(context).makeMainLine),
                 onTap: () => Navigator.pop(context, 'mainline'),
               ),
             ],
             ListTile(
               leading: const Icon(Icons.delete_outline),
-              title: const Text('Delete from here'),
+              title: Text(l10n(context).deleteFromHere),
               onTap: () => Navigator.pop(context, 'delete'),
             ),
           ],
@@ -1398,7 +1400,9 @@ class _ReviewPageState extends State<ReviewPage>
       // Selected position changed.
     } catch (error, stackTrace) {
       unawaited(AppDiagnostics.record('stockfish-analysis', error, stackTrace));
-      if (mounted) setState(() => _analysisError = 'Stockfish failed: $error');
+      if (mounted) {
+        setState(() => _analysisError = _ReviewAnalysisStatus.failed);
+      }
     } finally {
       if (mounted) setState(() => _loading.remove(ply));
     }
@@ -1490,7 +1494,7 @@ class _ReviewPageState extends State<ReviewPage>
         unawaited(
           AppDiagnostics.record('stockfish-full-analysis', error, stackTrace),
         );
-        _analysisError = 'Computer analysis failed: $error';
+        _analysisError = _ReviewAnalysisStatus.failed;
         break;
       }
       if (mounted) setState(() => _fullAnalysisCompleted = i + 1);
@@ -1498,7 +1502,7 @@ class _ReviewPageState extends State<ReviewPage>
     if (!mounted || generation != _fullAnalysisGeneration) return;
     if (scores.length != positions.length) {
       setState(() {
-        _analysisError ??= 'Computer analysis did not complete. Try again.';
+        _analysisError ??= _ReviewAnalysisStatus.failed;
         _fullAnalysisRunning = false;
       });
       return;
@@ -1588,7 +1592,7 @@ class _ReviewPageState extends State<ReviewPage>
       unawaited(
         AppDiagnostics.record('move-classification', error, stackTrace),
       );
-      setState(() => _analysisError = 'Move classification failed: $error');
+      setState(() => _analysisError = _ReviewAnalysisStatus.failed);
     }
     if (!mounted || generation != _fullAnalysisGeneration) return;
     setState(() {
@@ -1605,7 +1609,7 @@ class _ReviewPageState extends State<ReviewPage>
       _fullAnalysisGeneration++;
       _fullAnalysisRunning = false;
       _fullAnalysisClassifying = false;
-      _analysisError = 'Computer analysis stopped.';
+      _analysisError = _ReviewAnalysisStatus.stopped;
     });
   }
 
@@ -1770,7 +1774,7 @@ class _ReviewPageState extends State<ReviewPage>
   String _formatMaiaProbability(double probability) {
     final percent = probability * 100;
     if (percent > 0 && percent < 1) return '<1%';
-    return '${percent.round()}%';
+    return '${displayNumber(context, percent.round())}%';
   }
 
   TextStyle? get _engineLineTextStyle =>
@@ -1816,13 +1820,11 @@ class _ReviewPageState extends State<ReviewPage>
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Maia $elo move probabilities',
+                        l10n(context).maiaMoveProbabilities(elo),
                         style: Theme.of(context).textTheme.titleLarge,
                       ),
                       const SizedBox(height: 4),
-                      const Text(
-                        'Raw model probabilities normalized across every legal move. Temperature and Top-P are not applied.',
-                      ),
+                      Text(l10n(context).rawProbabilitiesExplanation),
                     ],
                   ),
                 ),
@@ -1835,7 +1837,7 @@ class _ReviewPageState extends State<ReviewPage>
                   final san = _sanForUci(fen, move.uci);
                   return ListTile(
                     key: ValueKey('maia-probability-${move.uci}'),
-                    leading: Text('${index + 1}'),
+                    leading: Text(displayNumber(context, index + 1)),
                     title: Text(san),
                     subtitle: Text(move.uci),
                     trailing: Text(
@@ -1871,12 +1873,15 @@ class _ReviewPageState extends State<ReviewPage>
     final descriptions = [
       for (final move in shown)
         '${_sanForUci(fen, move.uci)} ${_formatMaiaProbability(move.probability)}',
-      'other legal moves ${_formatMaiaProbability(otherMass)}',
+      l10n(context).otherLegalProbability(_formatMaiaProbability(otherMass)),
     ];
     final textStyle = _engineLineTextStyle;
     return Semantics(
       container: true,
-      label: 'Maia $elo move probabilities. ${descriptions.join(', ')}.',
+      label: l10n(context).maiaProbabilitySemantics(
+        l10n(context).maiaMoveProbabilities(elo),
+        descriptions.join(', '),
+      ),
       child: ConstrainedBox(
         key: lineKey,
         // Keep ordinary Maia results as compact as the Stockfish rows. The
@@ -1907,7 +1912,7 @@ class _ReviewPageState extends State<ReviewPage>
                       softWrap: false,
                     ),
                   Tooltip(
-                    message: 'Show full raw model probabilities',
+                    message: l10n(context).showRawProbabilities,
                     child: InkWell(
                       key: otherKey,
                       borderRadius: BorderRadius.circular(4),
@@ -1929,7 +1934,9 @@ class _ReviewPageState extends State<ReviewPage>
                             widthFactor: 1,
                             heightFactor: 1,
                             child: Text(
-                              'Other ${_formatMaiaProbability(otherMass)}',
+                              l10n(context).otherProbability(
+                                _formatMaiaProbability(otherMass),
+                              ),
                               style: textStyle?.copyWith(
                                 color: Theme.of(context)
                                     .colorScheme
@@ -2025,10 +2032,10 @@ class _ReviewPageState extends State<ReviewPage>
             color: color,
             text: move == null
                 ? loading
-                      ? 'Analyzing…'
+                      ? l10n(context).analyzing
                       : maiaTerminal
-                      ? 'No legal moves'
-                      : 'Unavailable'
+                      ? l10n(context).noLegalMoves
+                      : l10n(context).unavailable
                 : _sanForUci(_currentFen, move),
           );
     return Container(
@@ -2049,11 +2056,11 @@ class _ReviewPageState extends State<ReviewPage>
                   : 'SF${index + 1}',
               color: const Color(0xff72b7ee),
               text:
-                  error ??
+                  (error == null ? null : l10n(context).analysisFailed) ??
                   (index < stockfishLines.length
                       ? _pvSan(stockfishLines[index])
                       : loading
-                      ? 'Analyzing…'
+                      ? l10n(context).analyzing
                       : '—'),
             ),
           maiaRow(
@@ -2083,7 +2090,7 @@ class _ReviewPageState extends State<ReviewPage>
   String _formatLineEvaluation(StockfishLine line) {
     if (line.mate != null) return '#${line.mate}';
     final pawns = line.evaluation / 100;
-    return '${pawns >= 0 ? '+' : ''}${pawns.toStringAsFixed(1)}';
+    return '${pawns >= 0 ? '+' : ''}${displayNumber(context, pawns, decimalDigits: 1)}';
   }
 
   Widget _notationMove({
@@ -2472,7 +2479,7 @@ class _ReviewPageState extends State<ReviewPage>
     await Clipboard.setData(ClipboardData(text: _exportReviewPgn()));
     if (mounted) {
       ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('PGN copied')));
+          .showSnackBar(SnackBar(content: Text(l10n(context).pgnCopied)));
     }
   }
 
@@ -2480,7 +2487,7 @@ class _ReviewPageState extends State<ReviewPage>
     await Clipboard.setData(ClipboardData(text: _currentFen));
     if (mounted) {
       ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('FEN copied')));
+          .showSnackBar(SnackBar(content: Text(l10n(context).fenCopied)));
     }
   }
 
@@ -2544,38 +2551,38 @@ class _ReviewPageState extends State<ReviewPage>
               if (widget.onLoadFen != null)
                 ListTile(
                   leading: const Icon(Icons.content_paste),
-                  title: const Text('Load FEN'),
+                  title: Text(l10n(context).loadFen),
                   onTap: () => Navigator.pop(context, 'fen'),
                 ),
               if (widget.onLoadPgn != null)
                 ListTile(
                   leading: const Icon(Icons.description_outlined),
-                  title: const Text('Load PGN'),
+                  title: Text(l10n(context).loadPgn),
                   onTap: () => Navigator.pop(context, 'pgn'),
                 ),
               if (widget.onLoadPgnFile != null)
                 ListTile(
                   leading: const Icon(Icons.folder_open),
-                  title: const Text('Open PGN file'),
+                  title: Text(l10n(context).openPgnFile),
                   onTap: () => Navigator.pop(context, 'file'),
                 ),
 
               if (widget.onClearMoves != null)
                 ListTile(
                   leading: const Icon(Icons.delete_sweep_outlined),
-                  title: const Text('Clear moves'),
+                  title: Text(l10n(context).clearMoves),
                   onTap: () => Navigator.pop(context, 'clear'),
                 ),
               if (widget.onEditBoard != null)
                 ListTile(
                   leading: const Icon(Icons.edit_outlined),
-                  title: const Text('Board Editor'),
+                  title: Text(l10n(context).boardEditor),
                   onTap: () => Navigator.pop(context, 'edit'),
                 ),
               if (widget.onPlayFromPosition != null)
                 ListTile(
                   leading: const Icon(Icons.play_arrow),
-                  title: const Text('Continue from here'),
+                  title: Text(l10n(context).continueFromHere),
                   onTap: () => Navigator.pop(context, 'continue'),
                 ),
             ],
@@ -2611,7 +2618,7 @@ class _ReviewPageState extends State<ReviewPage>
       onPrevious: () => _step(-1),
       onNext: () => _step(1),
       onLast: _jumpToEnd,
-      endTooltip: 'end position',
+      endTooltip: l10n(context).endPosition,
       headerActionWidth: MediaQuery.textScalerOf(context).scale(1) > 1.3
           ? 84
           : 56,
@@ -2620,16 +2627,18 @@ class _ReviewPageState extends State<ReviewPage>
           key: const ValueKey('analysis-actions-menu'),
           onPressed: _hasAnalysisMenu ? _showAnalysisMenu : null,
           icon: const Icon(Icons.menu),
-          tooltip: 'Analysis menu',
+          tooltip: l10n(context).analysisMenu,
         ),
         IconButton(
           key: const ValueKey('analysis-flip-button'),
           onPressed: _flipAnalysisBoard,
           icon: const Icon(CupertinoIcons.arrow_2_squarepath),
-          tooltip: 'Flip board',
+          tooltip: l10n(context).flipBoard,
         ),
         Tooltip(
-          message: _engineEnabled ? 'Turn engine off' : 'Turn engine on',
+          message: (_engineEnabled
+              ? l10n(context).turnEngineOff
+              : l10n(context).turnEngineOn),
           child: TextButton(
             key: const ValueKey('analysis-engine-toggle'),
             onPressed: _toggleAnalysisEngine,
@@ -2720,12 +2729,12 @@ class _ReviewPageState extends State<ReviewPage>
           tab(
             graph: false,
             icon: Icons.account_tree_outlined,
-            tooltip: 'Moves',
+            tooltip: l10n(context).moves,
           ),
           tab(
             graph: true,
             icon: Icons.area_chart_outlined,
-            tooltip: 'Computer analysis',
+            tooltip: l10n(context).computerAnalysis,
           ),
         ],
       ),
@@ -2757,15 +2766,15 @@ class _ReviewPageState extends State<ReviewPage>
             if (_fullAnalysisClassifying) ...[
               const LinearProgressIndicator(),
               const SizedBox(height: 8),
-              const Text(
-                'Graph ready · classifying moves…',
+              Text(
+                l10n(context).graphReadyClassifying,
                 textAlign: TextAlign.center,
               ),
               TextButton.icon(
                 key: const ValueKey('cancel-computer-analysis'),
                 onPressed: _cancelFullAnalysis,
                 icon: const Icon(Icons.stop_circle_outlined),
-                label: const Text('Stop analysis'),
+                label: Text(l10n(context).stopAnalysis),
               ),
             ] else
               MoveClassificationSummary(
@@ -2776,7 +2785,9 @@ class _ReviewPageState extends State<ReviewPage>
             if (_analysisError != null) ...[
               const SizedBox(height: 8),
               Text(
-                _analysisError!,
+                _analysisError == _ReviewAnalysisStatus.stopped
+                    ? l10n(context).analysisStopped
+                    : l10n(context).analysisFailed,
                 textAlign: TextAlign.center,
                 style: TextStyle(color: Theme.of(context).colorScheme.error),
               ),
@@ -2785,7 +2796,7 @@ class _ReviewPageState extends State<ReviewPage>
             TextButton.icon(
               onPressed: _fullAnalysisRunning ? null : _analyzeFullGame,
               icon: const Icon(Icons.refresh),
-              label: const Text('Run computer analysis again'),
+              label: Text(l10n(context).runAnalysisAgain),
             ),
           ],
         ),
@@ -2809,25 +2820,28 @@ class _ReviewPageState extends State<ReviewPage>
               const SizedBox(height: 10),
               Text(
                 _fullAnalysisClassifying
-                    ? 'Classifying moves…'
-                    : 'Analyzing $_fullAnalysisCompleted of $total positions…',
+                    ? l10n(context).classifyingMoves
+                    : l10n(context)
+                          .analysisProgress(_fullAnalysisCompleted, total),
               ),
               const SizedBox(height: 8),
               TextButton.icon(
                 key: const ValueKey('cancel-computer-analysis'),
                 onPressed: _cancelFullAnalysis,
                 icon: const Icon(Icons.stop_circle_outlined),
-                label: const Text('Stop analysis'),
+                label: Text(l10n(context).stopAnalysis),
               ),
             ] else ...[
-              const Text(
-                'Run computer analysis to generate the evaluation graph and White/Black accuracy.',
+              Text(
+                l10n(context).analysisExplanation,
                 textAlign: TextAlign.center,
               ),
               if (_analysisError != null) ...[
                 const SizedBox(height: 8),
                 Text(
-                  _analysisError!,
+                  _analysisError == _ReviewAnalysisStatus.stopped
+                      ? l10n(context).analysisStopped
+                      : l10n(context).analysisFailed,
                   textAlign: TextAlign.center,
                   style: TextStyle(color: Theme.of(context).colorScheme.error),
                 ),
@@ -2837,7 +2851,7 @@ class _ReviewPageState extends State<ReviewPage>
                 key: const ValueKey('run-computer-analysis'),
                 onPressed: _analyzeFullGame,
                 icon: const Icon(Icons.analytics_outlined),
-                label: const Text('Run computer analysis'),
+                label: Text(l10n(context).runAnalysis),
               ),
             ],
           ],
@@ -2880,13 +2894,15 @@ class _ReviewPageState extends State<ReviewPage>
           icon: Icon(
             widget.returnToGame ? Icons.arrow_back : Icons.home_outlined,
           ),
-          tooltip: widget.returnToGame ? 'Back to game' : 'Home',
+          tooltip: (widget.returnToGame
+              ? l10n(context).backToGame
+              : l10n(context).home),
         ),
-        title: Text(widget.title),
+        title: Text(widget.title ?? l10n(context).gameReview),
         actions: [
           PopupMenuButton<String>(
             key: const ValueKey('analysis-share-menu'),
-            tooltip: 'Share and export',
+            tooltip: l10n(context).shareAndExport,
             icon: const Icon(Icons.more_vert),
             onSelected: (value) async {
               if (value == 'pgn') await _copyPgn();
@@ -2906,33 +2922,33 @@ class _ReviewPageState extends State<ReviewPage>
                 }
               }
             },
-            itemBuilder: (_) => const [
+            itemBuilder: (_) => [
               PopupMenuItem(
                 value: 'save',
                 child: ListTile(
                   leading: Icon(Icons.save_alt),
-                  title: Text('Save PGN file'),
+                  title: Text(l10n(context).savePgnFile),
                 ),
               ),
               PopupMenuItem(
                 value: 'share',
                 child: ListTile(
                   leading: Icon(Icons.share_outlined),
-                  title: Text('Share PGN'),
+                  title: Text(l10n(context).sharePgn),
                 ),
               ),
               PopupMenuItem(
                 value: 'pgn',
                 child: ListTile(
                   leading: Icon(Icons.description_outlined),
-                  title: Text('Copy PGN'),
+                  title: Text(l10n(context).copyPgn),
                 ),
               ),
               PopupMenuItem(
                 value: 'fen',
                 child: ListTile(
                   leading: Icon(Icons.content_copy),
-                  title: Text('Copy FEN'),
+                  title: Text(l10n(context).copyFen),
                 ),
               ),
             ],

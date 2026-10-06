@@ -39,7 +39,7 @@ def check_ci(info, jobs, sha):
     require(info['event'] == 'workflow_dispatch', 'Use the manual Android release run.')
     require(info['status'] == 'completed' and info['conclusion'] == 'success',
             'CI has not completed successfully.')
-    for name in ('test', 'android'):
+    for name in ('test', 'android', 'dependencies'):
         matches = [job for job in jobs if job['name'] == name]
         require(len(matches) == 1 and matches[0]['conclusion'].lower() == 'success',
                 f'Required CI job {name} did not pass (skipped is not a pass).')

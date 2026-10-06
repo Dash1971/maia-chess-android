@@ -272,19 +272,19 @@ void main() {
           'type': 'game',
           'recentState': 'incomplete',
           'elo': 500,
-          'pgn': '[Event "First"]\n[Result "*"]\n\n*',
+          'pgn': '[Event "First"]\n[Date "2026.09.05"]\n[Result "*"]\n\n*',
         }),
         RecentSession('second', DateTime.utc(2026, 9, 4), {
           'type': 'game',
           'recentState': 'completed',
           'elo': 1500,
-          'pgn': '[Event "Second"]\n[Result "1-0"]\n\n1-0',
+          'pgn': '[Event "Second"]\n[Date "2026.09.04"]\n[Result "1-0"]\n\n1-0',
         }),
         RecentSession('third', DateTime.utc(2026, 9, 3), {
           'type': 'game',
           'recentState': 'completed',
           'elo': 2000,
-          'pgn': '[Event "Third"]\n[Result "0-1"]\n\n0-1',
+          'pgn': '[Event "Third"]\n[Date "2026.09.03"]\n[Result "0-1"]\n\n0-1',
         }),
       ];
       final deletionBatches = <Set<String>>[];
@@ -304,8 +304,8 @@ void main() {
 
       expect(find.text('Player — Maia 500'), findsOneWidget);
       expect(find.text('Player — Maia 1500'), findsOneWidget);
-      expect(find.textContaining('Incomplete · 2026-09-05'), findsOneWidget);
-      expect(find.textContaining('1-0 · 2026-09-04'), findsOneWidget);
+      expect(find.textContaining('Incomplete · 09/05/2026'), findsOneWidget);
+      expect(find.textContaining('1-0 · 09/04/2026'), findsOneWidget);
       await tester.tap(find.byKey(const ValueKey('recent-games-menu')));
       await tester.pumpAndSettle();
       expect(find.text('Delete all games'), findsOneWidget);
