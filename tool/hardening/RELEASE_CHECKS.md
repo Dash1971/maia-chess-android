@@ -258,7 +258,10 @@ validate the production signing key or actual phone/Bluetooth behavior.
 
 ## CI and artifact retention
 
-Every PR runs the host suite and verification-tool unit tests. The latter
+Every PR runs the host suite, localization checks, verification-tool unit tests
+and the dependency advisory job described in [release-guide section 0](../../docs/RELEASING.md#0-review-upstream-dependencies-and-security).
+The final manual release run must pass `test`, `dependencies` and `android`;
+a skipped Android job on a normal PR is not release qualification. The latter
 deliberately feed the checkers corrupted/changed artifacts, missing notes,
 altered clocks, duplicate lines and unsuitable emulator properties so a broken
 checker cannot silently report success for those cases.

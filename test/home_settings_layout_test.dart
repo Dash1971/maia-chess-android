@@ -172,12 +172,18 @@ void main() {
     expect(tester.takeException(), isNull);
     // Center this tall paragraph within the dialog's scroll viewport.
     await Scrollable.ensureVisible(
-      tester.element(find.textContaining('smallest group of moves')),
+      tester.element(
+        find.textContaining(
+          'smallest leading group whose combined probability',
+        ),
+      ),
       alignment: 0.5,
     );
     await tester.pumpAndSettle();
     expect(
-      find.textContaining('smallest group of moves').hitTestable(),
+      find
+          .textContaining('smallest leading group whose combined probability')
+          .hitTestable(),
       findsOneWidget,
     );
     final researchLink = find.byKey(const ValueKey('sampling-research-link'));

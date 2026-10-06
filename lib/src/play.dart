@@ -61,6 +61,7 @@ class GamePage extends StatefulWidget {
     this.drawEvaluator,
     this.electronicBoardTransport,
     this.clockFactory,
+    this.humanTimingRandom,
     this.gameFeedbackPlayer,
     this.gameFeedbackService,
     super.key,
@@ -68,6 +69,8 @@ class GamePage extends StatefulWidget {
 
   final GameFeedbackService? gameFeedbackService;
   final Stopwatch Function()? clockFactory;
+  // Independent of move sampling; injectable for deterministic timing tests.
+  final Random? humanTimingRandom;
   final String? startingFen;
   final PlayerSide? startingSide;
   final int? startingElo;
@@ -104,7 +107,7 @@ class _GamePageState extends State<GamePage>
   int _secondMaiaElo = 2400;
   GameAnalysisQuality _gameAnalysisQuality = GameAnalysisQuality.fast;
   late final cg.ChessboardController _gameBoardController;
-  String _status = 'Choose your settings and start a game.';
+  _PlayMessage _status = _PlayMessage.chooseSettings;
   bool _started = false;
   bool _engineThinking = false;
   String? _forcedResult;
@@ -165,13 +168,13 @@ class _GamePageState extends State<GamePage>
   int? _viewedPly;
   final ScrollController _liveMovesController = ScrollController();
   final Map<int, GlobalKey> _liveMoveKeys = {};
-  final Random _timingRandom = Random();
+  late final Random _timingRandom = widget.humanTimingRandom ?? Random();
   late final ElectronicBoardTransport _chessnut;
   late final ChessnutLedController _chessnutLeds;
   StreamSubscription<ElectronicBoardEvent>? _chessnutSubscription;
   ElectronicBoardConnectionState _chessnutState =
       ElectronicBoardConnectionState.disconnected;
-  String _chessnutMessage = 'Chessnut is disconnected.';
+  _PlayMessage _chessnutMessage = _PlayMessage.chessnutIsDisconnected;
   String? _chessnutDeviceName;
   int? _chessnutBatteryPercent;
   bool _chessnutCharging = false;
@@ -279,13 +282,15 @@ class _GamePageState extends State<GamePage>
   }
 
   Future<void> _initialize() async {
+    if (_storageBlocked || !mounted) return;
+    setState(() => _storageFailed = false);
     await _loadEnginePreferences();
     if (!mounted) return;
     if (widget.startingFen != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) => _startGame());
     } else {
       await _restoreActiveSession();
-      if (!mounted) return;
+      if (!mounted || _storageFailed) return;
       setState(() => _initialized = true);
       WidgetsBinding.instance.addPostFrameCallback(
         (_) => unawaited(_checkIncomingPgn()),
@@ -309,7 +314,14 @@ class _GamePageState extends State<GamePage>
   @override
   void didPopNext() {
     _feedbackRouteVisible = true;
+    if (_resumeStartedGameWhenVisible && _gameCanRun) _resumeGame();
   }
+
+  bool get _gameCanRun =>
+      (WidgetsBinding.instance.lifecycleState == null ||
+          WidgetsBinding.instance.lifecycleState ==
+              AppLifecycleState.resumed) &&
+      ModalRoute.of(context)?.isCurrent != false;
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
@@ -333,7 +345,15 @@ class _GamePageState extends State<GamePage>
   }
 
   Future<void> _restoreActiveSession([Map<String, dynamic>? selected]) async {
-    final saved = selected ?? await ActiveSessionStore.load();
+    if (_startingGame) return;
+    Map<String, dynamic>? loaded;
+    try {
+      loaded = selected ?? await ActiveSessionStore.load();
+    } catch (error, stackTrace) {
+      _handleStorageFailure(error, stackTrace);
+      return;
+    }
+    final saved = loaded;
     if (!mounted || saved == null) return;
     if (saved['type'] == 'analysis') {
       try {
@@ -356,9 +376,9 @@ class _GamePageState extends State<GamePage>
                 maiaElo: _decodeMaiaRating(saved['maiaElo']) ?? _analysisElo,
                 secondMaiaElo: saved.containsKey('secondMaiaElo')
                     ? (saved['secondMaiaElo'] == null
-                        ? null
-                        : _decodeMaiaRating(saved['secondMaiaElo']) ??
-                              _secondMaiaElo)
+                          ? null
+                          : _decodeMaiaRating(saved['secondMaiaElo']) ??
+                                _secondMaiaElo)
                     : (_secondMaiaEnabled ? _secondMaiaElo : null),
                 gameAnalysisQuality: _gameAnalysisQuality,
                 initialVariations: variations,
@@ -411,7 +431,8 @@ class _GamePageState extends State<GamePage>
                     initialVariations: variations,
                     initialTreeIsAuthoritative:
                         saved['treeIsAuthoritative'] == true,
-                    maiaElo: _decodeMaiaRating(saved['maiaElo']) ?? _analysisElo,
+                    maiaElo:
+                        _decodeMaiaRating(saved['maiaElo']) ?? _analysisElo,
                     secondMaiaElo: saved.containsKey('secondMaiaElo')
                         ? (saved['secondMaiaElo'] == null
                               ? null
@@ -589,7 +610,7 @@ class _GamePageState extends State<GamePage>
         _drawOfferEvaluating = false;
         _status = repairedNaturalResult != null
             ? _resultText()
-            : saved['status'] as String? ?? 'Game restored.';
+            : _PlayMessage.restore(saved['statusCode'] ?? saved['status']);
         _boardFlipped = saved['flipped'] as bool? ?? false;
         _savedAsIncomplete =
             !_gameFinished &&
@@ -613,7 +634,7 @@ class _GamePageState extends State<GamePage>
         _physicalMoveInProgress = false;
         _lastChessnutIllegalPosition = null;
         if (_chessnutGameActive) {
-          _status = 'Reconnect Chessnut to continue.';
+          _status = _PlayMessage.reconnectChessnut;
         }
         _started = true;
       });
@@ -663,17 +684,33 @@ class _GamePageState extends State<GamePage>
   void _resumeGame() {
     if (!mounted ||
         !_started ||
+        _startingGame ||
+        _storageBlocked ||
+        (WidgetsBinding.instance.lifecycleState != null &&
+            WidgetsBinding.instance.lifecycleState !=
+                AppLifecycleState.resumed) ||
+        (_resumeStartedGameWhenVisible &&
+            ModalRoute.of(context)?.isCurrent == false) ||
         _reviewOpen ||
         _gameFinished ||
         _maiaFailed ||
         !_clockPaused) {
       return;
     }
+    final resumedNewGame = _resumeStartedGameWhenVisible;
+    _resumeStartedGameWhenVisible = false;
     _clockPaused = false;
     _turnStartedAt = _clockEnabled
         ? ((widget.clockFactory?.call() ?? Stopwatch())..start())
         : null;
     _tickClock();
+    if (resumedNewGame) {
+      unawaited(
+        _saveGameState().catchError((Object error, StackTrace stackTrace) {
+          _handleStorageFailure(error, stackTrace);
+        }),
+      );
+    }
     if (!_isPlayerTurn && !_gameFinished) unawaited(_playMaiaMove());
     if (_chessnutGameActive &&
         (_pendingPhysicalMaiaMove != null || _chessnutTakebackRestoreActive)) {
@@ -682,8 +719,10 @@ class _GamePageState extends State<GamePage>
     setState(() {});
   }
 
-  Future<void> _saveGameState() async {
-    if (!_started || _reviewOpen) return;
+  Future<void> _saveGameState({bool allowDuringStart = false}) async {
+    if (!_started || _reviewOpen || (_startingGame && !allowDuringStart)) {
+      return;
+    }
     await ActiveSessionStore.save(_gameSnapshot());
   }
 
@@ -717,7 +756,8 @@ class _GamePageState extends State<GamePage>
     'savedAt': DateTime.now().toUtc().toIso8601String(),
     'forcedResult': _forcedResult,
     if (_lastDrawOfferFen != null) 'lastDrawOfferFen': _lastDrawOfferFen,
-    'status': _status,
+    'status': _status.legacy,
+    'statusCode': _status.name,
     'clockPaused': _clockPaused,
     'maiaFailed': _maiaFailed,
     'flipped': _boardFlipped,
@@ -1087,29 +1127,20 @@ class _GamePageState extends State<GamePage>
   Future<void> _showSamplingHelp() => showDialog<void>(
     context: context,
     builder: (context) => AlertDialog(
-      title: const Text('Temperature and Top-P'),
+      title: Text(l10n(context).samplingTitle),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Why Temperature 1.00 and Top-P 1.00?',
+              l10n(context).samplingDefaultsQuestion,
               style: Theme.of(context).textTheme.titleSmall,
             ),
             const SizedBox(height: 8),
-            const Text(
-              'These settings let Maia use its full range of predicted human '
-              'moves. In our tests at the 1600 setting, they produced opening '
-              'choices much closer to rating-filtered Lichess games.',
-            ),
+            Text(l10n(context).samplingFullRange),
             const SizedBox(height: 14),
-            const Text(
-              'Lower settings reduce variety and can make Maia stronger. '
-              'We favor a more human opening repertoire over maximum strength. '
-              'Maia’s rating describes the players it models, rather than '
-              'guaranteeing an exact playing strength.',
-            ),
+            Text(l10n(context).samplingStrength),
             TextButton.icon(
               key: const ValueKey('sampling-research-link'),
               onPressed: () => maiaEngineChannel.invokeMethod<void>('openUrl', {
@@ -1118,129 +1149,138 @@ class _GamePageState extends State<GamePage>
                     'main/docs/research/maia3-sampling/REPORT.md',
               }),
               icon: const Icon(Icons.open_in_new),
-              label: const Text('Read the sampling research'),
+              label: Text(l10n(context).samplingResearch),
             ),
             const SizedBox(height: 14),
-            const Text(
-              'Temperature controls how adventurous Maia is. At 0, Maia '
-              'always chooses its most likely human move. Higher values make '
-              'less likely moves more common.',
-            ),
+            Text(l10n(context).samplingTemperatureHelp),
             const SizedBox(height: 14),
-            const Text(
-              'Top-P limits Maia to the smallest group of moves whose '
-              'combined probability reaches this value. Lower values narrow '
-              'the choice to more likely moves; 1.00 keeps every legal move.',
-            ),
+            Text(l10n(context).samplingTopPHelp),
           ],
         ),
       ),
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Close'),
+          child: Text(l10n(context).close),
         ),
       ],
     ),
   );
 
   Future<void> _showAbout() async {
-    String version;
+    String? version;
     try {
       version = (await PackageInfo.fromPlatform()).version;
     } catch (_) {
-      version = 'Unknown version';
+      version = null;
     }
     if (!mounted) return;
-    showAboutDialog(
+    await showDialog<void>(
       context: context,
-      applicationName: 'Mobile Maia',
-      applicationVersion: version,
-      children: [
-        const Text(
-          'Powered by Maia-3, the human-like chess engine developed by the '
-          'University of Toronto Computational Social Science Lab.',
-        ),
-        const SizedBox(height: 8),
-        const Text(
-          'Maia-3 runs entirely on your phone. No account or network '
-          'connection is required.',
-        ),
-        const SizedBox(height: 8),
-        TextButton.icon(
-          onPressed: () => maiaEngineChannel.invokeMethod<void>('openUrl', {
-            'url': maiaProjectUrl,
-          }),
-          icon: const Icon(Icons.open_in_new),
-          label: const Text('Maia-3 project and source code'),
-        ),
-        const SizedBox(height: 8),
-        const Text(
-          'Board interface, default brown theme, and Cburnett pieces are '
-          'provided by Lichess Flutter Chessground. Local Stockfish support '
-          'uses Lichess multistockfish.',
-        ),
-        TextButton.icon(
-          onPressed: () => maiaEngineChannel.invokeMethod<void>('openUrl', {
-            'url': lichessChessgroundUrl,
-          }),
-          icon: const Icon(Icons.open_in_new),
-          label: const Text('Lichess Flutter Chessground'),
-        ),
-        TextButton.icon(
-          onPressed: () => maiaEngineChannel.invokeMethod<void>('openUrl', {
-            'url': lichessMultistockfishUrl,
-          }),
-          icon: const Icon(Icons.open_in_new),
-          label: const Text('Lichess multistockfish'),
-        ),
-        const SizedBox(height: 8),
-        const Text(
-          'Game Review move classification and sacrifice-detection heuristics '
-          'are adapted from the En Croissant open-source chess GUI.',
-        ),
-        TextButton.icon(
-          onPressed: () => maiaEngineChannel.invokeMethod<void>('openUrl', {
-            'url': enCroissantProjectUrl,
-          }),
-          icon: const Icon(Icons.open_in_new),
-          label: const Text('En Croissant project and source code'),
-        ),
-        const SizedBox(height: 8),
-        const Text(
-          'Mobile Maia is free software distributed under AGPL-3.0-only, '
-          'without any warranty. You may redistribute and modify it under '
-          'the terms of that licence. The complete source code is available '
-          'from the project repository.',
-        ),
-        TextButton.icon(
-          onPressed: () => showLicensePage(
-            context: context,
-            applicationName: 'Mobile Maia',
+      builder: (context) => AboutDialog(
+        applicationName: 'Mobile Maia',
+        applicationVersion: version ?? l10n(context).unknownVersion,
+        children: [
+          Text(l10n(context).aboutPoweredBy),
+          const SizedBox(height: 8),
+          Text(l10n(context).aboutOffline),
+          const SizedBox(height: 8),
+          TextButton.icon(
+            onPressed: () => maiaEngineChannel.invokeMethod<void>('openUrl', {
+              'url': maiaProjectUrl,
+            }),
+            icon: const Icon(Icons.open_in_new),
+            label: Text(l10n(context).maiaProjectSource),
           ),
-          icon: const Icon(Icons.description_outlined),
-          label: const Text('Licence'),
-        ),
-        TextButton.icon(
-          onPressed: () => maiaEngineChannel.invokeMethod<void>('openUrl', {
-            'url': mobileMaiaSourceUrl,
-          }),
-          icon: const Icon(Icons.code),
-          label: const Text('Mobile Maia source code'),
-        ),
-        const Text(
-          'This independent community app is not an official Maia-3 or '
-          'University of Toronto, Lichess, or En Croissant application.',
-        ),
-      ],
+          const SizedBox(height: 8),
+          Text(l10n(context).aboutBoardCredits),
+          TextButton.icon(
+            onPressed: () => maiaEngineChannel.invokeMethod<void>('openUrl', {
+              'url': lichessChessgroundUrl,
+            }),
+            icon: const Icon(Icons.open_in_new),
+            label: const Text('Lichess Flutter Chessground'),
+          ),
+          TextButton.icon(
+            onPressed: () => maiaEngineChannel.invokeMethod<void>('openUrl', {
+              'url': lichessMultistockfishUrl,
+            }),
+            icon: const Icon(Icons.open_in_new),
+            label: const Text('Lichess multistockfish'),
+          ),
+          const SizedBox(height: 8),
+          Text(l10n(context).aboutReviewCredits),
+          TextButton.icon(
+            onPressed: () => maiaEngineChannel.invokeMethod<void>('openUrl', {
+              'url': enCroissantProjectUrl,
+            }),
+            icon: const Icon(Icons.open_in_new),
+            label: Text(l10n(context).enCroissantProjectSource),
+          ),
+          const SizedBox(height: 8),
+          Text(l10n(context).aboutLicence),
+          TextButton.icon(
+            onPressed: () => showLicensePage(
+              context: context,
+              applicationName: 'Mobile Maia',
+            ),
+            icon: const Icon(Icons.description_outlined),
+            label: Text(l10n(context).licence),
+          ),
+          TextButton.icon(
+            onPressed: () => maiaEngineChannel.invokeMethod<void>('openUrl', {
+              'url': mobileMaiaSourceUrl,
+            }),
+            icon: const Icon(Icons.code),
+            label: Text(l10n(context).mobileMaiaSource),
+          ),
+          Text(l10n(context).aboutIndependent),
+        ],
+      ),
     );
   }
 
   bool _importing = false;
   bool _initialized = false;
+  bool _startingGame = false;
+  bool _resumeStartedGameWhenVisible = false;
+  bool _storageBlocked = false;
+  bool _storageFailed = false;
+
+  void _handleStorageFailure(Object error, StackTrace stackTrace) {
+    unawaited(AppDiagnostics.record('game-storage', error, stackTrace));
+    if (!mounted) return;
+    setState(() {
+      _storageBlocked =
+          _storageBlocked || error is UnsupportedSessionFormatException;
+      _storageFailed = true;
+    });
+  }
+
+  Widget _storageWarning() => Semantics(
+    liveRegion: true,
+    child: Padding(
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            _storageBlocked
+                ? l10n(context).savedGameVersionUnsupported
+                : l10n(context).gameStorageFailed,
+          ),
+          if (!_storageBlocked && !_initialized && !_startingGame)
+            TextButton(
+              onPressed: _initialize,
+              child: Text(l10n(context).retry),
+            ),
+        ],
+      ),
+    ),
+  );
   bool _incomingPgnCheckRequested = false;
   Future<void> _checkIncomingPgn() async {
-    if (!_initialized || !mounted) return;
+    if (!_initialized || !mounted || _storageBlocked || _startingGame) return;
     if (_importing) {
       _incomingPgnCheckRequested = true;
       return;
@@ -1259,18 +1299,20 @@ class _GamePageState extends State<GamePage>
       }
     } on MissingPluginException {
       /* No Android document bridge in host tests. */
-    } on PlatformException catch (error) {
+    } on PlatformException catch (error, stackTrace) {
+      unawaited(AppDiagnostics.record('pgn-import', error, stackTrace));
       consumed = error.code == 'pgn_read_failed';
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Could not open PGN: $error')));
+        ).showSnackBar(SnackBar(content: Text(l10n(context).couldNotOpenPgn)));
       }
-    } catch (error) {
+    } catch (error, stackTrace) {
+      unawaited(AppDiagnostics.record('pgn-import', error, stackTrace));
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Could not open PGN: $error')));
+        ).showSnackBar(SnackBar(content: Text(l10n(context).couldNotOpenPgn)));
       }
     } finally {
       _importing = false;
@@ -1283,9 +1325,17 @@ class _GamePageState extends State<GamePage>
   }
 
   Future<void> _openImportedSession(AnalysisSession session) async {
+    if (_storageBlocked || _startingGame) return;
+    final wasRunning = _started && !_clockPaused && !_gameFinished;
     _pauseGame();
-    await _saveGameState();
-    await ActiveSessionStore.startNew();
+    try {
+      await _saveGameState();
+      await ActiveSessionStore.startNew();
+    } catch (error, stackTrace) {
+      _handleStorageFailure(error, stackTrace);
+      if (wasRunning) _resumeGame();
+      return;
+    }
     if (!mounted) return;
     _reviewOpen = false;
     _clockTimer?.cancel();
@@ -1311,6 +1361,7 @@ class _GamePageState extends State<GamePage>
   }
 
   Future<void> _showRecentGames() async {
+    if (_startingGame) return;
     final selected = await Navigator.of(context).push<Map<String, dynamic>>(
       MaterialPageRoute(builder: (_) => const RecentGamesPage()),
     );
@@ -1318,7 +1369,13 @@ class _GamePageState extends State<GamePage>
   }
 
   Future<void> _openAnalysisBoard() async {
-    await ActiveSessionStore.startNew();
+    if (_storageBlocked || _startingGame) return;
+    try {
+      await ActiveSessionStore.startNew();
+    } catch (error, stackTrace) {
+      _handleStorageFailure(error, stackTrace);
+      return;
+    }
     if (!mounted) return;
     await Navigator.of(context).push(
       MaterialPageRoute<void>(
@@ -1342,7 +1399,7 @@ class _GamePageState extends State<GamePage>
         if (!mounted || !_useChessnutGo) return;
         setState(() {
           _chessnutState = ElectronicBoardConnectionState.error;
-          _chessnutMessage = 'Chessnut connection error.';
+          _chessnutMessage = _PlayMessage.chessnutConnectionError;
           if (_chessnutGameActive) _status = _chessnutMessage;
         });
       },
@@ -1381,7 +1438,7 @@ class _GamePageState extends State<GamePage>
       setState(() {
         _chessnutPosition = null;
         _chessnutState = ElectronicBoardConnectionState.scanning;
-        _chessnutMessage = 'Searching for Chessnut…';
+        _chessnutMessage = _PlayMessage.searchingChessnut;
       });
     }
     try {
@@ -1395,7 +1452,7 @@ class _GamePageState extends State<GamePage>
       }
       setState(() {
         _chessnutState = ElectronicBoardConnectionState.error;
-        _chessnutMessage = error.message ?? 'Could not connect Chessnut.';
+        _chessnutMessage = _PlayMessage.fromPlatformError(error.code);
         if (_chessnutGameActive) _status = _chessnutMessage;
       });
     } on MissingPluginException catch (error, stackTrace) {
@@ -1409,7 +1466,7 @@ class _GamePageState extends State<GamePage>
       }
       setState(() {
         _chessnutState = ElectronicBoardConnectionState.error;
-        _chessnutMessage = 'Chessnut support is available on Android.';
+        _chessnutMessage = _PlayMessage.chessnutAndroidOnly;
       });
     }
   }
@@ -1443,9 +1500,9 @@ class _GamePageState extends State<GamePage>
     if (!mounted || generation != _chessnutConnectionGeneration) return;
     setState(() {
       _chessnutState = ElectronicBoardConnectionState.disconnected;
-      _chessnutMessage = 'Chessnut is disconnected.';
+      _chessnutMessage = _PlayMessage.chessnutIsDisconnected;
       _chessnutPosition = null;
-      if (_chessnutGameActive) _status = 'Reconnect Chessnut to continue.';
+      if (_chessnutGameActive) _status = _PlayMessage.reconnectChessnut;
     });
   }
 
@@ -1472,10 +1529,10 @@ class _GamePageState extends State<GamePage>
       _status = _gameFinished
           ? _resultText()
           : _maiaFailed
-          ? 'Maia error. Please retry.'
+          ? _PlayMessage.maiaErrorPleaseRetry
           : _isPlayerTurn
-          ? 'Your move.'
-          : 'Maia is thinking…';
+          ? _PlayMessage.yourMove
+          : _PlayMessage.maiaIsThinking;
     });
     _syncGameBoard(animate: false, resetPremove: true);
     // Board shutdown is best effort; a missing Bluetooth callback must not
@@ -1522,13 +1579,13 @@ class _GamePageState extends State<GamePage>
     }
     setState(() {
       _chessnutState = nextState;
-      _chessnutMessage = event.message ?? _chessnutMessage;
+      _chessnutMessage = _PlayMessage.fromConnection(nextState);
       _chessnutDeviceName = event.deviceName ?? _chessnutDeviceName;
       if (_chessnutGameActive &&
           (nextState == ElectronicBoardConnectionState.disconnected ||
               nextState == ElectronicBoardConnectionState.error)) {
         _status = nextState == ElectronicBoardConnectionState.disconnected
-            ? 'Reconnect Chessnut to continue.'
+            ? _PlayMessage.reconnectChessnut
             : _chessnutMessage;
       }
     });
@@ -1588,8 +1645,8 @@ class _GamePageState extends State<GamePage>
       if (!isCurrent()) return;
       setState(() {
         _chessnutMessage = matches
-            ? 'Chessnut is ready.'
-            : 'Set up the standard starting position on Chessnut.';
+            ? _PlayMessage.chessnutReady
+            : _PlayMessage.chessnutStartingPosition;
       });
       return;
     }
@@ -1609,15 +1666,13 @@ class _GamePageState extends State<GamePage>
         setState(() {
           _chessnutTakebackRestoreActive = false;
           _status = _isPlayerTurn
-              ? 'Takeback complete. Your move on Chessnut.'
-              : 'Takeback complete. Maia is thinking…';
+              ? _PlayMessage.takebackCompleteYourMove
+              : _PlayMessage.takebackCompleteThinking;
         });
         unawaited(_saveGameState());
         if (!_isPlayerTurn && !_engineThinking) unawaited(_playMaiaMove());
       } else {
-        setState(
-          () => _status = 'Takeback: restore the lit squares on Chessnut.',
-        );
+        setState(() => _status = _PlayMessage.restoreLitSquares);
       }
       return;
     }
@@ -1644,9 +1699,9 @@ class _GamePageState extends State<GamePage>
               ? _finishNaturalGame() ?? _resultText()
               : _resultText();
         } else if (_isPlayerTurn) {
-          _status = 'Your move on Chessnut.';
+          _status = _PlayMessage.yourMoveChessnut;
         } else if (!_engineThinking) {
-          _status = 'Maia is thinking…';
+          _status = _PlayMessage.maiaIsThinking;
         }
       });
       if (confirmedMaiaMove) {
@@ -1665,7 +1720,7 @@ class _GamePageState extends State<GamePage>
         ChessnutProtocol.mismatchSquares(observed, expected),
       );
       if (isCurrent()) {
-        setState(() => _status = 'Complete Maia’s lit move on Chessnut.');
+        setState(() => _status = _PlayMessage.completeMaiaLitMove);
       }
       return;
     }
@@ -1712,8 +1767,8 @@ class _GamePageState extends State<GamePage>
     if (!isCurrent()) return;
     setState(() {
       _status = completeAttempt
-          ? 'That position is not a legal move. Correct the lit squares.'
-          : 'Complete your move on Chessnut.';
+          ? _PlayMessage.illegalChessnutPosition
+          : _PlayMessage.completeYourChessnutMove;
     });
   }
 
@@ -1832,18 +1887,21 @@ class _GamePageState extends State<GamePage>
                   _chessnutReady ? Icons.bluetooth_connected : Icons.bluetooth,
                 ),
                 title: Text(_chessnutDeviceName ?? 'Chessnut'),
-                subtitle: Text(_chessnutMessage),
+                subtitle: Text(_chessnutMessage.text(context)),
                 trailing: _chessnutBatteryPercent == null
                     ? null
                     : Text(
-                        '$_chessnutBatteryPercent%${_chessnutCharging ? ' ⚡' : ''}',
+                        l10n(context).chessnutBattery(
+                          displayNumber(context, _chessnutBatteryPercent!),
+                          _chessnutCharging ? 'yes' : 'no',
+                        ),
                       ),
               ),
               SwitchListTile(
                 secondary: const Icon(Icons.volume_up_outlined),
                 value: _chessnutSoundsEnabled,
-                title: const Text('Board sounds'),
-                subtitle: const Text('Check, checkmate, and illegal moves'),
+                title: Text(l10n(context).boardSounds),
+                subtitle: Text(l10n(context).checkCheckmateIllegalMoves),
                 onChanged: (enabled) => Navigator.pop(
                   context,
                   enabled ? 'sounds-on' : 'sounds-off',
@@ -1852,20 +1910,20 @@ class _GamePageState extends State<GamePage>
               if (_chessnutReady)
                 ListTile(
                   leading: const Icon(Icons.bluetooth_disabled),
-                  title: const Text('Disconnect'),
+                  title: Text(l10n(context).disconnect),
                   onTap: () => Navigator.pop(context, 'disconnect'),
                 )
               else
                 ListTile(
                   leading: const Icon(Icons.refresh),
-                  title: const Text('Reconnect'),
+                  title: Text(l10n(context).reconnect),
                   onTap: () => Navigator.pop(context, 'connect'),
                 ),
               if (_chessnutGameActive)
                 ListTile(
                   leading: const Icon(Icons.smartphone_outlined),
-                  title: const Text('Play in app'),
-                  subtitle: const Text('Continue this game on screen'),
+                  title: Text(l10n(context).playInApp),
+                  subtitle: Text(l10n(context).continueGameOnScreen),
                   onTap: () => Navigator.pop(context, 'app'),
                 ),
             ],
@@ -1900,12 +1958,12 @@ class _GamePageState extends State<GamePage>
         _chessnutState == ElectronicBoardConnectionState.connecting ||
         _chessnutState == ElectronicBoardConnectionState.connected;
     final message = _chessnutReady
-        ? _status
+        ? _status.text(context)
         : connecting
-        ? 'Connecting to Chessnut…'
+        ? l10n(context).connectingChessnut
         : _chessnutState == ElectronicBoardConnectionState.error
-        ? 'Chessnut unavailable'
-        : 'Chessnut disconnected';
+        ? l10n(context).chessnutUnavailable
+        : l10n(context).chessnutDisconnected;
     return Container(
       key: const ValueKey('chessnut-status-banner'),
       height: _chessnutBannerHeight,
@@ -1938,7 +1996,10 @@ class _GamePageState extends State<GamePage>
                   ),
                   if (_chessnutReady && _chessnutBatteryPercent != null)
                     Text(
-                      '$_chessnutBatteryPercent%${_chessnutCharging ? ' ⚡' : ''}',
+                      l10n(context).chessnutBattery(
+                        displayNumber(context, _chessnutBatteryPercent!),
+                        _chessnutCharging ? 'yes' : 'no',
+                      ),
                       style: const TextStyle(fontSize: 12),
                     ),
                 ],
@@ -1958,8 +2019,8 @@ class _GamePageState extends State<GamePage>
                     child: TextButton(
                       key: const ValueKey('chessnut-inline-reconnect'),
                       onPressed: connecting ? null : _connectChessnut,
-                      child: const Text(
-                        'Reconnect',
+                      child: Text(
+                        l10n(context).reconnect,
                         textAlign: TextAlign.center,
                       ),
                     ),
@@ -1968,8 +2029,8 @@ class _GamePageState extends State<GamePage>
                     child: TextButton(
                       key: const ValueKey('chessnut-play-in-app'),
                       onPressed: _playInApp,
-                      child: const Text(
-                        'Play in app',
+                      child: Text(
+                        l10n(context).playInApp,
                         textAlign: TextAlign.center,
                       ),
                     ),
@@ -2112,11 +2173,12 @@ class _GamePageState extends State<GamePage>
     );
   }
 
-  void _startGame({bool archiveCurrent = true}) {
+  Future<void> _startGame({bool archiveCurrent = true}) async {
+    if (_storageBlocked || _startingGame || !mounted) return;
     if (_useChessnutGo && !_chessnutStartPositionReady) {
       final message = !_chessnutReady
-          ? 'Connect Chessnut before starting.'
-          : 'Set up the standard starting position on Chessnut.';
+          ? _PlayMessage.connectChessnutFirst
+          : _PlayMessage.chessnutStartingPosition;
       setState(() => _chessnutMessage = message);
       final observed = _chessnutPosition;
       if (_chessnutReady && observed != null) {
@@ -2130,7 +2192,7 @@ class _GamePageState extends State<GamePage>
         );
       }
       ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(message)));
+          .showSnackBar(SnackBar(content: Text(message.text(context))));
       return;
     }
     // Defense in depth: the toggle normally sets Unlimited and disables the
@@ -2139,99 +2201,130 @@ class _GamePageState extends State<GamePage>
     if (_useChessnutGo && _timePreset != TimePreset.unlimited) {
       setState(() => _timePreset = TimePreset.unlimited);
     }
+    setState(() => _startingGame = true);
+    final gameStartedAt = DateTime.now();
+    final wasRunning = _started && !_clockPaused && !_gameFinished;
     _pauseGame();
-    if (archiveCurrent) {
-      unawaited(_saveGameState());
-      unawaited(ActiveSessionStore.startNew());
-    }
-    // Preserve the archived opponent rating; only the new game uses current bounds.
-    _elo = normalizeMaiaRating(_elo);
-    _gameGeneration++;
-    _gameInferenceScope.invalidate();
-    _clockTimer?.cancel();
-    _gameEndFeedbackTimer?.cancel();
-    _stopChessnutLedRefresh();
-    final randomWhite = Random().nextBool();
-    _playerColor = switch (_sideChoice) {
-      PlayerSide.white => chess.Color.WHITE,
-      PlayerSide.black => chess.Color.BLACK,
-      PlayerSide.random => randomWhite ? chess.Color.WHITE : chess.Color.BLACK,
-    };
-    setState(() {
-      _game = widget.startingFen == null
-          ? chess.Chess()
-          : chess.Chess.fromFEN(widget.startingFen!);
-      _positionHistory
-        ..clear()
-        ..add(_game.fen);
-      _uciMoves.clear();
-      _takebackVariations.clear();
-      _mainlineAnnotations.clear();
-      _pgnComments = null;
-      _reviewVariationSnapshot = null;
-      _forcedResult = null;
-      _naturalGameOver = false;
-      _engineThinking = false;
-      _maiaFailed = false;
-      _clockPaused = false;
-      _boardFlipped = false;
-      _resultDialogShown = false;
-      _drawOfferEvaluating = false;
-      _lastDrawOfferFen = null;
-      _savedAsIncomplete = false;
-      _viewedPly = null;
-      _chessnutGameActive = _useChessnutGo;
-      _pendingPhysicalMaiaMove = null;
-      _chessnutTakebackRestoreActive = false;
-      _lastChessnutIllegalPosition = null;
-      _started = true;
-      final startingMillis = _baseMinutes * 60 * 1000;
-      _whiteMillis = startingMillis;
-      _blackMillis = startingMillis;
-      _turnStartedAt = _clockEnabled
-          ? ((widget.clockFactory?.call() ?? Stopwatch())..start())
-          : null;
-      _clockHistory
-        ..clear()
-        ..add(ClockSnapshot(_whiteMillis, _blackMillis));
-      _status = _chessnutGameActive
-          ? (_isPlayerTurn ? 'Your move on Chessnut.' : 'Maia is thinking…')
-          : (_isPlayerTurn ? 'Your move.' : 'Game in progress.');
-      final date = DateTime.now();
-      final dateTag =
-          '${date.year.toString().padLeft(4, '0')}.'
-          '${date.month.toString().padLeft(2, '0')}.'
-          '${date.day.toString().padLeft(2, '0')}';
-      _game.set_header([
-        'Event',
-        'Mobile Maia Game',
-        'Site',
-        'Mobile Maia',
-        'Date',
-        dateTag,
-        'Round',
-        '-',
-        'White',
-        _playerIsWhite ? 'Player' : 'Maia-3 79M ($_elo)',
-        'Black',
-        _playerIsWhite ? 'Maia-3 79M ($_elo)' : 'Player',
-        'Result',
-        '*',
-      ]);
-      if (widget.startingFen != null &&
-          widget.startingFen != chess.Chess.DEFAULT_POSITION) {
-        _game.set_header(['SetUp', '1', 'FEN', widget.startingFen!]);
+    final generation = _gameGeneration;
+    try {
+      // A reset has already discarded its checkpoint. Saving it again here
+      // would resurrect the discarded game before the new one starts.
+      if (archiveCurrent) await _saveGameState(allowDuringStart: true);
+      if (!mounted || generation != _gameGeneration) return;
+      await ActiveSessionStore.startNew(gameStartedAt: gameStartedAt);
+      // Storage has committed the new identity. Finish this transition even
+      // if a dialog or a lifecycle event changed the current route meanwhile.
+      if (!mounted) return;
+      setState(() => _storageFailed = false);
+      // Preserve the archived opponent rating; only the new game uses current bounds.
+      _elo = normalizeMaiaRating(_elo);
+      _gameGeneration++;
+      _gameInferenceScope.invalidate();
+      _clockTimer?.cancel();
+      _gameEndFeedbackTimer?.cancel();
+      _stopChessnutLedRefresh();
+      final randomWhite = Random().nextBool();
+      _playerColor = switch (_sideChoice) {
+        PlayerSide.white => chess.Color.WHITE,
+        PlayerSide.black => chess.Color.BLACK,
+        PlayerSide.random =>
+          randomWhite ? chess.Color.WHITE : chess.Color.BLACK,
+      };
+      setState(() {
+        _game = widget.startingFen == null
+            ? chess.Chess()
+            : chess.Chess.fromFEN(widget.startingFen!);
+        _positionHistory
+          ..clear()
+          ..add(_game.fen);
+        _uciMoves.clear();
+        _takebackVariations.clear();
+        _mainlineAnnotations.clear();
+        _pgnComments = null;
+        _reviewVariationSnapshot = null;
+        _forcedResult = null;
+        _naturalGameOver = false;
+        _engineThinking = false;
+        _maiaFailed = false;
+        _clockPaused = true;
+        _boardFlipped = false;
+        _resultDialogShown = false;
+        _drawOfferEvaluating = false;
+        _lastDrawOfferFen = null;
+        _savedAsIncomplete = false;
+        _viewedPly = null;
+        _chessnutGameActive = _useChessnutGo;
+        _pendingPhysicalMaiaMove = null;
+        _chessnutTakebackRestoreActive = false;
+        _lastChessnutIllegalPosition = null;
+        _started = true;
+        final startingMillis = _baseMinutes * 60 * 1000;
+        _whiteMillis = startingMillis;
+        _blackMillis = startingMillis;
+        _turnStartedAt = _clockEnabled && !_clockPaused
+            ? ((widget.clockFactory?.call() ?? Stopwatch())..start())
+            : null;
+        _clockHistory
+          ..clear()
+          ..add(ClockSnapshot(_whiteMillis, _blackMillis));
+        _status = _chessnutGameActive
+            ? (_isPlayerTurn
+                  ? _PlayMessage.yourMoveChessnut
+                  : _PlayMessage.maiaIsThinking)
+            : (_isPlayerTurn
+                  ? _PlayMessage.yourMove
+                  : _PlayMessage.gameInProgress);
+        final date = gameStartedAt;
+        final dateTag =
+            '${date.year.toString().padLeft(4, '0')}.'
+            '${date.month.toString().padLeft(2, '0')}.'
+            '${date.day.toString().padLeft(2, '0')}';
+        _game.set_header([
+          'Event',
+          'Mobile Maia Game',
+          'Site',
+          'Mobile Maia',
+          'Date',
+          dateTag,
+          'Round',
+          '-',
+          'White',
+          _playerIsWhite ? 'Player' : 'Maia-3 79M ($_elo)',
+          'Black',
+          _playerIsWhite ? 'Maia-3 79M ($_elo)' : 'Player',
+          'Result',
+          '*',
+        ]);
+        if (widget.startingFen != null &&
+            widget.startingFen != chess.Chess.DEFAULT_POSITION) {
+          _game.set_header(['SetUp', '1', 'FEN', widget.startingFen!]);
+        }
+      });
+      _syncGameBoard(animate: false, resetPremove: true);
+      if (_clockEnabled) {
+        _clockTimer = Timer.periodic(
+          const Duration(milliseconds: 200),
+          (_) => _tickClock(),
+        );
       }
-    });
-    _syncGameBoard(animate: false, resetPremove: true);
-    if (_clockEnabled) {
-      _clockTimer = Timer.periodic(
-        const Duration(milliseconds: 200),
-        (_) => _tickClock(),
-      );
+      await _saveGameState(allowDuringStart: true);
+    } catch (error, stackTrace) {
+      _handleStorageFailure(error, stackTrace);
+      if (wasRunning &&
+          mounted &&
+          generation == _gameGeneration &&
+          _gameCanRun) {
+        setState(() => _startingGame = false);
+        _resumeGame();
+      }
+      return;
+    } finally {
+      if (mounted) setState(() => _startingGame = false);
     }
-    if (!_isPlayerTurn) unawaited(_playMaiaMove());
-    unawaited(_saveGameState());
+    if (mounted && !_storageFailed) {
+      _resumeStartedGameWhenVisible = true;
+      if (_gameCanRun) _resumeGame();
+    }
   }
 
   int _liveMillis(chess.Color color) {
@@ -2304,10 +2397,10 @@ class _GamePageState extends State<GamePage>
       _engineThinking = false;
       _game.set_header(['Result', result, 'Termination', 'Time forfeit']);
       _status = result == '1/2-1/2'
-          ? 'Draw — timeout against insufficient material.'
+          ? _PlayMessage.timeoutInsufficientMaterial
           : whiteFlagged
-          ? 'White ran out of time.'
-          : 'Black ran out of time.';
+          ? _PlayMessage.whiteOutOfTime
+          : _PlayMessage.blackOutOfTime;
     });
     _syncGameBoard(animate: false, resetPremove: true);
     unawaited(_saveGameState());
@@ -2332,9 +2425,8 @@ class _GamePageState extends State<GamePage>
         _isViewingLivePosition) {
       if (_premoves.length == PremoveSequence.maximumLength) {
         ScaffoldMessenger.of(context).hideCurrentSnackBar();
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Up to 64 premoves can be queued.')),
-        );
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(l10n(context).premoveLimit)));
       }
       _premoves.add(
         _game.fen,
@@ -2408,7 +2500,9 @@ class _GamePageState extends State<GamePage>
     setState(() {
       _status =
           naturalResult ??
-          (_chessnutGameActive ? 'Maia is thinking…' : 'Game in progress.');
+          (_chessnutGameActive
+              ? _PlayMessage.maiaIsThinking
+              : _PlayMessage.gameInProgress);
     });
     _syncGameBoard();
     unawaited(_saveGameState());
@@ -2470,7 +2564,7 @@ class _GamePageState extends State<GamePage>
     }
     if (_chessnutGameActive && !_chessnutReady) {
       if (mounted) {
-        setState(() => _status = 'Reconnect Chessnut to continue.');
+        setState(() => _status = _PlayMessage.reconnectChessnut);
       }
       return;
     }
@@ -2506,7 +2600,11 @@ class _GamePageState extends State<GamePage>
         topP: _topP,
       );
       if (_humanTiming) {
-        final target = _humanThinkDuration();
+        final target = sampleHumanMoveTime(
+          _timingRandom,
+          baseSeconds: _clockEnabled ? _baseMinutes * 60 : null,
+          incrementSeconds: _incrementSeconds,
+        );
         final remaining = target - thinkingTimer.elapsed;
         if (remaining > Duration.zero) await Future<void>.delayed(remaining);
       }
@@ -2528,7 +2626,7 @@ class _GamePageState extends State<GamePage>
         if (!mounted || generation != _gameGeneration) return;
         setState(() {
           _engineThinking = false;
-          _status = 'Make Maia’s lit move on Chessnut.';
+          _status = _PlayMessage.makeMaiaLitMove;
         });
         await _setChessnutLeds([
           maiaUci.substring(0, 2),
@@ -2548,7 +2646,9 @@ class _GamePageState extends State<GamePage>
         _engineThinking = false;
         _status =
             (_game.game_over ? _resultText() : naturalResult) ??
-            (premovePlayed ? 'Game in progress.' : 'Your move.');
+            (premovePlayed
+                ? _PlayMessage.gameInProgress
+                : _PlayMessage.yourMove);
       });
       unawaited(_saveGameState());
       if (_game.game_over) _scheduleGameConclusion();
@@ -2564,48 +2664,37 @@ class _GamePageState extends State<GamePage>
       setState(() {
         _engineThinking = false;
         _maiaFailed = true;
-        _status = 'Maia error. Please retry.';
+        _status = _PlayMessage.maiaErrorPleaseRetry;
       });
       _pauseGame();
       unawaited(_saveGameState());
     }
   }
 
-  Duration _humanThinkDuration() {
-    final u1 = max(_timingRandom.nextDouble(), 0.000001);
-    final u2 = _timingRandom.nextDouble();
-    final gaussian = sqrt(-2 * log(u1)) * cos(2 * pi * u2);
-    var seconds = exp(0.50 + gaussian * 0.44).clamp(0.55, 4.5);
-    if (_timingRandom.nextDouble() < 0.06) {
-      seconds += 1.5 + _timingRandom.nextDouble() * 3;
-    }
-    return Duration(milliseconds: (seconds * 1000).round());
-  }
-
-  String _resultText() {
+  _PlayMessage _resultText() {
     final naturalResult = naturalGameResult(_game);
     if (naturalResult != null) {
       if (_game.in_checkmate) {
         return _game.turn == _playerColor
-            ? 'Checkmate — Maia wins.'
-            : 'Checkmate — you win!';
+            ? _PlayMessage.checkmateMaiaWins
+            : _PlayMessage.checkmateYouWin;
       }
-      return 'Draw.';
+      return _PlayMessage.drawResult;
     }
     if (_forcedResult != null) {
       if (_forcedResult == '1/2-1/2') {
         return _game.header['Termination'] == 'Time forfeit'
-            ? 'Draw — timeout against insufficient material.'
-            : 'Draw by agreement.';
+            ? _PlayMessage.timeoutInsufficientMaterial
+            : _PlayMessage.drawByAgreement;
       }
       return _forcedResult == '1-0'
-          ? (_playerIsWhite ? 'You win.' : 'Maia wins.')
-          : (_playerIsWhite ? 'Maia wins.' : 'You win.');
+          ? (_playerIsWhite ? _PlayMessage.youWin : _PlayMessage.maiaWins)
+          : (_playerIsWhite ? _PlayMessage.maiaWins : _PlayMessage.youWin);
     }
-    return 'Game ended.';
+    return _PlayMessage.gameEnded;
   }
 
-  String? _finishNaturalGame() {
+  _PlayMessage? _finishNaturalGame() {
     final result = naturalGameResult(_game);
     if (result == null) return null;
     _clockTimer?.cancel();
@@ -2615,19 +2704,20 @@ class _GamePageState extends State<GamePage>
   }
 
   Future<void> _offerDraw() async {
+    if (_startingGame) return;
     if (!_canOfferDraw) return;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Offer draw?'),
+        title: Text(l10n(context).offerDrawQuestion),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: Text(l10n(context).cancel),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Offer draw'),
+            child: Text(l10n(context).offerDraw),
           ),
         ],
       ),
@@ -2640,7 +2730,7 @@ class _GamePageState extends State<GamePage>
     setState(() {
       _drawOfferEvaluating = true;
       _lastDrawOfferFen = fen;
-      _status = 'Maia is considering the draw offer…';
+      _status = _PlayMessage.consideringDraw;
     });
     unawaited(_saveGameState());
 
@@ -2670,12 +2760,12 @@ class _GamePageState extends State<GamePage>
       if (!accepted) {
         setState(() {
           _drawOfferEvaluating = false;
-          _status = 'Maia declined the draw.';
+          _status = _PlayMessage.maiaDeclinedDraw;
         });
         unawaited(_saveGameState());
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Maia declined the draw.')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(l10n(context).maiaDeclinedDraw)));
         return;
       }
 
@@ -2695,7 +2785,7 @@ class _GamePageState extends State<GamePage>
           'Termination',
           'Draw by agreement',
         ]);
-        _status = 'Draw by agreement.';
+        _status = _PlayMessage.drawByAgreement;
       });
       _syncGameBoard(animate: false, resetPremove: true);
       if (_chessnutGameActive) unawaited(_setChessnutLeds(const []));
@@ -2717,16 +2807,17 @@ class _GamePageState extends State<GamePage>
       setState(() {
         _drawOfferEvaluating = false;
         _lastDrawOfferFen = null;
-        _status = 'Could not evaluate the draw offer.';
+        _status = _PlayMessage.couldNotEvaluateDraw;
       });
       unawaited(_saveGameState());
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Could not evaluate the draw offer.')),
+        SnackBar(content: Text(l10n(context).couldNotEvaluateDraw)),
       );
     }
   }
 
   Future<void> _resign() async {
+    if (_startingGame) return;
     if (!_started || _gameFinished || _engineThinking || _drawOfferEvaluating) {
       return;
     }
@@ -2734,16 +2825,16 @@ class _GamePageState extends State<GamePage>
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Resign game?'),
-        content: const Text('This will end the game immediately.'),
+        title: Text(l10n(context).resignGameQuestion),
+        content: Text(l10n(context).resignEndsImmediately),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: Text(l10n(context).cancel),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Resign'),
+            child: Text(l10n(context).resign),
           ),
         ],
       ),
@@ -2765,7 +2856,7 @@ class _GamePageState extends State<GamePage>
     setState(() {
       _forcedResult = result;
       _game.set_header(['Result', result, 'Termination', 'Player resigned']);
-      _status = 'You resigned — Maia wins.';
+      _status = _PlayMessage.youResigned;
     });
     _syncGameBoard(animate: false, resetPremove: true);
     if (_chessnutGameActive) unawaited(_setChessnutLeds(const []));
@@ -2774,6 +2865,7 @@ class _GamePageState extends State<GamePage>
   }
 
   Future<void> _goHome() async {
+    if (_startingGame) return;
     _pauseGame();
     _savedAsIncomplete = !_gameFinished;
     final snapshot = _gameSnapshot();
@@ -2800,7 +2892,7 @@ class _GamePageState extends State<GamePage>
           : _preferredTimePreset;
       _customMinutes = _preferredCustomMinutes;
       _customIncrement = _preferredCustomIncrement;
-      _status = 'Choose your settings and start a game.';
+      _status = _PlayMessage.chooseSettings;
     });
     _syncGameBoard(animate: false, resetPremove: true);
   }
@@ -2809,16 +2901,16 @@ class _GamePageState extends State<GamePage>
       await showDialog<bool>(
         context: context,
         builder: (context) => AlertDialog(
-          title: const Text('Leave current game?'),
-          content: const Text('Your game will be kept in Recent games.'),
+          title: Text(l10n(context).leaveCurrentGame),
+          content: Text(l10n(context).yourGameWillBeKeptInRecentGames),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context, false),
-              child: const Text('Cancel'),
+              child: Text(l10n(context).cancel),
             ),
             FilledButton(
               onPressed: () => Navigator.pop(context, true),
-              child: const Text('Continue'),
+              child: Text(l10n(context).continueAction),
             ),
           ],
         ),
@@ -2826,6 +2918,7 @@ class _GamePageState extends State<GamePage>
       false;
 
   Future<void> _requestHome() async {
+    if (_startingGame) return;
     if (!_gameFinished) {
       final confirmed = await _confirmEraseCurrentGame();
       if (!confirmed || !mounted) return;
@@ -2836,39 +2929,59 @@ class _GamePageState extends State<GamePage>
   }
 
   Future<void> _requestNewGame() async {
+    if (_storageBlocked || _startingGame) return;
     final completed = _gameFinished;
     final generation = _gameGeneration;
     final confirmed =
         await showDialog<bool>(
           context: context,
           builder: (context) => AlertDialog(
-            title: Text(completed ? 'Start a new game?' : 'Reset game?'),
+            title: Text(
+              completed
+                  ? l10n(context).startANewGame
+                  : l10n(context).resetGameQuestion,
+            ),
             content: Text(
               completed
-                  ? 'Your completed game will remain in Recent Games.'
-                  : 'This game will be permanently erased.',
+                  ? l10n(context).yourCompletedGameWillRemainInRecentGames
+                  : l10n(context).thisGameWillBePermanentlyErased,
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context, false),
-                child: const Text('Cancel'),
+                child: Text(l10n(context).cancel),
               ),
               FilledButton(
                 onPressed: () => Navigator.pop(context, true),
-                child: Text(completed ? 'Start new game' : 'Reset'),
+                child: Text(
+                  completed ? l10n(context).startNewGame : l10n(context).reset,
+                ),
               ),
             ],
           ),
         ) ??
         false;
     if (!confirmed || !mounted || generation != _gameGeneration) return;
+    final wasRunning = !_clockPaused && !_gameFinished;
     _pauseGame();
-    // A game can finish while the confirmation is open. Never erase a result.
-    if (_gameFinished) {
-      await _saveGameState();
-      await ActiveSessionStore.startNew();
-    } else {
-      await ActiveSessionStore.discardActive();
+    setState(() => _startingGame = true);
+    try {
+      // A game can finish while the confirmation is open. Never erase a result.
+      if (_gameFinished) {
+        await _saveGameState(allowDuringStart: true);
+        await ActiveSessionStore.startNew();
+      } else {
+        await ActiveSessionStore.discardActive();
+      }
+    } catch (error, stackTrace) {
+      _handleStorageFailure(error, stackTrace);
+      if (wasRunning && mounted && _gameCanRun) {
+        setState(() => _startingGame = false);
+        _resumeGame();
+      }
+      return;
+    } finally {
+      if (mounted) setState(() => _startingGame = false);
     }
     if (!mounted) return;
     if (_chessnutGameActive) {
@@ -2888,17 +3001,18 @@ class _GamePageState extends State<GamePage>
             : _preferredTimePreset;
         _customMinutes = _preferredCustomMinutes;
         _customIncrement = _preferredCustomIncrement;
-        _status = 'Choose your settings and start a game.';
+        _status = _PlayMessage.chooseSettings;
       });
       _syncGameBoard(animate: false, resetPremove: true);
       final position = _chessnutPosition;
       if (position != null) _queueChessnutPosition(position);
       return;
     }
-    _startGame(archiveCurrent: false);
+    await _startGame(archiveCurrent: false);
   }
 
   Future<void> _takeBack() async {
+    if (_startingGame) return;
     if (!_started || !_canTakeBack) return;
     final chessnutTakeback = _chessnutGameActive;
     // Legacy records may lack the target snapshot. Retain current clock values
@@ -2974,8 +3088,8 @@ class _GamePageState extends State<GamePage>
       _chessnutTakebackRestoreActive = chessnutTakeback;
       _lastChessnutIllegalPosition = null;
       _status = chessnutTakeback
-          ? 'Takeback: restore the lit squares on Chessnut.'
-          : 'Move taken back. Your move.';
+          ? _PlayMessage.restoreLitSquares
+          : _PlayMessage.moveTakenBack;
     });
     _syncGameBoard(animate: false, resetPremove: true);
     if (_clockEnabled) {
@@ -2998,8 +3112,8 @@ class _GamePageState extends State<GamePage>
         setState(() {
           _chessnutTakebackRestoreActive = false;
           _status = _isPlayerTurn
-              ? 'Takeback complete. Your move on Chessnut.'
-              : 'Takeback complete. Maia is thinking…';
+              ? _PlayMessage.takebackCompleteYourMove
+              : _PlayMessage.takebackCompleteThinking;
         });
         if (!_isPlayerTurn && !_engineThinking) unawaited(_playMaiaMove());
       } else {
@@ -3013,7 +3127,7 @@ class _GamePageState extends State<GamePage>
     await Clipboard.setData(ClipboardData(text: _exportPgn()));
     if (mounted) {
       ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('PGN copied')));
+          .showSnackBar(SnackBar(content: Text(l10n(context).pgnCopied)));
     }
   }
 
@@ -3021,7 +3135,7 @@ class _GamePageState extends State<GamePage>
     await Clipboard.setData(ClipboardData(text: _game.fen));
     if (mounted) {
       ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('FEN copied')));
+          .showSnackBar(SnackBar(content: Text(l10n(context).fenCopied)));
     }
   }
 
@@ -3037,25 +3151,25 @@ class _GamePageState extends State<GamePage>
             children: [
               ListTile(
                 leading: const Icon(CupertinoIcons.arrow_2_squarepath),
-                title: const Text('Flip board'),
+                title: Text(l10n(context).flipBoard),
                 onTap: () => Navigator.pop(context, 'flip'),
               ),
               ListTile(
                 leading: const Icon(Icons.analytics_outlined),
-                title: const Text('Analysis Board'),
+                title: Text(l10n(context).analysisBoard),
                 onTap: () => Navigator.pop(context, 'analysis'),
               ),
               if (_canOfferDraw)
                 ListTile(
                   leading: const Icon(Icons.handshake_outlined),
-                  title: const Text('Offer draw'),
+                  title: Text(l10n(context).offerDraw),
                   onTap: () => Navigator.pop(context, 'draw'),
                 ),
               ListTile(
                 enabled:
                     !_gameFinished && !_engineThinking && !_drawOfferEvaluating,
                 leading: const Icon(Icons.flag_outlined),
-                title: const Text('Resign'),
+                title: Text(l10n(context).resign),
                 onTap:
                     !_gameFinished && !_engineThinking && !_drawOfferEvaluating
                     ? () => Navigator.pop(context, 'resign')
@@ -3064,14 +3178,18 @@ class _GamePageState extends State<GamePage>
               ListTile(
                 enabled: _canTakeBack,
                 leading: const Icon(CupertinoIcons.arrow_uturn_left),
-                title: const Text('Take back move'),
+                title: Text(l10n(context).takeBackMove),
                 onTap: _canTakeBack
                     ? () => Navigator.pop(context, 'takeback')
                     : null,
               ),
               ListTile(
                 leading: const Icon(Icons.refresh),
-                title: Text(_gameFinished ? 'New game' : 'Reset game'),
+                title: Text(
+                  _gameFinished
+                      ? l10n(context).newGame
+                      : l10n(context).resetGame,
+                ),
                 onTap: () => Navigator.pop(context, 'new'),
               ),
             ],
@@ -3119,25 +3237,24 @@ class _GamePageState extends State<GamePage>
         _forcedResult ??
         _game.header['Result']?.toString() ??
         '*';
-    final title = switch (result) {
-      '1-0' => 'White is victorious',
-      '0-1' => 'Black is victorious',
-      '1/2-1/2' => 'The game is a draw',
-      _ => 'The game has ended',
-    };
     final action = await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
         key: const ValueKey('game-conclusion-dialog'),
-        title: Text(title),
+        title: Text(switch (result) {
+          '1-0' => l10n(context).whiteIsVictorious,
+          '0-1' => l10n(context).blackIsVictorious,
+          '1/2-1/2' => l10n(context).theGameIsADraw,
+          _ => l10n(context).theGameHasEnded,
+        }),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, 'analysis'),
-            child: const Text('Analysis Board'),
+            child: Text(l10n(context).analysisBoard),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, 'rematch'),
-            child: const Text('Rematch'),
+            child: Text(l10n(context).rematch),
           ),
         ],
       ),
@@ -3149,7 +3266,7 @@ class _GamePageState extends State<GamePage>
         final position = _chessnutPosition;
         if (position != null) _queueChessnutPosition(position);
       } else {
-        _startGame();
+        await _startGame();
       }
     } else if (action == 'analysis') {
       await _analyzeGame();
@@ -3157,6 +3274,7 @@ class _GamePageState extends State<GamePage>
   }
 
   Future<void> _analyzeGame() async {
+    if (_startingGame || _storageBlocked) return;
     _pauseGame();
     _reviewOpen = true;
     final moves = _game
@@ -3196,7 +3314,7 @@ class _GamePageState extends State<GamePage>
           secondMaiaElo: _secondMaiaEnabled ? _secondMaiaElo : null,
           gameAnalysisQuality: _gameAnalysisQuality,
           initialCurrentFen: session.positions.last,
-          title: 'Analysis Board',
+          title: l10n(context).analysisBoard,
           returnToGame: !_gameFinished,
           onSessionChanged: (fen, flipped, variations) =>
               _handleReviewSessionChanged(
@@ -3249,21 +3367,21 @@ class _GamePageState extends State<GamePage>
                 key: const ValueKey('settings-back-button'),
                 onPressed: () => setState(() => _settingsOpen = false),
                 icon: const Icon(Icons.arrow_back),
-                tooltip: 'Back',
+                tooltip: l10n(context).back,
               )
             : _started
             ? IconButton(
                 key: const ValueKey('game-home-button'),
-                onPressed: _requestHome,
+                onPressed: _startingGame ? null : _requestHome,
                 icon: const Icon(Icons.home_outlined),
-                tooltip: 'Home',
+                tooltip: l10n(context).home,
               )
             : null,
         title: Text(
           _started
               ? ''
               : showingSettings
-              ? 'Settings'
+              ? l10n(context).settings
               : 'Mobile Maia',
         ),
         actions: [
@@ -3271,7 +3389,7 @@ class _GamePageState extends State<GamePage>
             IconButton(
               onPressed: _showAbout,
               icon: const Icon(Icons.info_outline),
-              tooltip: 'About',
+              tooltip: l10n(context).about,
             ),
           if (_started) ...[
             if (_chessnutGameActive)
@@ -3283,17 +3401,21 @@ class _GamePageState extends State<GamePage>
                       ? Icons.bluetooth_connected
                       : Icons.bluetooth_disabled,
                 ),
-                tooltip: 'Chessnut status',
+                tooltip: l10n(context).chessnutStatus,
               ),
             IconButton(
               key: const ValueKey('new-game-button'),
-              onPressed: _requestNewGame,
+              onPressed: _storageBlocked || _startingGame
+                  ? null
+                  : _requestNewGame,
               icon: const Icon(Icons.refresh),
-              tooltip: _gameFinished ? 'New game' : 'Reset game',
+              tooltip: _gameFinished
+                  ? l10n(context).newGame
+                  : l10n(context).resetGame,
             ),
             PopupMenuButton<String>(
               key: const ValueKey('game-share-menu'),
-              tooltip: 'Share and export',
+              tooltip: l10n(context).shareAndExport,
               icon: const Icon(Icons.more_vert),
               onSelected: (value) async {
                 if (value == 'pgn') await _copyPgn();
@@ -3309,33 +3431,33 @@ class _GamePageState extends State<GamePage>
                   }
                 }
               },
-              itemBuilder: (_) => const [
+              itemBuilder: (_) => [
                 PopupMenuItem(
                   value: 'save',
                   child: ListTile(
                     leading: Icon(Icons.save_alt),
-                    title: Text('Save PGN file'),
+                    title: Text(l10n(context).savePgnFile),
                   ),
                 ),
                 PopupMenuItem(
                   value: 'share',
                   child: ListTile(
                     leading: Icon(Icons.share_outlined),
-                    title: Text('Share PGN'),
+                    title: Text(l10n(context).sharePgn),
                   ),
                 ),
                 PopupMenuItem(
                   value: 'pgn',
                   child: ListTile(
                     leading: Icon(Icons.description_outlined),
-                    title: Text('Copy PGN'),
+                    title: Text(l10n(context).copyPgn),
                   ),
                 ),
                 PopupMenuItem(
                   value: 'fen',
                   child: ListTile(
                     leading: Icon(Icons.content_copy),
-                    title: Text('Copy FEN'),
+                    title: Text(l10n(context).copyFen),
                   ),
                 ),
               ],
@@ -3343,6 +3465,7 @@ class _GamePageState extends State<GamePage>
           ],
         ],
       ),
+      persistentFooterButtons: _storageFailed ? [_storageWarning()] : null,
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
@@ -3416,11 +3539,11 @@ class _GamePageState extends State<GamePage>
                                 _maiaFailed = false;
                                 _resumeGame();
                               },
-                              child: const Text('Maia error. Retry'),
+                              child: Text(l10n(context).maiaErrorRetry),
                             )
                           else if (_engineThinking)
-                            const Text(
-                              'Maia is thinking…',
+                            Text(
+                              l10n(context).maiaIsThinking,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -3499,21 +3622,24 @@ class _GamePageState extends State<GamePage>
                 if (_maiaFailed)
                   Row(
                     children: [
-                      const Expanded(
-                        child: Text('Maia error. Please retry.', maxLines: 1),
+                      Expanded(
+                        child: Text(
+                          l10n(context).maiaErrorPleaseRetry,
+                          maxLines: 1,
+                        ),
                       ),
                       TextButton(
                         onPressed: () {
                           _maiaFailed = false;
                           _resumeGame();
                         },
-                        child: const Text('Retry'),
+                        child: Text(l10n(context).retry),
                       ),
                     ],
                   )
                 else if (_engineThinking)
-                  const Text(
-                    'Maia is thinking…',
+                  Text(
+                    l10n(context).maiaIsThinking,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     textAlign: TextAlign.center,
@@ -3559,7 +3685,7 @@ class _GamePageState extends State<GamePage>
                       ),
                       onPressed: () => setState(() => _settingsOpen = true),
                       icon: const Icon(Icons.settings_outlined),
-                      label: const Text('Settings'),
+                      label: Text(l10n(context).settings),
                     ),
                   ),
                 ),
@@ -3585,34 +3711,67 @@ class _GamePageState extends State<GamePage>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Text(
-              'Play Maia',
+            Text(
+              l10n(context).playMaia,
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 16),
-            const Text('Your side'),
+            Text(l10n(context).yourSide),
             const SizedBox(height: 8),
-            SegmentedButton<PlayerSide>(
-              segments: const [
-                ButtonSegment(value: PlayerSide.white, label: Text('White')),
-                ButtonSegment(value: PlayerSide.black, label: Text('Black')),
-                ButtonSegment(value: PlayerSide.random, label: Text('Random')),
-              ],
-              selected: {_sideChoice},
-              onSelectionChanged: (value) {
-                final selected = value.first;
-                setState(() => _sideChoice = selected);
-                unawaited(_persistSideChoice(selected));
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final stackSides =
+                    constraints.maxWidth /
+                        (MediaQuery.textScalerOf(context).scale(14) / 14) <
+                    280;
+                return SegmentedButton<PlayerSide>(
+                  // Three narrow segments can clip translated labels inside their
+                  // rounded outline even when no RenderFlex overflow is reported.
+                  direction: stackSides ? Axis.vertical : Axis.horizontal,
+                  style: stackSides
+                      ? ButtonStyle(
+                          shape: WidgetStatePropertyAll(
+                            RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        )
+                      : null,
+                  segments: [
+                    ButtonSegment(
+                      value: PlayerSide.white,
+                      label: Text(l10n(context).white),
+                    ),
+                    ButtonSegment(
+                      value: PlayerSide.black,
+                      label: Text(l10n(context).black),
+                    ),
+                    ButtonSegment(
+                      value: PlayerSide.random,
+                      label: Text(l10n(context).random),
+                    ),
+                  ],
+                  selected: {_sideChoice},
+                  onSelectionChanged: (value) {
+                    final selected = value.first;
+                    setState(() => _sideChoice = selected);
+                    unawaited(_persistSideChoice(selected));
+                  },
+                );
               },
             ),
             const SizedBox(height: 16),
-            Text('Play Maia rating: ${normalizeMaiaRating(_elo)}'),
+            Text(
+              l10n(context).playRatingValue(
+                displayNumber(context, normalizeMaiaRating(_elo)),
+              ),
+            ),
             Slider(
               min: maiaMinimumRating.toDouble(),
               max: maiaMaximumRating.toDouble(),
               divisions: maiaRatingDivisions,
               value: normalizeMaiaRating(_elo).toDouble(),
-              label: '${normalizeMaiaRating(_elo)}',
+              label: displayNumber(context, normalizeMaiaRating(_elo)),
               onChanged: (value) =>
                   _changePlayElo(value.round(), persist: false),
               onChangeEnd: (value) =>
@@ -3623,16 +3782,16 @@ class _GamePageState extends State<GamePage>
               key: ValueKey('time-preset-${_timePreset.name}'),
               isExpanded: true,
               initialValue: _timePreset,
-              decoration: const InputDecoration(
-                labelText: 'Time control',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: l10n(context).timeControl,
+                border: const OutlineInputBorder(),
               ),
               items: TimePreset.values
                   .map(
                     (preset) => DropdownMenuItem(
                       value: preset,
                       child: Text(
-                        preset.label,
+                        localizedTimePreset(context, preset),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -3652,26 +3811,33 @@ class _GamePageState extends State<GamePage>
             ),
             if (_timePreset == TimePreset.custom) ...[
               const SizedBox(height: 8),
-              Text('Minutes: $_customMinutes'),
+              Text(
+                l10n(context)
+                    .minutesValue(displayNumber(context, _customMinutes)),
+              ),
               Slider(
                 min: 1,
                 max: 60,
                 divisions: 59,
                 value: _customMinutes.toDouble(),
-                label: '$_customMinutes',
+                label: displayNumber(context, _customMinutes),
                 onChanged: (value) => setState(() {
                   _customMinutes = value.round();
                   _preferredCustomMinutes = _customMinutes;
                 }),
                 onChangeEnd: (_) => unawaited(_persistTimeControl()),
               ),
-              Text('Increment: $_customIncrement seconds'),
+              Text(
+                l10n(context).incrementSecondsValue(
+                  displayNumber(context, _customIncrement),
+                ),
+              ),
               Slider(
                 min: 0,
                 max: 30,
                 divisions: 30,
                 value: _customIncrement.toDouble(),
-                label: '$_customIncrement',
+                label: displayNumber(context, _customIncrement),
                 onChanged: (value) => setState(() {
                   _customIncrement = value.round();
                   _preferredCustomIncrement = _customIncrement;
@@ -3687,7 +3853,7 @@ class _GamePageState extends State<GamePage>
               visualDensity: VisualDensity.compact,
               secondary: const Icon(Icons.bluetooth_outlined, size: 22),
               value: _useChessnutGo,
-              title: const Text('Chessnut (experimental)'),
+              title: Text(l10n(context).chessnutExperimental),
               onChanged: (value) => unawaited(_setUseChessnutGo(value)),
             ),
             if (_useChessnutGo) ...[
@@ -3706,10 +3872,13 @@ class _GamePageState extends State<GamePage>
                           : Icons.bluetooth_searching,
                     ),
                     const SizedBox(width: 10),
-                    Expanded(child: Text(_chessnutMessage)),
+                    Expanded(child: Text(_chessnutMessage.text(context))),
                     if (_chessnutBatteryPercent != null)
                       Text(
-                        '$_chessnutBatteryPercent%${_chessnutCharging ? ' ⚡' : ''}',
+                        l10n(context).chessnutBattery(
+                          displayNumber(context, _chessnutBatteryPercent!),
+                          _chessnutCharging ? 'yes' : 'no',
+                        ),
                       ),
                   ],
                 ),
@@ -3723,12 +3892,16 @@ class _GamePageState extends State<GamePage>
                 icon: Icon(
                   _chessnutReady ? Icons.bluetooth_disabled : Icons.bluetooth,
                 ),
-                label: Text(_chessnutReady ? 'Disconnect' : 'Connect Chessnut'),
+                label: Text(
+                  _chessnutReady
+                      ? l10n(context).disconnect
+                      : l10n(context).connectChessnut,
+                ),
               ),
-              const Padding(
-                padding: EdgeInsets.only(top: 8),
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
                 child: Text(
-                  'Chessnut play supports standard-position, unlimited games only.',
+                  l10n(context).chessnutGameRestriction,
                   style: TextStyle(fontSize: 12),
                 ),
               ),
@@ -3739,21 +3912,25 @@ class _GamePageState extends State<GamePage>
                 minimumSize: const Size.fromHeight(52),
               ),
               onPressed:
-                  (_initialized || widget.startingFen != null) &&
+                  !_storageBlocked &&
+                      !_startingGame &&
+                      (_initialized || widget.startingFen != null) &&
                       (!_useChessnutGo || _chessnutStartPositionReady)
                   ? _startGame
                   : null,
               icon: const Icon(Icons.play_arrow),
-              label: const Text('Start game'),
+              label: Text(l10n(context).startGame),
             ),
             const SizedBox(height: 12),
             OutlinedButton.icon(
               style: OutlinedButton.styleFrom(
                 minimumSize: const Size.fromHeight(52),
               ),
-              onPressed: _initialized ? _openAnalysisBoard : null,
+              onPressed: _initialized && !_storageBlocked && !_startingGame
+                  ? _openAnalysisBoard
+                  : null,
               icon: const Icon(Icons.analytics_outlined),
-              label: const Text('Analysis Board'),
+              label: Text(l10n(context).analysisBoard),
             ),
             const SizedBox(height: 12),
             OutlinedButton.icon(
@@ -3762,7 +3939,7 @@ class _GamePageState extends State<GamePage>
               ),
               onPressed: _showRecentGames,
               icon: const Icon(Icons.history),
-              label: const Text('Recent games'),
+              label: Text(l10n(context).recentGames),
             ),
           ],
         ),
@@ -3805,25 +3982,72 @@ class _GamePageState extends State<GamePage>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              if (AppLanguageSettings.maybeOf(context)
+                  case final language?) ...[
+                _settingsSection(
+                  title: l10n(context).language,
+                  icon: Icons.language,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+                      child: DropdownButtonFormField<String>(
+                        key: ValueKey(
+                          'app-language-${language.selectedCode ?? 'system'}',
+                        ),
+                        isExpanded: true,
+                        // Native language names may wrap at large text sizes.
+                        itemHeight: null,
+                        isDense: false,
+                        initialValue: language.selectedCode ?? 'system',
+                        decoration: InputDecoration(
+                          labelText: l10n(context).language,
+                          border: const OutlineInputBorder(),
+                        ),
+                        items: [
+                          DropdownMenuItem(
+                            value: 'system',
+                            child: Text(l10n(context).systemDefault),
+                          ),
+                          for (final choice in sortedAppLanguageChoices())
+                            DropdownMenuItem(
+                              value: choice.key,
+                              child: Text(choice.value),
+                            ),
+                        ],
+                        onChanged: (value) => language.onChanged(
+                          value == 'system' ? null : value,
+                        ),
+                      ),
+                    ),
+                    if (language.persistenceFailed)
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                        child: Semantics(
+                          liveRegion: true,
+                          child: Text(l10n(context).languagePreferenceError),
+                        ),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+              ],
               _settingsSection(
-                title: 'Game settings',
+                title: l10n(context).gameSettings,
                 icon: Icons.sports_esports_outlined,
                 children: [
                   SwitchListTile(
                     key: const ValueKey('game-sounds-setting'),
-                    title: const Text('Game sounds'),
-                    subtitle: const Text(
-                      'Moves, captures, errors, and game end',
-                    ),
+                    title: Text(l10n(context).gameSounds),
+                    subtitle: Text(l10n(context).movesCapturesErrorsAndGameEnd),
                     value: _gameSoundsEnabled,
                     onChanged: (value) =>
                         unawaited(_setGameSoundsEnabled(value)),
                   ),
                   SwitchListTile(
                     key: const ValueKey('game-haptics-setting'),
-                    title: const Text('Haptic feedback'),
-                    subtitle: const Text(
-                      'Touch feedback for moves, checks, errors, and game end',
+                    title: Text(l10n(context).hapticFeedback),
+                    subtitle: Text(
+                      l10n(context).touchFeedbackForMovesChecksErrorsAndGameEnd,
                     ),
                     value: _gameHapticsEnabled,
                     onChanged: (value) =>
@@ -3831,8 +4055,8 @@ class _GamePageState extends State<GamePage>
                   ),
                   SwitchListTile(
                     key: const ValueKey('premoves-setting'),
-                    title: const Text('Premoves'),
-                    subtitle: const Text('Queue a move while Maia is thinking'),
+                    title: Text(l10n(context).premoves),
+                    subtitle: Text(l10n(context).queueAMoveWhileMaiaIsThinking),
                     value: _premovesEnabled,
                     onChanged: (value) {
                       setState(() => _premovesEnabled = value);
@@ -3841,9 +4065,9 @@ class _GamePageState extends State<GamePage>
                   ),
                   SwitchListTile(
                     key: const ValueKey('premove-penalty-setting'),
-                    title: const Text('100 ms premove penalty'),
-                    subtitle: const Text(
-                      'Use 0.1 seconds per premove in timed games',
+                    title: Text(l10n(context).oneHundredMsPremovePenalty),
+                    subtitle: Text(
+                      l10n(context).use01SecondsPerPremoveInTimedGames,
                     ),
                     value: _premovePenalty,
                     onChanged: _premovesEnabled
@@ -3855,9 +4079,9 @@ class _GamePageState extends State<GamePage>
                   ),
                   SwitchListTile(
                     key: const ValueKey('multiple-premoves-setting'),
-                    title: const Text('Allow multiple premoves'),
-                    subtitle: const Text(
-                      'Queue a sequence; an illegal move cancels the rest',
+                    title: Text(l10n(context).allowMultiplePremoves),
+                    subtitle: Text(
+                      l10n(context).queueASequenceAnIllegalMoveCancelsTheRest,
                     ),
                     value: _multiplePremoves,
                     onChanged: _premovesEnabled
@@ -3870,9 +4094,9 @@ class _GamePageState extends State<GamePage>
                   SwitchListTile(
                     key: const ValueKey('human-timing-setting'),
                     value: _humanTiming,
-                    title: const Text('Human move timing'),
-                    subtitle: const Text(
-                      'Variable natural pauses before Maia moves',
+                    title: Text(l10n(context).humanMoveTiming),
+                    subtitle: Text(
+                      l10n(context).variableNaturalPausesBeforeMaiaMoves,
                     ),
                     onChanged: (value) {
                       setState(() => _humanTiming = value);
@@ -3883,11 +4107,11 @@ class _GamePageState extends State<GamePage>
               ),
               const SizedBox(height: 8),
               _settingsSection(
-                title: 'Engine settings',
+                title: l10n(context).engineSettings,
                 icon: Icons.memory_outlined,
                 trailing: IconButton(
                   key: const ValueKey('sampling-help'),
-                  tooltip: 'About Temperature and Top-P',
+                  tooltip: l10n(context).aboutTemperatureAndTopP,
                   onPressed: _showSamplingHelp,
                   icon: const Icon(Icons.help_outline),
                 ),
@@ -3895,14 +4119,20 @@ class _GamePageState extends State<GamePage>
                   ListTile(
                     key: const ValueKey('temperature-setting'),
                     title: Text(
-                      'Temperature: ${_temperature.toStringAsFixed(2)}',
+                      l10n(context).temperatureValue(
+                        displayNumber(context, _temperature, decimalDigits: 2),
+                      ),
                     ),
                     subtitle: Slider(
                       min: 0.00,
                       max: 1.00,
                       divisions: 20,
                       value: _temperature,
-                      label: _temperature.toStringAsFixed(2),
+                      label: displayNumber(
+                        context,
+                        _temperature,
+                        decimalDigits: 2,
+                      ),
                       onChanged: (value) =>
                           setState(() => _temperature = value),
                       onChangeEnd: (_) => unawaited(_saveEnginePreferences()),
@@ -3910,13 +4140,17 @@ class _GamePageState extends State<GamePage>
                   ),
                   ListTile(
                     key: const ValueKey('top-p-setting'),
-                    title: Text('Top-P: ${_topP.toStringAsFixed(2)}'),
+                    title: Text(
+                      l10n(context).topPValue(
+                        displayNumber(context, _topP, decimalDigits: 2),
+                      ),
+                    ),
                     subtitle: Slider(
                       min: 0.00,
                       max: 1.00,
                       divisions: 20,
                       value: _topP,
-                      label: _topP.toStringAsFixed(2),
+                      label: displayNumber(context, _topP, decimalDigits: 2),
                       onChanged: (value) => setState(() => _topP = value),
                       onChangeEnd: (_) => unawaited(_saveEnginePreferences()),
                     ),
@@ -3925,8 +4159,7 @@ class _GamePageState extends State<GamePage>
                     Padding(
                       padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
                       child: Text(
-                        'Temperature or Top-P differs from the recommended '
-                        '1.00. See the information button for details.',
+                        l10n(context).samplingRecommendationWarning,
                         key: const ValueKey('sampling-recommendation-warning'),
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: Theme.of(context).colorScheme.error,
@@ -3934,13 +4167,17 @@ class _GamePageState extends State<GamePage>
                       ),
                     ),
                   ListTile(
-                    title: Text('Maia analysis rating: $_analysisElo'),
+                    title: Text(
+                      l10n(context).analysisRatingValue(
+                        displayNumber(context, _analysisElo),
+                      ),
+                    ),
                     subtitle: Slider(
                       min: maiaMinimumRating.toDouble(),
                       max: maiaMaximumRating.toDouble(),
                       divisions: maiaRatingDivisions,
                       value: _analysisElo.toDouble(),
-                      label: '$_analysisElo',
+                      label: displayNumber(context, _analysisElo),
                       onChanged: (value) =>
                           setState(() => _analysisElo = value.round()),
                       onChangeEnd: (_) => unawaited(_saveEnginePreferences()),
@@ -3948,9 +4185,9 @@ class _GamePageState extends State<GamePage>
                   ),
                   SwitchListTile(
                     key: const ValueKey('second-maia-engine-setting'),
-                    title: const Text('Add second Maia engine'),
-                    subtitle: const Text(
-                      'Compare another Maia rating in analysis and review',
+                    title: Text(l10n(context).addSecondMaiaEngine),
+                    subtitle: Text(
+                      l10n(context).compareAnotherMaiaRatingInAnalysisAndReview,
                     ),
                     value: _secondMaiaEnabled,
                     onChanged: (value) {
@@ -3962,14 +4199,16 @@ class _GamePageState extends State<GamePage>
                     ListTile(
                       key: const ValueKey('second-maia-rating-setting'),
                       title: Text(
-                        'Second Maia analysis rating: $_secondMaiaElo',
+                        l10n(context).secondAnalysisRatingValue(
+                          displayNumber(context, _secondMaiaElo),
+                        ),
                       ),
                       subtitle: Slider(
                         min: maiaMinimumRating.toDouble(),
                         max: maiaMaximumRating.toDouble(),
                         divisions: maiaRatingDivisions,
                         value: _secondMaiaElo.toDouble(),
-                        label: '$_secondMaiaElo',
+                        label: displayNumber(context, _secondMaiaElo),
                         onChanged: (value) =>
                             setState(() => _secondMaiaElo = value.round()),
                         onChangeEnd: (_) => unawaited(_saveEnginePreferences()),
@@ -3984,8 +4223,11 @@ class _GamePageState extends State<GamePage>
                       isExpanded: true,
                       initialValue: _gameAnalysisQuality,
                       decoration: InputDecoration(
-                        labelText: 'Game analysis quality',
-                        helperText: _gameAnalysisQuality.description,
+                        labelText: l10n(context).gameAnalysisQuality,
+                        helperText: localizedAnalysisQualityDescription(
+                          context,
+                          _gameAnalysisQuality,
+                        ),
                         helperMaxLines: 2,
                         border: const OutlineInputBorder(),
                       ),
@@ -3993,7 +4235,9 @@ class _GamePageState extends State<GamePage>
                           .map(
                             (quality) => DropdownMenuItem(
                               value: quality,
-                              child: Text(quality.label),
+                              child: Text(
+                                localizedAnalysisQuality(context, quality),
+                              ),
                             ),
                           )
                           .toList(),
@@ -4022,7 +4266,7 @@ class _GamePageState extends State<GamePage>
                         });
                         unawaited(_saveEnginePreferences());
                       },
-                      child: const Text('Reset engine defaults'),
+                      child: Text(l10n(context).resetEngineDefaults),
                     ),
                   ),
                 ],
@@ -4035,9 +4279,10 @@ class _GamePageState extends State<GamePage>
                   SwitchListTile(
                     key: const ValueKey('chessnut-sounds-toggle'),
                     value: _chessnutSoundsEnabled,
-                    title: const Text('Board sounds'),
-                    subtitle: const Text(
-                      'Beep for check, checkmate, and completed illegal moves.',
+                    title: Text(l10n(context).boardSounds),
+                    subtitle: Text(
+                      l10n(context)
+                          .beepForCheckCheckmateAndCompletedIllegalMoves,
                     ),
                     onChanged: (value) =>
                         unawaited(_setChessnutSoundsEnabled(value)),
@@ -4053,11 +4298,11 @@ class _GamePageState extends State<GamePage>
                   await AppDiagnostics.copyToClipboard();
                   if (!mounted) return;
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Diagnostics copied')),
+                    SnackBar(content: Text(l10n(context).diagnosticsCopied)),
                   );
                 },
                 icon: const Icon(Icons.copy),
-                label: const Text('Copy diagnostics'),
+                label: Text(l10n(context).copyDiagnostics),
               ),
             ],
           ),
@@ -4066,8 +4311,9 @@ class _GamePageState extends State<GamePage>
     );
   }
 
-  String _playerLabel(chess.Color color) =>
-      color == _playerColor ? 'You' : 'Maia3 ${_elo}elo';
+  String _playerLabel(chess.Color color) => color == _playerColor
+      ? l10n(context).you
+      : l10n(context).maiaOpponentRating(displayNumber(context, _elo));
 
   Widget _liveMoveStrip() {
     final moves = _liveSanMoves;
@@ -4133,7 +4379,7 @@ class _GamePageState extends State<GamePage>
           ? Padding(
               padding: const EdgeInsets.symmetric(horizontal: 12),
               child: Text(
-                'Game ready',
+                l10n(context).gameReady,
                 style: TextStyle(
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
@@ -4154,7 +4400,9 @@ class _GamePageState extends State<GamePage>
                       ),
                     ),
                     child: Text(
-                      _displayPly == 0 ? 'START' : 'HISTORY',
+                      _displayPly == 0
+                          ? l10n(context).start
+                          : l10n(context).history,
                       style: TextStyle(
                         color: Theme.of(context).colorScheme.primary,
                         fontSize: 11,
@@ -4192,7 +4440,7 @@ class _GamePageState extends State<GamePage>
         key: const ValueKey('game-actions-menu'),
         onPressed: _drawOfferEvaluating ? null : _showGameMenu,
         icon: const Icon(Icons.menu),
-        tooltip: 'Game menu',
+        tooltip: l10n(context).gameMenu,
       ),
       IconButton(
         key: const ValueKey('quick-resign-button'),
@@ -4200,7 +4448,7 @@ class _GamePageState extends State<GamePage>
             ? _resign
             : null,
         icon: const Icon(CupertinoIcons.flag),
-        tooltip: 'Resign',
+        tooltip: l10n(context).resign,
       ),
     ],
   );
@@ -4297,7 +4545,10 @@ class _GamePageState extends State<GamePage>
     final seconds = (safe % 60000) ~/ 1000;
     if (safe < 10000) {
       final tenths = (safe % 1000) ~/ 100;
-      return '$minutes:${seconds.toString().padLeft(2, '0')}.$tenths';
+      final decimalSeparator = NumberFormat.decimalPattern(
+        l10n(context).localeName,
+      ).symbols.DECIMAL_SEP;
+      return '$minutes:${seconds.toString().padLeft(2, '0')}$decimalSeparator$tenths';
     }
     return '$minutes:${seconds.toString().padLeft(2, '0')}';
   }
@@ -4313,13 +4564,20 @@ class _GamePageState extends State<GamePage>
                 child: SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   child: Text(
-                    'Premoves: ${_premoves.moves.indexed.map((entry) => '${entry.$1 + 1}. ${entry.$2.from.name}–${entry.$2.to.name}${entry.$2.promotion?.uppercaseLetter ?? ''}').join('  ')}',
+                    l10n(context).premovesList(
+                      _premoves.moves.indexed
+                          .map(
+                            (entry) =>
+                                '${entry.$1 + 1}. ${entry.$2.from.name}–${entry.$2.to.name}${entry.$2.promotion?.uppercaseLetter ?? ''}',
+                          )
+                          .join('  '),
+                    ),
                   ),
                 ),
               ),
               IconButton(
                 key: const ValueKey('cancel-premoves'),
-                tooltip: 'Cancel premoves',
+                tooltip: l10n(context).cancelPremoves,
                 onPressed: _cancelPremoves,
                 icon: const Icon(Icons.close),
               ),

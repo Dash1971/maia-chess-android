@@ -1,12 +1,46 @@
 # F-Droid readiness
 
 For future releases, follow [docs/RELEASING.md](docs/RELEASING.md). The records
-below describe the 2.2.2 preparation checkpoint; they are not live upstream
-status. Final 2.2.2 qualification and publication evidence is on its GitHub release.
+below include a dated 2.3.0 preparation checkpoint and historical 2.2.2 recovery
+notes; they are not live upstream status.
 
 This is a status record, not a publication approval. The Preview package is not
 part of the Stable submission. Updating this repository's review recipe does
 not update F-Droid's canonical metadata or publish an app.
+
+## 2.3.0 preparation (versionCode 80), checked 2026-10-06
+
+This PR prepares source and listing metadata only; it does **not** merge, tag,
+sign, publish or submit anything to F-Droid.
+
+Canonical metadata at fdroiddata revision
+[`91c12ca8b178bccaa3228be51af960b86568369b`](https://gitlab.com/fdroid/fdroiddata/-/blob/91c12ca8b178bccaa3228be51af960b86568369b/metadata/com.dash1971.maia_chess.yml)
+contains **2.2.2 / 79**, pinned to
+`9e0bec93b4102cf04e1405324cf323bbcf249f2b`. The pinned file matched the live raw
+metadata when checked (SHA-256
+`47be00415921f006e7c0920a9ae3c65c134633dc2e66b4667272c64870d9ecd3`).
+The old [MR !50992](https://gitlab.com/fdroid/fdroiddata/-/merge_requests/50992)
+is merged. No open request matched this package in the API search; canonical
+builds are 75, 76 and 79, without the older failed 77/78 entries. A direct fetch of the public
+package page also listed **2.2.2 / 79**; an initially cached web result still
+showed 2.1.3, so the live page was checked separately. Metadata inclusion and
+store publication must continue to be checked independently.
+
+The local review file now follows that canonical file and adds a proposed
+**2.3.0 / 80** block, inheriting its build instructions exactly. It preserves
+Stable's package, binary filename pattern, signing certificate and tag-based
+`UpdateCheckData`/`AutoUpdateMode`. The proposed `v2.3.0` reference is not a tag
+created by this PR: replace it with the frozen full source SHA in final build
+evidence. Version code 80 exceeds all currently published Stable codes; the
+Preview app's 2307 is a different Android package and is not used here.
+
+Fastlane includes `changelogs/80.txt`, updated feature text and refreshed UI
+images in the candidate source. Recheck canonical metadata immediately before
+qualification. After merge, run the exact-source workflow (including dependency
+checks), independent Linux/F-Droid scans/build, unsigned comparison, signing and
+the combined gate. Only after authorized publication can the bot detect the
+new tag and compare against the developer APK. A local recipe, draft PR or
+passing source test is not an upstream submission or publication guarantee.
 
 ## Recovery release: 2.2.2 (versionCode 79)
 

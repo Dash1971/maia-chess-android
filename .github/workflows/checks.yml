@@ -28,6 +28,11 @@ jobs:
           test "$(git -C "$RUNNER_TEMP/flutter" rev-parse HEAD)" = 6a19cca56475dbfba1478ee68d7bd0c2ef891da1
           echo "$RUNNER_TEMP/flutter/bin" >> "$GITHUB_PATH"
       - run: flutter pub get --enforce-lockfile
+      - name: Verify localization catalogs and generated code
+        run: |
+          flutter gen-l10n
+          python3 tool/check_localization.py
+          git diff --exit-code -- lib/l10n pubspec.lock
       - run: flutter analyze
       - run: flutter test --reporter expanded
       - name: Test release verification tools
@@ -35,6 +40,39 @@ jobs:
           python3 -m venv "$RUNNER_TEMP/release-checks-venv"
           "$RUNNER_TEMP/release-checks-venv/bin/pip" install -r tool/hardening/requirements.txt -r tool/requirements-release.txt
           "$RUNNER_TEMP/release-checks-venv/bin/python" -m unittest discover -s tool -p '*_test.py'
+  dependencies:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Install pinned Flutter
+        run: |
+          git clone --depth 1 --branch 3.47.5 https://github.com/flutter/flutter.git "$RUNNER_TEMP/flutter"
+          test "$(git -C "$RUNNER_TEMP/flutter" rev-parse HEAD)" = 6a19cca56475dbfba1478ee68d7bd0c2ef891da1
+          echo "$RUNNER_TEMP/flutter/bin" >> "$GITHUB_PATH"
+      - run: flutter pub get --enforce-lockfile
+      - name: Resolve release dependencies without building the APK
+        run: |
+          flutter build apk --release --config-only --no-pub
+          cd android
+          ./gradlew -I ../tool/dependency_audit.init.gradle :app:writeReleaseDependencyAudit --console=plain
+      - name: Audit locked dependencies against OSV
+        run: |
+          python3 -m venv "$RUNNER_TEMP/dependency-audit"
+          "$RUNNER_TEMP/dependency-audit/bin/pip" install -r tool/requirements-release.txt
+          "$RUNNER_TEMP/dependency-audit/bin/python" tool/audit_dependencies.py \
+            --maven release-checks/maven-dependencies.json \
+            --output release-checks/dependency-audit.json
+      - name: Retain dependency audit evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: dependency-audit-${{ github.sha }}
+          path: release-checks/
+          retention-days: 90
   android:
     if: github.event_name == 'workflow_dispatch' && inputs.build_android
     runs-on: ubuntu-24.04

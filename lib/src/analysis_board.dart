@@ -35,7 +35,7 @@ class _ContinueFromHereDialogState extends State<_ContinueFromHereDialog> {
 
   @override
   Widget build(BuildContext context) => AlertDialog(
-    title: const Text('Continue from here'),
+    title: Text(l10n(context).continueFromHere),
     content: SizedBox(
       width: 400,
       child: SingleChildScrollView(
@@ -46,13 +46,19 @@ class _ContinueFromHereDialogState extends State<_ContinueFromHereDialog> {
             DropdownButtonFormField<PlayerSide>(
               key: const ValueKey('continuation-side'),
               initialValue: _side,
-              decoration: const InputDecoration(labelText: 'Your side'),
-              items: const [
-                DropdownMenuItem(value: PlayerSide.white, child: Text('White')),
-                DropdownMenuItem(value: PlayerSide.black, child: Text('Black')),
+              decoration: InputDecoration(labelText: l10n(context).yourSide),
+              items: [
+                DropdownMenuItem(
+                  value: PlayerSide.white,
+                  child: Text(l10n(context).white),
+                ),
+                DropdownMenuItem(
+                  value: PlayerSide.black,
+                  child: Text(l10n(context).black),
+                ),
                 DropdownMenuItem(
                   value: PlayerSide.random,
-                  child: Text('Random'),
+                  child: Text(l10n(context).random),
                 ),
               ],
               onChanged: (value) {
@@ -60,26 +66,26 @@ class _ContinueFromHereDialogState extends State<_ContinueFromHereDialog> {
               },
             ),
             const SizedBox(height: 12),
-            Text('Play Maia rating: $_elo'),
+            Text(l10n(context).playRatingValue(displayNumber(context, _elo))),
             Slider(
               key: const ValueKey('continuation-rating'),
               min: maiaMinimumRating.toDouble(),
               max: maiaMaximumRating.toDouble(),
               divisions: maiaRatingDivisions,
               value: _elo.toDouble(),
-              label: '$_elo',
+              label: displayNumber(context, _elo),
               onChanged: (value) => setState(() => _elo = value.round()),
             ),
             DropdownButtonFormField<TimePreset>(
               key: const ValueKey('continuation-time-control'),
               initialValue: _timePreset,
               isExpanded: true,
-              decoration: const InputDecoration(labelText: 'Time control'),
+              decoration: InputDecoration(labelText: l10n(context).timeControl),
               items: TimePreset.values
                   .map(
                     (preset) => DropdownMenuItem(
                       value: preset,
-                      child: Text(preset.label),
+                      child: Text(localizedTimePreset(context, preset)),
                     ),
                   )
                   .toList(),
@@ -89,25 +95,32 @@ class _ContinueFromHereDialogState extends State<_ContinueFromHereDialog> {
             ),
             if (_timePreset == TimePreset.custom) ...[
               const SizedBox(height: 12),
-              Text('Minutes: $_customMinutes'),
+              Text(
+                l10n(context)
+                    .minutesValue(displayNumber(context, _customMinutes)),
+              ),
               Slider(
                 key: const ValueKey('continuation-custom-minutes'),
                 min: 1,
                 max: 60,
                 divisions: 59,
                 value: _customMinutes.toDouble(),
-                label: '$_customMinutes',
+                label: displayNumber(context, _customMinutes),
                 onChanged: (value) =>
                     setState(() => _customMinutes = value.round()),
               ),
-              Text('Increment: $_customIncrement seconds'),
+              Text(
+                l10n(context).incrementSecondsValue(
+                  displayNumber(context, _customIncrement),
+                ),
+              ),
               Slider(
                 key: const ValueKey('continuation-custom-increment'),
                 min: 0,
                 max: 30,
                 divisions: 30,
                 value: _customIncrement.toDouble(),
-                label: '$_customIncrement',
+                label: displayNumber(context, _customIncrement),
                 onChanged: (value) =>
                     setState(() => _customIncrement = value.round()),
               ),
@@ -119,7 +132,7 @@ class _ContinueFromHereDialogState extends State<_ContinueFromHereDialog> {
     actions: [
       TextButton(
         onPressed: () => Navigator.pop(context),
-        child: const Text('Cancel'),
+        child: Text(l10n(context).cancel),
       ),
       FilledButton(
         key: const ValueKey('continuation-start-game'),
@@ -133,7 +146,7 @@ class _ContinueFromHereDialogState extends State<_ContinueFromHereDialog> {
             customIncrement: _customIncrement,
           ),
         ),
-        child: const Text('Start game'),
+        child: Text(l10n(context).startGame),
       ),
     ],
   );
@@ -168,11 +181,11 @@ class _TextInputDialogState extends State<_TextInputDialog> {
     actions: [
       TextButton(
         onPressed: () => Navigator.pop(context),
-        child: const Text('Cancel'),
+        child: Text(l10n(context).cancel),
       ),
       FilledButton(
         onPressed: () => Navigator.pop(context, _controller.text),
-        child: const Text('Load'),
+        child: Text(l10n(context).load),
       ),
     ],
   );
@@ -275,21 +288,33 @@ class _AnalysisBoardPageState extends State<AnalysisBoardPage> {
     );
   }
 
-  void _showError(Object error) {
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(error.toString())));
+  void _showError(Object error, {bool fen = false}) {
+    unawaited(
+      AppDiagnostics.record(
+        fen ? 'load-fen' : 'load-pgn',
+        error,
+        StackTrace.current,
+      ),
+    );
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          fen ? l10n(context).invalidPosition : l10n(context).pgnLoadFailed,
+        ),
+      ),
+    );
   }
 
   Future<void> _loadFen() async {
     final value = await _textDialog(
-      'Load FEN',
-      'Paste a complete six-field FEN',
+      l10n(context).loadFen,
+      l10n(context).pasteFen,
     );
     if (value == null || value.trim().isEmpty) return;
     try {
       _replace(AnalysisSession.fromFen(value));
     } catch (error) {
-      _showError(error);
+      _showError(error, fen: true);
     }
   }
 
@@ -306,7 +331,10 @@ class _AnalysisBoardPageState extends State<AnalysisBoardPage> {
   }
 
   Future<void> _loadPgn() async {
-    final value = await _textDialog('Load PGN', 'Paste a PGN game');
+    final value = await _textDialog(
+      l10n(context).loadPgn,
+      l10n(context).pastePgn,
+    );
     if (value == null || value.trim().isEmpty) return;
     try {
       final session = await AnalysisSession.fromPgnAsync(value);
@@ -410,7 +438,7 @@ class _AnalysisBoardPageState extends State<AnalysisBoardPage> {
     evaluator: widget.evaluator,
     maiaEvaluator: widget.maiaEvaluator,
     maiaPolicyEvaluator: widget.maiaPolicyEvaluator,
-    title: 'Analysis Board',
+    title: l10n(context).analysisBoard,
     onHome: ActiveSessionStore.clear,
     onLoadFen: _loadFen,
     onLoadPgn: _loadPgn,
@@ -483,7 +511,7 @@ class _BoardEditorPageState extends State<BoardEditorPage> {
       AnalysisSession.validateFen(fen);
     } catch (error) {
       ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(error.toString())));
+          .showSnackBar(SnackBar(content: Text(l10n(context).invalidPosition)));
       return;
     }
     Navigator.pop(context, fen);
@@ -499,18 +527,25 @@ class _BoardEditorPageState extends State<BoardEditorPage> {
       chess.PieceType.KNIGHT,
       chess.PieceType.PAWN,
     ];
-    const labels = ['K', 'Q', 'R', 'B', 'N', 'P'];
+    final labels = [
+      l10n(context).pieceKing,
+      l10n(context).pieceQueen,
+      l10n(context).pieceRook,
+      l10n(context).pieceBishop,
+      l10n(context).pieceKnight,
+      l10n(context).piecePawn,
+    ];
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Edit Board'),
+        title: Text(l10n(context).editBoard),
         actions: [
           IconButton(
             key: const ValueKey('board-editor-flip'),
-            tooltip: 'Flip board',
+            tooltip: l10n(context).flipBoard,
             onPressed: () => setState(() => _flipped = !_flipped),
             icon: const Icon(CupertinoIcons.arrow_2_squarepath),
           ),
-          TextButton(onPressed: _finish, child: const Text('Done')),
+          TextButton(onPressed: _finish, child: Text(l10n(context).done)),
         ],
       ),
       body: SafeArea(
@@ -538,20 +573,24 @@ class _BoardEditorPageState extends State<BoardEditorPage> {
                     ),
                   ),
                   const SizedBox(height: 12),
-                  SegmentedButton<chess.Color>(
-                    segments: const [
-                      ButtonSegment(
-                        value: chess.Color.WHITE,
-                        label: Text('White pieces'),
-                      ),
-                      ButtonSegment(
-                        value: chess.Color.BLACK,
-                        label: Text('Black pieces'),
-                      ),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 4,
+                    children: [
+                      for (final color in [
+                        chess.Color.WHITE,
+                        chess.Color.BLACK,
+                      ])
+                        ChoiceChip(
+                          label: Text(
+                            color == chess.Color.WHITE
+                                ? l10n(context).whitePieces
+                                : l10n(context).blackPieces,
+                          ),
+                          selected: _color == color,
+                          onSelected: (_) => setState(() => _color = color),
+                        ),
                     ],
-                    selected: {_color},
-                    onSelectionChanged: (value) =>
-                        setState(() => _color = value.first),
                   ),
                   const SizedBox(height: 8),
                   Wrap(
@@ -569,38 +608,42 @@ class _BoardEditorPageState extends State<BoardEditorPage> {
                   SwitchListTile(
                     value: _whiteTurn,
                     onChanged: (value) => setState(() => _whiteTurn = value),
-                    title: Text(_whiteTurn ? 'White to move' : 'Black to move'),
+                    title: Text(
+                      (_whiteTurn
+                          ? l10n(context).whiteToMove
+                          : l10n(context).blackToMove),
+                    ),
                   ),
                   ExpansionTile(
-                    title: const Text('Castling rights'),
+                    title: Text(l10n(context).castlingRights),
                     children: [
                       CheckboxListTile(
                         value: _wk,
                         onChanged: (v) => setState(() => _wk = v ?? false),
-                        title: const Text('White kingside'),
+                        title: Text(l10n(context).whiteKingside),
                       ),
                       CheckboxListTile(
                         value: _wq,
                         onChanged: (v) => setState(() => _wq = v ?? false),
-                        title: const Text('White queenside'),
+                        title: Text(l10n(context).whiteQueenside),
                       ),
                       CheckboxListTile(
                         value: _bk,
                         onChanged: (v) => setState(() => _bk = v ?? false),
-                        title: const Text('Black kingside'),
+                        title: Text(l10n(context).blackKingside),
                       ),
                       CheckboxListTile(
                         value: _bq,
                         onChanged: (v) => setState(() => _bq = v ?? false),
-                        title: const Text('Black queenside'),
+                        title: Text(l10n(context).blackQueenside),
                       ),
                     ],
                   ),
                   DropdownButtonFormField<String>(
                     initialValue: _enPassant,
-                    decoration: const InputDecoration(
-                      labelText: 'En-passant target',
-                      border: OutlineInputBorder(),
+                    decoration: InputDecoration(
+                      labelText: l10n(context).enPassantTarget,
+                      border: const OutlineInputBorder(),
                     ),
                     items:
                         [
@@ -620,8 +663,10 @@ class _BoardEditorPageState extends State<BoardEditorPage> {
                         setState(() => _enPassant = value ?? '-'),
                   ),
                   const SizedBox(height: 8),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  Wrap(
+                    alignment: WrapAlignment.spaceEvenly,
+                    spacing: 8,
+                    runSpacing: 4,
                     children: [
                       TextButton(
                         onPressed: () => setState(() {
@@ -630,7 +675,7 @@ class _BoardEditorPageState extends State<BoardEditorPage> {
                           _wk = _wq = _bk = _bq = true;
                           _enPassant = '-';
                         }),
-                        child: const Text('Starting position'),
+                        child: Text(l10n(context).startingPosition),
                       ),
                       TextButton(
                         onPressed: () => setState(() {
@@ -642,7 +687,7 @@ class _BoardEditorPageState extends State<BoardEditorPage> {
                           _wk = _wq = _bk = _bq = false;
                           _enPassant = '-';
                         }),
-                        child: const Text('Clear board'),
+                        child: Text(l10n(context).clearBoard),
                       ),
                     ],
                   ),

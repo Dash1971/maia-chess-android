@@ -116,7 +116,7 @@ class PgnDocuments(private val activity: Activity, private val received: () -> U
         }
     }
 
-    fun share(text: String, reply: MethodChannel.Result) {
+    fun share(text: String, reply: MethodChannel.Result, chooserTitle: String = "Share PGN") {
         if (text.toByteArray(Charsets.UTF_8).size > MAX_BYTES) {
             reply.error("pgn_too_large", "PGN exceeds 2 MB", null)
             return
@@ -136,7 +136,7 @@ class PgnDocuments(private val activity: Activity, private val received: () -> U
                     clipData = android.content.ClipData.newRawUri("PGN", uri)
                 }
                 activity.runOnUiThread {
-                    try { activity.startActivity(Intent.createChooser(intent, "Share PGN")); reply.success(null) }
+                    try { activity.startActivity(Intent.createChooser(intent, chooserTitle)); reply.success(null) }
                     catch (error: Exception) { reply.error("share_failed", error.message, null) }
                 }
             } catch (error: Exception) {

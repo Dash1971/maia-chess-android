@@ -149,15 +149,20 @@ void main() {
     expect(await AppDiagnostics.report(), contains('[active-session-load]'));
   });
 
-  test('unsupported active session schema is discarded', () async {
-    SharedPreferences.setMockInitialValues({
-      'activeSessionV1': '{"schema":99,"type":"game"}',
-    });
+  test(
+    'unsupported active session schema is preserved for a newer reader',
+    () async {
+      const future = '{"schema":99,"type":"game"}';
+      SharedPreferences.setMockInitialValues({'activeSessionV1': future});
 
-    expect(await ActiveSessionStore.load(), isNull);
-    final preferences = await SharedPreferences.getInstance();
-    expect(preferences.getString('activeSessionV1'), isNull);
-  });
+      await expectLater(
+        ActiveSessionStore.load(),
+        throwsA(isA<UnsupportedSessionFormatException>()),
+      );
+      final preferences = await SharedPreferences.getInstance();
+      expect(preferences.getString('activeSessionV1'), future);
+    },
+  );
 
   test('a timed-out Maia reply does not wedge the inference queue', () async {
     var invocation = 0;
@@ -564,8 +569,14 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Temperature and Top-P'), findsOneWidget);
-    expect(find.textContaining('how adventurous Maia is'), findsOneWidget);
-    expect(find.textContaining('smallest group of moves'), findsOneWidget);
+    expect(
+      find.textContaining('how concentrated Maia’s move probabilities are'),
+      findsOneWidget,
+    );
+    expect(
+      find.textContaining('smallest leading group whose combined probability'),
+      findsOneWidget,
+    );
     expect(
       find.textContaining('Temperature 1.00 and Top-P 1.00'),
       findsOneWidget,

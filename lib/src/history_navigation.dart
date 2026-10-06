@@ -16,10 +16,10 @@ class MoveHistoryNavigator extends StatelessWidget {
     required this.onLast,
     this.headerActions = const [],
     this.headerActionWidth = 48,
-    this.previousTooltip = 'Previous move',
-    this.nextTooltip = 'Next move',
-    this.startTooltip = 'beginning',
-    this.endTooltip = 'latest position',
+    this.previousTooltip,
+    this.nextTooltip,
+    this.startTooltip,
+    this.endTooltip,
     super.key,
   });
 
@@ -33,10 +33,10 @@ class MoveHistoryNavigator extends StatelessWidget {
   final VoidCallback onLast;
   final List<Widget> headerActions;
   final double headerActionWidth;
-  final String previousTooltip;
-  final String nextTooltip;
-  final String startTooltip;
-  final String endTooltip;
+  final String? previousTooltip;
+  final String? nextTooltip;
+  final String? startTooltip;
+  final String? endTooltip;
 
   Widget _button(
     BuildContext context, {
@@ -58,7 +58,7 @@ class MoveHistoryNavigator extends StatelessWidget {
           button: true,
           enabled: enabled,
           label: tooltip,
-          hint: 'Hold for $longPressDestination',
+          hint: l10n(context).holdForDestination(longPressDestination),
           onTap: enabled ? onTap : null,
           onLongPress: enabled ? onLongPress : null,
           child: ExcludeSemantics(
@@ -99,12 +99,12 @@ class MoveHistoryNavigator extends StatelessWidget {
             _button(
               context,
               key: previousKey,
-              tooltip: previousTooltip,
+              tooltip: previousTooltip ?? l10n(context).previousMove,
               icon: CupertinoIcons.chevron_back,
               enabled: canGoBack,
               onTap: onPrevious,
               onLongPress: onFirst,
-              longPressDestination: startTooltip,
+              longPressDestination: startTooltip ?? l10n(context).beginning,
               borderRadius: const BorderRadius.horizontal(left: radius),
             ),
             SizedBox(
@@ -115,12 +115,12 @@ class MoveHistoryNavigator extends StatelessWidget {
             _button(
               context,
               key: nextKey,
-              tooltip: nextTooltip,
+              tooltip: nextTooltip ?? l10n(context).nextMove,
               icon: CupertinoIcons.chevron_forward,
               enabled: canGoForward,
               onTap: onNext,
               onLongPress: onLast,
-              longPressDestination: endTooltip,
+              longPressDestination: endTooltip ?? l10n(context).latestPosition,
               borderRadius: const BorderRadius.horizontal(right: radius),
             ),
           ],

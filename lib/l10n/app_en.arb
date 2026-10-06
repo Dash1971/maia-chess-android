@@ -1,0 +1,1456 @@
+{
+  "@@locale": "en",
+  "about": "About",
+  "@about": {
+    "description": "Home / game setup: About"
+  },
+  "analysisBoard": "Analysis Board",
+  "@analysisBoard": {
+    "description": "Home / game setup: Analysis Board"
+  },
+  "back": "Back",
+  "@back": {
+    "description": "Home / game setup: Back"
+  },
+  "black": "Black",
+  "@black": {
+    "description": "Home / game setup: Black"
+  },
+  "cancelPremoves": "Cancel premoves",
+  "@cancelPremoves": {
+    "description": "Home / game setup: Cancel premoves"
+  },
+  "chessnutExperimental": "Chessnut (experimental)",
+  "@chessnutExperimental": {
+    "description": "Home / game setup: Chessnut (experimental)"
+  },
+  "connectChessnut": "Connect Chessnut",
+  "@connectChessnut": {
+    "description": "Home / game setup: Connect Chessnut"
+  },
+  "disconnect": "Disconnect",
+  "@disconnect": {
+    "description": "Home / game setup: Disconnect"
+  },
+  "engineSettings": "Engine settings",
+  "@engineSettings": {
+    "description": "Home / game setup: Engine settings"
+  },
+  "gameMenu": "Game menu",
+  "@gameMenu": {
+    "description": "Home / game setup: Game menu"
+  },
+  "gameReady": "Game ready",
+  "@gameReady": {
+    "description": "Home / game setup: Game ready"
+  },
+  "gameSettings": "Game settings",
+  "@gameSettings": {
+    "description": "Home / game setup: Game settings"
+  },
+  "home": "Home",
+  "@home": {
+    "description": "Home / game setup: Home"
+  },
+  "playMaia": "Play Maia",
+  "@playMaia": {
+    "description": "Home / game setup: Play Maia"
+  },
+  "random": "Random",
+  "@random": {
+    "description": "Home / game setup: Random"
+  },
+  "recentGames": "Recent games",
+  "@recentGames": {
+    "description": "Home / game setup: Recent games"
+  },
+  "resign": "Resign",
+  "@resign": {
+    "description": "Home / game setup: Resign"
+  },
+  "settings": "Settings",
+  "@settings": {
+    "description": "Home / game setup: Settings"
+  },
+  "startGame": "Start game",
+  "@startGame": {
+    "description": "Home / game setup: Start game"
+  },
+  "timeControl": "Time control",
+  "@timeControl": {
+    "description": "Home / game setup: Time control"
+  },
+  "white": "White",
+  "@white": {
+    "description": "Home / game setup: White"
+  },
+  "unlimited": "Unlimited",
+  "@unlimited": {
+    "description": "Home / game setup: Unlimited"
+  },
+  "custom": "Custom",
+  "@custom": {
+    "description": "Home / game setup: Custom"
+  },
+  "seconds": "seconds",
+  "@seconds": {
+    "description": "Home / game setup: seconds"
+  },
+  "yourSide": "Your side",
+  "@yourSide": {
+    "description": "Home / game setup: Your side"
+  },
+  "you": "You",
+  "@you": {
+    "description": "Home / game setup: You"
+  },
+  "systemDefault": "System default",
+  "@systemDefault": {
+    "description": "Settings: System default"
+  },
+  "language": "Language",
+  "@language": {
+    "description": "Settings: Language"
+  },
+  "playMaiaRating": "Play Maia rating",
+  "@playMaiaRating": {
+    "description": "Settings: Play Maia rating"
+  },
+  "minutes": "Minutes",
+  "@minutes": {
+    "description": "Settings: Minutes"
+  },
+  "increment": "Increment",
+  "@increment": {
+    "description": "Time added to a player’s chess clock after each move, in seconds. Not a generic numeric increment."
+  },
+  "gameSounds": "Game sounds",
+  "@gameSounds": {
+    "description": "Settings: Game sounds"
+  },
+  "movesCapturesErrorsAndGameEnd": "Moves, captures, errors, and game end",
+  "@movesCapturesErrorsAndGameEnd": {
+    "description": "Settings: Moves, captures, errors, and game end"
+  },
+  "hapticFeedback": "Haptic feedback",
+  "@hapticFeedback": {
+    "description": "Settings: Haptic feedback"
+  },
+  "touchFeedbackForMovesChecksErrorsAndGameEnd": "Touch feedback for moves, checks, errors, and game end",
+  "@touchFeedbackForMovesChecksErrorsAndGameEnd": {
+    "description": "Settings: Touch feedback for moves, checks, errors, and game end"
+  },
+  "premoves": "Premoves",
+  "@premoves": {
+    "description": "Settings: Premoves"
+  },
+  "queueAMoveWhileMaiaIsThinking": "Queue a move while Maia is thinking",
+  "@queueAMoveWhileMaiaIsThinking": {
+    "description": "Settings: Queue a move while Maia is thinking"
+  },
+  "oneHundredMsPremovePenalty": "100 ms premove penalty",
+  "@oneHundredMsPremovePenalty": {
+    "description": "Settings: 100 ms premove penalty"
+  },
+  "use01SecondsPerPremoveInTimedGames": "Use 0.1 seconds per premove in timed games",
+  "@use01SecondsPerPremoveInTimedGames": {
+    "description": "Settings: Use 0.1 seconds per premove in timed games"
+  },
+  "allowMultiplePremoves": "Allow multiple premoves",
+  "@allowMultiplePremoves": {
+    "description": "Settings: Allow multiple premoves"
+  },
+  "queueASequenceAnIllegalMoveCancelsTheRest": "Queue a sequence; an illegal move cancels the rest",
+  "@queueASequenceAnIllegalMoveCancelsTheRest": {
+    "description": "Settings: Queue a sequence; an illegal move cancels the rest"
+  },
+  "humanMoveTiming": "Human move timing",
+  "@humanMoveTiming": {
+    "description": "Toggle for optional random pauses before Maia moves. Changes timing only, not move selection, strength, or a learned human-time model."
+  },
+  "variableNaturalPausesBeforeMaiaMoves": "Variable natural pauses before Maia moves",
+  "@variableNaturalPausesBeforeMaiaMoves": {
+    "description": "Settings: Variable natural pauses before Maia moves"
+  },
+  "aboutTemperatureAndTopP": "About Temperature and Top-P",
+  "@aboutTemperatureAndTopP": {
+    "description": "Settings: About Temperature and Top-P"
+  },
+  "temperature": "Temperature",
+  "@temperature": {
+    "description": "Settings: Temperature"
+  },
+  "topP": "Top-P",
+  "@topP": {
+    "description": "Settings: Top-P"
+  },
+  "maiaAnalysisRating": "Maia analysis rating",
+  "@maiaAnalysisRating": {
+    "description": "Settings: Maia analysis rating"
+  },
+  "addSecondMaiaEngine": "Add second Maia engine",
+  "@addSecondMaiaEngine": {
+    "description": "Settings: Add second Maia engine"
+  },
+  "compareAnotherMaiaRatingInAnalysisAndReview": "Compare another Maia rating in analysis and review",
+  "@compareAnotherMaiaRatingInAnalysisAndReview": {
+    "description": "Settings: Compare another Maia rating in analysis and review"
+  },
+  "secondMaiaAnalysisRating": "Second Maia analysis rating",
+  "@secondMaiaAnalysisRating": {
+    "description": "Settings: Second Maia analysis rating"
+  },
+  "gameAnalysisQuality": "Game analysis quality",
+  "@gameAnalysisQuality": {
+    "description": "Settings: Game analysis quality"
+  },
+  "resetEngineDefaults": "Reset engine defaults",
+  "@resetEngineDefaults": {
+    "description": "Settings: Reset engine defaults"
+  },
+  "boardSounds": "Board sounds",
+  "@boardSounds": {
+    "description": "Settings: Board sounds"
+  },
+  "beepForCheckCheckmateAndCompletedIllegalMoves": "Beep for check, checkmate, and completed illegal moves.",
+  "@beepForCheckCheckmateAndCompletedIllegalMoves": {
+    "description": "Chessnut sound setting. Illegal-move feedback occurs only after the physical move is completed, not while a piece is being lifted or moved. Describe the user-facing event naturally rather than literally translating \"completed illegal moves\"."
+  },
+  "copyDiagnostics": "Copy diagnostics",
+  "@copyDiagnostics": {
+    "description": "Settings: Copy diagnostics"
+  },
+  "diagnosticsCopied": "Diagnostics copied",
+  "@diagnosticsCopied": {
+    "description": "Settings: Diagnostics copied"
+  },
+  "newGame": "New game",
+  "@newGame": {
+    "description": "Live game: New game"
+  },
+  "resetGame": "Reset game",
+  "@resetGame": {
+    "description": "Live game: Reset game"
+  },
+  "shareAndExport": "Share and export",
+  "@shareAndExport": {
+    "description": "Live game: Share and export"
+  },
+  "savePgnFile": "Save PGN file",
+  "@savePgnFile": {
+    "description": "Live game: Save PGN file"
+  },
+  "sharePgn": "Share PGN",
+  "@sharePgn": {
+    "description": "Live game: Share PGN"
+  },
+  "copyPgn": "Copy PGN",
+  "@copyPgn": {
+    "description": "Live game: Copy PGN"
+  },
+  "copyFen": "Copy FEN",
+  "@copyFen": {
+    "description": "Live game: Copy FEN"
+  },
+  "maiaErrorRetry": "Maia error. Retry",
+  "@maiaErrorRetry": {
+    "description": "Live game: Maia error. Retry"
+  },
+  "maiaErrorPleaseRetry": "Maia error. Please retry.",
+  "@maiaErrorPleaseRetry": {
+    "description": "Live game: Maia error. Please retry."
+  },
+  "retry": "Retry",
+  "@retry": {
+    "description": "Live game: Retry"
+  },
+  "maiaIsThinking": "Maia is thinking…",
+  "@maiaIsThinking": {
+    "description": "Live game: Maia is thinking…"
+  },
+  "history": "HISTORY",
+  "@history": {
+    "description": "Live game: HISTORY"
+  },
+  "start": "START",
+  "@start": {
+    "description": "Live game: START"
+  },
+  "chessnutStatus": "Chessnut status",
+  "@chessnutStatus": {
+    "description": "Live game: Chessnut status"
+  },
+  "leaveCurrentGame": "Leave current game?",
+  "@leaveCurrentGame": {
+    "description": "Live game: Leave current game?"
+  },
+  "yourGameWillBeKeptInRecentGames": "Your game will be kept in Recent games.",
+  "@yourGameWillBeKeptInRecentGames": {
+    "description": "Live game: Your game will be kept in Recent games."
+  },
+  "cancel": "Cancel",
+  "@cancel": {
+    "description": "Live game: Cancel"
+  },
+  "continueAction": "Continue",
+  "@continueAction": {
+    "description": "Live game: Continue"
+  },
+  "startANewGame": "Start a new game?",
+  "@startANewGame": {
+    "description": "Live game: Start a new game?"
+  },
+  "resetGameQuestion": "Reset game?",
+  "@resetGameQuestion": {
+    "description": "Live game: Reset game?"
+  },
+  "yourCompletedGameWillRemainInRecentGames": "Your completed game will remain in Recent Games.",
+  "@yourCompletedGameWillRemainInRecentGames": {
+    "description": "Live game: Your completed game will remain in Recent Games."
+  },
+  "thisGameWillBePermanentlyErased": "This game will be permanently erased.",
+  "@thisGameWillBePermanentlyErased": {
+    "description": "Live game: This game will be permanently erased."
+  },
+  "startNewGame": "Start new game",
+  "@startNewGame": {
+    "description": "Live game: Start new game"
+  },
+  "reset": "Reset",
+  "@reset": {
+    "description": "Live game: Reset"
+  },
+  "flipBoard": "Flip board",
+  "@flipBoard": {
+    "description": "Live game: Flip board"
+  },
+  "offerDraw": "Offer draw",
+  "@offerDraw": {
+    "description": "Live game: Offer draw"
+  },
+  "takeBackMove": "Take back move",
+  "@takeBackMove": {
+    "description": "Undo action. Depending on turn and board mode, this can undo one or two plies; avoid promising exactly one ply."
+  },
+  "whiteIsVictorious": "White is victorious",
+  "@whiteIsVictorious": {
+    "description": "Live game: White is victorious"
+  },
+  "blackIsVictorious": "Black is victorious",
+  "@blackIsVictorious": {
+    "description": "Live game: Black is victorious"
+  },
+  "theGameIsADraw": "The game is a draw",
+  "@theGameIsADraw": {
+    "description": "Live game: The game is a draw"
+  },
+  "theGameHasEnded": "The game has ended",
+  "@theGameHasEnded": {
+    "description": "Live game: The game has ended"
+  },
+  "rematch": "Rematch",
+  "@rematch": {
+    "description": "Live game: Rematch"
+  },
+  "fast": "Fast",
+  "@fast": {
+    "description": "Analysis quality: Fast"
+  },
+  "balanced": "Balanced",
+  "@balanced": {
+    "description": "Analysis quality: Balanced"
+  },
+  "thorough": "Thorough",
+  "@thorough": {
+    "description": "Analysis quality: Thorough"
+  },
+  "continueFromHere": "Continue from here",
+  "@continueFromHere": {
+    "description": "Analysis Board / Review: Continue from here"
+  },
+  "load": "Load",
+  "@load": {
+    "description": "Analysis Board / Review: Load"
+  },
+  "editBoard": "Edit Board",
+  "@editBoard": {
+    "description": "Analysis Board / Review: Edit Board"
+  },
+  "done": "Done",
+  "@done": {
+    "description": "Analysis Board / Review: Done"
+  },
+  "whitePieces": "White pieces",
+  "@whitePieces": {
+    "description": "Analysis Board / Review: White pieces"
+  },
+  "blackPieces": "Black pieces",
+  "@blackPieces": {
+    "description": "Analysis Board / Review: Black pieces"
+  },
+  "whiteToMove": "White to move",
+  "@whiteToMove": {
+    "description": "Analysis Board / Review: White to move"
+  },
+  "blackToMove": "Black to move",
+  "@blackToMove": {
+    "description": "Analysis Board / Review: Black to move"
+  },
+  "castlingRights": "Castling rights",
+  "@castlingRights": {
+    "description": "Board editor heading for FEN castling rights retained by king/rooks. Rights do not mean castling is legal immediately: blocked squares or check may still prevent it."
+  },
+  "whiteKingside": "White kingside",
+  "@whiteKingside": {
+    "description": "Board Editor castling-rights checkbox: whiteKingside. Kingside is short castling (O-O); queenside is long castling (O-O-O)."
+  },
+  "whiteQueenside": "White queenside",
+  "@whiteQueenside": {
+    "description": "Board Editor castling-rights checkbox: whiteQueenside. Kingside is short castling (O-O); queenside is long castling (O-O-O)."
+  },
+  "blackKingside": "Black kingside",
+  "@blackKingside": {
+    "description": "Board Editor castling-rights checkbox: blackKingside. Kingside is short castling (O-O); queenside is long castling (O-O-O)."
+  },
+  "blackQueenside": "Black queenside",
+  "@blackQueenside": {
+    "description": "Board Editor castling-rights checkbox: blackQueenside. Kingside is short castling (O-O); queenside is long castling (O-O-O)."
+  },
+  "enPassantTarget": "En-passant target",
+  "@enPassantTarget": {
+    "description": "Analysis Board / Review: En-passant target"
+  },
+  "startingPosition": "Starting position",
+  "@startingPosition": {
+    "description": "Analysis Board / Review: Starting position"
+  },
+  "clearBoard": "Clear board",
+  "@clearBoard": {
+    "description": "Analysis Board / Review: Clear board"
+  },
+  "loadFen": "Load FEN",
+  "@loadFen": {
+    "description": "Analysis Board / Review: Load FEN"
+  },
+  "loadPgn": "Load PGN",
+  "@loadPgn": {
+    "description": "Analysis Board / Review: Load PGN"
+  },
+  "openPgnFile": "Open PGN file",
+  "@openPgnFile": {
+    "description": "Analysis Board / Review: Open PGN file"
+  },
+  "clearMoves": "Clear moves",
+  "@clearMoves": {
+    "description": "Analysis Board / Review: Clear moves"
+  },
+  "boardEditor": "Board Editor",
+  "@boardEditor": {
+    "description": "Analysis Board / Review: Board Editor"
+  },
+  "endPosition": "end position",
+  "@endPosition": {
+    "description": "Analysis Board / Review: end position"
+  },
+  "analysisMenu": "Analysis menu",
+  "@analysisMenu": {
+    "description": "Analysis Board / Review: Analysis menu"
+  },
+  "turnEngineOff": "Turn engine off",
+  "@turnEngineOff": {
+    "description": "Analysis Board / Review: Turn engine off"
+  },
+  "turnEngineOn": "Turn engine on",
+  "@turnEngineOn": {
+    "description": "Analysis Board / Review: Turn engine on"
+  },
+  "moves": "Moves",
+  "@moves": {
+    "description": "Analysis Board / Review: Moves"
+  },
+  "computerAnalysis": "Computer analysis",
+  "@computerAnalysis": {
+    "description": "Analysis Board / Review: Computer analysis"
+  },
+  "backToGame": "Back to game",
+  "@backToGame": {
+    "description": "Analysis Board / Review: Back to game"
+  },
+  "expandVariations": "Expand variations",
+  "@expandVariations": {
+    "description": "Analysis and review UI: Expand variations"
+  },
+  "collapseVariations": "Collapse variations",
+  "@collapseVariations": {
+    "description": "Analysis and review UI: Collapse variations"
+  },
+  "promoteVariation": "Promote variation",
+  "@promoteVariation": {
+    "description": "Review-tree action: promote a variation one parent level; a top-level variation moves to the first position. Not pawn promotion. Distinct from Make main line, which promotes repeatedly to the top."
+  },
+  "makeMainLine": "Make main line",
+  "@makeMainLine": {
+    "description": "Review-tree action: promote a variation repeatedly until it becomes the main line. This changes the displayed analysis tree, not the historical moves actually played."
+  },
+  "deleteFromHere": "Delete from here",
+  "@deleteFromHere": {
+    "description": "Analysis and review UI: Delete from here"
+  },
+  "analyzing": "Analyzing…",
+  "@analyzing": {
+    "description": "Analysis and review UI: Analyzing…"
+  },
+  "noLegalMoves": "No legal moves",
+  "@noLegalMoves": {
+    "description": "Analysis and review UI: No legal moves"
+  },
+  "unavailable": "Unavailable",
+  "@unavailable": {
+    "description": "Analysis and review UI: Unavailable"
+  },
+  "analysisFailed": "Analysis failed. Please retry.",
+  "@analysisFailed": {
+    "description": "Analysis and review UI: Analysis failed. Please retry."
+  },
+  "analysisStopped": "Computer analysis stopped.",
+  "@analysisStopped": {
+    "description": "Analysis and review UI: Computer analysis stopped."
+  },
+  "classifyingMoves": "Classifying moves…",
+  "@classifyingMoves": {
+    "description": "Analysis and review UI: Classifying moves…"
+  },
+  "graphReadyClassifying": "Graph ready · classifying moves…",
+  "@graphReadyClassifying": {
+    "description": "Analysis and review UI: Graph ready · classifying moves…"
+  },
+  "stopAnalysis": "Stop analysis",
+  "@stopAnalysis": {
+    "description": "Analysis and review UI: Stop analysis"
+  },
+  "runAnalysisAgain": "Run computer analysis again",
+  "@runAnalysisAgain": {
+    "description": "Analysis and review UI: Run computer analysis again"
+  },
+  "runAnalysis": "Run computer analysis",
+  "@runAnalysis": {
+    "description": "Analysis and review UI: Run computer analysis"
+  },
+  "analysisExplanation": "Run computer analysis to generate the evaluation graph and White/Black accuracy.",
+  "@analysisExplanation": {
+    "description": "Analysis and review UI: Run computer analysis to generate the evaluation graph and White/Black accuracy."
+  },
+  "pgnCopied": "PGN copied",
+  "@pgnCopied": {
+    "description": "Play screen: PGN copied"
+  },
+  "fenCopied": "FEN copied",
+  "@fenCopied": {
+    "description": "Play screen: FEN copied"
+  },
+  "rawProbabilitiesExplanation": "Raw model probabilities normalized across every legal move. Temperature and Top-P are not applied.",
+  "@rawProbabilitiesExplanation": {
+    "description": "Analysis and review UI: Raw model probabilities normalized across every legal move. Temperature and Top-P are not applied."
+  },
+  "showRawProbabilities": "Show full raw model probabilities",
+  "@showRawProbabilities": {
+    "description": "Analysis and review UI: Show full raw model probabilities"
+  },
+  "pasteFen": "Paste a complete six-field FEN",
+  "@pasteFen": {
+    "description": "Analysis and review UI: Paste a complete six-field FEN"
+  },
+  "pastePgn": "Paste a PGN game",
+  "@pastePgn": {
+    "description": "Analysis and review UI: Paste a PGN game"
+  },
+  "invalidPosition": "Invalid position. Check the board and FEN.",
+  "@invalidPosition": {
+    "description": "Analysis and review UI: Invalid position. Check the board and FEN."
+  },
+  "pgnLoadFailed": "Could not load the PGN game. Check the file or pasted text.",
+  "@pgnLoadFailed": {
+    "description": "Analysis and review UI: Could not load the PGN game. Check the file or pasted text."
+  },
+  "goToNext": "Go to next",
+  "@goToNext": {
+    "description": "Analysis and review UI: Go to next"
+  },
+  "tapForNext": "{label} · tap for next",
+  "@tapForNext": {
+    "description": "Analysis and review UI: {label} · tap for next",
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "notEnoughMoves": "Not enough moves",
+  "@notEnoughMoves": {
+    "description": "Analysis and review UI: Not enough moves"
+  },
+  "gameAccuracy": "Game accuracy",
+  "@gameAccuracy": {
+    "description": "Analysis and review UI: Game accuracy"
+  },
+  "accuracy": "Accuracy",
+  "@accuracy": {
+    "description": "Analysis and review UI: Accuracy"
+  },
+  "analysisGraph": "Computer analysis graph",
+  "@analysisGraph": {
+    "description": "Analysis and review UI: Computer analysis graph"
+  },
+  "maiaMoveProbabilities": "Maia {elo} move probabilities",
+  "@maiaMoveProbabilities": {
+    "description": "Analysis and review UI: Maia {elo} move probabilities",
+    "placeholders": {
+      "elo": {
+        "type": "int"
+      }
+    }
+  },
+  "otherProbability": "Other {probability}",
+  "@otherProbability": {
+    "description": "Analysis and review UI: Other {probability}",
+    "placeholders": {
+      "probability": {
+        "type": "String"
+      }
+    }
+  },
+  "otherLegalProbability": "other legal moves {probability}",
+  "@otherLegalProbability": {
+    "description": "Analysis and review UI: other legal moves {probability}",
+    "placeholders": {
+      "probability": {
+        "type": "String"
+      }
+    }
+  },
+  "maiaProbabilitySemantics": "{title}. {moves}.",
+  "@maiaProbabilitySemantics": {
+    "description": "Analysis and review UI: {title}. {moves}.",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      },
+      "moves": {
+        "type": "String"
+      }
+    }
+  },
+  "analysisProgress": "Analyzing {completed} of {total} positions…",
+  "@analysisProgress": {
+    "description": "Analysis and review UI: Analyzing {completed} of {total} positions…",
+    "placeholders": {
+      "completed": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "graphPosition": "Position {position} of {total}  ·  {score}",
+  "@graphPosition": {
+    "description": "Analysis and review UI: Position {position} of {total}, {score}",
+    "placeholders": {
+      "position": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "score": {
+        "type": "String"
+      }
+    }
+  },
+  "positionNumber": "Position {position}",
+  "@positionNumber": {
+    "description": "Analysis and review UI: Position {position}",
+    "placeholders": {
+      "position": {
+        "type": "int"
+      }
+    }
+  },
+  "classificationCount": "{count, plural, one{{count} {side} {classification} move} other{{count} {side} {classification} moves}}",
+  "@classificationCount": {
+    "description": "Analysis and review UI: {count, plural, one{{count} {side} {classification} move} other{{count} {side} {classification} moves}}",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "side": {
+        "type": "String"
+      },
+      "classification": {
+        "type": "String"
+      }
+    }
+  },
+  "classificationBrilliant": "Brilliant",
+  "@classificationBrilliant": {
+    "description": "Chess annotation !! (brilliant move). Describes the move, not praise addressed to the player. Keep distinct from good (!)."
+  },
+  "classificationGood": "Good",
+  "@classificationGood": {
+    "description": "Chess annotation ! (good move). Keep distinct from brilliant (!!)."
+  },
+  "classificationInteresting": "Interesting",
+  "@classificationInteresting": {
+    "description": "Chess annotation !? (interesting move, deserving attention). Not a claim that the move is entertaining, and not the dubious ?! category."
+  },
+  "classificationDubious": "Dubious",
+  "@classificationDubious": {
+    "description": "Chess annotation ?! (dubious or questionable move). Keep distinct from interesting (!?), mistake (?) and blunder (??)."
+  },
+  "classificationMistake": "Mistake",
+  "@classificationMistake": {
+    "description": "Chess annotation ? (mistake). Less severe than blunder (??)."
+  },
+  "classificationBlunder": "Blunder",
+  "@classificationBlunder": {
+    "description": "Chess annotation ?? (blunder, serious mistake). More severe than mistake (?)."
+  },
+  "gameReview": "Game review",
+  "@gameReview": {
+    "description": "Analysis and review UI: Game review"
+  },
+  "materialPawn": "{count, plural, one{{count} pawn} other{{count} pawns}}",
+  "@materialPawn": {
+    "description": "Analysis and review UI: {count, plural, one{{count} pawn} other{{count} pawns}}",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "materialKnight": "{count, plural, one{{count} knight} other{{count} knights}}",
+  "@materialKnight": {
+    "description": "Analysis and review UI: {count, plural, one{{count} knight} other{{count} knights}}",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "materialBishop": "{count, plural, one{{count} bishop} other{{count} bishops}}",
+  "@materialBishop": {
+    "description": "Analysis and review UI: {count, plural, one{{count} bishop} other{{count} bishops}}",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "materialRook": "{count, plural, one{{count} rook} other{{count} rooks}}",
+  "@materialRook": {
+    "description": "Analysis and review UI: {count, plural, one{{count} rook} other{{count} rooks}}",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "materialQueen": "{count, plural, one{{count} queen} other{{count} queens}}",
+  "@materialQueen": {
+    "description": "Analysis and review UI: {count, plural, one{{count} queen} other{{count} queens}}",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "materialAdvantage": "{score} material advantage",
+  "@materialAdvantage": {
+    "description": "Analysis and review UI: {score} material advantage",
+    "placeholders": {
+      "score": {
+        "type": "String"
+      }
+    }
+  },
+  "materialDescription": "{side} material: {description}",
+  "@materialDescription": {
+    "description": "Spoken board label for this side's material difference relative to the opponent, not its entire remaining army. {side} is White/Black; {description} lists extra pieces and any material advantage score.",
+    "placeholders": {
+      "side": {
+        "type": "String"
+      },
+      "description": {
+        "type": "String"
+      }
+    }
+  },
+  "previousMove": "Previous move",
+  "@previousMove": {
+    "description": "Analysis and review UI: Previous move"
+  },
+  "nextMove": "Next move",
+  "@nextMove": {
+    "description": "Analysis and review UI: Next move"
+  },
+  "beginning": "beginning",
+  "@beginning": {
+    "description": "Analysis and review UI: beginning"
+  },
+  "latestPosition": "latest position",
+  "@latestPosition": {
+    "description": "Analysis and review UI: latest position"
+  },
+  "holdForDestination": "Hold for {destination}",
+  "@holdForDestination": {
+    "description": "Analysis and review UI: Hold for {destination}",
+    "placeholders": {
+      "destination": {
+        "type": "String"
+      }
+    }
+  },
+  "phaseOpening": "Opening",
+  "@phaseOpening": {
+    "description": "Chess review UI: Opening"
+  },
+  "phaseMiddlegame": "Middlegame",
+  "@phaseMiddlegame": {
+    "description": "Chess review UI: Middlegame"
+  },
+  "phaseEndgame": "Endgame",
+  "@phaseEndgame": {
+    "description": "Chess review UI: Endgame"
+  },
+  "pieceKing": "King",
+  "@pieceKing": {
+    "description": "Chess review UI: King"
+  },
+  "pieceQueen": "Queen",
+  "@pieceQueen": {
+    "description": "Chess review UI: Queen"
+  },
+  "pieceRook": "Rook",
+  "@pieceRook": {
+    "description": "Chess review UI: Rook"
+  },
+  "pieceBishop": "Bishop",
+  "@pieceBishop": {
+    "description": "Chess review UI: Bishop"
+  },
+  "pieceKnight": "Knight",
+  "@pieceKnight": {
+    "description": "Chess review UI: Knight"
+  },
+  "piecePawn": "Pawn",
+  "@piecePawn": {
+    "description": "Chess review UI: Pawn"
+  },
+  "recentPlayerMaia": "Player — Maia {rating}",
+  "@recentPlayerMaia": {
+    "description": "Recent Games display only; preserve canonical game/PGN data.",
+    "placeholders": {
+      "rating": {
+        "type": "String",
+        "description": "Locale-formatted original Maia opponent rating; never migrate historical game metadata."
+      }
+    }
+  },
+  "recentMaiaPlayer": "Maia {rating} — Player",
+  "@recentMaiaPlayer": {
+    "description": "Recent Games display only; preserve canonical game/PGN data.",
+    "placeholders": {
+      "rating": {
+        "type": "String",
+        "description": "Locale-formatted original Maia opponent rating; never migrate historical game metadata."
+      }
+    }
+  },
+  "recentIncomplete": "Incomplete",
+  "@recentIncomplete": {
+    "description": "Recent Games display only; preserve canonical game/PGN data."
+  },
+  "recentCompleted": "Completed",
+  "@recentCompleted": {
+    "description": "Recent Games display only; preserve canonical game/PGN data."
+  },
+  "recentDeleteFailed": "Could not delete saved games. Please try again.",
+  "@recentDeleteFailed": {
+    "description": "Recent Games display only; preserve canonical game/PGN data."
+  },
+  "recentOpenFailed": "Could not open saved game. Please try again.",
+  "@recentOpenFailed": {
+    "description": "Recent Games display only; preserve canonical game/PGN data."
+  },
+  "recentDeleteTitle": "{count, plural, one{Delete saved game?} other{Delete {count} games?}}",
+  "@recentDeleteTitle": {
+    "description": "Recent Games display only; preserve canonical game/PGN data.",
+    "placeholders": {
+      "count": {
+        "type": "num",
+        "format": "decimalPattern",
+        "description": "Number of saved games."
+      }
+    }
+  },
+  "recentDeleteWarning": "{count, plural, one{This saved game will be permanently deleted.} other{These {count} saved games will be permanently deleted.}}",
+  "@recentDeleteWarning": {
+    "description": "Recent Games display only; preserve canonical game/PGN data.",
+    "placeholders": {
+      "count": {
+        "type": "num",
+        "format": "decimalPattern",
+        "description": "Number of saved games."
+      }
+    }
+  },
+  "deleteAction": "Delete",
+  "@deleteAction": {
+    "description": "User-facing diagnostic or PGN operation text. Diagnostic logs remain canonical."
+  },
+  "recentUpdating": "Updating saved games",
+  "@recentUpdating": {
+    "description": "Recent Games display only; preserve canonical game/PGN data."
+  },
+  "recentCancelSelection": "Cancel selection",
+  "@recentCancelSelection": {
+    "description": "Recent Games display only; preserve canonical game/PGN data."
+  },
+  "recentClearSelection": "Clear selection",
+  "@recentClearSelection": {
+    "description": "Recent Games display only; preserve canonical game/PGN data."
+  },
+  "recentSelectAll": "Select all games",
+  "@recentSelectAll": {
+    "description": "Recent Games display only; preserve canonical game/PGN data."
+  },
+  "recentDeleteSelected": "Delete selected games",
+  "@recentDeleteSelected": {
+    "description": "Recent Games display only; preserve canonical game/PGN data."
+  },
+  "recentSelectGames": "Select games",
+  "@recentSelectGames": {
+    "description": "Recent Games display only; preserve canonical game/PGN data."
+  },
+  "recentDeleteAll": "Delete all games",
+  "@recentDeleteAll": {
+    "description": "Recent Games display only; preserve canonical game/PGN data."
+  },
+  "recentDeleteOne": "Delete saved game",
+  "@recentDeleteOne": {
+    "description": "Recent Games display only; preserve canonical game/PGN data."
+  },
+  "recentSelectedCount": "{count} selected",
+  "@recentSelectedCount": {
+    "description": "Recent Games display only; preserve canonical game/PGN data.",
+    "placeholders": {
+      "count": {
+        "type": "num",
+        "format": "decimalPattern",
+        "description": "Number of saved games."
+      }
+    }
+  },
+  "recentLoadFailed": "Could not load saved games. Please try again.",
+  "@recentLoadFailed": {
+    "description": "Recent Games display only; preserve canonical game/PGN data."
+  },
+  "recentEmpty": "Completed games and incomplete games saved from Home will appear here.",
+  "@recentEmpty": {
+    "description": "Recent Games display only; preserve canonical game/PGN data."
+  },
+  "recentGameSummary": "{result} · {date}",
+  "@recentGameSummary": {
+    "description": "Recent Games display only; preserve canonical game/PGN data.",
+    "placeholders": {
+      "result": {
+        "type": "String",
+        "description": "Localized completion status or canonical chess result."
+      },
+      "date": {
+        "type": "String",
+        "description": "Locale-formatted local date."
+      }
+    }
+  },
+  "diagnosticsScreenError": "Mobile Maia encountered a screen error.",
+  "@diagnosticsScreenError": {
+    "description": "User-facing diagnostic or PGN operation text. Diagnostic logs remain canonical."
+  },
+  "diagnosticsScreenInstructions": "Copy the diagnostics and send them with a description of what you tapped immediately before this screen appeared.",
+  "@diagnosticsScreenInstructions": {
+    "description": "User-facing diagnostic or PGN operation text. Diagnostic logs remain canonical."
+  },
+  "pgnSaved": "PGN saved",
+  "@pgnSaved": {
+    "description": "User-facing diagnostic or PGN operation text. Diagnostic logs remain canonical."
+  },
+  "pgnExportFailed": "Could not export PGN. Your game is still saved locally.",
+  "@pgnExportFailed": {
+    "description": "User-facing diagnostic or PGN operation text. Diagnostic logs remain canonical."
+  },
+  "languagePreferenceError": "The language could not be saved or restored. Your games are unaffected. Please try selecting the language again.",
+  "@languagePreferenceError": {
+    "description": "Inline Settings warning when reading or writing the language preference fails. The current in-memory language remains usable."
+  },
+  "playRatingValue": "Play Maia rating: {rating}",
+  "@playRatingValue": {
+    "description": "Localized play label with numeric display values or canonical chess moves.",
+    "placeholders": {
+      "rating": {
+        "type": "String",
+        "example": "1600"
+      }
+    }
+  },
+  "minutesValue": "Minutes: {minutes}",
+  "@minutesValue": {
+    "description": "Localized play label with numeric display values or canonical chess moves.",
+    "placeholders": {
+      "minutes": {
+        "type": "String",
+        "example": "1"
+      }
+    }
+  },
+  "incrementSecondsValue": "Increment: {seconds} seconds",
+  "@incrementSecondsValue": {
+    "description": "Localized play label with numeric display values or canonical chess moves.",
+    "placeholders": {
+      "seconds": {
+        "type": "String",
+        "example": "1"
+      }
+    }
+  },
+  "chooseSettings": "Choose your settings and start a game.",
+  "@chooseSettings": {
+    "description": "Play screen: Choose your settings and start a game."
+  },
+  "gameRestored": "Game restored.",
+  "@gameRestored": {
+    "description": "Play screen: Game restored."
+  },
+  "reconnectChessnut": "Reconnect Chessnut to continue.",
+  "@reconnectChessnut": {
+    "description": "Play screen: Reconnect Chessnut to continue."
+  },
+  "chessnutConnectionError": "Chessnut connection error.",
+  "@chessnutConnectionError": {
+    "description": "Play screen: Chessnut connection error."
+  },
+  "searchingChessnut": "Searching for Chessnut…",
+  "@searchingChessnut": {
+    "description": "Play screen: Searching for Chessnut…"
+  },
+  "couldNotConnectChessnut": "Could not connect Chessnut.",
+  "@couldNotConnectChessnut": {
+    "description": "Play screen: Could not connect Chessnut."
+  },
+  "chessnutAndroidOnly": "Chessnut support is available on Android.",
+  "@chessnutAndroidOnly": {
+    "description": "Play screen: Chessnut support is available on Android."
+  },
+  "chessnutIsDisconnected": "Chessnut is disconnected.",
+  "@chessnutIsDisconnected": {
+    "description": "Play screen: Chessnut is disconnected."
+  },
+  "yourMove": "Your move.",
+  "@yourMove": {
+    "description": "Play screen: Your move."
+  },
+  "yourMoveChessnut": "Your move on Chessnut.",
+  "@yourMoveChessnut": {
+    "description": "Play screen: Your move on Chessnut."
+  },
+  "chessnutReady": "Chessnut is ready.",
+  "@chessnutReady": {
+    "description": "Play screen: Chessnut is ready."
+  },
+  "chessnutStartingPosition": "Set up the standard starting position on Chessnut.",
+  "@chessnutStartingPosition": {
+    "description": "Play screen: Set up the standard starting position on Chessnut."
+  },
+  "takebackCompleteYourMove": "Takeback complete. Your move on Chessnut.",
+  "@takebackCompleteYourMove": {
+    "description": "Play screen: Takeback complete. Your move on Chessnut."
+  },
+  "takebackCompleteThinking": "Takeback complete. Maia is thinking…",
+  "@takebackCompleteThinking": {
+    "description": "Play screen: Takeback complete. Maia is thinking…"
+  },
+  "restoreLitSquares": "Takeback: restore the lit squares on Chessnut.",
+  "@restoreLitSquares": {
+    "description": "Play screen: Takeback: restore the lit squares on Chessnut."
+  },
+  "completeMaiaLitMove": "Complete Maia’s lit move on Chessnut.",
+  "@completeMaiaLitMove": {
+    "description": "Play screen: Complete Maia’s lit move on Chessnut."
+  },
+  "illegalChessnutPosition": "That position is not a legal move. Correct the lit squares.",
+  "@illegalChessnutPosition": {
+    "description": "Play screen: That position is not a legal move. Correct the lit squares."
+  },
+  "completeYourChessnutMove": "Complete your move on Chessnut.",
+  "@completeYourChessnutMove": {
+    "description": "Play screen: Complete your move on Chessnut."
+  },
+  "connectChessnutFirst": "Connect Chessnut before starting.",
+  "@connectChessnutFirst": {
+    "description": "Play screen: Connect Chessnut before starting."
+  },
+  "gameInProgress": "Game in progress.",
+  "@gameInProgress": {
+    "description": "Play screen: Game in progress."
+  },
+  "timeoutInsufficientMaterial": "Draw — timeout against insufficient material.",
+  "@timeoutInsufficientMaterial": {
+    "description": "Play screen: Draw — timeout against insufficient material."
+  },
+  "whiteOutOfTime": "White ran out of time.",
+  "@whiteOutOfTime": {
+    "description": "Play screen: White ran out of time."
+  },
+  "blackOutOfTime": "Black ran out of time.",
+  "@blackOutOfTime": {
+    "description": "Play screen: Black ran out of time."
+  },
+  "makeMaiaLitMove": "Make Maia’s lit move on Chessnut.",
+  "@makeMaiaLitMove": {
+    "description": "Play screen: Make Maia’s lit move on Chessnut."
+  },
+  "checkmateMaiaWins": "Checkmate — Maia wins.",
+  "@checkmateMaiaWins": {
+    "description": "Play screen: Checkmate — Maia wins."
+  },
+  "checkmateYouWin": "Checkmate — you win!",
+  "@checkmateYouWin": {
+    "description": "Play screen: Checkmate — you win!"
+  },
+  "drawResult": "Draw.",
+  "@drawResult": {
+    "description": "Play screen: Draw."
+  },
+  "drawByAgreement": "Draw by agreement.",
+  "@drawByAgreement": {
+    "description": "Play screen: Draw by agreement."
+  },
+  "youWin": "You win.",
+  "@youWin": {
+    "description": "Play screen: You win."
+  },
+  "maiaWins": "Maia wins.",
+  "@maiaWins": {
+    "description": "Play screen: Maia wins."
+  },
+  "gameEnded": "Game ended.",
+  "@gameEnded": {
+    "description": "Play screen: Game ended."
+  },
+  "consideringDraw": "Maia is considering the draw offer…",
+  "@consideringDraw": {
+    "description": "Play screen: Maia is considering the draw offer…"
+  },
+  "maiaDeclinedDraw": "Maia declined the draw.",
+  "@maiaDeclinedDraw": {
+    "description": "Play screen: Maia declined the draw."
+  },
+  "couldNotEvaluateDraw": "Could not evaluate the draw offer.",
+  "@couldNotEvaluateDraw": {
+    "description": "Play screen: Could not evaluate the draw offer."
+  },
+  "youResigned": "You resigned — Maia wins.",
+  "@youResigned": {
+    "description": "Play screen: You resigned — Maia wins."
+  },
+  "moveTakenBack": "Move taken back. Your move.",
+  "@moveTakenBack": {
+    "description": "Play screen: Move taken back. Your move."
+  },
+  "connectingChessnut": "Connecting to Chessnut…",
+  "@connectingChessnut": {
+    "description": "Play screen: Connecting to Chessnut…"
+  },
+  "chessnutUnavailable": "Chessnut unavailable",
+  "@chessnutUnavailable": {
+    "description": "Play screen: Chessnut unavailable"
+  },
+  "chessnutDisconnected": "Chessnut disconnected",
+  "@chessnutDisconnected": {
+    "description": "Play screen: Chessnut disconnected"
+  },
+  "reconnect": "Reconnect",
+  "@reconnect": {
+    "description": "Play screen: Reconnect"
+  },
+  "playInApp": "Play in app",
+  "@playInApp": {
+    "description": "Play screen: Play in app"
+  },
+  "continueGameOnScreen": "Continue this game on screen",
+  "@continueGameOnScreen": {
+    "description": "Play screen: Continue this game on screen"
+  },
+  "checkCheckmateIllegalMoves": "Check, checkmate, and illegal moves",
+  "@checkCheckmateIllegalMoves": {
+    "description": "Play screen: Check, checkmate, and illegal moves"
+  },
+  "offerDrawQuestion": "Offer draw?",
+  "@offerDrawQuestion": {
+    "description": "Play screen: Offer draw?"
+  },
+  "resignGameQuestion": "Resign game?",
+  "@resignGameQuestion": {
+    "description": "Play screen: Resign game?"
+  },
+  "resignEndsImmediately": "This will end the game immediately.",
+  "@resignEndsImmediately": {
+    "description": "Play screen: This will end the game immediately."
+  },
+  "premoveLimit": "Up to 64 premoves can be queued.",
+  "@premoveLimit": {
+    "description": "Play screen: Up to 64 premoves can be queued."
+  },
+  "chessnutGameRestriction": "Chessnut play supports standard-position, unlimited games only.",
+  "@chessnutGameRestriction": {
+    "description": "Play screen: Chessnut play supports standard-position, unlimited games only."
+  },
+  "samplingTitle": "Temperature and Top-P",
+  "@samplingTitle": {
+    "description": "Play screen: Temperature and Top-P"
+  },
+  "samplingDefaultsQuestion": "Why Temperature 1.00 and Top-P 1.00?",
+  "@samplingDefaultsQuestion": {
+    "description": "Play screen: Why Temperature 1.00 and Top-P 1.00?"
+  },
+  "samplingResearch": "Read the sampling research",
+  "@samplingResearch": {
+    "description": "Play screen: Read the sampling research"
+  },
+  "close": "Close",
+  "@close": {
+    "description": "Play screen: Close"
+  },
+  "unknownVersion": "Unknown version",
+  "@unknownVersion": {
+    "description": "Play screen: Unknown version"
+  },
+  "maiaProjectSource": "Maia-3 project and source code",
+  "@maiaProjectSource": {
+    "description": "Play screen: Maia-3 project and source code"
+  },
+  "enCroissantProjectSource": "En Croissant project and source code",
+  "@enCroissantProjectSource": {
+    "description": "Play screen: En Croissant project and source code"
+  },
+  "licence": "Licence",
+  "@licence": {
+    "description": "Play screen: Licence"
+  },
+  "mobileMaiaSource": "Mobile Maia source code",
+  "@mobileMaiaSource": {
+    "description": "Play screen: Mobile Maia source code"
+  },
+  "samplingFullRange": "These settings let Maia use its full range of predicted human moves. In our tests at the 1600 setting, they produced opening choices much closer to rating-filtered Lichess games.",
+  "@samplingFullRange": {
+    "description": "Play help, about or error message: These settings let Maia use its full range of predicted human moves. In our tests at the 1600 setting, they produced opening choices much closer to rating-filtered Lichess games."
+  },
+  "samplingStrength": "Lower settings reduce variety and can make Maia stronger. We favor a more human opening repertoire over maximum strength. Maia’s rating describes the players it models, rather than guaranteeing an exact playing strength.",
+  "@samplingStrength": {
+    "description": "Play help, about or error message: Lower settings reduce variety and can make Maia stronger. We favor a more human opening repertoire over maximum strength. Maia’s rating describes the players it models, rather than guaranteeing an exact playing strength."
+  },
+  "samplingTemperatureHelp": "Temperature controls how concentrated Maia’s move probabilities are. At 0, Maia always chooses the move the model predicts humans are most likely to play. Lower positive values favor the most likely moves more strongly; higher values give less likely moves more chance.",
+  "@samplingTemperatureHelp": {
+    "description": "Play help, about or error message: Temperature controls how adventurous Maia is. At 0, Maia always chooses its most likely human move. Higher values make less likely moves more common."
+  },
+  "samplingTopPHelp": "Top-P ranks moves from most to least likely, then keeps the smallest leading group whose combined probability reaches this value. Lower values restrict the choice to more likely moves; 1.00 keeps every legal move.",
+  "@samplingTopPHelp": {
+    "description": "Play help, about or error message: Top-P limits Maia to the smallest group of moves whose combined probability reaches this value. Lower values narrow the choice to more likely moves; 1.00 keeps every legal move."
+  },
+  "aboutPoweredBy": "Powered by Maia-3, the human-like chess engine developed by the University of Toronto Computational Social Science Lab.",
+  "@aboutPoweredBy": {
+    "description": "Play help, about or error message: Powered by Maia-3, the human-like chess engine developed by the University of Toronto Computational Social Science Lab."
+  },
+  "aboutOffline": "Maia-3 runs entirely on your phone. No account or network connection is required.",
+  "@aboutOffline": {
+    "description": "Play help, about or error message: Maia-3 runs entirely on your phone. No account or network connection is required."
+  },
+  "aboutBoardCredits": "Board interface, default brown theme, and Cburnett pieces are provided by Lichess Flutter Chessground. Local Stockfish support uses Lichess multistockfish.",
+  "@aboutBoardCredits": {
+    "description": "Play help, about or error message: Board interface, default brown theme, and Cburnett pieces are provided by Lichess Flutter Chessground. Local Stockfish support uses Lichess multistockfish."
+  },
+  "aboutReviewCredits": "Game Review move classification and sacrifice-detection heuristics are adapted from the En Croissant open-source chess GUI.",
+  "@aboutReviewCredits": {
+    "description": "Play help, about or error message: Game Review move classification and sacrifice-detection heuristics are adapted from the En Croissant open-source chess GUI."
+  },
+  "aboutLicence": "Mobile Maia is free software distributed under AGPL-3.0-only, without any warranty. You may redistribute and modify it under the terms of that licence. The complete source code is available from the project repository.",
+  "@aboutLicence": {
+    "description": "Play help, about or error message: Mobile Maia is free software distributed under AGPL-3.0-only, without any warranty. You may redistribute and modify it under the terms of that licence. The complete source code is available from the project repository."
+  },
+  "aboutIndependent": "This independent community app is not an official Maia-3 or University of Toronto, Lichess, or En Croissant application.",
+  "@aboutIndependent": {
+    "description": "Play help, about or error message: This independent community app is not an official Maia-3 or University of Toronto, Lichess, or En Croissant application."
+  },
+  "samplingRecommendationWarning": "Temperature or Top-P differs from the recommended 1.00. See the information button for details.",
+  "@samplingRecommendationWarning": {
+    "description": "Play help, about or error message: Temperature or Top-P differs from the recommended 1.00. See the information button for details."
+  },
+  "couldNotOpenPgn": "Could not open PGN.",
+  "@couldNotOpenPgn": {
+    "description": "Play help, about or error message: Could not open PGN."
+  },
+  "temperatureValue": "Temperature: {value}",
+  "@temperatureValue": {
+    "description": "Localized play label with numeric display values or canonical chess moves.",
+    "placeholders": {
+      "value": {
+        "type": "String",
+        "example": "1"
+      }
+    }
+  },
+  "topPValue": "Top-P: {value}",
+  "@topPValue": {
+    "description": "Localized play label with numeric display values or canonical chess moves.",
+    "placeholders": {
+      "value": {
+        "type": "String",
+        "example": "1"
+      }
+    }
+  },
+  "analysisRatingValue": "Maia analysis rating: {rating}",
+  "@analysisRatingValue": {
+    "description": "Localized play label with numeric display values or canonical chess moves.",
+    "placeholders": {
+      "rating": {
+        "type": "String",
+        "example": "1600"
+      }
+    }
+  },
+  "secondAnalysisRatingValue": "Second Maia analysis rating: {rating}",
+  "@secondAnalysisRatingValue": {
+    "description": "Localized play label with numeric display values or canonical chess moves.",
+    "placeholders": {
+      "rating": {
+        "type": "String",
+        "example": "1600"
+      }
+    }
+  },
+  "premovesList": "Premoves: {moves}",
+  "@premovesList": {
+    "description": "Localized play label with numeric display values or canonical chess moves.",
+    "placeholders": {
+      "moves": {
+        "type": "String",
+        "example": "1"
+      }
+    }
+  },
+  "maiaOpponentRating": "Maia3 {rating}elo",
+  "@maiaOpponentRating": {
+    "description": "Localized play label with numeric display values or canonical chess moves.",
+    "placeholders": {
+      "rating": {
+        "type": "String",
+        "example": "1600"
+      }
+    }
+  },
+  "analysisQualityDetails": "Depth {depth} · up to {seconds} seconds per position, plus up to {extraSeconds} seconds checking standout moves.",
+  "@analysisQualityDetails": {
+    "description": "Localized play label with numeric display values or canonical chess moves.",
+    "placeholders": {
+      "depth": {
+        "type": "String",
+        "example": "1"
+      },
+      "seconds": {
+        "type": "String",
+        "example": "1"
+      },
+      "extraSeconds": {
+        "type": "String",
+        "example": "1"
+      }
+    }
+  },
+  "chessnutBattery": "{percent}%{charging, select, yes{ ⚡} other{}}",
+  "@chessnutBattery": {
+    "description": "Localized play label with numeric display values or canonical chess moves.",
+    "placeholders": {
+      "percent": {
+        "type": "String",
+        "example": "1"
+      },
+      "charging": {
+        "type": "String",
+        "example": "yes"
+      }
+    }
+  },
+  "chessnutBluetoothUnavailable": "Bluetooth is unavailable on this device.",
+  "@chessnutBluetoothUnavailable": {
+    "description": "Actionable Chessnut connection failure; native diagnostic details are recorded separately."
+  },
+  "chessnutPermissionPending": "Allow Bluetooth permissions, then reconnect Chessnut.",
+  "@chessnutPermissionPending": {
+    "description": "Actionable Chessnut connection failure; native diagnostic details are recorded separately."
+  },
+  "chessnutBluetoothDisabled": "Turn on Bluetooth, then reconnect Chessnut.",
+  "@chessnutBluetoothDisabled": {
+    "description": "Actionable Chessnut connection failure; native diagnostic details are recorded separately."
+  },
+  "whiteShort": "W",
+  "@whiteShort": {
+    "description": "Compact chess-side column header in classification summary. White/black initials or one-character labels; full localized side names remain in accessibility labels."
+  },
+  "blackShort": "B",
+  "@blackShort": {
+    "description": "Compact chess-side column header in classification summary. White/black initials or one-character labels; full localized side names remain in accessibility labels."
+  },
+  "dateUnknown": "Date unknown",
+  "@dateUnknown": {
+    "description": "Recent Games date when no trustworthy original calendar date can be recovered. Do not imply today or last saved."
+  },
+  "savedGameVersionUnsupported": "This saved data uses an unsupported format. Update Mobile Maia to open it. This data has been preserved.",
+  "gameStorageFailed": "Could not access saved-game storage. Please try again.",
+  "@savedGameVersionUnsupported": {
+    "description": "Persistent warning when a saved session or its backup uses an unsupported format. Creation is blocked to protect the files; update the app, never delete or overwrite automatically."
+  },
+  "@gameStorageFailed": {
+    "description": "Recoverable saved-game storage access/write failure. Do not promise the current game was written successfully; starting a new game is aborted."
+  },
+  "recentWinResult": "Win ({result})",
+  "@recentWinResult": {
+    "description": "Screen-reader description of a saved game result, from the human player's perspective. Only spoken; visible text remains standard chess result notation.",
+    "placeholders": {
+      "result": {
+        "type": "String",
+        "description": "Canonical chess result: 1-0, 0-1 or 1/2-1/2; preserve notation."
+      }
+    }
+  },
+  "recentLossResult": "Loss ({result})",
+  "@recentLossResult": {
+    "description": "Screen-reader description of a saved game result, from the human player's perspective. Only spoken; visible text remains standard chess result notation.",
+    "placeholders": {
+      "result": {
+        "type": "String",
+        "description": "Canonical chess result: 1-0, 0-1 or 1/2-1/2; preserve notation."
+      }
+    }
+  },
+  "recentDrawResult": "Draw ({result})",
+  "@recentDrawResult": {
+    "description": "Screen-reader description of a saved game result, from the human player's perspective. Only spoken; visible text remains standard chess result notation.",
+    "placeholders": {
+      "result": {
+        "type": "String",
+        "description": "Canonical chess result: 1-0, 0-1 or 1/2-1/2; preserve notation."
+      }
+    }
+  }
+}

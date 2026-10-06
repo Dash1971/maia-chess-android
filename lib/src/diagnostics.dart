@@ -217,32 +217,37 @@ class DiagnosticsErrorScreen extends StatelessWidget {
       color: const Color(0xff171a18),
       child: SafeArea(
         child: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(Icons.error_outline, color: Colors.orange, size: 48),
-                const SizedBox(height: 16),
-                const Text(
-                  'Mobile Maia encountered a screen error.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: Colors.white, fontSize: 18),
-                ),
-                const SizedBox(height: 12),
-                const Text(
-                  'Copy the diagnostics and send them with a description of '
-                  'what you tapped immediately before this screen appeared.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: Colors.white70),
-                ),
-                const SizedBox(height: 20),
-                FilledButton.icon(
-                  onPressed: AppDiagnostics.copyToClipboard,
-                  icon: const Icon(Icons.copy),
-                  label: const Text('Copy diagnostics'),
-                ),
-              ],
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    Icons.error_outline,
+                    color: Colors.orange,
+                    size: 48,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    l10n(context).diagnosticsScreenError,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Colors.white, fontSize: 18),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    l10n(context).diagnosticsScreenInstructions,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Colors.white70, fontSize: 14),
+                  ),
+                  const SizedBox(height: 20),
+                  FilledButton.icon(
+                    onPressed: AppDiagnostics.copyToClipboard,
+                    icon: const Icon(Icons.copy),
+                    label: Text(l10n(context).copyDiagnostics),
+                  ),
+                ],
+              ),
             ),
           ),
         ),

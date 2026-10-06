@@ -9,22 +9,18 @@ class PgnFiles {
     try {
       final saved = await maiaEngineChannel.invokeMethod<Object>(
         share ? 'sharePgn' : 'savePgnFile',
-        {'pgn': pgn},
+        {'pgn': pgn, if (share) 'shareTitle': l10n(context).sharePgn},
       );
       if (context.mounted && !share && saved == true) {
         ScaffoldMessenger.of(context)
-            .showSnackBar(const SnackBar(content: Text('PGN saved')));
+            .showSnackBar(SnackBar(content: Text(l10n(context).pgnSaved)));
       }
     } catch (error, stack) {
       unawaited(AppDiagnostics.record('pgn-export', error, stack));
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Could not export PGN. Your game is still saved locally.',
-            ),
-          ),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(l10n(context).pgnExportFailed)));
       }
     }
   }

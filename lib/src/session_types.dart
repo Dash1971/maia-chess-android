@@ -5,10 +5,16 @@ enum PlayerSide { white, black, random }
 enum TimePreset {
   unlimited,
   bullet,
+  bulletTwo,
+  blitzThree,
   blitz,
+  blitzFiveZero,
   blitzFive,
   rapid,
+  rapidFive,
   classical,
+  classicalThirty,
+  classicalThirtyTwenty,
   custom,
 }
 
@@ -16,26 +22,41 @@ extension TimePresetDetails on TimePreset {
   String get label => switch (this) {
     TimePreset.unlimited => 'Unlimited',
     TimePreset.bullet => '1 + 0',
+    TimePreset.bulletTwo => '2 + 1',
+    TimePreset.blitzThree => '3 + 0',
     TimePreset.blitz => '3 + 2',
+    TimePreset.blitzFiveZero => '5 + 0',
     TimePreset.blitzFive => '5 + 3',
     TimePreset.rapid => '10 + 0',
+    TimePreset.rapidFive => '10 + 5',
     TimePreset.classical => '15 + 10',
+    TimePreset.classicalThirty => '30 + 0',
+    TimePreset.classicalThirtyTwenty => '30 + 20',
     TimePreset.custom => 'Custom',
   };
 
   int get minutes => switch (this) {
     TimePreset.bullet => 1,
+    TimePreset.bulletTwo => 2,
+    TimePreset.blitzThree => 3,
     TimePreset.blitz => 3,
+    TimePreset.blitzFiveZero => 5,
     TimePreset.blitzFive => 5,
     TimePreset.rapid => 10,
+    TimePreset.rapidFive => 10,
     TimePreset.classical => 15,
+    TimePreset.classicalThirty => 30,
+    TimePreset.classicalThirtyTwenty => 30,
     _ => 0,
   };
 
   int get increment => switch (this) {
+    TimePreset.bulletTwo => 1,
     TimePreset.blitz => 2,
     TimePreset.blitzFive => 3,
+    TimePreset.rapidFive => 5,
     TimePreset.classical => 10,
+    TimePreset.classicalThirtyTwenty => 20,
     _ => 0,
   };
 }

@@ -6,6 +6,40 @@ live in [RELEASE_CHECKS.md](../tool/hardening/RELEASE_CHECKS.md); build mechanic
 live in [REPRODUCIBLE_BUILDS.md](../REPRODUCIBLE_BUILDS.md). Avoid duplicating this
 procedure in task-specific notes.
 
+## 0. Review upstream dependencies and security
+
+At each Stable promotion, inspect `flutter pub outdated`, Flutter/Dart and
+Android build-tool releases, ONNX Runtime Android, Maia model/inference sources,
+Stockfish, and the pinned chess/UI packages. Record checked versions, advisory
+sources and upgrade/deferral decisions in a dated dependency review. A promotion
+is not a reason to blindly update all locked versions: native engine or toolchain
+changes need their own compatibility, performance and reproducibility evidence.
+
+The `dependencies` job runs on pull requests, pushes and manual release runs.
+It resolves the **release** Android Maven graph without building the APK, then
+queries OSV for locked Pub packages, resolved Maven packages, declared AGP/Kotlin
+plugins/Gradle core and direct pinned Python release/test tools. It retains the inventory
+and timestamped results. Known active advisories, unresolved dependencies,
+malformed responses or persistent network errors fail the job. Fix or review
+findings; do not turn an unavailable advisory service into a clean result.
+
+This checks published package advisories, not every vulnerability. Flutter/Dart
+SDKs, bundled native engine internals, models and the complete build-tool
+transitive graph still need the upstream review above. It is not a source audit,
+native binary scan or proof of zero vulnerabilities. The check contacts OSV only
+from development/CI; the app remains offline. Repeat on the exact frozen source
+in the manual release run; an old promotion report is not release qualification.
+
+Local reproduction (after locked `flutter pub get` and SDK configuration):
+
+```sh
+flutter build apk --release --config-only --no-pub
+(cd android && ./gradlew -I ../tool/dependency_audit.init.gradle :app:writeReleaseDependencyAudit)
+/path/to/release-tools/python tool/audit_dependencies.py \
+  --maven release-checks/maven-dependencies.json \
+  --output release-checks/dependency-audit.json
+```
+
 ## 1. Prepare and freeze the source
 
 Review the README, Fastlane title/description/screenshots, current version-code
@@ -30,7 +64,7 @@ tag to make an unqualified recipe build.
 
 ## 2. Test and independently reproduce the APK
 
-Require both `test` and `android` jobs to pass in the manual release run. Record
+Require `test`, `dependencies` and `android` jobs to pass in the manual release run. Record
 the run ID and download its unsigned APK. Select additional device/upgrade tests
 according to [RELEASE_CHECKS.md](../tool/hardening/RELEASE_CHECKS.md), documenting
 what was tested and what was not. A narrowly scoped change may reduce additional

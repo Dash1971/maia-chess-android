@@ -58,7 +58,7 @@ def log():
 
 class QualificationChecksTest(unittest.TestCase):
     def test_ci_requires_exact_source_workflow_repository_and_success(self):
-        jobs = [{'name': n, 'conclusion': 'success'} for n in ['test', 'android']]
+        jobs = [{'name': n, 'conclusion': 'success'} for n in ['test', 'android', 'dependencies']]
         check_ci(ci(), jobs, SHA)
         for key, value in [('head_sha', OTHER), ('path', 'other.yml'),
                            ('event', 'pull_request'), ('status', 'in_progress'),
@@ -67,6 +67,14 @@ class QualificationChecksTest(unittest.TestCase):
                 bad = ci(); bad[key] = value
                 with self.assertRaises(ValueError):
                     check_ci(bad, jobs, SHA)
+
+    def test_dependency_audit_is_required_and_cannot_be_skipped(self):
+        jobs = [{'name': n, 'conclusion': 'success'} for n in ['test', 'android']]
+        with self.assertRaises(ValueError):
+            check_ci(ci(), jobs, SHA)
+        for status in ('skipped', 'failure', 'cancelled', 'timed_out'):
+            with self.subTest(status=status), self.assertRaises(ValueError):
+                check_ci(ci(), jobs + [{'name': 'dependencies', 'conclusion': status}], SHA)
 
     def test_missing_skipped_failed_and_duplicate_jobs_fail(self):
         for jobs in [[], [{'name': 'test', 'conclusion': 'success'}],
@@ -241,7 +249,7 @@ class QualificationWiringTest(unittest.TestCase):
         patcher = patch('qualify_release.check_release_source', return_value=[]); patcher.start(); self.addCleanup(patcher.stop)
         def github(*args):
             if args[0] != 'api':
-                return {'jobs': [{'name': name, 'conclusion': 'success'} for name in ['test', 'android']]}
+                return {'jobs': [{'name': name, 'conclusion': 'success'} for name in ['test', 'android', 'dependencies']]}
             if '/matching-refs/' in args[1]: return []
             if '/releases/latest' in args[1]: return {'tag_name': 'v2.2.1', 'assets': []}
             if '/contents/' in args[1]:

@@ -261,7 +261,7 @@ class MainActivity : FlutterActivity() {
                     "getPendingPgn" -> documents.takePending(result)
                     "openPgnFile" -> documents.open(result)
                     "savePgnFile" -> documents.save(call.argument<String>("pgn") ?: "", result)
-                    "sharePgn" -> documents.share(call.argument<String>("pgn") ?: "", result)
+                    "sharePgn" -> documents.share(call.argument<String>("pgn") ?: "", result, call.argument<String>("shareTitle") ?: "Share PGN")
                     "openUrl" -> {
                         val uri = call.argument<String>("url")?.let(Uri::parse)
                         if (uri == null || uri.scheme?.lowercase() !in setOf("http", "https")) {

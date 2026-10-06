@@ -12,14 +12,23 @@ import 'package:dartchess/dartchess.dart' as dc;
 import 'package:flutter/cupertino.dart' show CupertinoIcons;
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart'
-    show LicenseRegistry, LicenseEntryWithLineBreaks, mapEquals, listEquals;
+    show
+        LicenseRegistry,
+        LicenseEntryWithLineBreaks,
+        mapEquals,
+        listEquals,
+        visibleForTesting;
 import 'package:flutter/services.dart';
+import 'package:intl/intl.dart' show NumberFormat;
 import 'package:multistockfish/multistockfish.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'l10n/app_localizations.dart';
+
 part 'src/engine_queue.dart';
 part 'src/session_repository.dart';
+part 'src/session_history.dart';
 part 'src/pgn_files.dart';
 
 part 'src/maia_queue.dart';
@@ -27,6 +36,7 @@ part 'src/diagnostics.dart';
 part 'src/session_types.dart';
 part 'src/variation_tree.dart';
 part 'src/game_clocks.dart';
+part 'src/human_timing.dart';
 part 'src/premoves.dart';
 part 'src/active_session_store.dart';
 part 'src/session_model.dart';
@@ -36,11 +46,13 @@ part 'src/history_navigation.dart';
 part 'src/sound_effect.dart';
 part 'src/game_feedback.dart';
 part 'src/play.dart';
+part 'src/play_localization.dart';
 part 'src/analysis_board.dart';
 part 'src/review.dart';
 part 'src/review_widgets.dart';
 part 'src/stockfish.dart';
 part 'src/maia.dart';
+part 'src/app_language.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -132,11 +144,20 @@ class MaiaChessApp extends StatefulWidget {
 class _MaiaChessAppState extends State<MaiaChessApp>
     with WidgetsBindingObserver {
   Timer? _maiaReleaseTimer;
+  final AppLanguageController _language = AppLanguageController();
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _language.addListener(_languageChanged);
+    unawaited(_language.initialize());
   }
+
+  void _languageChanged() {
+    if (mounted) setState(() {});
+  }
+
+  void _setLanguage(String? code) => unawaited(_language.select(code));
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
@@ -175,6 +196,8 @@ class _MaiaChessAppState extends State<MaiaChessApp>
   @override
   void dispose() {
     _maiaReleaseTimer?.cancel();
+    _language.removeListener(_languageChanged);
+    _language.dispose();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
@@ -183,6 +206,12 @@ class _MaiaChessAppState extends State<MaiaChessApp>
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Mobile Maia',
+      locale: _language.selectedCode == null
+          ? null
+          : Locale(_language.selectedCode!),
+      localeListResolutionCallback: resolveAppLocale,
+      supportedLocales: AppLocalizations.supportedLocales,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
       navigatorObservers: [maiaRouteObserver],
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
@@ -193,7 +222,12 @@ class _MaiaChessAppState extends State<MaiaChessApp>
         scaffoldBackgroundColor: const Color(0xff171a18),
         useMaterial3: true,
       ),
-      home: const GamePage(),
+      home: AppLanguageSettings(
+        selectedCode: _language.selectedCode,
+        persistenceFailed: _language.persistenceFailed,
+        onChanged: _setLanguage,
+        child: const GamePage(),
+      ),
     );
   }
 }
