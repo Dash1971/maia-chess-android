@@ -1,0 +1,14 @@
+{
+  "engine": {
+    "name": "Stockfish 18",
+    "author": "the Stockfish developers (see AUTHORS file)"
+  },
+  "budget": 80000,
+  "rows": 48,
+  "seconds_this_invocation": 0.015761137008666992,
+  "prior_completed_rows": 48,
+  "executed_original_sha256": "4304686a39580688b2dca2cc3be874cffefc5ea46897e41dfcd66a6ef3639705",
+  "script_sha256": "2f80645f616f29529e06f35aa6472815cc1506ffe7a914f02a4e338449bb76bc",
+  "engine_sha256": "ae4c93fa9676ca7750d0714342fd8a5b1d018000fc6e0f6cedf112067b5ef374",
+  "dataset_sha256": "e12791501ead3bc0e961e6028794a9a8ba21eaff6dabdb0e30379fb7c3b5f2c3"
+}

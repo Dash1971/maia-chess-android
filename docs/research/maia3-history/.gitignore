@@ -1,0 +1,9 @@
+# Unpacked evidence and local reproduction dependencies stay outside Git.
+.venv/
+**/__pycache__/
+assets/
+broad-study/*.jsonl
+broad-study/results/*.jsonl
+broad-study/results/*.npz
+broad-study/source/allie-test.jsonl
+stonewall/policies.jsonl

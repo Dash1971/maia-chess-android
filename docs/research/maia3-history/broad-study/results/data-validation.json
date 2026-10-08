@@ -1,0 +1,16 @@
+{
+  "status": "passed",
+  "unique_positions_checked": 25160,
+  "unique_games": 11311,
+  "pilot_main_game_overlap": 0,
+  "main_balanced_cells": 24,
+  "main_positions_per_cell": 840,
+  "source_hashes": {
+    "pilot": "e95ef06f1641b06af608f37f9a12d686497097a1df81daea21b169c223d711e1",
+    "main": "1d4adc73da24f620d7ca0f00d25014d4ccd5f81573e1316faa6ecd4f2ef1212b",
+    "opening": "ad4120b4df6460deec60eecc1bb8b62fca02116a0db2964bc51485f1c1ae54c4",
+    "equal": "5ce091a21ff940c4f38b4871b7290578a410eab12b8b5b6241e1f5ca84c27e96",
+    "tactical": "ea9e018d49b5275f94d7a688367ed2615b57ab30c2e549e94ad899dcf743a4e5",
+    "tactical-deep": "e12791501ead3bc0e961e6028794a9a8ba21eaff6dabdb0e30379fb7c3b5f2c3"
+  }
+}

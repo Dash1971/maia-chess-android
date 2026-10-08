@@ -1,0 +1,12 @@
+{
+  "name": "main-part1",
+  "rows": 10080,
+  "computed": 10080,
+  "seconds": 763.0751707553864,
+  "source_sha256": "b4f76187d84d9fce0ffa1b582bd84a915582a2d910e2f26fcc53e566d25bc546",
+  "protocol_sha256": "5fbbdaedf2fdbe29441bc656c5ee300b4c1b805ba2b87e54154ea58a78fee55a",
+  "dataset_sha256": "1d4adc73da24f620d7ca0f00d25014d4ccd5f81573e1316faa6ecd4f2ef1212b",
+  "model_sha256": "3454b03ae78baa64a87b345fdb1a457265d912caec531039b074f07eda0d8010",
+  "onnxruntime": "1.30.0",
+  "numpy": "2.5.3"
+}

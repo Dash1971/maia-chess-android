@@ -26,3 +26,8 @@ docs/research/maia3-sampling/figures/* linguist-generated=true
 docs/research/maia3-sampling/**/*.json linguist-generated=true
 docs/research/maia3-sampling/**/*.pgn -diff linguist-generated=true
 docs/research/maia3-sampling/**/*.diff -whitespace
+
+# Move-history research records are generated evidence, not application code.
+docs/research/maia3-history/**/*.json linguist-generated=true
+docs/research/maia3-history/**/*.jsonl -diff linguist-generated=true
+docs/research/maia3-history/**/*.tar.gz -diff linguist-generated=true

@@ -1,0 +1,78 @@
+{
+  "measurement_files_changed": false,
+  "portable_adaptations": [
+    {
+      "published": "broad-study/study.py",
+      "source": "history-study-20261009/study.py",
+      "source_sha256": "b4f76187d84d9fce0ffa1b582bd84a915582a2d910e2f26fcc53e566d25bc546",
+      "published_sha256": "f0759fbb859507a75ac7838054c7c4107a67a79e4730449ed0ebf08a5a27f376"
+    },
+    {
+      "published": "broad-study/select_data.py",
+      "source": "history-study-20261009/select_data.py",
+      "source_sha256": "0bd519f5119f8cbc6f74369d0df7dc0180d3eef9d6aed14ac9489eba8158a2fe",
+      "published_sha256": "0bd519f5119f8cbc6f74369d0df7dc0180d3eef9d6aed14ac9489eba8158a2fe"
+    },
+    {
+      "published": "broad-study/analyze.py",
+      "source": "history-study-20261009/analyze.py",
+      "source_sha256": "7e1cf1996e04a243fb70e755633b60951b91ec5e1976dde837b28a763119f71d",
+      "published_sha256": "7e1cf1996e04a243fb70e755633b60951b91ec5e1976dde837b28a763119f71d"
+    },
+    {
+      "published": "broad-study/check_parity.py",
+      "source": "history-study-20261009/check_parity.py",
+      "source_sha256": "1780be21123d9f40a9321f18ef72570f10a720bbc6c20820123f87cc9198164c",
+      "published_sha256": "1780be21123d9f40a9321f18ef72570f10a720bbc6c20820123f87cc9198164c"
+    },
+    {
+      "published": "broad-study/tactical.py",
+      "source": "history-study-20261009/tactical.py",
+      "source_sha256": "2f80645f616f29529e06f35aa6472815cc1506ffe7a914f02a4e338449bb76bc",
+      "published_sha256": "170de21d55c158a7fdcd83200fadb3129f91eb909fb55bb5bc7eb4c6d3be94d6"
+    },
+    {
+      "published": "broad-study/tactical_cases.py",
+      "source": "history-study-20261009/tactical_cases.py",
+      "source_sha256": "a4ebfd3df821e72c5e7c9ea3231ac7b0dfc52b7d7a6b5ef9b9ba8d1d737bf836",
+      "published_sha256": "b82aa6264d55ea35272ba5697dd535f260dcfd1521ead308b5e69a66aa31674b"
+    },
+    {
+      "published": "broad-study/validate_data.py",
+      "source": "history-study-20261009/validate_data.py",
+      "source_sha256": "f6223fc138dbcf5d9a43fe300977795a7aac4678963cc9eea86889f976322782",
+      "published_sha256": "f6223fc138dbcf5d9a43fe300977795a7aac4678963cc9eea86889f976322782"
+    },
+    {
+      "published": "broad-study/verify_results.py",
+      "source": "history-study-20261009/verify_results.py",
+      "source_sha256": "a6b86dc74b15204449c3b41407fcc231746442de6318d354c1f0677e02fb9c02",
+      "published_sha256": "a6b86dc74b15204449c3b41407fcc231746442de6318d354c1f0677e02fb9c02"
+    },
+    {
+      "published": "broad-study/verify_upstream.py",
+      "source": "history-study-20261009/verify_upstream.py",
+      "source_sha256": "b77a44a3d5265313a2ab00dc62ec786543d516fc0d3a1160ea3147cd90faff19",
+      "published_sha256": "29b61ba3413ff6a79a4e26294e3fe344c372a577ad1ef6633ee5e995fe1c7805"
+    },
+    {
+      "published": "stonewall/run.py",
+      "source": "stonewall-history-20261009/run.py",
+      "source_sha256": "d14ea50c81c052de59541f1c1500dfc994469d5ee9f37fae1cd3b5ebaf8d3964",
+      "published_sha256": "ba5f9154b140fb307d2967894e84dbfa2f598d543897e1ca100977cf54b3661e"
+    },
+    {
+      "published": "stonewall/context.py",
+      "source": "stonewall-history-20261009/context.py",
+      "source_sha256": "62f61b73f46ed68d700485a03e08ed45e6ed766d87f4d5e7d57dbd3c08e00359",
+      "published_sha256": "f0d3a9db3f9415e4f3c4291f32161440d28f9ac476620fc4c55fceb350d66e9f"
+    }
+  ],
+  "notes": [
+    "Raw numerical measurements and protocols preserved byte-for-byte.",
+    "Portable copies change dependency paths only; original script hashes remain in run metadata.",
+    "The broad original HTML conclusion predates the focused Stonewall test. REPORT.md is the combined interpretation.",
+    "Excluded full human source download, model weights, local progress logs, environments, original HTML renderers and private PGN paths. Selected FEN fixtures and every legal policy are retained.",
+    "The original metadata-only tactical repair is documented in broad-study/METADATA_REPAIR.txt."
+  ]
+}

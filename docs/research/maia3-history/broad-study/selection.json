@@ -1,0 +1,149 @@
+{
+  "counts": {
+    "eligible_main_games": 16886,
+    "eligible_pilot_games": 888,
+    "rating_excluded_games": 348,
+    "invalid_times_games": 117
+  },
+  "coverage": {
+    "(0, 0, 0)": {
+      "available": 8084,
+      "selected": 840
+    },
+    "(0, 0, 1)": {
+      "available": 5428,
+      "selected": 840
+    },
+    "(0, 0, 2)": {
+      "available": 939,
+      "selected": 840
+    },
+    "(0, 1, 0)": {
+      "available": 7985,
+      "selected": 840
+    },
+    "(0, 1, 1)": {
+      "available": 5294,
+      "selected": 840
+    },
+    "(0, 1, 2)": {
+      "available": 911,
+      "selected": 840
+    },
+    "(1, 0, 0)": {
+      "available": 7046,
+      "selected": 840
+    },
+    "(1, 0, 1)": {
+      "available": 5433,
+      "selected": 840
+    },
+    "(1, 0, 2)": {
+      "available": 1110,
+      "selected": 840
+    },
+    "(1, 1, 0)": {
+      "available": 6949,
+      "selected": 840
+    },
+    "(1, 1, 1)": {
+      "available": 5248,
+      "selected": 840
+    },
+    "(1, 1, 2)": {
+      "available": 1023,
+      "selected": 840
+    },
+    "(2, 0, 0)": {
+      "available": 7479,
+      "selected": 840
+    },
+    "(2, 0, 1)": {
+      "available": 6207,
+      "selected": 840
+    },
+    "(2, 0, 2)": {
+      "available": 1295,
+      "selected": 840
+    },
+    "(2, 1, 0)": {
+      "available": 7512,
+      "selected": 840
+    },
+    "(2, 1, 1)": {
+      "available": 6138,
+      "selected": 840
+    },
+    "(2, 1, 2)": {
+      "available": 1215,
+      "selected": 840
+    },
+    "(3, 0, 0)": {
+      "available": 9292,
+      "selected": 840
+    },
+    "(3, 0, 1)": {
+      "available": 8041,
+      "selected": 840
+    },
+    "(3, 0, 2)": {
+      "available": 1522,
+      "selected": 840
+    },
+    "(3, 1, 0)": {
+      "available": 9234,
+      "selected": 840
+    },
+    "(3, 1, 1)": {
+      "available": 7891,
+      "selected": 840
+    },
+    "(3, 1, 2)": {
+      "available": 1467,
+      "selected": 840
+    },
+    "opening(0, 0)": {
+      "available": 9154,
+      "selected": 500
+    },
+    "opening(0, 1)": {
+      "available": 9146,
+      "selected": 500
+    },
+    "opening(1, 0)": {
+      "available": 7480,
+      "selected": 500
+    },
+    "opening(1, 1)": {
+      "available": 7456,
+      "selected": 500
+    },
+    "opening(2, 0)": {
+      "available": 7690,
+      "selected": 500
+    },
+    "opening(2, 1)": {
+      "available": 7754,
+      "selected": 500
+    },
+    "opening(3, 0)": {
+      "available": 9436,
+      "selected": 500
+    },
+    "opening(3, 1)": {
+      "available": 9404,
+      "selected": 500
+    }
+  },
+  "sizes": {
+    "pilot": 1000,
+    "main": 20160,
+    "opening": 4000,
+    "tactical": 384,
+    "equal": 2400
+  },
+  "source_sha256": "a6014de8ef861b2ee23a84d7ce824e644390577a000350fad06bd995bcddab0d",
+  "protocol_sha256": "5fbbdaedf2fdbe29441bc656c5ee300b4c1b805ba2b87e54154ea58a78fee55a",
+  "selector_sha256": "0bd519f5119f8cbc6f74369d0df7dc0180d3eef9d6aed14ac9489eba8158a2fe",
+  "source_games": 18239
+}

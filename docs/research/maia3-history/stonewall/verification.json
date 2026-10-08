@@ -1,0 +1,7 @@
+{
+  "games_legally_replayed": 1000,
+  "policy_inputs_and_draws_reproduced": true,
+  "policies_normalized": 3071,
+  "direct_reinferences": 12,
+  "max_probability_delta": 0
+}

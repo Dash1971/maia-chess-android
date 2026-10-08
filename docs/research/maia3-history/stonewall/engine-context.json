@@ -1,0 +1,199 @@
+{
+  "engine": {
+    "name": "Stockfish 18",
+    "author": "the Stockfish developers (see AUTHORS file)"
+  },
+  "nodes_per_search": 100000,
+  "positions": [
+    {
+      "turn": 1,
+      "fen": "rnbqkbnr/pppppppp/8/8/3P4/8/PPP1PPPP/RNBQKBNR b KQkq - 0 1",
+      "mirror": "d5",
+      "best": {
+        "cp_black": -35,
+        "mate_black": null,
+        "depth": 14,
+        "nodes": 100067,
+        "pv": "1...Nf6 2. c4"
+      },
+      "forced_mirror": {
+        "cp_black": -26,
+        "mate_black": null,
+        "depth": 17,
+        "nodes": 100068,
+        "pv": "1...d5 2. c4 e6 3. Nc3 Nf6 4. Bg5 Be7 5. e3 h6 6. Bxf6 Bxf6 7. Rc1 c6 8. Nf3 Nd7 9. Bd3 dxc4 10. Bxc4"
+      }
+    },
+    {
+      "turn": 2,
+      "fen": "rnbqkbnr/ppp1pppp/8/3p4/3P4/4P3/PPP2PPP/RNBQKBNR b KQkq - 0 2",
+      "mirror": "e6",
+      "best": {
+        "cp_black": -18,
+        "mate_black": null,
+        "depth": 16,
+        "nodes": 100110,
+        "pv": "2...e6 3. c4 c5 4. Nf3 Nf6 5. a3 cxd4 6. exd4 Be7 7. Bf4"
+      },
+      "forced_mirror": {
+        "cp_black": -17,
+        "mate_black": null,
+        "depth": 17,
+        "nodes": 100034,
+        "pv": "2...e6"
+      }
+    },
+    {
+      "turn": 3,
+      "fen": "rnbqkbnr/ppp2ppp/4p3/3p4/3P4/3BP3/PPP2PPP/RNBQK1NR b KQkq - 1 3",
+      "mirror": "Bd6",
+      "best": {
+        "cp_black": -19,
+        "mate_black": null,
+        "depth": 15,
+        "nodes": 100009,
+        "pv": "3...Nf6 4. Nf3"
+      },
+      "forced_mirror": {
+        "cp_black": -28,
+        "mate_black": null,
+        "depth": 15,
+        "nodes": 100107,
+        "pv": "3...Bd6"
+      }
+    },
+    {
+      "turn": 4,
+      "fen": "rnbqk1nr/ppp2ppp/3bp3/3p4/3P1P2/3BP3/PPP3PP/RNBQK1NR b KQkq - 0 4",
+      "mirror": "f5",
+      "best": {
+        "cp_black": 27,
+        "mate_black": null,
+        "depth": 15,
+        "nodes": 100023,
+        "pv": "4...c5 5. c3"
+      },
+      "forced_mirror": {
+        "cp_black": -25,
+        "mate_black": null,
+        "depth": 16,
+        "nodes": 100016,
+        "pv": "4...f5 5. c4 c5 6. Nf3 a6 7. a3 Nf6 8. dxc5 Bxc5 9. b4 dxc4 10. Bxc4 Qxd1+ 11. Kxd1 b5 12. Bb3"
+      }
+    },
+    {
+      "turn": 5,
+      "fen": "rnbqk1nr/ppp3pp/3bp3/3p1p2/3P1P2/3BPN2/PPP3PP/RNBQK2R b KQkq - 1 5",
+      "mirror": "Nf6",
+      "best": {
+        "cp_black": -31,
+        "mate_black": null,
+        "depth": 18,
+        "nodes": 100092,
+        "pv": "5...Nf6 6. c4 c5 7. Nc3 cxd4 8. exd4 Nc6 9. O-O O-O 10. a3 Bc7 11. Re1 a6 12. b4 Ne7 13. Qb3 Ne4 14. cxd5 Nxd5 15. Nxd5 exd5"
+      },
+      "forced_mirror": {
+        "cp_black": -30,
+        "mate_black": null,
+        "depth": 16,
+        "nodes": 100165,
+        "pv": "5...Nf6 6. c4 c5 7. O-O O-O 8. Nc3 cxd4 9. exd4 dxc4 10. Bxc4 Na6 11. Qb3 Nc7 12. a4 a6 13. a5 Rb8"
+      }
+    },
+    {
+      "turn": 6,
+      "fen": "rnbqk2r/ppp3pp/3bpn2/3p1p2/3P1P2/2PBPN2/PP4PP/RNBQK2R b KQkq - 0 6",
+      "mirror": "c6",
+      "best": {
+        "cp_black": 27,
+        "mate_black": null,
+        "depth": 15,
+        "nodes": 100035,
+        "pv": "6...c5 7. O-O O-O 8. c4 a6 9. a3 Nc6 10. dxc5 Bxc5 11. b4 dxc4 12. Bxc4 Ba7 13. Nc3"
+      },
+      "forced_mirror": {
+        "cp_black": -25,
+        "mate_black": null,
+        "depth": 16,
+        "nodes": 100028,
+        "pv": "6...c6"
+      }
+    },
+    {
+      "turn": 7,
+      "fen": "rnbqk2r/pp4pp/2pbpn2/3p1p2/3P1P2/2PBPN2/PP1N2PP/R1BQK2R b KQkq - 1 7",
+      "mirror": "Nbd7",
+      "best": {
+        "cp_black": 1,
+        "mate_black": null,
+        "depth": 14,
+        "nodes": 100103,
+        "pv": "7...O-O 8. O-O"
+      },
+      "forced_mirror": {
+        "cp_black": -14,
+        "mate_black": null,
+        "depth": 16,
+        "nodes": 100087,
+        "pv": "7...Nbd7"
+      }
+    },
+    {
+      "turn": 8,
+      "fen": "r1bqk2r/pp1n2pp/2pbpn2/3p1p2/3P1P2/2PBPN2/PP1N2PP/R1BQ1RK1 b kq - 3 8",
+      "mirror": "O-O",
+      "best": {
+        "cp_black": -8,
+        "mate_black": null,
+        "depth": 16,
+        "nodes": 100147,
+        "pv": "8...O-O"
+      },
+      "forced_mirror": {
+        "cp_black": -13,
+        "mate_black": null,
+        "depth": 17,
+        "nodes": 100111,
+        "pv": "8...O-O 9. Ne5 Ne4 10. Be2 a5 11. Nxe4 dxe4 12. b3 Be7 13. Nxd7 Bxd7 14. a4"
+      }
+    },
+    {
+      "turn": 9,
+      "fen": "r1bq1rk1/pp1n2pp/2pbpn2/3p1p2/3P1P2/2PBPN2/PP1NQ1PP/R1B2RK1 b - - 5 9",
+      "mirror": "Qe7",
+      "best": {
+        "cp_black": 4,
+        "mate_black": null,
+        "depth": 15,
+        "nodes": 100068,
+        "pv": "9...Ne4 10. c4"
+      },
+      "forced_mirror": {
+        "cp_black": -8,
+        "mate_black": null,
+        "depth": 16,
+        "nodes": 100045,
+        "pv": "9...Qe7"
+      }
+    },
+    {
+      "turn": 10,
+      "fen": "r1b2rk1/pp1nq1pp/2pbpn2/3pNp2/3P1P2/2PBP3/PP1NQ1PP/R1B2RK1 b - - 7 10",
+      "mirror": "Ne4",
+      "best": {
+        "cp_black": -14,
+        "mate_black": null,
+        "depth": 16,
+        "nodes": 100075,
+        "pv": "10...Ne4"
+      },
+      "forced_mirror": {
+        "cp_black": -8,
+        "mate_black": null,
+        "depth": 16,
+        "nodes": 100023,
+        "pv": "10...Ne4 11. c4 c5 12. Ndf3 a5 13. Bd2 Ndf6 14. cxd5 Nxd2 15. Qxd2 exd5 16. dxc5 Bxc5 17. Rac1"
+      }
+    }
+  ]
+}

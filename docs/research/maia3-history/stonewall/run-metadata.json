@@ -1,0 +1,9 @@
+{
+  "model_sha256": "3454b03ae78baa64a87b345fdb1a457265d912caec531039b074f07eda0d8010",
+  "script_sha256": "d14ea50c81c052de59541f1c1500dfc994469d5ee9f37fae1cd3b5ebaf8d3964",
+  "encoder_sha256": "b4f76187d84d9fce0ffa1b582bd84a915582a2d910e2f26fcc53e566d25bc546",
+  "protocol_sha256": "195235b0f9f905c9211abf0b60bb15200e84e8bfbf310bb790dc537ec970dbc0",
+  "seconds": 89.9029438495636,
+  "games": 1000,
+  "policies": 3071
+}

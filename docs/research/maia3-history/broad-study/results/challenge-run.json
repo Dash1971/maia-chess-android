@@ -1,0 +1,12 @@
+{
+  "name": "challenge",
+  "rows": 64,
+  "computed": 64,
+  "seconds": 9.039166927337646,
+  "source_sha256": "b4f76187d84d9fce0ffa1b582bd84a915582a2d910e2f26fcc53e566d25bc546",
+  "protocol_sha256": "5fbbdaedf2fdbe29441bc656c5ee300b4c1b805ba2b87e54154ea58a78fee55a",
+  "dataset_sha256": "4c4db7feb68ab37c13f59b3dc93d5f0c35367cbf3697f8c0cc80ad0af34203e5",
+  "model_sha256": "3454b03ae78baa64a87b345fdb1a457265d912caec531039b074f07eda0d8010",
+  "onnxruntime": "1.30.0",
+  "numpy": "2.5.3"
+}

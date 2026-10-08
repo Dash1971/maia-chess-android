@@ -1,0 +1,31 @@
+{
+  "status": "passed",
+  "broad_records": {
+    "pilot": 1000,
+    "main": 20160,
+    "opening": 4000,
+    "equal": 2400,
+    "challenge": 64,
+    "cases": 2
+  },
+  "stonewall_games": 1000,
+  "stonewall_policies": 3071,
+  "fixed_prefixes": 50,
+  "measurements_byte_identical": true,
+  "policy_metrics_and_sampled_draws_verified": true,
+  "portable_broad_summary_exact_match": true,
+  "portable_fixed_prefixes_reinferred": 50,
+  "portable_max_probability_delta": 0,
+  "portable_upstream_parity": {
+    "status": "passed",
+    "cases": 38,
+    "tensor_exact_matches": 38,
+    "maximum_legal_logit_difference": 4.1961669921875e-05,
+    "maximum_probability_difference": 5.947362168912118e-06,
+    "identical_top_moves": 38,
+    "upstream_commit": "1e13597c42d4858b7cfd7cfdae01e297263364b2",
+    "checkpoint_sha256": "3fc6181d5db789b45a15305732148757ae74efa3e0028e81ba335b462dac45c2",
+    "onnx_sha256": "3454b03ae78baa64a87b345fdb1a457265d912caec531039b074f07eda0d8010"
+  },
+  "local_markdown_links_checked": true
+}

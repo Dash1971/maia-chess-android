@@ -1,0 +1,11 @@
+{
+  "status": "passed",
+  "cases": 38,
+  "tensor_exact_matches": 38,
+  "maximum_legal_logit_difference": 4.1961669921875e-05,
+  "maximum_probability_difference": 5.947362168912118e-06,
+  "identical_top_moves": 38,
+  "upstream_commit": "1e13597c42d4858b7cfd7cfdae01e297263364b2",
+  "checkpoint_sha256": "3fc6181d5db789b45a15305732148757ae74efa3e0028e81ba335b462dac45c2",
+  "onnx_sha256": "3454b03ae78baa64a87b345fdb1a457265d912caec531039b074f07eda0d8010"
+}

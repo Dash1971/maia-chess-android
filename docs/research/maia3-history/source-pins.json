@@ -1,0 +1,15 @@
+{
+  "date": "2026-10-09",
+  "model": {
+    "url": "https://media.githubusercontent.com/media/Dash1971/maia-chess-android-preview/97febc95179ed4eb3a77d2cece52d1ba1c00baec/assets/models/maia3-79m.onnx",
+    "sha256": "3454b03ae78baa64a87b345fdb1a457265d912caec531039b074f07eda0d8010"
+  },
+  "allie": {
+    "url": "https://huggingface.co/datasets/yimingzhang/allie-data/resolve/990f79105b1f08a8fd367fcb10c5e18c69436e30/lichess-2022-blitz-test/2022-test-annotated.jsonl",
+    "sha256": "a6014de8ef861b2ee23a84d7ce824e644390577a000350fad06bd995bcddab0d"
+  },
+  "upstream_commit": "1e13597c42d4858b7cfd7cfdae01e297263364b2",
+  "checkpoint_sha256": "3fc6181d5db789b45a15305732148757ae74efa3e0028e81ba335b462dac45c2",
+  "engine": "Stockfish 18",
+  "python": "3.12"
+}

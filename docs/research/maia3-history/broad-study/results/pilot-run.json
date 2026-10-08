@@ -1,0 +1,12 @@
+{
+  "name": "pilot",
+  "rows": 1000,
+  "computed": 1000,
+  "seconds": 30.758656978607178,
+  "source_sha256": "b4f76187d84d9fce0ffa1b582bd84a915582a2d910e2f26fcc53e566d25bc546",
+  "protocol_sha256": "5fbbdaedf2fdbe29441bc656c5ee300b4c1b805ba2b87e54154ea58a78fee55a",
+  "dataset_sha256": "e95ef06f1641b06af608f37f9a12d686497097a1df81daea21b169c223d711e1",
+  "model_sha256": "3454b03ae78baa64a87b345fdb1a457265d912caec531039b074f07eda0d8010",
+  "onnxruntime": "1.30.0",
+  "numpy": "2.5.3"
+}

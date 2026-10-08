@@ -1,0 +1,11 @@
+{
+  "date": "2026-09-05T12:01:24Z",
+  "files": [
+    {
+      "filename": "lib/src/maia.dart",
+      "patch": "@@ -4,23 +4,18 @@ class MaiaEncoding {\n   static final Random _random = Random();\n \n   static Float32List historicalTokens(List<String> positions) {\n-    final recent = positions.length > 8\n-        ? positions.sublist(positions.length - 8)\n-        : List<String>.from(positions);\n-    final padded = <String>[];\n-    while (padded.length + recent.length < 8) {\n-      padded.add(recent.first);\n-    }\n-    padded.addAll(recent);\n-    final boards = padded.map(tokenizeFen).toList();\n+    // Maia-3 exposes reconstructed move history as an optional UCI mode. Its\n+    // released engine default repeats the current position in all eight board\n+    // slots. Alternating independently mirrored historical FENs can otherwise\n+    // create a strong false copy-the-opponent signal when Maia plays Black.\n+    final current = tokenizeFen(positions.last);\n     return Float32List.fromList(\n       List<double>.generate(64 * 97, (index) {\n         final square = index ~/ 97;\n         final channel = index % 97;\n         if (channel == 96) return 0;\n-        final historyIndex = channel ~/ 12;\n         final pieceChannel = channel % 12;\n-        return boards[historyIndex][square * 12 + pieceChannel];\n+        return current[square * 12 + pieceChannel];\n       }),\n     );\n   }"
+    }
+  ],
+  "message": "fix reset semantics and Maia black mirroring",
+  "sha": "49da564dff6896725176d1ba5e6c0d8f1fefecf0"
+}

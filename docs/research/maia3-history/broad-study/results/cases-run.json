@@ -1,0 +1,12 @@
+{
+  "name": "cases",
+  "rows": 2,
+  "computed": 2,
+  "seconds": 0.33901381492614746,
+  "source_sha256": "b4f76187d84d9fce0ffa1b582bd84a915582a2d910e2f26fcc53e566d25bc546",
+  "protocol_sha256": "5fbbdaedf2fdbe29441bc656c5ee300b4c1b805ba2b87e54154ea58a78fee55a",
+  "dataset_sha256": "dd92d7c3b9c4fec152e088eac9f701e64929f5d76d0925767949c628ff388b20",
+  "model_sha256": "3454b03ae78baa64a87b345fdb1a457265d912caec531039b074f07eda0d8010",
+  "onnxruntime": "1.30.0",
+  "numpy": "2.5.3"
+}
