@@ -43,3 +43,10 @@ Update related help/accessibility text as well as the visible label. Run
 and the localization widget tests after editing catalogs. New equivalent terms
 need a reference entry; unsupported upstream translations need a reasoned
 native-language fallback, not English.
+
+## Research publication
+
+Publish research reports, datasets and reproduction tools in the separate
+[Mobile Maia research repository](https://github.com/Dash1971/mobile-maia-research).
+Keep only brief decision summaries and links in app documentation. Do not add
+research bundles or datasets to application source or release distributions.
