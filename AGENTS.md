@@ -20,6 +20,14 @@ procedure; follow its gates even for metadata-only releases.
 - Report GitHub publication, F-Droid update detection, request/pipeline status,
   and actual store publication separately. Never promise that a new tag alone
   repairs an older failed F-Droid request.
+- A request to publish a Stable release includes the Zapstore update unless the
+  user explicitly limits the channels. Complete and verify the Zapstore step in
+  `docs/RELEASING.md` without waiting for a separate reminder or approval. A
+  build-only or PR-only request does not authorize publication.
+- Keep a per-channel release status record on GitHub. Do not call distribution
+  complete while Zapstore is unverified or F-Droid publication is pending. Own
+  the follow-up, record blockers and the next action, and report any user action
+  actually needed; do not make the user discover missing store updates.
 - Retain sanitized evidence on GitHub and clean up only this task's temporary
   builds/containers. Preserve shared SDKs, caches, keys, and unrelated services.
 

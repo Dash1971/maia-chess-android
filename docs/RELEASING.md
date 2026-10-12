@@ -6,6 +6,14 @@ live in [RELEASE_CHECKS.md](../tool/hardening/RELEASE_CHECKS.md); build mechanic
 live in [REPRODUCIBLE_BUILDS.md](../REPRODUCIBLE_BUILDS.md). Avoid duplicating this
 procedure in task-specific notes.
 
+A user request to publish a Stable release includes GitHub publication, the
+Zapstore update, and checking F-Droid automatic-update progress, unless the user
+explicitly limits the scope. The release operator owns these steps and their
+follow-up; do not wait for the user to remind you about an app store. Requests
+only to build, prepare, or review a PR do not authorize publication. F-Droid's
+build and catalog schedule remains outside our control: distinguish pending
+upstream work from a completed store update.
+
 ## 0. Review upstream dependencies and security
 
 At each Stable promotion, inspect `flutter pub outdated`, Flutter/Dart and
@@ -196,8 +204,14 @@ tag, version name/code, APK SHA-256 and Android signing certificate match the
 qualified release. Stop on any mismatch. On the local signing host, run
 `zsp publish --check zapstore.yaml`, then publish the same release with
 `zsp publish zapstore.yaml` using the established Mobile Maia Nostr identity.
-The second command signs and sends public events: obtain release-specific
-authorization before running it. Keep the Nostr private key and Android
+`--check` confirms APK discovery and compatibility, not equality to the qualified
+release. Before confirming publication, compare the APK actually selected by
+the publishing command with the qualified version, hash and certificate again;
+the latest GitHub release may have changed between commands.
+The second command signs and sends public events. Authorization to publish this
+Stable release covers this step; do not ask for separate Zapstore approval
+unless the user excluded it or a new decision outside that scope is needed.
+Keep the Nostr private key and Android
 keystore on the local host; never place either in this repository, GitHub
 Actions secrets, command arguments or logs. The existing certificate-to-Nostr
 identity proof need not be repeated for every APK signed with the same key,
@@ -220,6 +234,27 @@ failure. Do not make a GitHub tag or `zapstore.yaml` change alone a trigger
 that can publish an unqualified APK.
 
 ## 5. Leave a reproducible record and clean up
+
+Create or update a distribution status comment on the release PR, linked from
+the GitHub release. Record the exact version and source SHA, a UTC check time,
+and evidence links for each row below. Update that same record as pending
+channels progress; a successful GitHub upload is not the end of distribution.
+
+| Channel/check | Required evidence and status |
+| --- | --- |
+| GitHub | Public tag/source, APK hash/signer and post-publication verification. |
+| Zapstore | App/release/asset event IDs, publishing identity, APK hash/signer, verified CDN download and visible listing version; `PUBLISHED` only after verification. |
+| F-Droid detection | Detected version/code/source and inherited recipe. This is not store publication. |
+| F-Droid request/build | Current request/pipeline links and state, or explicitly not yet observed. |
+| F-Droid catalog | Actual public catalog version/code; `PENDING` until this release is available. |
+
+For every pending or blocked row, record the next action and who owns it. The
+release operator owns checking progress and reporting failures. When an
+available follow-up mechanism is needed for delayed upstream work, arrange it
+and record it; never claim monitoring is active unless it was actually set up.
+If follow-up cannot be arranged, explicitly report that limitation and the
+remaining work. Keep upstream contacts within the authorization rules in
+section 4. Do not mark all stores updated based on detection or build success.
 
 Keep sanitized logs, the image/source revisions, recipe, hashes, test scope,
 signature comparison, and post-publication results on the GitHub release and
