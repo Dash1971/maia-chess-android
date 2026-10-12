@@ -479,6 +479,16 @@ from their official release pages and can notify you when updates are available.
 After setup, use Obtainium's update check to download and install future Mobile
 Maia releases. Android may ask you to confirm each update.
 
+## Install and update with Zapstore
+
+Mobile Maia has a [developer-published Zapstore listing](https://zapstore.dev/apps/com.dash1971.maia_chess)
+for its signed Stable APK. Install the Zapstore client from its
+[official site](https://zapstore.dev/), then open the Mobile Maia listing in the
+client to install it and check for updates. A new GitHub release reaches this
+channel only after the developer publishes and verifies it on Zapstore; the
+repository's `zapstore.yaml` does not publish updates automatically. Maintainers
+should follow the [Zapstore post-release step](docs/RELEASING.md#publish-the-verified-stable-apk-to-zapstore).
+
 ## Build
 
 Requirements: **Flutter 3.47.5** (pinned in `.fvmrc`), JDK 17, Android SDK 36,
