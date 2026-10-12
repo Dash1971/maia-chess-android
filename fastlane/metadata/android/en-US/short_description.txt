@@ -1,1 +1,1 @@
-Offline chess against Maia-3 with local Stockfish analysis
+Play human-like chess offline and review your games with Maia and Stockfish
