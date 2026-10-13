@@ -58,3 +58,16 @@ Publish research reports, datasets and reproduction tools in the separate
 [Mobile Maia research repository](https://github.com/Dash1971/mobile-maia-research).
 Keep only brief decision summaries and links in app documentation. Do not add
 research bundles or datasets to application source or release distributions.
+
+## Release and workspace cleanup
+
+After a verified publication, delete merged PR branches and temporary release-build
+branches once their source is preserved by a release tag and they have no unique
+unmerged commits. Do not delete active work, release tags or releases. Keep
+automatic deletion of merged branches enabled.
+
+Remove only task-owned build containers/checkouts, downloaded or reconstructed
+APKs, test virtual environments and emulator test data after retaining compact
+verification evidence and checking the published download. Stop task-owned
+emulators. Preserve shared SDK/Gradle caches, signing keys and other people's
+work. Record cleanup in the release PR, including anything intentionally retained.
