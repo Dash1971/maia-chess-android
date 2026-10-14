@@ -2,6 +2,15 @@
 
 **By Maia fans, for Maia fans.** Our mission is to make Mobile Maia the best way to play and analyze chess with Maia on Android. It will always be free, never show ads, and always remain open source.
 
+**What do we mean by the best Maia experience?**
+
+- **Maximum configurability.** Give players control over Maia's rating, move variety, timing, and analysis settings.
+- **The latest and best Maia models.** Keep pace with Maia's development and bring the best available models to Android.
+- **Maximum transparency.** Help players understand how Maia selects moves, including its predicted probabilities and the effects of their chosen settings.
+- **Play your way.** Support both in-app play and physical electronic chessboards.
+- **A full range of game options.** Offer multiple stacked premoves, flexible time controls, takebacks, draw offers, and more.
+- **Chess without language barriers.** Offer Mobile Maia in multiple languages so as many chess players as possible can enjoy it.
+
 Mobile Maia is a free, open-source Android chess app for playing against the
 human-like [Maia-3](https://github.com/CSSLab/maia3) model and reviewing games
 with Maia and Stockfish. The model, engines, opening data, games, and analysis
@@ -447,6 +456,34 @@ Diagnostics are pruned to at most 14 days, 40 entries, 8,000 characters per
 entry, and 128,000 characters total. They may include app, Android, hardware,
 engine-cache, and privacy-safe Bluetooth state, but never a device serial,
 Bluetooth address or board name, chess position, or PGN.
+
+## Availability and forks
+
+### Will Mobile Maia be available on Google Play or iPhone?
+
+No. I will not publish Mobile Maia on Google Play or develop an official iPhone
+version. This is a deliberate choice: in my view, Google's and Apple's tightly
+controlled app-distribution ecosystems are at odds with the philosophy of free
+and open-source software (FOSS), including the freedom to use, inspect, modify,
+and share it. I respect that others may make different choices; this is the
+approach I have chosen for Mobile Maia.
+
+For context on the Android side, see F-Droid's
+[An Open Letter Opposing Android Developer Verification](https://f-droid.org/en/2026/02/24/open-letter-opposing-developer-verification.html).
+
+Official Android downloads and update options are available through GitHub,
+F-Droid, Obtainium, and Zapstore, as described below.
+
+### What about forks published in app stores?
+
+Forks are welcome under the project's licence. If you fork Mobile Maia and
+publish your version in an app store, please do everything possible to avoid
+confusion with this project. Use a distinct app name, icon, and package or bundle
+identifier, and clearly state in the app and its store listing that it is an
+independent fork, who maintains it, and where users should go for support.
+Please credit and link to the original project without implying that your fork
+is an official Mobile Maia release or is endorsed or maintained by this project.
+Thank you for helping users make an informed choice.
 
 ## Install and update with F-Droid
 
