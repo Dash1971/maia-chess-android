@@ -476,7 +476,9 @@ F-Droid, Obtainium, and Zapstore, as described below.
 
 ### What about forks published in app stores?
 
-Forks are welcome under the project's licence. If you fork Mobile Maia and
+Forks are welcome. Please honor the project's [AGPL-3.0-only licence](LICENSE)
+and the applicable third-party licences documented in
+[`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md). If you fork Mobile Maia and
 publish your version in an app store, please do everything possible to avoid
 confusion with this project. Use a distinct app name, icon, and package or bundle
 identifier, and clearly state in the app and its store listing that it is an
