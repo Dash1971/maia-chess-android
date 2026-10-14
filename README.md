@@ -1,5 +1,7 @@
 # Mobile Maia
 
+**By Maia fans, for Maia fans.** Our mission is to make Mobile Maia the best way to play and analyze chess with Maia on Android. It will always be free, never show ads, and always remain open source.
+
 Mobile Maia is a free, open-source Android chess app for playing against the
 human-like [Maia-3](https://github.com/CSSLab/maia3) model and reviewing games
 with Maia and Stockfish. The model, engines, opening data, games, and analysis
