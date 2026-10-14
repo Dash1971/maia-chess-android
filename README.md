@@ -483,9 +483,8 @@ publish your version in an app store, please do everything possible to avoid
 confusion with this project. Use a distinct app name, icon, and package or bundle
 identifier, and clearly state in the app and its store listing that it is an
 independent fork, who maintains it, and where users should go for support.
-Please credit and link to the original project without implying that your fork
-is an official Mobile Maia release or is endorsed or maintained by this project.
-Thank you for helping users make an informed choice.
+Do not present your fork as an official Mobile Maia release or imply that it
+is affiliated with, endorsed by, or maintained by this project.
 
 ## Install and update with F-Droid
 
