@@ -1,6 +1,6 @@
-The app uses the human-like Maia-3 79M model from the University of Toronto’s Computational Social Science Lab for play and analysis, alongside Stockfish for comparison and game review. Everything runs locally on your phone, without an account or Internet connection.
-
 <b>By Maia fans, for Maia fans.</b> Mobile Maia is a community project for playing and studying chess with Maia on Android. It will always be free, never show ads, and always remain open source.
+
+The app uses the human-like Maia-3 79M model from the University of Toronto’s Computational Social Science Lab for play and analysis, alongside Stockfish for comparison and game review. Everything runs locally on your phone, without an account or Internet connection.
 
 Pick a Maia rating from 600 to 2600, then review your game with Maia and Stockfish to explore what you could have played. There are no subscriptions or daily analysis limits.
 
