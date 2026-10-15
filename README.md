@@ -11,10 +11,7 @@
 - **Useful game options.** Support multiple stacked premoves, flexible time controls, takebacks, and draw offers.
 - **More languages.** Make Mobile Maia accessible to chess players in their own language, with help from community contributors.
 
-Mobile Maia is a free, open-source Android chess app for playing against the
-human-like [Maia-3](https://github.com/CSSLab/maia3) model and reviewing games
-with Maia and Stockfish. The model, engines, opening data, games, and analysis
-all stay on the phone and work without an account or Internet connection.
+The app uses the human-like [Maia-3](https://github.com/CSSLab/maia3) 79M model from the University of Toronto’s Computational Social Science Lab for play and analysis, alongside Stockfish for comparison and game review. Everything runs locally on your phone, without an account or Internet connection.
 
 Choose a Maia level from 600 to 2600, compare the move a person is likely to
 play with Stockfish's best move, or run a complete game review without a daily
