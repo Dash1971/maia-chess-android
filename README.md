@@ -36,6 +36,7 @@ completes.
 - [What's new in Mobile Maia 2.3](#mobile-maia-23)
 - [Feature guide](#feature-guide)
 - [Google Play, iPhone, and forks](#availability-and-forks)
+- [Support and contributing](#support-and-contributing)
 - [Build and reproducibility](#build)
 - [Re-export Maia-3](#re-export-maia-3)
 - [Credits and attributions](#credits-and-attributions)
@@ -43,33 +44,12 @@ completes.
 
 ## Mobile Maia 2.3
 
-Version 2.3 adds:
+- **Ten interface languages**, following your device language or your choice in Settings.
+- **A clearer game library**, preserving played dates and chronological order, with subtle colors for wins, losses, draws, and unfinished games.
+- **More time-control choices**, with Lichess-style quick presets and quicker optional human-like pauses for bullet and short blitz.
 
-- **Ten interface languages:** English, Japanese, Simplified Chinese, Korean,
-  Spanish, German, French, Russian, Hindi and Brazilian Portuguese. Follow the
-  device language or choose one in Settings; the choice is remembered locally.
-- **A clearer game library:** Recent games keeps the original played date and
-  chronological order when you open or analyse a game. Only the result is
-  coloured: green for your win, red for your loss, amber for a draw and muted
-  blue for an unfinished game.
-- **The complete Lichess-style quick controls:** 1+0, 2+1, 3+0, 3+2, 5+0, 5+3,
-  10+0, 10+5, 15+10, 30+0 and 30+20, alongside Unlimited and Custom. The same
-  choices are available in Continue from here.
-- **Quicker optional human timing for short games:** 1+0 averages about one
-  second per move; 2+1, 3+0 and 3+2 average about 1.5 seconds. Longer controls
-  retain the existing rhythm. Calculation time counts toward these targets.
-
-The Maia-3 79M model, Stockfish 19 Light and established engine settings are
-unchanged. Existing games and valid preferences are preserved. See the
-[2.3 release notes](docs/release-notes/v2.3.0.md).
-
-Version 2.2 added two Maia analysis perspectives, game sounds and haptics,
-stronger review and recovery, and Continue from here setup. New games default
-to **Temperature 1.00 / Top-P 1.00**; valid saved choices are preserved. The
-[sampling report](docs/research/maia3-sampling/REPORT.md) explains the
-strength-versus-variety tradeoff. Earlier changes are documented in the
-[2.2 notes](docs/release-notes/v2.2.0.md) and
-[2.1 notes](docs/release-notes/v2.1.0.md).
+See the [complete 2.3 release notes](docs/release-notes/v2.3.0.md) and
+[earlier release notes](docs/release-notes).
 
 Active development continues in the separate
 [Mobile Maia Preview repository](https://github.com/Dash1971/maia-chess-android-preview).
@@ -544,6 +524,23 @@ channel only after the developer publishes and verifies it on Zapstore; the
 repository's `zapstore.yaml` does not publish updates automatically. Maintainers
 should follow the [Zapstore post-release step](docs/RELEASING.md#publish-the-verified-stable-apk-to-zapstore).
 
+## Support and contributing
+
+- **Stable bugs:** [Search or open an issue in this repository](https://github.com/Dash1971/maia-chess-android/issues).
+- **Preview bugs and feature requests:** [Search or open an issue in the Preview repository](https://github.com/Dash1971/maia-chess-android-preview/issues).
+
+Check existing issues before opening a new one. For bug reports, include the app
+version and channel, Android version and device, steps to reproduce, and what
+you expected to happen. A small PGN/FEN example or diagnostics can help when
+relevant.
+
+Code, documentation, translations, and testing contributions are welcome.
+Discuss substantial changes in a Preview issue before starting, so the approach
+and scope can be agreed. New features are developed and tested in Preview before
+promotion to Stable. Use the pinned toolchain and follow the
+[testing guide](tool/hardening/README.md). Contributions are accepted under the
+[project's licence](LICENSE).
+
 ## Build
 
 Requirements: **Flutter 3.47.5** (pinned in `.fvmrc`), JDK 17, Android SDK 36,
@@ -562,45 +559,14 @@ flutter test
 tool/build_android_release.sh
 ```
 
-The APK is written to `build/app/outputs/flutter-apk/app-release.apk`. Release
-builds intentionally keep readable Dart symbols: Mobile Maia is open source,
-readable crash traces are more useful than obfuscation, and deterministic
-symbols allow independent reproducibility checks. The script also verifies the
-model's exact size and SHA-256 so an incomplete Git LFS checkout cannot silently
-produce a broken release. See [`REPRODUCIBLE_BUILDS.md`](REPRODUCIBLE_BUILDS.md).
+The APK is written to `build/app/outputs/flutter-apk/app-release.apk`. The build
+script verifies the bundled model's size and SHA-256 before building.
 
-To check reproducibility, build the **same commit** in two clean directories
-with the same pinned toolchain and no signing variables, then compare the
-unsigned APKs using `sha256sum`. Retain both hashes with the release notes; the
-procedure is not itself evidence that a particular release reproduced. The
-manual Checks workflow can build an unsigned APK; pull requests run the Dart
-analyzer and regression tests.
+Further documentation:
 
-The release verifier accepts the stable universal package explicitly:
-
-```sh
-python3 tool/verify_release_apk.py \
-  build/app/outputs/flutter-apk/app-release.apk \
-  --package com.dash1971.maia_chess \
-  --allow-abi armeabi-v7a --allow-abi arm64-v8a --allow-abi x86_64 \
-  --output release-checks/apk.json
-```
-
-Dependency advisory checks run in CI without adding runtime app work. Their
-coverage and the required upstream review are documented in the release guide.
-
-Maintainers and coding agents should start with the
-[release procedure and qualification gate](docs/RELEASING.md) before signing,
-tagging, or publishing. The [release verification guide](tool/hardening/RELEASE_CHECKS.md) includes
-portable APK checks, sanitized saved-game upgrade fixtures, emulator commands,
-and CI artifact retention. See the [hardening guide](tool/hardening/README.md)
-for the full regression suites and independent chess/variation corpora.
-
-Official releases are signed with the dedicated Mobile Maia app-signing key.
-The build reads `MOBILE_MAIA_KEYSTORE`, `MOBILE_MAIA_STORE_PASSWORD`, and
-`MOBILE_MAIA_KEY_PASSWORD` from the environment; no signing secrets belong in
-this repository. When those variables are absent, Gradle produces an unsigned
-release suitable for independent F-Droid rebuilding.
+- [Reproducible builds](REPRODUCIBLE_BUILDS.md): build environment and independent APK comparison.
+- [Testing guide](tool/hardening/README.md): additional regression tests.
+- [Release procedure](docs/RELEASING.md) and [release verification](tool/hardening/RELEASE_CHECKS.md): signing, qualification, and publication.
 
 The official signing certificate SHA-256 digest is:
 
