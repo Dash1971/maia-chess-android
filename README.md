@@ -21,10 +21,28 @@ play with Stockfish's best move, or run a complete game review without a daily
 quota. Mobile Maia is an independent community project released under
 AGPL-3.0-only.
 
-Download the latest Stable APK from
-[GitHub releases](https://github.com/Dash1971/maia-chess-android/releases/latest).
-The [official F-Droid package page](https://f-droid.org/packages/com.dash1971.maia_chess/)
-also provides updates after its separate reproducible-build process completes.
+## Download and install
+
+[<img src="https://f-droid.org/badge/get-it-on.svg" alt="Get it on F-Droid" height="80">](https://f-droid.org/packages/com.dash1971.maia_chess/)
+
+- **F-Droid:** [Install through the official F-Droid repository](#install-and-update-with-f-droid).
+- **Direct APK:** [Download the latest Stable release from GitHub](https://github.com/Dash1971/maia-chess-android/releases/latest).
+- **Obtainium:** [Install and receive updates from GitHub releases](#install-and-update-with-obtainium).
+- **Zapstore:** [Install from the developer-published listing](#install-and-update-with-zapstore).
+
+F-Droid updates become available after its separate reproducible-build process
+completes.
+
+## Contents
+
+- [Download and install](#download-and-install)
+- [What's new in Mobile Maia 2.3](#mobile-maia-23)
+- [Feature guide](#feature-guide)
+- [Google Play, iPhone, and forks](#availability-and-forks)
+- [Build and reproducibility](#build)
+- [Re-export Maia-3](#re-export-maia-3)
+- [Credits and attributions](#credits-and-attributions)
+- [Licensing](#licensing)
 
 ## Mobile Maia 2.3
 
