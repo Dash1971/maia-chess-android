@@ -10,4 +10,4 @@ Chessnut Air and Go boards can connect over Bluetooth for untimed games from the
 <b>Before you download</b>
 The download is several hundred megabytes because the Maia-3 79M model is included for offline use. Maia's rating setting guides the human moves it predicts; it is not a guaranteed playing strength.
 
-Mobile Maia is an independent community project, licensed under AGPL-3.0-only. Its chess interface and app development philosophy are informed by Lichess. Game Review’s move-classification and sacrifice-detection logic is adapted from En Croissant. It is not an official Maia Chess, University of Toronto CSSLab, Lichess, Stockfish, En Croissant or Chessnut app.
+Mobile Maia is an independent community project, licensed under AGPL-3.0-only. It uses the Maia-3 79M model from the University of Toronto’s Computational Social Science Lab and Stockfish. Its chess interface and app development philosophy are informed by Lichess. Game Review’s move-classification and sacrifice-detection logic is adapted from En Croissant. It is not an official Maia Chess, University of Toronto CSSLab, Lichess, Stockfish, En Croissant or Chessnut app.
