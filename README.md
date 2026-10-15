@@ -1,15 +1,15 @@
 # Mobile Maia
 
-**By Maia fans, for Maia fans.** Our mission is to make Mobile Maia the best way to play and analyze chess with Maia on Android. It will always be free, never show ads, and always remain open source.
+**By Maia fans, for Maia fans.** Mobile Maia is a community project for playing and studying chess with Maia on Android. It will always be free, never show ads, and always remain open source.
 
-**What do we mean by the best Maia experience?**
+**What we’re working towards**
 
-- **Maximum configurability.** Give players control over Maia's rating, move variety, timing, and analysis settings.
-- **The latest and best Maia models.** Keep pace with Maia's development and bring the best available models to Android.
-- **Maximum transparency.** Help players understand how Maia selects moves, including its predicted probabilities and the effects of their chosen settings.
-- **Play your way.** Support both in-app play and physical electronic chessboards.
-- **A full range of game options.** Offer multiple stacked premoves, flexible time controls, takebacks, draw offers, and more.
-- **Chess without language barriers.** Offer Mobile Maia in multiple languages so as many chess players as possible can enjoy it.
+- **Control over settings.** Let players adjust Maia’s rating, move variety, timing, and analysis settings.
+- **Keep up with Maia.** Follow Maia’s development and make new models available on Android.
+- **Understand its choices.** Show Maia’s move probabilities and explain how settings affect move selection.
+- **Play on screen or on a board.** Support in-app play and physical electronic chessboards.
+- **Useful game options.** Support multiple stacked premoves, flexible time controls, takebacks, and draw offers.
+- **More languages.** Make Mobile Maia accessible to chess players in their own language, with help from community contributors.
 
 Mobile Maia is a free, open-source Android chess app for playing against the
 human-like [Maia-3](https://github.com/CSSLab/maia3) model and reviewing games
