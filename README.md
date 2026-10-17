@@ -306,7 +306,7 @@ Connect searches for recognized Chessnut boards. A single board connects
 automatically; multiple candidates open a chooser. Connection messages identify
 the board. The board's NEW GAME button opens the reset warning; a second press
 within 2.5 seconds confirms it. The game stays on screen, keeps the colors and
-waits for the LED-guided physical setup before starting again. The double-press NEW GAME behavior was inspired by [MoveAPiece](https://github.com/egdels/moveapiece) by [egdels](https://github.com/egdels).
+waits for the LED-guided physical setup before starting again. The double-press NEW GAME Chessnut e-board behavior was inspired by [MoveAPiece](https://github.com/egdels/moveapiece) by [egdels](https://github.com/egdels).
 DGT Pegasus and Square Off Grand Kingdom remain blocked in Stable pending separate acceptance.
 
 Reconnect keeps the game and verifies the physical position before play
@@ -667,7 +667,7 @@ open-source chess GUI by Francisco Salgueiro and contributors. The pinned
 upstream revision and licence details are recorded in
 [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).
 
-The double-press NEW GAME behavior was inspired by [MoveAPiece](https://github.com/egdels/moveapiece) by [egdels](https://github.com/egdels).
+The double-press NEW GAME Chessnut e-board behavior was inspired by [MoveAPiece](https://github.com/egdels/moveapiece) by [egdels](https://github.com/egdels).
 
 The **Max variety in opening** idea is credited to
 [Maia3-tauri](https://github.com/outusuke/maia3-tauri) by outusuke. This is an
