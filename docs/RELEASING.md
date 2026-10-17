@@ -59,7 +59,14 @@ flutter build apk --release --config-only --no-pub
 
 Review the README, Fastlane title/description/screenshots, current version-code
 changelog, and GitHub release text against what the app actually ships. Include
-the metadata **before** freezing the source. Inspect the entire tracked tree for
+the metadata **before** freezing the source. Inspect each README and Fastlane
+screenshot when a promotion changes labels, control grouping, defaults or
+branding. Refresh affected images from the current UI, update their captions
+and capture provenance, and check that the feature text uses the same labels.
+Do not retain an old Settings image merely because the underlying feature still
+exists. Keep accurate older game examples explicitly identified as such.
+
+Inspect the entire tracked tree for
 unintended archives, credentials, and private material, including research files.
 Never replace a published tag or APK; corrections need a new version/code.
 

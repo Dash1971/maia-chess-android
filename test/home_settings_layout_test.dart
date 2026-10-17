@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maia_chess/main.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
@@ -45,6 +46,45 @@ void main() {
     expect(settings.hitTestable(), findsOneWidget);
     expect(tester.getSize(settings).height, greaterThanOrEqualTo(48));
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('Stable Home, About and licences keep Stable branding', (
+    tester,
+  ) async {
+    PackageInfo.setMockInitialValues(
+      appName: 'Mobile Maia',
+      packageName: 'com.dash1971.maia_chess',
+      version: '2.4.0',
+      buildNumber: '81',
+      buildSignature: '',
+    );
+    await tester.pumpWidget(const MaterialApp(home: GamePage()));
+    await tester.pumpAndSettle();
+    expect(find.text('Mobile Maia'), findsOneWidget);
+    expect(find.textContaining('Mobile Maia Preview'), findsNothing);
+    await tester.tap(find.byTooltip('About'));
+    await tester.pumpAndSettle();
+    expect(
+      tester.widget<AboutDialog>(find.byType(AboutDialog)).applicationName,
+      'Mobile Maia',
+    );
+    expect(find.text('2.4.0'), findsOneWidget);
+    expect(find.textContaining('Mobile Maia Preview'), findsNothing);
+    await tester.tap(
+      find.text(
+        MaterialLocalizations.of(tester.element(find.byType(AboutDialog)))
+            .viewLicensesButtonLabel,
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(
+      tester.widget<LicensePage>(find.byType(LicensePage)).applicationName,
+      'Mobile Maia',
+    );
+    expect(find.textContaining('Mobile Maia Preview'), findsNothing);
+    expect(tester.takeException(), isNull);
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pumpAndSettle();
   });
 
   testWidgets('Settings separates game, engine, and Chessnut controls', (

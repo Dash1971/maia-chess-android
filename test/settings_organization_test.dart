@@ -495,13 +495,15 @@ void main() {
           secondMaiaEnabledPreferenceKey: true,
         });
         final boundaryKey = GlobalKey();
+        final screenshotLanguage = AppLanguageController();
+        addTearDown(screenshotLanguage.dispose);
         await tester.pumpWidget(
           RepaintBoundary(
             key: boundaryKey,
-            child: settingsApp(locale: locale),
+            child: settingsApp(locale: locale, language: screenshotLanguage),
           ),
         );
-        await openSettings(tester);
+        await tester.pumpAndSettle();
         Future<void> shot(String name) async {
           await tester.pumpAndSettle();
           final boundary =
@@ -518,6 +520,9 @@ void main() {
             image.dispose();
           });
         }
+
+        await openSettings(tester);
+        await shot('settings-top');
 
         for (final section in ['game', 'engine', 'analysis']) {
           await Scrollable.ensureVisible(

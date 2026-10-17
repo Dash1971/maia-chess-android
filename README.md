@@ -60,15 +60,16 @@ this stable blue-icon app.
 
 ## Feature guide
 
-The engine and analysis Settings screenshots are refreshed for 2.4 using the
-promoted Flutter screens. They show illustrative settings, not a qualified
-Android APK. Unchanged Home, library and board images are retained from earlier
-Stable releases. See [capture provenance](docs/release-notes/v2.4.0.md#screenshots).
+Home, time controls, About and Settings images are refreshed for 2.4. Home,
+time controls and About were captured from the current Android debug build;
+Settings images are renders of the current Flutter screens. These documentation
+captures do not replace release qualification. Earlier library and board images
+are retained as illustrative game examples. See [capture provenance](docs/release-notes/v2.4.0.md#screenshots).
 
 ### Choose a game or analysis workflow
 
 <p align="center">
-  <img src="docs/screenshots/20261006_v0_stable_2_3_home.png" width="42%" alt="Stable 2.3 Home screen with Play Maia rating, side, clock, Chessnut toggle, Analysis Board, Recent games, and Settings">
+  <img src="docs/screenshots/20261017_v1_stable_2_4_home.png" width="42%" alt="Mobile Maia 2.4 Home screen with rating, side, clock, Electronic board toggle, Analysis Board, Recent games and Settings">
 </p>
 
 The home screen is the starting point for every workflow. Play as White, Black,
@@ -81,7 +82,7 @@ are remembered locally.
 ### Time controls
 
 <p align="center">
-  <img src="docs/screenshots/20261006_v0_stable_2_3_time_controls.png" width="42%" alt="Mobile Maia time-control menu including 10+5, 30+0 and 30+20">
+  <img src="docs/screenshots/20261017_v1_stable_2_4_time_controls.png" width="42%" alt="Mobile Maia time-control menu including 10+5, 30+0 and 30+20">
 </p>
 
 Games are unlimited by default. The quick controls follow Lichess's order:
@@ -118,7 +119,7 @@ therefore exceed the target, and timed games can still end on the clock.
 ### Interface language
 
 <p align="center">
-  <img src="docs/screenshots/20261006_v0_stable_2_3_settings.png" width="42%" alt="Mobile Maia Settings with the Language selector above Game settings">
+  <img src="docs/screenshots/20261017_v1_stable_2_4_settings_top.png" width="42%" alt="Mobile Maia Settings with the Language selector above Game settings">
 </p>
 
 Open **Settings → Language** to follow the system or select English, 日本語,
@@ -134,10 +135,11 @@ silently substituted for a Traditional Chinese system preference.
   <img src="docs/screenshots/20261017_v0_stable_2_4_engine_settings.png" width="42%" alt="Engine settings with optional opening variety, move history and local sampling capture">
 </p>
 
-Advanced settings control premoves, an optional exact 100 ms premove charge,
-multiple queued premoves, human-like Maia timing, Temperature, Top-P, the Maia
-rating used during review, an optional **second Maia engine** at another rating,
-and full-game analysis quality. This example compares Maia 1600 and Maia 2400:
+**Game** groups premoves, the indented 100 ms premove charge and multiple-premove
+options, human move timing, Game sounds and Touch feedback. **Engine** groups
+Temperature, Top-P, opening variety, move history and sampling data. **Analysis**
+controls review ratings and quality, including an optional **second Maia engine**
+at another rating. This example compares Maia 1600 and Maia 2400:
 
 <p align="center">
   <img src="docs/screenshots/20261017_v0_stable_2_4_analysis_settings.png" width="42%" alt="Analysis settings with Maia 1600 and Maia 2400, review quality, Chessnut sounds and confirmed Settings reset">
@@ -223,10 +225,10 @@ imbalance, the move strip, turn status, and game controls. The screen stays
 awake during an active game, and the current position is checkpointed for
 recovery after process death, restart, or an app update.
 
-### Game sounds and haptics
+### Game sounds and touch feedback
 
 <p align="center">
-  <img src="docs/screenshots/20261003_v0_stable_2_2_game_feedback.png" width="42%" alt="Stable 2.2 Game settings with Game sounds and Haptic feedback enabled">
+  <img src="docs/screenshots/20261017_v1_stable_2_4_game.png" width="42%" alt="Mobile Maia 2.4 Game settings with Touch feedback and indented premove options">
 </p>
 
 Optional **Game sounds** distinguish moves, captures, invalid moves,
@@ -292,10 +294,6 @@ or return Home. A completed game remains in **Recent games** when you choose
 confirmation.
 
 ### Chessnut electronic-board play
-
-<p align="center">
-  <img src="docs/screenshots/20260910_v0_chessnut_phone_continuation.png" width="46%" alt="Chessnut connection card with Reconnect and Play in app controls above the board">
-</p>
 
 Experimental Chessnut support has been confirmed with both Chessnut Go and
 Chessnut Air. It enters physical moves over Bluetooth and lights Maia's reply
@@ -487,7 +485,7 @@ contains several games.
 ### About, privacy, and licences
 
 <p align="center">
-  <img src="docs/screenshots/20260911_v1_about.png" width="46%" alt="Mobile Maia 2.1 About screen with version, source, licences, warranty notice, and credits">
+  <img src="docs/screenshots/20261017_v1_stable_2_4_about.png" width="46%" alt="Mobile Maia 2.4 About screen with the current version and upstream credits">
 </p>
 
 The app has no accounts, ads, subscriptions, tracking, or network dependency.

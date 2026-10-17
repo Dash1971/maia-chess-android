@@ -1493,7 +1493,7 @@ class _GamePageState extends State<GamePage>
     await showDialog<void>(
       context: context,
       builder: (context) => AboutDialog(
-        applicationName: 'Mobile Maia Preview',
+        applicationName: 'Mobile Maia',
         applicationVersion: version ?? l10n(context).unknownVersion,
         children: [
           Text(l10n(context).aboutPoweredBy),
@@ -1537,7 +1537,7 @@ class _GamePageState extends State<GamePage>
           TextButton.icon(
             onPressed: () => showLicensePage(
               context: context,
-              applicationName: 'Mobile Maia Preview',
+              applicationName: 'Mobile Maia',
             ),
             icon: const Icon(Icons.description_outlined),
             label: Text(l10n(context).licence),
@@ -4193,7 +4193,7 @@ class _GamePageState extends State<GamePage>
               ? ''
               : showingSettings
               ? l10n(context).settings
-              : 'Mobile Maia Preview',
+              : 'Mobile Maia',
         ),
         actions: [
           if (!_started && !showingSettings)
