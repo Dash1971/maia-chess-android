@@ -55,6 +55,7 @@ jobs:
         run: |
           python3 -m venv "$RUNNER_TEMP/release-checks-venv"
           "$RUNNER_TEMP/release-checks-venv/bin/pip" install -r tool/hardening/requirements.txt -r tool/requirements-release.txt
+          "$RUNNER_TEMP/release-checks-venv/bin/python" tool/check_zapstore_metadata.py
           "$RUNNER_TEMP/release-checks-venv/bin/python" -m unittest discover -s tool -p '*_test.py'
   dependencies:
     runs-on: ubuntu-24.04

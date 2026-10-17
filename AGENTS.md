@@ -24,6 +24,10 @@ procedure; follow its gates even for metadata-only releases.
   user explicitly limits the channels. Complete and verify the Zapstore step in
   `docs/RELEASING.md` without waiting for a separate reminder or approval. A
   build-only or PR-only request does not authorize publication.
+- Zapstore descriptions must use the explicit Markdown in `zapstore.yaml`, not
+  F-Droid's HTML. Run `tool/check_zapstore_metadata.py` with the release Python
+  environment. Verify Android-compatible formatting; the website rendering
+  HTML successfully is not evidence that the Android listing will look right.
 - Keep a per-channel release status record on GitHub. Do not call distribution
   complete while Zapstore is unverified or F-Droid publication is pending. Own
   the follow-up, record blockers and the next action, and report any user action

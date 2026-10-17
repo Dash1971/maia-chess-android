@@ -212,6 +212,37 @@ Zapstore is a separate developer-published channel. The committed
 universal `Mobile-Maia-v<version>.apk` asset; it does **not** watch GitHub or
 publish updates by itself. The F-Droid bot does not publish to Zapstore either.
 
+**Description format:** F-Droid's `full_description.txt` contains HTML; the
+Zapstore Android client renders Markdown. Its website can render HTML, so a
+successful website check alone can miss literal `<b>`, `<ul>` and `<li>` tags
+on Android. Keep an explicit Markdown `description` in `zapstore.yaml`; YAML
+metadata takes precedence over the publisher's automatic Fastlane import.
+Preserve the same wording, with Markdown bold headings, blank lines and bullets.
+Using the Python environment from section 3, run:
+
+```sh
+python tool/check_zapstore_metadata.py
+# When the Fastlane copy changes, generate the matching Markdown to review
+# and place under description: | in zapstore.yaml:
+python tool/check_zapstore_metadata.py --print-description
+```
+
+CI runs this check and its regression cases using the existing release-tools
+environment. It rejects missing descriptions, HTML (including escaped tags)
+and drift from the F-Droid wording. New HTML constructs require a reviewed
+conversion. Check the published app-metadata event's actual content as well
+as its rendering: paragraphs, bold headings and list spacing must remain clear
+in the Android Markdown renderer. Record whether the Android store client was
+actually tested; do not describe a website-only check as Android validation.
+
+A correction only to an existing store listing is not a new APK release.
+For such a correction, publish only the replacement app-metadata event with
+the established identity, after verifying the current event and intended diff.
+Preserve its other metadata and the existing release/asset events; verify the
+accepted content and unchanged APK references afterward. Do not overwrite a
+release, rebuild, move its tag, or rerun the full APK-release process just to
+repair listing text. Record the correction and evidence on GitHub.
+
 After the public GitHub APK passes the checks above, verify that the selected
 tag, version name/code, APK SHA-256 and Android signing certificate match the
 qualified release. Stop on any mismatch. On the local signing host, run
