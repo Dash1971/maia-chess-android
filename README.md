@@ -309,15 +309,14 @@ Connect searches for recognized Chessnut boards. A single board connects
 automatically; multiple candidates open a chooser. Connection messages identify
 the board. The board's NEW GAME button opens the reset warning; a second press
 within 2.5 seconds confirms it. The game stays on screen, keeps the colors and
-waits for the LED-guided physical setup before starting again. DGT Pegasus and
-Square Off Grand Kingdom remain blocked in Stable pending separate acceptance.
+waits for the LED-guided physical setup before starting again. The double-press NEW GAME behavior was inspired by [MoveAPiece](https://github.com/egdels/moveapiece) by [egdels](https://github.com/egdels).
+DGT Pegasus and Square Off Grand Kingdom remain blocked in Stable pending separate acceptance.
 
 Reconnect keeps the game and verifies the physical position before play
 continues. Pending Maia and takeback lights are restored. **Play in app** moves
 the same unfinished game to on-screen input while retaining its moves,
-variations, rating, and orientation. Version 2.1 targets untimed games from the
-standard starting position. The physical board's **New** button currently has
-no effect in Mobile Maia. Other Chessnut models may use the same protocol but
+variations, rating, and orientation. Board play supports untimed games from the
+standard starting position. Other Chessnut models may use the same protocol but
 have not yet been confirmed; compatibility reports from their users are
 welcome. Timed board games, USB, and Analysis Board input are not yet supported.
 
@@ -670,6 +669,8 @@ adapted and translated to Dart from
 open-source chess GUI by Francisco Salgueiro and contributors. The pinned
 upstream revision and licence details are recorded in
 [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).
+
+The double-press NEW GAME behavior was inspired by [MoveAPiece](https://github.com/egdels/moveapiece) by [egdels](https://github.com/egdels).
 
 The **Max variety in opening** idea is credited to
 [Maia3-tauri](https://github.com/outusuke/maia3-tauri) by outusuke. This is an
