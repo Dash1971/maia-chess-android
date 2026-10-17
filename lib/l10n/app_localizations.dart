@@ -390,6 +390,18 @@ abstract class AppLocalizations {
   /// **'Top-P'**
   String get topP;
 
+  /// Settings: maximize opening variety for the first five moves by each side
+  ///
+  /// In en, this message translates to:
+  /// **'Max variety in opening'**
+  String get maxOpeningVariety;
+
+  /// Settings help: opening sampling override and its purpose
+  ///
+  /// In en, this message translates to:
+  /// **'Not needed when Temperature and Top-P are at their default values of 1.0 / 1.0. Uses 1.0 / 1.0 for the first five moves by each side, then returns to your configured settings from move 6.\n\nThe goal is to give Maia maximum opening variety while allowing potentially stronger play later in the game by reducing the chance of low-probability moves through lower Temperature and/or Top-P.'**
+  String get maxOpeningVarietyHelp;
+
   /// Settings: Maia analysis rating
   ///
   /// In en, this message translates to:
@@ -420,11 +432,11 @@ abstract class AppLocalizations {
   /// **'Game analysis quality'**
   String get gameAnalysisQuality;
 
-  /// Settings: Reset engine defaults
+  /// Settings: Reset settings on this screen to their defaults
   ///
   /// In en, this message translates to:
-  /// **'Reset engine defaults'**
-  String get resetEngineDefaults;
+  /// **'Reset settings to default'**
+  String get resetSettingsDefaults;
 
   /// Settings: Board sounds
   ///
@@ -1692,17 +1704,23 @@ abstract class AppLocalizations {
   /// **'Temperature and Top-P'**
   String get samplingTitle;
 
-  /// Play screen: Why Temperature 1.00 and Top-P 1.00?
+  /// Maia-specific sampling help: Choose how much variety you want
   ///
   /// In en, this message translates to:
-  /// **'Why Temperature 1.00 and Top-P 1.00?'**
+  /// **'Choose how much variety you want'**
   String get samplingDefaultsQuestion;
 
-  /// Play screen: Read the sampling research
+  /// Maia-specific offline sampling report; use Lichess vocabulary where the action matches.
   ///
   /// In en, this message translates to:
-  /// **'Read the sampling research'**
+  /// **'Full research data (JSONL)'**
   String get samplingResearch;
+
+  /// Link to the English-language sampling research report, not the JSONL export. Non-English labels identify the document language.
+  ///
+  /// In en, this message translates to:
+  /// **'Full research data'**
+  String get samplingResearchLink;
 
   /// Play screen: Close
   ///
@@ -1740,30 +1758,6 @@ abstract class AppLocalizations {
   /// **'Mobile Maia source code'**
   String get mobileMaiaSource;
 
-  /// Play help, about or error message: These settings let Maia use its full range of predicted human moves. In our tests at the 1600 setting, they produced opening choices much closer to rating-filtered Lichess games.
-  ///
-  /// In en, this message translates to:
-  /// **'These settings let Maia use its full range of predicted human moves. In our tests at the 1600 setting, they produced opening choices much closer to rating-filtered Lichess games.'**
-  String get samplingFullRange;
-
-  /// Play help, about or error message: Lower settings reduce variety and can make Maia stronger. We favor a more human opening repertoire over maximum strength. Maia’s rating describes the players it models, rather than guaranteeing an exact playing strength.
-  ///
-  /// In en, this message translates to:
-  /// **'Lower settings reduce variety and can make Maia stronger. We favor a more human opening repertoire over maximum strength. Maia’s rating describes the players it models, rather than guaranteeing an exact playing strength.'**
-  String get samplingStrength;
-
-  /// Play help, about or error message: Temperature controls how adventurous Maia is. At 0, Maia always chooses its most likely human move. Higher values make less likely moves more common.
-  ///
-  /// In en, this message translates to:
-  /// **'Temperature controls how concentrated Maia’s move probabilities are. At 0, Maia always chooses the move the model predicts humans are most likely to play. Lower positive values favor the most likely moves more strongly; higher values give less likely moves more chance.'**
-  String get samplingTemperatureHelp;
-
-  /// Play help, about or error message: Top-P limits Maia to the smallest group of moves whose combined probability reaches this value. Lower values narrow the choice to more likely moves; 1.00 keeps every legal move.
-  ///
-  /// In en, this message translates to:
-  /// **'Top-P ranks moves from most to least likely, then keeps the smallest leading group whose combined probability reaches this value. Lower values restrict the choice to more likely moves; 1.00 keeps every legal move.'**
-  String get samplingTopPHelp;
-
   /// Play help, about or error message: Powered by Maia-3, the human-like chess engine developed by the University of Toronto Computational Social Science Lab.
   ///
   /// In en, this message translates to:
@@ -1800,10 +1794,10 @@ abstract class AppLocalizations {
   /// **'This independent community app is not an official Maia-3 or University of Toronto, Lichess, or En Croissant application.'**
   String get aboutIndependent;
 
-  /// Play help, about or error message: Temperature or Top-P differs from the recommended 1.00. See the information button for details.
+  /// Maia-specific sampling help: Lowering Temperature or Top-P may make Maia stronger in the middlegame, but reduce opening variety. See the information button for details.
   ///
   /// In en, this message translates to:
-  /// **'Temperature or Top-P differs from the recommended 1.00. See the information button for details.'**
+  /// **'Lowering Temperature or Top-P may make Maia stronger in the middlegame, but reduce opening variety. See the information button for details.'**
   String get samplingRecommendationWarning;
 
   /// Play help, about or error message: Could not open PGN.
@@ -1929,6 +1923,522 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Draw ({result})'**
   String recentDrawResult(String result);
+
+  /// Electronic board Dev support: Experimental electronic-board settings section title; includes occupancy-only and motorized boards.
+  ///
+  /// In en, this message translates to:
+  /// **'Electronic board (experimental)'**
+  String get electronicBoardExperimental;
+
+  /// Electronic board Dev support: Button that opens electronic-board scan and connection flow.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect board'**
+  String get connectBoard;
+
+  /// Electronic board Dev support: Discovered-board picker title.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a board'**
+  String get chooseBoard;
+
+  /// Electronic board Dev support: Button to rescan and select a different board.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose another board'**
+  String get chooseAnotherBoard;
+
+  /// Electronic board Dev support: Bluetooth board scan in progress.
+  ///
+  /// In en, this message translates to:
+  /// **'Searching for boards…'**
+  String get boardSearching;
+
+  /// Electronic board Dev support: Bluetooth board connection in progress.
+  ///
+  /// In en, this message translates to:
+  /// **'Connecting to board…'**
+  String get boardConnecting;
+
+  /// Electronic board Dev support: Board connection lost status.
+  ///
+  /// In en, this message translates to:
+  /// **'Board disconnected'**
+  String get boardDisconnected;
+
+  /// Electronic board Dev support: Connection failure recovery instruction; Bluetooth is a product/protocol name.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not connect. Check Bluetooth and the board, then retry.'**
+  String get boardConnectionError;
+
+  /// Electronic board Dev support: Physical standard initial-position setup instruction.
+  ///
+  /// In en, this message translates to:
+  /// **'Set up the standard starting position on your board.'**
+  String get boardStartingPosition;
+
+  /// Electronic board Dev support: Physical board synchronization complete status.
+  ///
+  /// In en, this message translates to:
+  /// **'Board ready'**
+  String get boardReady;
+
+  /// Electronic board Dev support: Experimental support notice; compare the app screens and report connection issues.
+  ///
+  /// In en, this message translates to:
+  /// **'New board support is experimental. Please verify moves on both screens and report connection problems.'**
+  String get boardExperimentalNotice;
+
+  /// Electronic board Dev support: Physical-board game constraint: standard initial position and no clock.
+  ///
+  /// In en, this message translates to:
+  /// **'Electronic-board games start from the standard position and use unlimited time.'**
+  String get boardGameRestriction;
+
+  /// Electronic board Dev support: User confirmation of physical standard initial-position setup.
+  ///
+  /// In en, this message translates to:
+  /// **'I have set up the starting position'**
+  String get boardConfirmSetup;
+
+  /// Electronic board Dev support: Occupancy-only board limitation: it senses presence, not piece identity.
+  ///
+  /// In en, this message translates to:
+  /// **'Check every piece before starting. This board cannot verify piece identity.'**
+  String get boardConfirmSetupHelp;
+
+  /// Electronic board Dev support: Title of legal-move ambiguity picker.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm your board move'**
+  String get boardChooseMove;
+
+  /// Electronic board Dev support: Occupancy-only ambiguity explanation; player chooses the move actually made.
+  ///
+  /// In en, this message translates to:
+  /// **'The board cannot distinguish these moves. Choose the move you played.'**
+  String get boardAmbiguousMove;
+
+  /// Electronic board Dev support: Board unavailable recovery: reconnect or continue with phone input.
+  ///
+  /// In en, this message translates to:
+  /// **'This board is not ready. Reconnect, or continue on your phone.'**
+  String get boardUnavailable;
+
+  /// Electronic board Dev support: Physical NEW GAME button second-press confirmation within 2.5 seconds; retain NEW GAME hardware marking.
+  ///
+  /// In en, this message translates to:
+  /// **'Press NEW GAME again within 2.5 seconds to confirm, or use the buttons below.'**
+  String get boardNewGameConfirmInstruction;
+
+  /// Electronic board Dev support: Expired physical NEW GAME confirmation instruction; retain NEW GAME hardware marking.
+  ///
+  /// In en, this message translates to:
+  /// **'To confirm on the board, press NEW GAME twice within 2.5 seconds.'**
+  String get boardNewGameConfirmationExpired;
+
+  /// Electronic board Dev support: Instruction to finish a physical move before proceeding.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete the move on your board.'**
+  String get boardPhysicalMove;
+
+  /// Electronic board Dev support: Instruction to restore physical board to the app position before proceeding.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore the position shown on screen before continuing.'**
+  String get boardResetPhysical;
+
+  /// Electronic board Dev support: Empty supported Bluetooth board scan result and recovery instruction.
+  ///
+  /// In en, this message translates to:
+  /// **'No supported board found. Wake your board and try again.'**
+  String get boardNoResults;
+
+  /// Electronic board Dev support: Disconnected status while waiting for player to select a board.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a board to connect.'**
+  String get boardWaitingForSelection;
+
+  /// Electronic board Dev support: Button to reconnect selected physical board.
+  ///
+  /// In en, this message translates to:
+  /// **'Reconnect board'**
+  String get boardReconnect;
+
+  /// Electronic board Dev support: Manufacturer initialization missing/locked state; Dev means the separate development build.
+  ///
+  /// In en, this message translates to:
+  /// **'Pegasus is locked. This Dev build does not include its manufacturer initialization key.'**
+  String get boardLockedPegasus;
+
+  /// Electronic board Dev support: Motorized-board safety recovery instruction; continue with phone input because firmware motor state cannot be restored.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue on your phone. This experimental adapter cannot safely restore the board’s motor state.'**
+  String get boardMotorRecovery;
+
+  /// Electronic board Dev support: Button to explicitly confirm physical-board setup matches the current logical position.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm the physical position'**
+  String get boardConfirmPosition;
+
+  /// Electronic board Dev support: Help for explicit physical-position confirmation, including piece identities.
+  ///
+  /// In en, this message translates to:
+  /// **'Check that every piece matches the position on screen.'**
+  String get boardConfirmPositionHelp;
+
+  /// Maia-specific history setting/help: Use move history
+  ///
+  /// In en, this message translates to:
+  /// **'Use move history'**
+  String get maiaHistorySetting;
+
+  /// Maia-specific move-history help. The prediction gain is about 2 percentage points (57.00% to 59.36%), not a relative 2%. A playing-strength increase was not established; do not imply a full-game strength trial.
+  ///
+  /// In en, this message translates to:
+  /// **'Let Maia consider up to seven previous positions as well as the current position. This improved prediction of human moves by about 2 percentage points in our tests with the 79M model, but sometimes encouraged repeated copying in low-rated openings. We were not able to establish a strength increase. Off is recommended for now.'**
+  String get maiaHistoryHelp;
+
+  /// Maia-specific history setting/help: Read the move-history research
+  ///
+  /// In en, this message translates to:
+  /// **'Read the move-history research'**
+  String get maiaHistoryResearch;
+
+  /// Maia-specific history setting/help: Move history: on
+  ///
+  /// In en, this message translates to:
+  /// **'Move history: on'**
+  String get maiaHistoryOn;
+
+  /// Maia-specific history setting/help: Move history: off
+  ///
+  /// In en, this message translates to:
+  /// **'Move history: off'**
+  String get maiaHistoryOff;
+
+  /// Generic electronic chessboard name when no brand or model is known.
+  ///
+  /// In en, this message translates to:
+  /// **'Chessboard'**
+  String get chessboardDeviceName;
+
+  /// Electronic board status, only after transport is ready. Board name is a canonical product name or the localized generic chessboard name.
+  ///
+  /// In en, this message translates to:
+  /// **'{boardName} connected'**
+  String namedBoardConnected(String boardName);
+
+  /// Electronic board disconnected status. Keep the last known board name until another connection begins.
+  ///
+  /// In en, this message translates to:
+  /// **'{boardName} disconnected'**
+  String namedBoardDisconnected(String boardName);
+
+  /// App-specific opt-in local Maia decision capture; separate from diagnostics and Recent Games.
+  ///
+  /// In en, this message translates to:
+  /// **'Save Maia sampling data'**
+  String get saveMaiaSamplingData;
+
+  /// Maia-specific research capture help: last ten recorded games, separate from Recent Games; readable HTML subset versus all recorded data in JSONL, viewed outside the app. Off by default and recommended off unless researching. All recorded data does not promise a complete game capture.
+  ///
+  /// In en, this message translates to:
+  /// **'Save Maia’s move probabilities, settings and selected moves on this device to explore how it plays.\n\nExported files contain board positions, move history and model inputs and decisions.\n\nThe last 10 recorded games are saved and presented newest first. Older games may be removed sooner if the storage limit is reached. This is separate from Recent Games.\n\nUse this feature if you are interested in studying the technical details of how Maia works. Data cannot be viewed in the app. It is exported to an easy-to-view HTML file containing a subset of the data, or a JSONL file containing all the recorded data.\n\nThis is off by default, and we recommend keeping it off unless you are interested in researching how Maia works.'**
+  String get samplingDataHelp;
+
+  /// App-specific opt-in local Maia decision capture; separate from diagnostics and Recent Games.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear sampling data'**
+  String get clearSamplingData;
+
+  /// App-specific opt-in local Maia decision capture; separate from diagnostics and Recent Games.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} decisions saved'**
+  String samplingDataStatus(int count);
+
+  /// App-specific opt-in local Maia decision capture; separate from diagnostics and Recent Games.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not access sampling data. Playing is unaffected.'**
+  String get samplingDataError;
+
+  /// Maia-specific offline sampling report; use Lichess vocabulary where the action matches.
+  ///
+  /// In en, this message translates to:
+  /// **'Save…'**
+  String get samplingSave;
+
+  /// Maia-specific offline sampling report; use Lichess vocabulary where the action matches.
+  ///
+  /// In en, this message translates to:
+  /// **'Share…'**
+  String get samplingShare;
+
+  /// Maia-specific offline sampling report; use Lichess vocabulary where the action matches.
+  ///
+  /// In en, this message translates to:
+  /// **'Maia’s choices'**
+  String get samplingSummary;
+
+  /// Maia-specific offline sampling report; use Lichess vocabulary where the action matches.
+  ///
+  /// In en, this message translates to:
+  /// **'Readable report (HTML)'**
+  String get samplingReadable;
+
+  /// Maia-specific offline sampling report; use Lichess vocabulary where the action matches.
+  ///
+  /// In en, this message translates to:
+  /// **'Moves, probabilities and board diagrams. Opens in a browser.'**
+  String get samplingReadableHint;
+
+  /// Maia-specific offline sampling report; use Lichess vocabulary where the action matches.
+  ///
+  /// In en, this message translates to:
+  /// **'Raw model inputs and outputs for technical analysis.'**
+  String get samplingResearchHint;
+
+  /// Offline report of recorded Maia selection probabilities after Temperature and Top-P.
+  ///
+  /// In en, this message translates to:
+  /// **'Percentages show the chance of each move being selected after your Temperature and Top-P settings were applied. They are not winning chances or move-quality scores.'**
+  String get samplingReportExplanation;
+
+  /// Maia-specific offline sampling report; use Lichess vocabulary where the action matches.
+  ///
+  /// In en, this message translates to:
+  /// **'Only recorded Maia decisions are shown, not a complete game. Takebacks and retries can repeat a move number.'**
+  String get samplingReportPartial;
+
+  /// Maia-specific offline sampling report; use Lichess vocabulary where the action matches.
+  ///
+  /// In en, this message translates to:
+  /// **'Some capture data was removed or could not be saved. This report may have gaps.'**
+  String get samplingReportMissing;
+
+  /// Maia-specific offline sampling report; use Lichess vocabulary where the action matches.
+  ///
+  /// In en, this message translates to:
+  /// **'Played'**
+  String get samplingPlayed;
+
+  /// Maia-specific offline sampling report; use Lichess vocabulary where the action matches.
+  ///
+  /// In en, this message translates to:
+  /// **'Not recorded as played'**
+  String get samplingNotPlayed;
+
+  /// Maia-specific offline sampling report; use Lichess vocabulary where the action matches.
+  ///
+  /// In en, this message translates to:
+  /// **'Likely alternatives'**
+  String get samplingAlternatives;
+
+  /// Maia-specific offline sampling report; use Lichess vocabulary where the action matches.
+  ///
+  /// In en, this message translates to:
+  /// **'Game {number}'**
+  String samplingGame(String number);
+
+  /// Maia-specific offline sampling report; use Lichess vocabulary where the action matches.
+  ///
+  /// In en, this message translates to:
+  /// **'Recorded decisions: {count}'**
+  String samplingRecords(String count);
+
+  /// Offline report of recorded Maia selection probabilities after Temperature and Top-P.
+  ///
+  /// In en, this message translates to:
+  /// **'Most probable'**
+  String get samplingMostProbable;
+
+  /// Offline report of recorded Maia selection probabilities after Temperature and Top-P.
+  ///
+  /// In en, this message translates to:
+  /// **'Played the most probable move'**
+  String get samplingPlayedMostProbable;
+
+  /// Offline report of recorded Maia selection probabilities after Temperature and Top-P.
+  ///
+  /// In en, this message translates to:
+  /// **'{move} had about a 1 in {odds} chance of being played.'**
+  String samplingChance(String move, String odds);
+
+  /// Offline report of recorded Maia selection probabilities after Temperature and Top-P.
+  ///
+  /// In en, this message translates to:
+  /// **'{move} was certain to be selected (100%).'**
+  String samplingCertain(String move);
+
+  /// Offline report of recorded Maia selection probabilities after Temperature and Top-P.
+  ///
+  /// In en, this message translates to:
+  /// **'{move} was almost certain to be selected.'**
+  String samplingAlmostCertain(String move);
+
+  /// Explains report game order, ten-game retention, and earlier removal under the storage limit.
+  ///
+  /// In en, this message translates to:
+  /// **'The last 10 recorded games are saved and presented newest first. Older games may be removed sooner if the storage limit is reached.'**
+  String get samplingReportRetention;
+
+  /// Accessible game chooser label for jumping to a game section.
+  ///
+  /// In en, this message translates to:
+  /// **'Jump to game'**
+  String get samplingJumpToGame;
+
+  /// Navigation link back to the report game list.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to game list'**
+  String get samplingBackToGames;
+
+  /// Recorded game has no final result yet.
+  ///
+  /// In en, this message translates to:
+  /// **'Incomplete'**
+  String get samplingIncomplete;
+
+  /// No known result is available in this historical record.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown result'**
+  String get samplingUnknownResult;
+
+  /// No opening name is available for this game.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown opening'**
+  String get samplingOpeningUnknown;
+
+  /// No valid timestamp is available for this game.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown time'**
+  String get samplingTimeUnknown;
+
+  /// Recorded game result: the human player won.
+  ///
+  /// In en, this message translates to:
+  /// **'Victory'**
+  String get samplingWin;
+
+  /// Recorded game result: the human player lost.
+  ///
+  /// In en, this message translates to:
+  /// **'Defeat'**
+  String get samplingLoss;
+
+  /// Recorded game result: the game was drawn.
+  ///
+  /// In en, this message translates to:
+  /// **'Draw'**
+  String get samplingDraw;
+
+  /// Sampling data: destructive confirmation button. Lichess Delete adapted with an explicit data object.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete data'**
+  String get samplingDeleteData;
+
+  /// Sampling data: confirm irreversible deletion of app-local captures only, excluding separately saved/shared exports.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete all Maia sampling data? It cannot be recovered.'**
+  String get samplingClearConfirmation;
+
+  /// Settings section for analysis ratings and full-game analysis quality. Uses Lichess preferencesAnalysisSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Analysis settings'**
+  String get analysisSettings;
+
+  /// Settings: stored Maia sampling captures, with saved count and export/delete actions.
+  ///
+  /// In en, this message translates to:
+  /// **'Sampling data'**
+  String get samplingData;
+
+  /// Reset all preferences shown on Settings, including language, sounds and recording; preserve stored games and captures.
+  ///
+  /// In en, this message translates to:
+  /// **'Resets all settings on this screen. Saved games and sampling data are kept.'**
+  String get resetSettingsDefaultsScope;
+
+  /// Settings reset persistence failure; retry is safe and saved games are unaffected.
+  ///
+  /// In en, this message translates to:
+  /// **'Some settings could not be reset. Please try again.'**
+  String get settingsResetError;
+
+  /// Settings reset confirmation: question.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset all settings to default?'**
+  String get resetSettingsConfirmation;
+
+  /// Settings reset confirmation: preservation notice.
+  ///
+  /// In en, this message translates to:
+  /// **'Your saved games and sampling data will be kept.'**
+  String get resetSettingsKeepData;
+
+  /// Settings reset confirmation: explicit confirmation action.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset settings'**
+  String get resetSettingsAction;
+
+  /// User-approved Maia-specific sampling help, paragraph 1. Preserve the strength/variety distinction, the direct-match result at setting 1600, and probability mass (not number of moves). Use established local chess terminology.
+  ///
+  /// In en, this message translates to:
+  /// **'Temperature and Top-P control how Maia chooses between moves.'**
+  String get samplingHelpIntro;
+
+  /// User-approved Maia-specific sampling help, paragraph 2. Preserve the strength/variety distinction, the direct-match result at setting 1600, and probability mass (not number of moves). Use established local chess terminology.
+  ///
+  /// In en, this message translates to:
+  /// **'Increasing Temperature and Top-P is like making Maia a more volatile player, as Maia becomes more likely to play low-probability moves. These may be blunders, but they may also be brilliant moves!'**
+  String get samplingHelpVariety;
+
+  /// User-approved Maia-specific sampling help, paragraph 3. Preserve the strength/variety distinction, the direct-match result at setting 1600, and probability mass (not number of moves). Use established local chess terminology.
+  ///
+  /// In en, this message translates to:
+  /// **'If you value maximum variety, and you also want Maia to play a broad range of human openings, including sidelines, then keep the default values of 1.0 and 1.0.'**
+  String get samplingHelpDefaults;
+
+  /// User-approved Maia-specific sampling help, paragraph 4. Preserve the strength/variety distinction, the direct-match result at setting 1600, and probability mass (not number of moves). Use established local chess terminology.
+  ///
+  /// In en, this message translates to:
+  /// **'If you prefer a stronger opponent playing fewer blunders, experiment with moving Temperature and Top-P values down.'**
+  String get samplingHelpStrength;
+
+  /// User-approved Maia-specific sampling help, paragraph 5. Preserve the strength/variety distinction, the direct-match result at setting 1600, and probability mass (not number of moves). Use established local chess terminology.
+  ///
+  /// In en, this message translates to:
+  /// **'Setting Temperature to 0 will cause Maia to use argmax, which is a technical way of saying that Maia will always play what it predicts is the most probable human move in a given position. Careful! In our research at the 1600 setting, argmax Maia outperformed Maia at 1.0 / 1.0 by the equivalent of about 300 Elo points in direct matches.'**
+  String get samplingHelpArgmax;
+
+  /// User-approved Maia-specific sampling help, paragraph 6. Preserve the strength/variety distinction, the direct-match result at setting 1600, and probability mass (not number of moves). Use established local chess terminology.
+  ///
+  /// In en, this message translates to:
+  /// **'For balanced play, you may consider keeping Temperature at 1.0 and setting Top-P to 0.95. This maintains variety while eliminating low-probability moves, which can often be blunders—but can also be good moves. Top-P essentially cuts off low-probability moves. Setting it to 0.95 keeps moves accounting for at least 95% of the probability after Temperature is applied. The remaining moves cannot be selected by Maia.'**
+  String get samplingHelpTopP;
+
+  /// User-approved Maia-specific sampling help, paragraph 7. Preserve the strength/variety distinction, the direct-match result at setting 1600, and probability mass (not number of moves). Use established local chess terminology.
+  ///
+  /// In en, this message translates to:
+  /// **'We experimented with these settings at 1600 Elo and published our full findings here:'**
+  String get samplingHelpResearchIntro;
 }
 
 class _AppLocalizationsDelegate

@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.app.ActivityManager
+import android.os.Bundle
 import android.os.Build
 import android.view.WindowManager
 import android.system.Os
@@ -128,6 +129,8 @@ class MainActivity : FlutterActivity() {
     private var methodChannel: MethodChannel? = null
     private var chessnutBridge: ChessnutBridge? = null
     private var soundEffectBridge: SoundEffectBridge? = null
+    private var restoredSamplingDocument: String? = null
+    private val samplingDocuments by lazy { SamplingDocuments(this, restoredSamplingDocument) }
     private val documents by lazy { PgnDocuments(this) { methodChannel?.invokeMethod("pgnReceived", null) } }
 
     @Volatile
@@ -256,6 +259,20 @@ class MainActivity : FlutterActivity() {
         methodChannel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, channelName).also {
             it.setMethodCallHandler { call, result ->
                 when (call.method) {
+                    "samplingMetadata" -> result.success(mapOf(
+                        "appVersion" to BuildConfig.VERSION_NAME,
+                        "versionCode" to BuildConfig.VERSION_CODE,
+                        "flavor" to BuildConfig.FLAVOR,
+                        "model" to BuildConfig.MAIA_MODEL_FILE,
+                        "modelSha256" to BuildConfig.MAIA_MODEL_SHA256,
+                        "runtime" to "onnxruntime-android",
+                        "runtimeVersion" to BuildConfig.MAIA_RUNTIME_VERSION,
+                        "provider" to "CPU"
+                    ))
+                    "saveSamplingData" -> samplingDocuments.save(result,
+                        call.argument<Boolean>("readable") == true,
+                        call.argument<Boolean>("share") == true,
+                        call.argument<String>("shareTitle") ?: "")
                     "dataDirectory" -> result.success(filesDir.absolutePath)
                     "systemDiagnostics" -> result.success(systemDiagnostics())
                     "getPendingPgn" -> documents.takePending(result)
@@ -309,6 +326,16 @@ class MainActivity : FlutterActivity() {
         setProcessPhase("app-ready")
     }
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        restoredSamplingDocument = savedInstanceState?.getString("samplingDocumentSnapshot")
+        super.onCreate(savedInstanceState)
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        samplingDocuments.saveState()?.let { outState.putString("samplingDocumentSnapshot", it) }
+        super.onSaveInstanceState(outState)
+    }
+
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
@@ -327,7 +354,7 @@ class MainActivity : FlutterActivity() {
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        if (!documents.onResult(requestCode, resultCode, data)) super.onActivityResult(requestCode, resultCode, data)
+        if (!samplingDocuments.onResult(requestCode, resultCode, data) && !documents.onResult(requestCode, resultCode, data)) super.onActivityResult(requestCode, resultCode, data)
     }
 
     override fun onRequestPermissionsResult(
@@ -342,6 +369,7 @@ class MainActivity : FlutterActivity() {
     }
 
     override fun onDestroy() {
+        samplingDocuments.close()
         documents.close()
         super.onDestroy()
     }

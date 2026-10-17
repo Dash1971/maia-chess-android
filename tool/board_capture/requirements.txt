@@ -1,0 +1,2 @@
+# Optional developer capture only; never installed by app builds or ordinary CI.
+bleak==3.0.2

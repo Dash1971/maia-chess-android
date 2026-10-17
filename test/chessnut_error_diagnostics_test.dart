@@ -11,8 +11,13 @@ void main() {
   final messenger =
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
 
+  final channelCalls = <String>[];
   setUp(() {
-    messenger.setMockMethodCallHandler(channel, (_) async => null);
+    channelCalls.clear();
+    messenger.setMockMethodCallHandler(channel, (call) async {
+      channelCalls.add(call.method);
+      return null;
+    });
   });
   tearDown(() => messenger.setMockMethodCallHandler(channel, null));
 
@@ -50,6 +55,46 @@ void main() {
       expect(event.diagnostic, isNot(contains('[221,')));
     },
   );
+
+  test('concurrent listeners each receive recovery and cancellation releases native stream', () async {
+    final a = StreamIterator(ChessnutPlatformTransport.instance.events);
+    final b = StreamIterator(ChessnutPlatformTransport.instance.events);
+    Future<void> send(List<int> bytes) async {
+      final pending = [a.moveNext(), b.moveNext()];
+      await Future<void>.delayed(Duration.zero);
+      messenger.handlePlatformMessage(
+        channel.name,
+        codec.encodeSuccessEnvelope({
+          'type': 'position',
+          'data': bytes,
+          'nativeReady': true,
+          'gattPresent': true,
+        }),
+        (_) {},
+      );
+      expect(await Future.wait(pending), [true, true]);
+    }
+
+    await send([0x0e, ...List<int>.filled(31, 0)]);
+    expect(a.current.diagnostic, contains('failures=1'));
+    expect(b.current.diagnostic, contains('failures=1'));
+    await send(List<int>.filled(32, 0));
+    for (final event in [a.current, b.current]) {
+      expect(event.connectionState, ElectronicBoardConnectionState.ready);
+      expect(event.diagnostic, contains('recovery=valid-position'));
+    }
+    await a.cancel();
+    expect(channelCalls.where((call) => call == 'cancel'), isEmpty);
+    await b.cancel();
+    await Future<void>.delayed(Duration.zero);
+    expect(channelCalls.where((call) => call == 'cancel'), hasLength(1));
+    // A new subscription starts a new observation interval; no stale recovery.
+    final fresh = await decode({
+      'type': 'position',
+      'data': List<int>.filled(32, 0),
+    });
+    expect(fresh.diagnostic, isNull);
+  });
 
   test('native error reason reaches the diagnostic event', () async {
     final event = await decode({

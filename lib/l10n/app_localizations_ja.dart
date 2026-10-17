@@ -151,6 +151,13 @@ class AppLocalizationsJa extends AppLocalizations {
   String get topP => 'Top-P';
 
   @override
+  String get maxOpeningVariety => '序盤の多様性を最大にする';
+
+  @override
+  String get maxOpeningVarietyHelp =>
+      '温度とTop-Pが初期値の1.0 / 1.0の場合は不要です。双方の最初の5手には1.0 / 1.0を使用し、6手目から設定した値に戻ります。\n\nMaiaの序盤の指し手を最大限に多様にしつつ、その後は温度やTop-Pを下げて低確率の手が選ばれる可能性を減らすことで、より強いプレイを目指す設定です。';
+
+  @override
   String get maiaAnalysisRating => '解析用Maiaのレーティング';
 
   @override
@@ -167,7 +174,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get gameAnalysisQuality => '対局解析の品質';
 
   @override
-  String get resetEngineDefaults => 'エンジン設定を初期化';
+  String get resetSettingsDefaults => '設定を初期値に戻す';
 
   @override
   String get boardSounds => '電子盤の通知音';
@@ -874,10 +881,13 @@ class AppLocalizationsJa extends AppLocalizations {
   String get samplingTitle => '温度とTop-P';
 
   @override
-  String get samplingDefaultsQuestion => 'なぜ温度とTop-Pの推奨値は1.00なのですか？';
+  String get samplingDefaultsQuestion => '指し手の多様さを選ぶ';
 
   @override
-  String get samplingResearch => 'サンプリングの研究を読む';
+  String get samplingResearch => '研究用の全データ（JSONL）';
+
+  @override
+  String get samplingResearchLink => '研究用の全データ（英文）';
 
   @override
   String get close => '閉じる';
@@ -896,22 +906,6 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get mobileMaiaSource => 'Mobile Maiaのソースコード';
-
-  @override
-  String get samplingFullRange =>
-      'これらの設定では、Maiaが予測する人間の指し手を幅広く選べます。レーティング1600の設定でのテストでは、序盤の指し手の選択が、レーティングで絞り込んだLichessの対局により近くなりました。';
-
-  @override
-  String get samplingStrength =>
-      '設定値を下げると指し手の多様性が減り、Maiaが強くなることがあります。私たちは強さを最大にすることより、人間らしいオープニングのレパートリーを重視しています。Maiaのレーティングは、モデルが模倣するプレイヤーのレーティングを示すもので、対局時の正確な棋力を保証するものではありません。';
-
-  @override
-  String get samplingTemperatureHelp =>
-      '温度は、Maiaが選ぶ手の確率の集中度を調整します。0では、モデルが人間に最も選ばれやすいと予測した手を常に選びます。0より大きい低い値では確率の高い手に選択が集中し、高い値では確率の低い手も選ばれやすくなります。';
-
-  @override
-  String get samplingTopPHelp =>
-      'Top-Pは手を確率の高い順に並べ、合計確率が設定値に達するまでの最小のグループを候補にします。低い値では確率の高い手に選択が絞られ、1.00ではすべての合法手が候補に残ります。';
 
   @override
   String get aboutPoweredBy =>
@@ -938,7 +932,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get samplingRecommendationWarning =>
-      '温度またはTop-Pが推奨値の1.00と異なります。詳細は情報ボタンをご覧ください。';
+      '温度やTop-Pを下げると、中盤でMaiaが強くなる可能性がありますが、序盤の多様さは減ります。詳しくは情報ボタンをご覧ください。';
 
   @override
   String get couldNotOpenPgn => 'PGNを開けませんでした。';
@@ -1029,4 +1023,297 @@ class AppLocalizationsJa extends AppLocalizations {
   String recentDrawResult(String result) {
     return '引き分け（$result）';
   }
+
+  @override
+  String get electronicBoardExperimental => '電子チェス盤（試験的機能）';
+
+  @override
+  String get connectBoard => 'チェス盤に接続';
+
+  @override
+  String get chooseBoard => 'チェス盤を選択';
+
+  @override
+  String get chooseAnotherBoard => '別のチェス盤を選択';
+
+  @override
+  String get boardSearching => 'チェス盤を検索中…';
+
+  @override
+  String get boardConnecting => 'チェス盤に接続中…';
+
+  @override
+  String get boardDisconnected => 'チェス盤との接続が切れました';
+
+  @override
+  String get boardConnectionError =>
+      '接続できませんでした。Bluetoothとチェス盤を確認して、もう一度お試しください。';
+
+  @override
+  String get boardStartingPosition => 'チェス盤に標準の初期配置を並べてください。';
+
+  @override
+  String get boardReady => 'チェス盤の準備ができました';
+
+  @override
+  String get boardExperimentalNotice =>
+      '新しいチェス盤への対応は試験段階です。両方の画面で指し手を確認し、接続の問題をご報告ください。';
+
+  @override
+  String get boardGameRestriction => '電子チェス盤での対局は、標準の初期配置・持ち時間無制限で開始します。';
+
+  @override
+  String get boardConfirmSetup => '初期配置を並べました';
+
+  @override
+  String get boardConfirmSetupHelp => '開始前にすべての駒を確認してください。このチェス盤は駒の種類を識別できません。';
+
+  @override
+  String get boardChooseMove => 'チェス盤での指し手を確定';
+
+  @override
+  String get boardAmbiguousMove => 'チェス盤ではこれらの指し手を区別できません。実際に指した手を選んでください。';
+
+  @override
+  String get boardUnavailable => 'チェス盤の準備ができていません。再接続するか、スマートフォンで続けてください。';
+
+  @override
+  String get boardNewGameConfirmInstruction =>
+      '確定するには2.5秒以内にNEW GAMEをもう一度押すか、下のボタンを使ってください。';
+
+  @override
+  String get boardNewGameConfirmationExpired =>
+      'チェス盤で確定するには、2.5秒以内にNEW GAMEを2回押してください。';
+
+  @override
+  String get boardPhysicalMove => 'チェス盤で指し手を完了してください。';
+
+  @override
+  String get boardResetPhysical => '続ける前に、チェス盤を画面に表示された局面に戻してください。';
+
+  @override
+  String get boardNoResults => '対応するチェス盤が見つかりません。チェス盤を起動して、もう一度お試しください。';
+
+  @override
+  String get boardWaitingForSelection => '接続するチェス盤を選んでください。';
+
+  @override
+  String get boardReconnect => 'チェス盤に再接続';
+
+  @override
+  String get boardLockedPegasus =>
+      'Pegasusはロックされています。このDev版にはメーカーの初期化キーが含まれていません。';
+
+  @override
+  String get boardMotorRecovery =>
+      'スマートフォンで続けてください。この試験的な接続機能では、チェス盤のモーターの状態を安全に復元できません。';
+
+  @override
+  String get boardConfirmPosition => 'チェス盤の局面を確認';
+
+  @override
+  String get boardConfirmPositionHelp => 'すべての駒が画面の局面と一致していることを確認してください。';
+
+  @override
+  String get maiaHistorySetting => '過去の局面を使う';
+
+  @override
+  String get maiaHistoryHelp =>
+      '現在の局面に加えて、最大7つ前までの局面をMaiaに考慮させます。79Mモデルを使った私たちのテストでは、人間の指し手の予測精度が約2パーセントポイント向上しましたが、低レーティングの序盤で相手の手を繰り返しまねる傾向が強まることもありました。強さの向上は確認できませんでした。当面はオフをおすすめします。';
+
+  @override
+  String get maiaHistoryResearch => '過去の局面の研究を読む（英文）';
+
+  @override
+  String get maiaHistoryOn => '過去の局面：使用';
+
+  @override
+  String get maiaHistoryOff => '過去の局面：不使用';
+
+  @override
+  String get chessboardDeviceName => 'チェスボード';
+
+  @override
+  String namedBoardConnected(String boardName) {
+    return '$boardNameに接続しました';
+  }
+
+  @override
+  String namedBoardDisconnected(String boardName) {
+    return '$boardName未接続';
+  }
+
+  @override
+  String get saveMaiaSamplingData => 'Maiaの手の選択データを保存';
+
+  @override
+  String get samplingDataHelp =>
+      'Maiaがどのように指すかを調べるために、各手の確率、設定、選ばれた手をこの端末に保存します。\n\n書き出したファイルには、盤面、指し手の履歴、モデルへの入力と選択結果が含まれます。\n\n直近10局分の記録データが保存され、新しい順に表示されます。保存容量の上限に達すると、それより早く古い対局のデータが削除される場合があります。「最近の対局」とは別のデータです。\n\nMaiaの仕組みを技術的に詳しく調べたい方のための機能です。データはアプリ内では閲覧できません。一部のデータをまとめた見やすいHTMLファイル、または記録されたすべてのデータを含むJSONLファイルに書き出せます。\n\n初期設定はオフです。Maiaの仕組みを研究したい場合を除き、オフのままにすることをおすすめします。';
+
+  @override
+  String get clearSamplingData => '手の選択データを削除';
+
+  @override
+  String samplingDataStatus(int count) {
+    return '$count件の判断を保存済み';
+  }
+
+  @override
+  String get samplingDataError => '手の選択データにアクセスできませんでした。対局への影響はありません。';
+
+  @override
+  String get samplingSave => '保存…';
+
+  @override
+  String get samplingShare => '共有…';
+
+  @override
+  String get samplingSummary => 'Maiaの指し手';
+
+  @override
+  String get samplingReadable => '読みやすいレポート（HTML）';
+
+  @override
+  String get samplingReadableHint => '指し手、確率、盤面図をブラウザーで表示します。';
+
+  @override
+  String get samplingResearchHint => '技術的な分析に使うモデルの生の入出力です。';
+
+  @override
+  String get samplingReportExplanation =>
+      'パーセントは、その時点のTemperatureとTop-P設定を適用した後に各指し手が選ばれる確率です。勝率や手の良し悪しを表すものではありません。';
+
+  @override
+  String get samplingReportPartial =>
+      '記録されたMaiaの判断のみを表示します。完全な棋譜ではありません。待ったや再試行により、同じ手数が複数回表示されることがあります。';
+
+  @override
+  String get samplingReportMissing =>
+      '一部のデータが削除されたか、保存できませんでした。記録が抜けている可能性があります。';
+
+  @override
+  String get samplingPlayed => '指した手';
+
+  @override
+  String get samplingNotPlayed => '実際に指した記録なし';
+
+  @override
+  String get samplingAlternatives => '選ばれやすい他の手';
+
+  @override
+  String samplingGame(String number) {
+    return '対局 $number';
+  }
+
+  @override
+  String samplingRecords(String count) {
+    return '記録された判断：$count';
+  }
+
+  @override
+  String get samplingMostProbable => '最も選ばれやすい手';
+
+  @override
+  String get samplingPlayedMostProbable => '最も選ばれやすい手を指しました';
+
+  @override
+  String samplingChance(String move, String odds) {
+    return '$moveが選ばれる確率は約$odds分の1でした。';
+  }
+
+  @override
+  String samplingCertain(String move) {
+    return '$moveが必ず選ばれる設定でした（100%）。';
+  }
+
+  @override
+  String samplingAlmostCertain(String move) {
+    return '$moveが選ばれる確率は、ほぼ100%でした。';
+  }
+
+  @override
+  String get samplingReportRetention =>
+      '記録した直近10局を保存し、新しい順に表示します。保存容量の上限に達した場合は、古い対局がそれより早く削除されることがあります。';
+
+  @override
+  String get samplingJumpToGame => '対局へ移動';
+
+  @override
+  String get samplingBackToGames => '対局一覧に戻る';
+
+  @override
+  String get samplingIncomplete => '未完了';
+
+  @override
+  String get samplingUnknownResult => '結果不明';
+
+  @override
+  String get samplingOpeningUnknown => 'オープニング不明';
+
+  @override
+  String get samplingTimeUnknown => '時刻不明';
+
+  @override
+  String get samplingWin => '勝ち';
+
+  @override
+  String get samplingLoss => '負け';
+
+  @override
+  String get samplingDraw => '引き分け';
+
+  @override
+  String get samplingDeleteData => 'データを削除';
+
+  @override
+  String get samplingClearConfirmation => 'Maiaの手の選択データをすべて削除しますか？ 復元はできません。';
+
+  @override
+  String get analysisSettings => '解析に関する設定';
+
+  @override
+  String get samplingData => '選択データ';
+
+  @override
+  String get resetSettingsDefaultsScope =>
+      'この画面のすべての設定を初期値に戻します。保存済みの対局と手の選択データは残ります。';
+
+  @override
+  String get settingsResetError => '一部の設定を初期値に戻せませんでした。もう一度お試しください。';
+
+  @override
+  String get resetSettingsConfirmation => 'すべての設定を初期値に戻しますか？';
+
+  @override
+  String get resetSettingsKeepData => '保存済みの対局と手の選択データは残ります。';
+
+  @override
+  String get resetSettingsAction => '設定を初期値に戻す';
+
+  @override
+  String get samplingHelpIntro => '温度とTop-Pは、Maiaがどの指し手を選ぶかを調整する設定です。';
+
+  @override
+  String get samplingHelpVariety =>
+      '温度とTop-Pを上げると、Maiaは確率の低い手も選びやすくなり、より予測しにくいプレイヤーのようになります。その手は大悪手かもしれませんが、妙手かもしれません！';
+
+  @override
+  String get samplingHelpDefaults =>
+      '指し手の多様さを最大限に楽しみたい方や、あまり指されない変化も含め、人間が指す幅広いオープニングをMaiaに指してほしい方は、初期値の1.0と1.0のままにしてください。';
+
+  @override
+  String get samplingHelpStrength =>
+      '大悪手が少なく、より強い相手と対局したい方は、温度やTop-Pの値を下げて試してみてください。';
+
+  @override
+  String get samplingHelpArgmax =>
+      '温度を0にすると、Maiaはargmaxという方法で手を選びます。これは、ある局面で人間が最も指しそうだとMaiaが予測した手を、常に選ぶという意味です。ご注意ください！レーティング設定1600で行った私たちの研究では、argmaxのMaiaは、1.0 / 1.0のMaiaとの直接対局で、約300 Eloポイントの差に相当する好成績を収めました。';
+
+  @override
+  String get samplingHelpTopP =>
+      '強さと多様さのバランスを取りたい方は、温度を1.0のまま、Top-Pを0.95にしてみてください。多様さを保ちながら、確率の低い手を選択肢から除きます。そうした手は大悪手であることも多いですが、良い手の場合もあります。Top-Pは、簡単に言えば、確率の低い手を候補から外す設定です。0.95にすると、温度を適用した後の確率の合計が少なくとも95％になるまで候補の手を残します。それ以外の手をMaiaが選ぶことはありません。';
+
+  @override
+  String get samplingHelpResearchIntro =>
+      'これらの設定を1600 Eloで実験しました。詳しい結果はこちらで公開しています：';
 }

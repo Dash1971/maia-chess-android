@@ -202,6 +202,8 @@ class AnalysisBoardPage extends StatefulWidget {
     required this.initialSession,
     required this.maiaElo,
     this.secondMaiaElo,
+    this.useMoveHistory = false,
+    this.historyPrefix = const [],
     this.initialVariations = const [],
     this.initialTreeIsAuthoritative = false,
     this.initialCurrentFen,
@@ -216,6 +218,8 @@ class AnalysisBoardPage extends StatefulWidget {
   final AnalysisSession initialSession;
   final int maiaElo;
   final int? secondMaiaElo;
+  final bool useMoveHistory;
+  final List<String> historyPrefix;
   final List<RecordedVariation> initialVariations;
   final bool initialTreeIsAuthoritative;
   final String? initialCurrentFen;
@@ -265,6 +269,8 @@ class _AnalysisBoardPageState extends State<AnalysisBoardPage> {
     'currentFen': currentFen,
     'flipped': flipped,
     'maiaElo': widget.maiaElo,
+    'maiaUseMoveHistory': widget.useMoveHistory,
+    'historyPrefix': _revision == 0 ? widget.historyPrefix : const <String>[],
     if (widget.secondMaiaElo != null) 'secondMaiaElo': widget.secondMaiaElo,
   });
 
@@ -353,7 +359,7 @@ class _AnalysisBoardPageState extends State<AnalysisBoardPage> {
     if (edited != null) _replace(AnalysisSession.fromFen(edited));
   }
 
-  Future<void> _playFrom(String fen) async {
+  Future<void> _playFrom(String fen, List<String> positions) async {
     final preferences = await SharedPreferences.getInstance();
     if (!mounted) return;
     final defaults = _ContinuationSettings(
@@ -404,6 +410,8 @@ class _AnalysisBoardPageState extends State<AnalysisBoardPage> {
       MaterialPageRoute<void>(
         builder: (_) => GamePage(
           startingFen: fen,
+          startingUseMoveHistory: widget.useMoveHistory,
+          startingPositionHistory: positions,
           startingSide: selection.side,
           startingElo: selection.elo,
           startingTimePreset: selection.timePreset,
@@ -435,6 +443,8 @@ class _AnalysisBoardPageState extends State<AnalysisBoardPage> {
     onSessionChanged: _saveAnalysisState,
     maiaElo: widget.maiaElo,
     secondMaiaElo: widget.secondMaiaElo,
+    useMoveHistory: widget.useMoveHistory,
+    historyPrefix: _revision == 0 ? widget.historyPrefix : const [],
     evaluator: widget.evaluator,
     maiaEvaluator: widget.maiaEvaluator,
     maiaPolicyEvaluator: widget.maiaPolicyEvaluator,
@@ -445,7 +455,7 @@ class _AnalysisBoardPageState extends State<AnalysisBoardPage> {
     onLoadPgnFile: _loadPgnFile,
     onClearMoves: _clearMoves,
     onEditBoard: _editBoard,
-    onPlayFromPosition: _playFrom,
+    onPlayFromHistory: _playFrom,
   );
 }
 

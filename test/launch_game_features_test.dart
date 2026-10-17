@@ -89,6 +89,131 @@ void main() {
     }
   }
 
+  for (final playerWhite in [false, true]) {
+    testWidgets(
+      'queued pieces stay projected through every update, playerWhite=$playerWhite',
+      (tester) async {
+        SharedPreferences.setMockInitialValues({'multiplePremoves': true});
+        final maia = ControlledMaia();
+        await ActiveSessionStore.save(
+          gameRecord(
+            pgn: playerWhite ? '1. e4 *' : null,
+            playerWhite: playerWhite,
+            preset: 'unlimited',
+          ),
+        );
+        await tester.pumpWidget(
+          MaterialApp(home: GamePage(maiaEvaluator: maia.call)),
+        );
+        await tester.pumpAndSettle();
+        final origin = playerWhite ? 'g1' : 'g8';
+        final intermediate = playerWhite ? 'f3' : 'f6';
+        final destination = playerWhite ? 'g5' : 'g4';
+        await queueMove(tester, '$origin$intermediate');
+        await queueMove(tester, '$intermediate$destination');
+        final controller = boardOf(tester).controller;
+        final updates = <String>[];
+        void record() => updates.add(controller.fen);
+        controller.addListener(record);
+        final knight = dc.Piece(
+          color: playerWhite ? dc.Side.white : dc.Side.black,
+          role: dc.Role.knight,
+        );
+        void expectProjected() {
+          expect(updates, isNotEmpty);
+          for (final fen in updates) {
+            final board = dc.Setup.parseFen(fen).board;
+            expect(
+              board.pieceAt(dc.Square.fromName(destination)),
+              knight,
+              reason:
+                  'Every published position must keep the queued knight at its destination: $fen',
+            );
+            expect(board.pieceAt(dc.Square.fromName(intermediate)), isNull);
+            expect(board.pieceAt(dc.Square.fromName(origin)), isNull);
+          }
+        }
+
+        void expectOpponentPawn(String square) {
+          expect(
+            dc.Setup.parseFen(controller.fen).board
+                .pieceAt(dc.Square.fromName(square)),
+            dc.Piece(
+              color: playerWhite ? dc.Side.black : dc.Side.white,
+              role: dc.Role.pawn,
+            ),
+            reason: 'Opponent moves must still update the projected board',
+          );
+        }
+
+        maia.reply(playerWhite ? 'e7e5' : 'e2e4');
+        // Check updates synchronously recorded by the controller, including
+        // transitions a settled-board assertion would never see.
+        await tester.pumpAndSettle();
+        expectProjected();
+        expectOpponentPawn(playerWhite ? 'e5' : 'e4');
+        final highlights = tester
+            .widgetList<CustomPaint>(find.byType(CustomPaint))
+            .map((w) => w.painter)
+            .whereType<PremoveHighlights>()
+            .single;
+        expect(highlights.squares, {
+          dc.Square.fromName(intermediate): false,
+          dc.Square.fromName(destination): true,
+        });
+        expect(
+          (await ActiveSessionStore.load())!['uciMoves'],
+          playerWhite ? ['e2e4', 'e7e5', 'g1f3'] : ['e2e4', 'g8f6'],
+        );
+        updates.clear();
+        maia.reply(playerWhite ? 'd7d5' : 'd2d4');
+        await tester.pumpAndSettle();
+        expectProjected();
+        expectOpponentPawn(playerWhite ? 'd5' : 'd4');
+        expect(
+          tester
+              .widgetList<CustomPaint>(find.byType(CustomPaint))
+              .map((w) => w.painter)
+              .whereType<PremoveHighlights>(),
+          isEmpty,
+        );
+        expect(
+          (await ActiveSessionStore.load())!['uciMoves'],
+          playerWhite
+              ? ['e2e4', 'e7e5', 'g1f3', 'd7d5', 'f3g5']
+              : ['e2e4', 'g8f6', 'd2d4', 'f6g4'],
+        );
+        controller.removeListener(record);
+        await disposeGame(tester);
+      },
+    );
+  }
+
+  testWidgets('Maia mate reveals the real board and cancels projected moves', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues({'multiplePremoves': true});
+    final maia = ControlledMaia();
+    await ActiveSessionStore.save(
+      gameRecord(pgn: '1. f3 e5 2. g4 *', preset: 'unlimited'),
+    );
+    await tester.pumpWidget(
+      MaterialApp(home: GamePage(maiaEvaluator: maia.call)),
+    );
+    await tester.pumpAndSettle();
+    await queueMove(tester, 'e2e4');
+    await queueMove(tester, 'e4e5');
+    maia.reply('d8h4');
+    await tester.pumpAndSettle();
+    expect(find.text('Black is victorious'), findsOneWidget);
+    expect(find.byKey(const ValueKey('premove-queue')), findsNothing);
+    expect(maia.requests, hasLength(1));
+    final saved = (await ActiveSessionStore.load())!;
+    expect(saved['uciMoves'], ['f2f3', 'e7e5', 'g2g4', 'd8h4']);
+    expect(boardOf(tester).controller.fen, (saved['positions'] as List).last);
+    await disposeGame(tester);
+  });
+
   for (final remaining in [99, 100, 101]) {
     for (final playerWhite in [false, true]) {
       testWidgets(

@@ -5,6 +5,99 @@ enum _ReviewAnalysisStatus { failed, stopped }
 const primaryMaiaAnalysisColor = Color(0xffe89b3c);
 const secondaryMaiaAnalysisColor = Color(0xffe85d68);
 
+/// Keeps the opening compact; only truncated names need a details action.
+class ReviewOpeningName extends StatelessWidget {
+  const ReviewOpeningName({required this.name, super.key});
+
+  final String? name;
+
+  @override
+  Widget build(BuildContext context) {
+    final name = this.name;
+    if (name == null) return const SizedBox(height: 28);
+    const labelStyle = TextStyle(fontSize: 13);
+    var measuredStyle = DefaultTextStyle.of(context).style.merge(labelStyle);
+    if (MediaQuery.boldTextOf(context)) {
+      measuredStyle = measuredStyle.copyWith(fontWeight: FontWeight.bold);
+    }
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          // Measure against the full text width BEFORE reserving icon space.
+          // Otherwise the icon can cause its own unnecessary truncation.
+          final painter = TextPainter(
+            text: TextSpan(text: name, style: measuredStyle),
+            maxLines: 1,
+            textDirection: Directionality.of(context),
+            textScaler: MediaQuery.textScalerOf(context),
+            locale: Localizations.maybeLocaleOf(context),
+          )..layout(maxWidth: constraints.maxWidth);
+          final truncated = painter.didExceedMaxLines;
+          final labelHeight = painter.height;
+          painter.dispose();
+          // Truncation must not move the engine panel or move list. Keep the
+          // whole compact row tappable, with the same text-scaled height.
+          final rowHeight = max(28.0, labelHeight + 8);
+          final label = Text(
+            name,
+            key: const ValueKey('review-opening-name'),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
+            style: labelStyle,
+          );
+          if (!truncated) {
+            return SizedBox(
+              width: double.infinity,
+              height: rowHeight,
+              child: Center(child: label),
+            );
+          }
+          return Semantics(
+            button: true,
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                key: const ValueKey('review-opening-details'),
+                onTap: () => showDialog<void>(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    scrollable: true,
+                    title: Text(l10n(context).phaseOpening),
+                    content: Text(
+                      name,
+                      key: const ValueKey('review-opening-full-name'),
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: Text(l10n(context).close),
+                      ),
+                    ],
+                  ),
+                ),
+                child: SizedBox(
+                  height: rowHeight,
+                  child: Row(
+                    children: [
+                      Expanded(child: label),
+                      const SizedBox(width: 8),
+                      const ExcludeSemantics(
+                        child: Icon(Icons.info_outline, size: 16),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
 class ReviewPage extends StatefulWidget {
   const ReviewPage({
     required this.positions,
@@ -16,6 +109,9 @@ class ReviewPage extends StatefulWidget {
     this.initialTreeIsAuthoritative = false,
     this.maiaElo = 1600,
     this.secondMaiaElo,
+    this.useMoveHistory = false,
+    this.historyPrefix = const [],
+    this.onPlayFromHistory,
     required this.onHome,
     this.returnToGame = false,
     this.evaluator,
@@ -46,6 +142,10 @@ class ReviewPage extends StatefulWidget {
   final bool initialTreeIsAuthoritative;
   final int maiaElo;
   final int? secondMaiaElo;
+  final bool useMoveHistory;
+  final List<String> historyPrefix;
+  final Future<void> Function(String fen, List<String> positions)?
+  onPlayFromHistory;
   final FutureOr<void> Function() onHome;
   final bool returnToGame;
   final Future<StockfishReview> Function(String fen)? evaluator;
@@ -100,6 +200,7 @@ class _ReviewPageState extends State<ReviewPage>
   List<String> _graphPositions = const [];
   List<String> _graphMoves = const [];
   List<ClassifiedMove> _graphClassifications = const [];
+  int _maiaContextGeneration = 0;
   final Map<int, MaiaPositionAnalysis> _maiaAnalyses = {};
   final Set<int> _maiaLoading = {};
   final Map<int, MaiaPositionAnalysis> _secondMaiaAnalyses = {};
@@ -394,6 +495,35 @@ class _ReviewPageState extends State<ReviewPage>
     }
     unawaited(_analyzePosition(0));
     unawaited(_analyzeConfiguredMaiaPosition(0));
+  }
+
+  @override
+  void didUpdateWidget(covariant ReviewPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.useMoveHistory != widget.useMoveHistory ||
+        oldWidget.maiaElo != widget.maiaElo ||
+        oldWidget.secondMaiaElo != widget.secondMaiaElo ||
+        !listEquals(oldWidget.positions, widget.positions) ||
+        !listEquals(oldWidget.historyPrefix, widget.historyPrefix)) {
+      _maiaContextGeneration++;
+      _maiaInferenceScope.invalidate();
+      _secondMaiaInferenceScope.invalidate();
+      _maiaAnalyses.clear();
+      _secondMaiaAnalyses.clear();
+      _maiaLoading.clear();
+      _secondMaiaLoading.clear();
+      _variationMaiaCache.clear();
+      _secondVariationMaiaCache.clear();
+      _pendingVariationMaia.clear();
+      _pendingSecondVariationMaia.clear();
+      _variationMaiaAnalysis = null;
+      _secondVariationMaiaAnalysis = null;
+      if (_inVariation) {
+        unawaited(_analyzeVariation());
+      } else {
+        unawaited(_analyzeConfiguredMaiaPosition(_ply));
+      }
+    }
   }
 
   void _notifySessionChanged() {
@@ -708,16 +838,22 @@ class _ReviewPageState extends State<ReviewPage>
     final loading = secondary ? _secondMaiaLoading : _maiaLoading;
     final scope = secondary ? _secondMaiaInferenceScope : _maiaInferenceScope;
     if (analyses.containsKey(ply) || loading.contains(ply)) return;
+    final generation = _maiaContextGeneration;
     setState(() => loading.add(ply));
     try {
-      final positions = widget.positions.take(ply + 1).toList(growable: false);
+      final positions = [
+        ...widget.historyPrefix,
+        ...widget.positions.take(ply + 1),
+      ];
       final policyEvaluator = widget.maiaPolicyEvaluator;
       if (policyEvaluator != null) {
         final response = await policyEvaluator(positions, elo);
         final analysis = response == null
             ? null
-            : _maiaAnalysisFromPolicy(widget.positions[ply], response);
-        if (analysis != null && mounted) {
+            : _maiaAnalysisFromPolicy(positions.last, response);
+        if (analysis != null &&
+            mounted &&
+            generation == _maiaContextGeneration) {
           setState(() => analyses[ply] = analysis);
         }
         return;
@@ -725,19 +861,22 @@ class _ReviewPageState extends State<ReviewPage>
       final moveEvaluator = widget.maiaEvaluator;
       if (moveEvaluator != null) {
         final move = await moveEvaluator(positions, elo);
-        if (move != null && mounted) {
+        if (move != null && mounted && generation == _maiaContextGeneration) {
           setState(() => analyses[ply] = MaiaPositionAnalysis.single(move));
         }
         return;
       }
       final response = await MaiaInferenceQueue.predict({
-        'tokens': MaiaEncoding.historicalTokens(positions),
+        'tokens': MaiaEncoding.historicalTokens(
+          positions,
+          useMoveHistory: widget.useMoveHistory,
+        ),
         'selfElo': elo,
         'opponentElo': elo,
       }, replaceableScope: scope);
       if (response == null) return;
-      final analysis = _maiaAnalysisFromPolicy(widget.positions[ply], response);
-      if (analysis != null && mounted) {
+      final analysis = _maiaAnalysisFromPolicy(positions.last, response);
+      if (analysis != null && mounted && generation == _maiaContextGeneration) {
         setState(() => analyses[ply] = analysis);
       }
     } catch (error, stackTrace) {
@@ -749,7 +888,9 @@ class _ReviewPageState extends State<ReviewPage>
         ),
       );
     } finally {
-      if (mounted) setState(() => loading.remove(ply));
+      if (mounted && generation == _maiaContextGeneration) {
+        setState(() => loading.remove(ply));
+      }
     }
   }
 
@@ -807,6 +948,7 @@ class _ReviewPageState extends State<ReviewPage>
     final path = target == null ? null : _pathToVariation(target);
     if (path == null || path.isEmpty) {
       return [
+        ...widget.historyPrefix,
         ...widget.positions.take((_variationBasePly ?? 0) + 1),
         ..._variationPositions.skip(1).take(_variationIndex),
       ];
@@ -827,11 +969,13 @@ class _ReviewPageState extends State<ReviewPage>
         if (plyAfterMove >= next.basePly) break;
       }
     }
+    history.insertAll(0, widget.historyPrefix);
     history.addAll(_variationPositions.skip(1).take(_variationIndex));
     return history;
   }
 
-  String _variationHistoryKey(List<String> positions) => positions.join('\n');
+  String _variationHistoryKey(List<String> positions) =>
+      MaiaEncoding.historyKey(positions, useMoveHistory: widget.useMoveHistory);
 
   Future<MaiaPositionAnalysis?> _maiaForVariation(
     List<String> positions,
@@ -848,10 +992,13 @@ class _ReviewPageState extends State<ReviewPage>
     if (cached != null) return Future.value(cached);
     final pending = pendingOperations[key];
     if (pending != null) return pending;
+    final generation = _maiaContextGeneration;
     late Future<MaiaPositionAnalysis?> operation;
     operation = _runVariationMaia(positions, fen, elo, secondary: secondary)
         .then((analysis) {
-          if (analysis != null) cache[key] = analysis;
+          if (analysis != null && generation == _maiaContextGeneration) {
+            cache[key] = analysis;
+          }
           return analysis;
         })
         .whenComplete(() {
@@ -883,7 +1030,10 @@ class _ReviewPageState extends State<ReviewPage>
     if (widget.evaluator != null) return null;
     final response = await MaiaInferenceQueue.predict(
       {
-        'tokens': MaiaEncoding.historicalTokens(positions),
+        'tokens': MaiaEncoding.historicalTokens(
+          positions,
+          useMoveHistory: widget.useMoveHistory,
+        ),
         'selfElo': elo,
         'opponentElo': elo,
       },
@@ -900,7 +1050,15 @@ class _ReviewPageState extends State<ReviewPage>
     int elo, {
     required bool secondary,
   }) async {
-    if (!mounted || fen != _currentFen) return;
+    final generation = _maiaContextGeneration;
+    final historyKey = _variationHistoryKey(history);
+    bool current() =>
+        mounted &&
+        _inVariation &&
+        fen == _currentFen &&
+        generation == _maiaContextGeneration &&
+        historyKey == _variationHistoryKey(_variationHistory());
+    if (!current()) return;
     setState(() {
       if (secondary) {
         _secondVariationMaiaLoading = true;
@@ -915,7 +1073,7 @@ class _ReviewPageState extends State<ReviewPage>
         elo,
         secondary: secondary,
       );
-      if (analysis != null && mounted && fen == _currentFen) {
+      if (analysis != null && current()) {
         setState(() {
           if (secondary) {
             _secondVariationMaiaAnalysis = analysis;
@@ -933,7 +1091,7 @@ class _ReviewPageState extends State<ReviewPage>
         ),
       );
     } finally {
-      if (mounted && fen == _currentFen) {
+      if (current()) {
         setState(() {
           if (secondary) {
             _secondVariationMaiaLoading = false;
@@ -950,6 +1108,7 @@ class _ReviewPageState extends State<ReviewPage>
     final fen = _currentFen;
     final history = _variationHistory();
     final historyKey = _variationHistoryKey(history);
+    final generation = _maiaContextGeneration;
     final primaryKey = '${widget.maiaElo}\n$historyKey';
     final secondElo = widget.secondMaiaElo;
     final secondKey = secondElo == null ? null : '$secondElo\n$historyKey';
@@ -986,7 +1145,13 @@ class _ReviewPageState extends State<ReviewPage>
         setState(() => _variationLoading = false);
       }
     }
-    if (!mounted || !_foreground || !_engineEnabled || fen != _currentFen) {
+    if (!mounted ||
+        !_foreground ||
+        !_engineEnabled ||
+        fen != _currentFen ||
+        !_inVariation ||
+        generation != _maiaContextGeneration ||
+        historyKey != _variationHistoryKey(_variationHistory())) {
       return;
     }
     await Future.wait([
@@ -1824,6 +1989,12 @@ class _ReviewPageState extends State<ReviewPage>
                         style: Theme.of(context).textTheme.titleLarge,
                       ),
                       const SizedBox(height: 4),
+                      Text(
+                        widget.useMoveHistory
+                            ? l10n(context).maiaHistoryOn
+                            : l10n(context).maiaHistoryOff,
+                      ),
+                      const SizedBox(height: 4),
                       Text(l10n(context).rawProbabilitiesExplanation),
                     ],
                   ),
@@ -1880,7 +2051,12 @@ class _ReviewPageState extends State<ReviewPage>
       container: true,
       label: l10n(context).maiaProbabilitySemantics(
         l10n(context).maiaMoveProbabilities(elo),
-        descriptions.join(', '),
+        [
+          widget.useMoveHistory
+              ? l10n(context).maiaHistoryOn
+              : l10n(context).maiaHistoryOff,
+          ...descriptions,
+        ].join(', '),
       ),
       child: ConstrainedBox(
         key: lineKey,
@@ -1895,7 +2071,12 @@ class _ReviewPageState extends State<ReviewPage>
               child: Align(
                 alignment: Alignment.centerRight,
                 widthFactor: 1,
-                child: _engineLabel('M$elo', color),
+                child: Tooltip(
+                  message: widget.useMoveHistory
+                      ? l10n(context).maiaHistoryOn
+                      : l10n(context).maiaHistoryOff,
+                  child: _engineLabel('M$elo', color),
+                ),
               ),
             ),
             const SizedBox(width: 8),
@@ -2494,7 +2675,8 @@ class _ReviewPageState extends State<ReviewPage>
   bool get _hasAnalysisMenu =>
       widget.onClearMoves != null ||
       widget.onEditBoard != null ||
-      widget.onPlayFromPosition != null;
+      widget.onPlayFromPosition != null ||
+      widget.onPlayFromHistory != null;
 
   void _flipAnalysisBoard() {
     setState(() => _flipped = !_flipped);
@@ -2579,7 +2761,8 @@ class _ReviewPageState extends State<ReviewPage>
                   title: Text(l10n(context).boardEditor),
                   onTap: () => Navigator.pop(context, 'edit'),
                 ),
-              if (widget.onPlayFromPosition != null)
+              if (widget.onPlayFromPosition != null ||
+                  widget.onPlayFromHistory != null)
                 ListTile(
                   leading: const Icon(Icons.play_arrow),
                   title: Text(l10n(context).continueFromHere),
@@ -2603,7 +2786,21 @@ class _ReviewPageState extends State<ReviewPage>
       case 'edit':
         await widget.onEditBoard?.call(_currentFen);
       case 'continue':
-        await widget.onPlayFromPosition?.call(_currentFen);
+        if (widget.onPlayFromHistory != null) {
+          await widget.onPlayFromHistory!(
+            _currentFen,
+            List.unmodifiable(
+              _inVariation
+                  ? _variationHistory()
+                  : [
+                      ...widget.historyPrefix,
+                      ...widget.positions.take(_ply + 1),
+                    ],
+            ),
+          );
+        } else {
+          await widget.onPlayFromPosition?.call(_currentFen);
+        }
     }
   }
 
@@ -3020,19 +3217,7 @@ class _ReviewPageState extends State<ReviewPage>
             Widget details() => LayoutBuilder(
               builder: (context, available) {
                 final header = <Widget>[
-                  SizedBox(
-                    height: 28,
-                    child: openingName == null
-                        ? const SizedBox.shrink()
-                        : Center(
-                            child: Text(
-                              openingName,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(fontSize: 13),
-                            ),
-                          ),
-                  ),
+                  ReviewOpeningName(name: openingName),
                   if (_engineEnabled)
                     Padding(
                       padding: const EdgeInsets.fromLTRB(12, 2, 12, 4),
@@ -3065,11 +3250,12 @@ class _ReviewPageState extends State<ReviewPage>
                 return Column(
                   children: [
                     // Wrapped probabilities can exceed the minimum estimate.
-                    // Keep them scrollable while reserving room for moves and
-                    // the navigation controls on taller layouts too.
+                    // Reserve a usable move row even when large text makes
+                    // the controls wrap to two rows (108px + 56px for moves).
+                    // The header scrolls instead of squeezing the move list.
                     ConstrainedBox(
                       constraints: BoxConstraints(
-                        maxHeight: available.maxHeight - 112,
+                        maxHeight: available.maxHeight - 164,
                       ),
                       child: SingleChildScrollView(
                         child: Column(children: header),

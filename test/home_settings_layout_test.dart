@@ -111,7 +111,7 @@ void main() {
     );
     expect(
       find.text(
-        'Chessnut play supports standard-position, unlimited games only.',
+        'Electronic-board games start from the standard position and use unlimited time.',
       ),
       findsOneWidget,
     );
@@ -173,17 +173,13 @@ void main() {
     // Center this tall paragraph within the dialog's scroll viewport.
     await Scrollable.ensureVisible(
       tester.element(
-        find.textContaining(
-          'smallest leading group whose combined probability',
-        ),
+        find.textContaining('For balanced play, you may consider'),
       ),
       alignment: 0.5,
     );
     await tester.pumpAndSettle();
     expect(
-      find
-          .textContaining('smallest leading group whose combined probability')
-          .hitTestable(),
+      find.textContaining('For balanced play, you may consider').hitTestable(),
       findsOneWidget,
     );
     final researchLink = find.byKey(const ValueKey('sampling-research-link'));

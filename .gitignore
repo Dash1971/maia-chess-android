@@ -63,3 +63,7 @@ mobile_maia_android_signing_password
 
 # Gradle problem reports
 /android/build/
+
+# Explicit developer-only raw board captures (never commit)
+/tool/board_capture/captures/
+/tool/board_capture/.venv/

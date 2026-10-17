@@ -187,3 +187,125 @@ They replace the one-off Mac scripts with configurable SDK/APK paths, a
 sanitized checked-in PGN, JSON pass/fail results and failure diagnostics. The
 manual CI release-build job also runs packaging verification and retains its
 APK/log/report artifacts for 14 days.
+
+## Feedback and Maia probability regressions
+
+`test/game_feedback_lifecycle_test.dart` holds sound loading pending while the
+app backgrounds, returns, changes routes, browses history, or disposes its game.
+It also verifies accepted feedback and one game-end event still work, and that
+entering analysis cancels the delayed end event. The shared navigation tests
+record platform feedback calls so implicit Material/tooltip haptics cannot
+bypass the phone feedback policy.
+
+`test/maia_probability_sheet_test.dart` covers single-Maia and second-Maia
+probabilities in 24 phone, landscape, and tablet/text-size combinations. It
+checks painted font size at normal, 160%, and 200% text scaling, matching text
+sizes for moves and Other, 48-pixel minimum action targets, and a single line
+when entries fit. It opens each distribution, checks the selected rating and
+probabilities, and reaches the last legal move without changing the board.
+Wrapped engine panels remain scrollable while navigation controls stay usable.
+`test/maia_probability_corpus_test.dart` compares raw legal probabilities with
+direct softmax across both colors, promotions, castling, en passant, terminal
+positions, and ten reproducible seeded games (seed 20260928).
+
+These tests run with the normal `flutter test` suite; they require neither
+physical phones nor an electronic board. Android Recent Games integration
+checks use stable session-ID keys rather than display names, which may repeat.
+
+## Sound bridge concurrency and failure handling
+
+The ordinary Flutter suite includes `test/sound_effect_test.dart`. It covers
+callbacks before method replies, early decode failure, release during loading,
+replacement loads, unknown callbacks, volume clamping, and a missing native
+reply/completion. The ten-second deadline tests use virtual time, not a real
+ten-second sleep. Optional audio fails closed after a timeout without blocking
+chess play. Android integration also performs eight real SoundPool load/play/
+release cycles covering all four bundled clips and checks missing-asset recovery.
+
+A separate JVM scheduler probe compiles the actual production
+`SoundEffectBridge.kt` against minimal test doubles. A callback thread is made
+to wait on the bridge lock while a short sample loads, exercising registration
+and completion concurrently over 10,000 iterations. It fails on PR #48's split
+lock sections and passes when registration is atomic. It is supplementary to
+the real Android checks, not an audio-quality or device failure-rate measurement.
+Run it with JDK 17 and the repository's existing Gradle wrapper:
+
+```sh
+android/gradlew -p tool/hardening/sound_bridge_race run --console=plain
+```
+
+This optional native check uses Kotlin 2.4.20 and does not add work to the
+ordinary Flutter/Python PR gate. Run it when changing sound registration,
+callbacks, or teardown. The doubles never ship in the app.
+
+## Move classification and Fast-mode reliability
+
+See [`classification/README.md`](classification/README.md) for the independently
+executed En Croissant reference, checked-in whole-game fixtures, complete MultiPV
+snapshot regressions, capped Fast confirmation policy, cold/warm live-engine
+comparisons, native Android test and actual VM worker-lifecycle qualification.
+The fixture regressions run in ordinary CI; Rust compilation and live-engine
+benchmarks are optional targeted/release checks.
+
+## Electronic-board diagnostics and replay
+
+See [`../board_capture/README.md`](../board_capture/README.md) for the explicit,
+local developer recorder, strict reviewed-fixture format and privacy boundaries.
+Ordinary CI runs `tool/board_capture_test.py` and
+`test/chessnut_decode_recovery_test.dart` without BLE or optional dependencies.
+The game-screen regression in `test/chessnut_continuation_test.dart` verifies that
+a corrupt frame followed by a valid native-ready position resumes play, commits
+one player move, requests one Maia reply, restores LEDs and records recovery.
+
+### Chessnut reset: storage, Maia and LED completion order
+
+`test/board_reset_widget_test.dart` covers issue #118 with real temporary session
+files and controlled futures. A held save distinguishes an empty persisted reset
+checkpoint from completion of reset setup. For a physical pawn still on e4,
+`[]` becoming `['e2', 'e4']` is correct setup guidance; it can happen before the
+old Maia evaluator completes. Do not snapshot the LEDs after a fixed delay and
+assume every later change comes from inference. `pumpAndSettle` alone does not
+wait for the real file I/O used by these tests.
+
+Six cases complete the obsolete Maia result during the save, after the save,
+and after physical setup, each with immediate LED completion or a reconnect
+whose newer LED write completes before the old acknowledgement. Assertions keep
+the displayed position and saved move list at the initial position, retain the
+correct setup LEDs, clear them after physical setup, and reject an extra engine
+request. The after-setup cases matter: while setup is pending, the paused-clock
+check provides a second defense that can mask missing inference-generation guards.
+
+Run the focused matrix with the pinned Flutter SDK:
+
+```sh
+flutter test test/board_reset_widget_test.dart \
+  --plain-name 'reset rejects a delayed Maia completion and its LED guidance' \
+  --reporter expanded
+```
+
+Also run the exact Stable invocation in `.github/workflows/checks.yml` and the
+normal full suite. All six cases run in ordinary CI; no BLE hardware, APK build,
+new dependency or production test hook is required.
+
+## Restored analysis Home navigation
+
+`test/review_home_restore_test.dart` compares immediate Home, ordinary
+background/resume, and reconstruction from a saved completed-game review.
+It verifies one-tap Home, checkpoint clearing, unfinished-game Back to game,
+and standalone review without an underlying game. The restart test destroys
+the widget tree with host frames enabled: pumping a replacement tree while
+Flutter is paused does not actually simulate process death.
+
+## Stable and Dev board test policies
+
+The full `flutter test` suite uses Stable’s unflavored policy. The prototype
+connection/motor tests in `board_connection_widget_test.dart` run separately:
+
+```sh
+flutter test --flavor dev test/board_connection_widget_test.dart --reporter expanded
+flutter test --flavor stable test/preview_board_channel_test.dart --reporter expanded
+flutter test --flavor '' test/preview_board_channel_test.dart --reporter expanded
+```
+
+The Dev test override does not add an Android Dev build variant or permit
+experimental boards in a Stable APK. Ordinary CI runs all three policy checks.

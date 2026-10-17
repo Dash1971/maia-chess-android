@@ -155,6 +155,13 @@ class AppLocalizationsHi extends AppLocalizations {
   String get topP => 'Top-P';
 
   @override
+  String get maxOpeningVariety => 'ओपनिंग में अधिकतम विविधता';
+
+  @override
+  String get maxOpeningVarietyHelp =>
+      'यदि टेम्परेचर और Top-P अपने डिफ़ॉल्ट मानों 1.0 / 1.0 पर हैं, तो इसकी आवश्यकता नहीं है। हर पक्ष की पहली पाँच चालों के लिए 1.0 / 1.0 का उपयोग होता है और छठी चाल से आपके चुने हुए मान फिर से लागू हो जाते हैं।\n\nइसका उद्देश्य Maia को ओपनिंग में अधिकतम विविधता देना है। बाद में टेम्परेचर और/या Top-P को कम रखकर कम प्रायिकता वाली चालों के चुने जाने की संभावना घटती है, जिससे खेल के आगे के हिस्से में अधिक मज़बूत खेल संभव हो सकता है।';
+
+  @override
   String get maiaAnalysisRating => 'Maia की विश्लेषण रेटिंग';
 
   @override
@@ -171,7 +178,7 @@ class AppLocalizationsHi extends AppLocalizations {
   String get gameAnalysisQuality => 'खेल विश्लेषण की गुणवत्ता';
 
   @override
-  String get resetEngineDefaults => 'इंजन की मूल सेटिंग्स बहाल करें';
+  String get resetSettingsDefaults => 'सेटिंग्स को डिफ़ॉल्ट पर रीसेट करें';
 
   @override
   String get boardSounds => 'बोर्ड की आवाज़ें';
@@ -951,10 +958,14 @@ class AppLocalizationsHi extends AppLocalizations {
   String get samplingTitle => 'टेम्परेचर और Top-P';
 
   @override
-  String get samplingDefaultsQuestion => 'टेम्परेचर 1.00 और Top-P 1.00 क्यों?';
+  String get samplingDefaultsQuestion =>
+      'तय करें कि चालों में कितनी विविधता चाहिए';
 
   @override
-  String get samplingResearch => 'चाल चुनने की विधि पर शोध पढ़ें';
+  String get samplingResearch => 'शोध का पूरा डेटा (JSONL)';
+
+  @override
+  String get samplingResearchLink => 'शोध का पूरा डेटा (अंग्रेज़ी में)';
 
   @override
   String get close => 'बंद करें';
@@ -973,22 +984,6 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get mobileMaiaSource => 'Mobile Maia का स्रोत कोड';
-
-  @override
-  String get samplingFullRange =>
-      'इन सेटिंग्स से Maia इंसानों द्वारा खेली जाने वाली चालों के अपने पूरे अनुमानित दायरे से चुन सकता है। 1600 की सेटिंग पर हमारे परीक्षणों में, इनसे चुनी गई ओपनिंग चालें समान रेटिंग वाले Lichess खेलों की चालों के अधिक करीब थीं।';
-
-  @override
-  String get samplingStrength =>
-      'कम मानों से चालों में विविधता घटती है और Maia अधिक मज़बूत हो सकता है। हम अधिकतम ताकत के बजाय इंसानों जैसी विविध ओपनिंग पसंद करते हैं। Maia की रेटिंग उन खिलाड़ियों की रेटिंग बताती है जिनके खेल का वह मॉडल बनाता है; यह ठीक उतनी ही खेल क्षमता की गारंटी नहीं है।';
-
-  @override
-  String get samplingTemperatureHelp =>
-      'टेम्परेचर तय करता है कि Maia की चाल-चयन प्रायिकताएँ कितनी केंद्रित हों। 0 पर Maia हमेशा वह चाल चुनता है जिसे मॉडल के अनुसार इंसान सबसे अधिक चुनेंगे। शून्य से ऊपर के कम मान सबसे संभावित चालों को और अधिक प्राथमिकता देते हैं; अधिक मान कम संभावित चालों को अधिक मौका देते हैं।';
-
-  @override
-  String get samplingTopPHelp =>
-      'Top-P चालों को सबसे अधिक से सबसे कम संभावित क्रम में रखता है, फिर शुरुआत का सबसे छोटा समूह रखता है जिसकी कुल प्रायिकता इस मान तक पहुँचती है। कम मान चयन को अधिक संभावित चालों तक सीमित करते हैं; 1.00 पर सभी वैध चालें रहती हैं।';
 
   @override
   String get aboutPoweredBy =>
@@ -1016,7 +1011,7 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get samplingRecommendationWarning =>
-      'टेम्परेचर या Top-P सुझाए गए 1.00 से अलग है। विवरण के लिए जानकारी बटन देखें।';
+      'टेम्परेचर या Top-P घटाने से Maia मिडलगेम में बेहतर खेल सकता है, लेकिन शुरुआती चालों की विविधता घटती है। विवरण के लिए जानकारी बटन देखें।';
 
   @override
   String get couldNotOpenPgn => 'PGN खुल नहीं सका।';
@@ -1109,4 +1104,315 @@ class AppLocalizationsHi extends AppLocalizations {
   String recentDrawResult(String result) {
     return 'ड्रॉ ($result)';
   }
+
+  @override
+  String get electronicBoardExperimental =>
+      'इलेक्ट्रॉनिक शतरंज बोर्ड (प्रायोगिक)';
+
+  @override
+  String get connectBoard => 'बोर्ड कनेक्ट करें';
+
+  @override
+  String get chooseBoard => 'बोर्ड चुनें';
+
+  @override
+  String get chooseAnotherBoard => 'दूसरा बोर्ड चुनें';
+
+  @override
+  String get boardSearching => 'बोर्ड खोजे जा रहे हैं…';
+
+  @override
+  String get boardConnecting => 'बोर्ड से कनेक्ट हो रहा है…';
+
+  @override
+  String get boardDisconnected => 'बोर्ड का कनेक्शन टूट गया';
+
+  @override
+  String get boardConnectionError =>
+      'कनेक्ट नहीं हो पाया। ब्लूटूथ और बोर्ड की जाँच करके फिर कोशिश करें।';
+
+  @override
+  String get boardStartingPosition =>
+      'अपने बोर्ड पर मानक शुरुआती स्थिति में मोहरे रखें।';
+
+  @override
+  String get boardReady => 'बोर्ड तैयार है';
+
+  @override
+  String get boardExperimentalNotice =>
+      'नए बोर्ड का समर्थन प्रायोगिक है। दोनों स्क्रीन पर चालों की जाँच करें और कनेक्शन की समस्याएँ बताएँ।';
+
+  @override
+  String get boardGameRestriction =>
+      'इलेक्ट्रॉनिक बोर्ड पर खेल मानक शुरुआती स्थिति से और बिना समय सीमा के शुरू होते हैं।';
+
+  @override
+  String get boardConfirmSetup => 'मैंने शुरुआती स्थिति में मोहरे रख दिए हैं';
+
+  @override
+  String get boardConfirmSetupHelp =>
+      'शुरू करने से पहले हर मोहरे की जाँच करें। यह बोर्ड मोहरे का प्रकार नहीं पहचान सकता।';
+
+  @override
+  String get boardChooseMove => 'बोर्ड पर चली गई चाल की पुष्टि करें';
+
+  @override
+  String get boardAmbiguousMove =>
+      'बोर्ड इन चालों में अंतर नहीं कर सकता। अपनी चली हुई चाल चुनें।';
+
+  @override
+  String get boardUnavailable =>
+      'बोर्ड तैयार नहीं है। फिर से कनेक्ट करें या फ़ोन पर खेल जारी रखें।';
+
+  @override
+  String get boardNewGameConfirmInstruction =>
+      'पुष्टि के लिए 2.5 सेकंड के भीतर NEW GAME दोबारा दबाएँ या नीचे दिए बटन इस्तेमाल करें।';
+
+  @override
+  String get boardNewGameConfirmationExpired =>
+      'बोर्ड पर पुष्टि के लिए 2.5 सेकंड के भीतर NEW GAME दो बार दबाएँ।';
+
+  @override
+  String get boardPhysicalMove => 'अपने बोर्ड पर चाल पूरी करें।';
+
+  @override
+  String get boardResetPhysical =>
+      'आगे बढ़ने से पहले बोर्ड पर स्क्रीन में दिखाई गई स्थिति बहाल करें।';
+
+  @override
+  String get boardNoResults =>
+      'कोई समर्थित बोर्ड नहीं मिला। बोर्ड को सक्रिय करके फिर कोशिश करें।';
+
+  @override
+  String get boardWaitingForSelection => 'कनेक्ट करने के लिए बोर्ड चुनें।';
+
+  @override
+  String get boardReconnect => 'बोर्ड फिर से कनेक्ट करें';
+
+  @override
+  String get boardLockedPegasus =>
+      'Pegasus लॉक है। इस Dev संस्करण में निर्माता की शुरुआती सेटअप कुंजी शामिल नहीं है।';
+
+  @override
+  String get boardMotorRecovery =>
+      'फ़ोन पर खेल जारी रखें। यह प्रायोगिक अडैप्टर बोर्ड की मोटर की स्थिति सुरक्षित रूप से बहाल नहीं कर सकता।';
+
+  @override
+  String get boardConfirmPosition => 'वास्तविक बोर्ड की स्थिति की पुष्टि करें';
+
+  @override
+  String get boardConfirmPositionHelp =>
+      'जाँचें कि हर मोहरा स्क्रीन पर दिखाई गई स्थिति से मेल खाता है।';
+
+  @override
+  String get maiaHistorySetting => 'पिछली स्थितियों का उपयोग करें';
+
+  @override
+  String get maiaHistoryHelp =>
+      'Maia को मौजूदा स्थिति के साथ पिछली अधिकतम सात स्थितियों पर भी विचार करने दें। 79M मॉडल के साथ हमारे परीक्षणों में इससे इंसानी चालों के अनुमान की सटीकता लगभग 2 प्रतिशत अंक बढ़ी, लेकिन कम रेटिंग वाली ओपनिंग में कभी-कभी प्रतिद्वंद्वी की चालों की बार-बार नकल करने की प्रवृत्ति भी बढ़ी। हम खेलने की ताकत में बढ़ोतरी की पुष्टि नहीं कर सके। फ़िलहाल इसे बंद रखने की सलाह है।';
+
+  @override
+  String get maiaHistoryResearch =>
+      'पिछली स्थितियों पर शोध पढ़ें (अंग्रेज़ी में)';
+
+  @override
+  String get maiaHistoryOn => 'पिछली स्थितियाँ: चालू';
+
+  @override
+  String get maiaHistoryOff => 'पिछली स्थितियाँ: बंद';
+
+  @override
+  String get chessboardDeviceName => 'शतरंज बोर्ड';
+
+  @override
+  String namedBoardConnected(String boardName) {
+    return '$boardName से कनेक्ट हो गया';
+  }
+
+  @override
+  String namedBoardDisconnected(String boardName) {
+    return '$boardName से कनेक्शन नहीं है';
+  }
+
+  @override
+  String get saveMaiaSamplingData => 'Maia के चाल चयन का डेटा सहेजें';
+
+  @override
+  String get samplingDataHelp =>
+      'Maia कैसे खेलती है, यह जानने के लिए उसकी चालों की संभावनाएँ, सेटिंग्स और चुनी गई चालें इस डिवाइस पर सहेजें।\n\nनिर्यात की गई फ़ाइलों में बोर्ड की स्थितियाँ, चालों का इतिहास और मॉडल के इनपुट व निर्णय शामिल होते हैं।\n\nरिकॉर्ड किए गए डेटा वाली पिछली 10 बाज़ियाँ सहेजी जाती हैं और सबसे नई बाज़ी पहले दिखाई जाती है। स्टोरेज की सीमा तक पहुँचने पर पुरानी बाज़ियों का डेटा इससे पहले भी हट सकता है। यह “हाल के खेल” से अलग है।\n\nअगर आप Maia के काम करने के तकनीकी विवरण का अध्ययन करना चाहते हैं, तो इस सुविधा का इस्तेमाल करें। डेटा ऐप के अंदर नहीं देखा जा सकता। इसे आसानी से देखी जा सकने वाली HTML फ़ाइल में निर्यात किया जाता है, जिसमें डेटा का कुछ हिस्सा होता है, या JSONL फ़ाइल में, जिसमें रिकॉर्ड किया गया पूरा डेटा होता है।\n\nयह सुविधा डिफ़ॉल्ट रूप से बंद है। जब तक आप Maia के काम करने के तरीके पर शोध नहीं करना चाहते, हम इसे बंद रखने की सलाह देते हैं।';
+
+  @override
+  String get clearSamplingData => 'चाल चयन का डेटा मिटाएँ';
+
+  @override
+  String samplingDataStatus(int count) {
+    return 'सहेजे गए निर्णय: $count';
+  }
+
+  @override
+  String get samplingDataError =>
+      'चाल चयन के डेटा तक पहुँच नहीं हो सकी। खेल पर कोई असर नहीं पड़ता।';
+
+  @override
+  String get samplingSave => 'सहेजें…';
+
+  @override
+  String get samplingShare => 'साझा करें…';
+
+  @override
+  String get samplingSummary => 'Maia की चालों का चयन';
+
+  @override
+  String get samplingReadable => 'पढ़ने योग्य रिपोर्ट (HTML)';
+
+  @override
+  String get samplingReadableHint =>
+      'चालें, संभावनाएँ और बिसात के चित्र। ब्राउज़र में खुलती है।';
+
+  @override
+  String get samplingResearchHint =>
+      'तकनीकी विश्लेषण के लिए मॉडल के मूल इनपुट और आउटपुट।';
+
+  @override
+  String get samplingReportExplanation =>
+      'प्रतिशत बताते हैं कि आपकी Temperature और Top-P सेटिंग लागू होने के बाद हर चाल के चुने जाने की संभावना कितनी थी। ये जीतने की संभावना या चाल की गुणवत्ता के अंक नहीं हैं।';
+
+  @override
+  String get samplingReportPartial =>
+      'केवल Maia के दर्ज किए गए निर्णय दिखाए जाते हैं, पूरी बाज़ी नहीं। चाल वापस लेने या दोबारा कोशिश करने पर चाल संख्या दोहराई जा सकती है।';
+
+  @override
+  String get samplingReportMissing =>
+      'कुछ डेटा हटा दिया गया या सहेजा नहीं जा सका। रिपोर्ट में कुछ जानकारी छूटी हो सकती है।';
+
+  @override
+  String get samplingPlayed => 'खेली गई चाल';
+
+  @override
+  String get samplingNotPlayed => 'खेली गई चाल के रूप में दर्ज नहीं';
+
+  @override
+  String get samplingAlternatives => 'अन्य संभावित चालें';
+
+  @override
+  String samplingGame(String number) {
+    return 'बाज़ी $number';
+  }
+
+  @override
+  String samplingRecords(String count) {
+    return 'दर्ज निर्णय: $count';
+  }
+
+  @override
+  String get samplingMostProbable => 'सबसे संभावित चाल';
+
+  @override
+  String get samplingPlayedMostProbable => 'सबसे संभावित चाल खेली गई';
+
+  @override
+  String samplingChance(String move, String odds) {
+    return '$move के चुने जाने की संभावना लगभग $odds में 1 थी।';
+  }
+
+  @override
+  String samplingCertain(String move) {
+    return '$move का चुना जाना निश्चित था (100%)।';
+  }
+
+  @override
+  String samplingAlmostCertain(String move) {
+    return '$move का चुना जाना लगभग निश्चित था।';
+  }
+
+  @override
+  String get samplingReportRetention =>
+      'दर्ज की गई पिछली 10 बाज़ियाँ सहेजी जाती हैं और सबसे नई बाज़ी से शुरू करके दिखाई जाती हैं। स्टोरेज की सीमा पूरी होने पर पुरानी बाज़ियाँ इससे पहले भी हटाई जा सकती हैं।';
+
+  @override
+  String get samplingJumpToGame => 'बाज़ी पर जाएँ';
+
+  @override
+  String get samplingBackToGames => 'बाज़ियों की सूची पर लौटें';
+
+  @override
+  String get samplingIncomplete => 'अधूरी';
+
+  @override
+  String get samplingUnknownResult => 'परिणाम अज्ञात';
+
+  @override
+  String get samplingOpeningUnknown => 'ओपनिंग अज्ञात';
+
+  @override
+  String get samplingTimeUnknown => 'समय अज्ञात';
+
+  @override
+  String get samplingWin => 'जीत!';
+
+  @override
+  String get samplingLoss => 'हार';
+
+  @override
+  String get samplingDraw => 'खेल बराबरी पे समाप्त';
+
+  @override
+  String get samplingDeleteData => 'डेटा हटाएँ';
+
+  @override
+  String get samplingClearConfirmation =>
+      'क्या Maia की चाल चयन का सारा डेटा हटाना है? इसे वापस नहीं पाया जा सकेगा।';
+
+  @override
+  String get analysisSettings => 'विश्लेषण की सेटिंग';
+
+  @override
+  String get samplingData => 'चाल चयन का डेटा';
+
+  @override
+  String get resetSettingsDefaultsScope =>
+      'इस स्क्रीन की सभी सेटिंग्स डिफ़ॉल्ट पर लौट जाती हैं। सहेजी गई बाज़ियाँ और सैंपलिंग डेटा बने रहते हैं।';
+
+  @override
+  String get settingsResetError =>
+      'कुछ सेटिंग्स रीसेट नहीं हो सकीं। कृपया फिर कोशिश करें।';
+
+  @override
+  String get resetSettingsConfirmation =>
+      'सभी सेटिंग्स को डिफ़ॉल्ट पर रीसेट करें?';
+
+  @override
+  String get resetSettingsKeepData =>
+      'आपकी सहेजी गई बाज़ियाँ और सैंपलिंग डेटा बने रहेंगे।';
+
+  @override
+  String get resetSettingsAction => 'सेटिंग्स रीसेट करें';
+
+  @override
+  String get samplingHelpIntro =>
+      'टेम्परेचर और Top-P तय करते हैं कि Maia अलग-अलग चालों में से कैसे चुनती है।';
+
+  @override
+  String get samplingHelpVariety =>
+      'टेम्परेचर और Top-P बढ़ाने पर Maia के खेल में उतार-चढ़ाव बढ़ जाते हैं, क्योंकि वह कम संभावना वाली चालें ज़्यादा चुनने लगती है। ये भयंकर गलतियाँ भी हो सकती हैं और अद्भुत चालें भी!';
+
+  @override
+  String get samplingHelpDefaults =>
+      'अगर आप खेल में अधिकतम विविधता चाहते हैं और चाहते हैं कि Maia इंसानों की तरह कई तरह की ओपनिंग खेले, जिनमें कम प्रचलित विकल्प भी शामिल हों, तो 1.0 और 1.0 के डिफ़ॉल्ट मान बनाए रखें।';
+
+  @override
+  String get samplingHelpStrength =>
+      'अगर आप ऐसा मज़बूत प्रतिद्वंद्वी चाहते हैं जो कम भयंकर गलतियाँ करे, तो टेम्परेचर और Top-P के मान घटाकर देखें।';
+
+  @override
+  String get samplingHelpArgmax =>
+      'टेम्परेचर को 0 करने पर Maia argmax का इस्तेमाल करती है। इस तकनीकी शब्द का मतलब है कि Maia किसी भी स्थिति में हमेशा वह चाल खेलेगी जिसे वह किसी इंसान की सबसे संभावित चाल मानती है। ध्यान दें! 1600 रेटिंग सेटिंग पर हमारे शोध में, argmax वाली Maia ने 1.0 / 1.0 वाली Maia के खिलाफ सीधे मुकाबलों में लगभग 300 Elo अंकों के बराबर बढ़त दिखाई।';
+
+  @override
+  String get samplingHelpTopP =>
+      'संतुलित खेल के लिए आप टेम्परेचर को 1.0 पर रखकर Top-P को 0.95 कर सकते हैं। इससे विविधता बनी रहती है और कम संभावना वाली चालें हट जाती हैं। ऐसी चालें अक्सर भयंकर गलतियाँ हो सकती हैं, लेकिन अच्छी चालें भी हो सकती हैं। आसान शब्दों में, Top-P कम संभावना वाली चालों को विकल्पों से हटा देता है। इसे 0.95 पर रखने से, टेम्परेचर लागू होने के बाद कुल संभावना के कम-से-कम 95% हिस्से वाली चालें रखी जाती हैं। बाकी चालें Maia नहीं चुन सकती।';
+
+  @override
+  String get samplingHelpResearchIntro =>
+      'हमने 1600 Elo पर इन सेटिंग्स के साथ प्रयोग किए और पूरे नतीजे यहाँ प्रकाशित किए हैं:';
 }

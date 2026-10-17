@@ -154,6 +154,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get topP => 'Top-P';
 
   @override
+  String get maxOpeningVariety => 'Max variety in opening';
+
+  @override
+  String get maxOpeningVarietyHelp =>
+      'Not needed when Temperature and Top-P are at their default values of 1.0 / 1.0. Uses 1.0 / 1.0 for the first five moves by each side, then returns to your configured settings from move 6.\n\nThe goal is to give Maia maximum opening variety while allowing potentially stronger play later in the game by reducing the chance of low-probability moves through lower Temperature and/or Top-P.';
+
+  @override
   String get maiaAnalysisRating => 'Maia analysis rating';
 
   @override
@@ -170,7 +177,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get gameAnalysisQuality => 'Game analysis quality';
 
   @override
-  String get resetEngineDefaults => 'Reset engine defaults';
+  String get resetSettingsDefaults => 'Reset settings to default';
 
   @override
   String get boardSounds => 'Board sounds';
@@ -939,10 +946,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get samplingTitle => 'Temperature and Top-P';
 
   @override
-  String get samplingDefaultsQuestion => 'Why Temperature 1.00 and Top-P 1.00?';
+  String get samplingDefaultsQuestion => 'Choose how much variety you want';
 
   @override
-  String get samplingResearch => 'Read the sampling research';
+  String get samplingResearch => 'Full research data (JSONL)';
+
+  @override
+  String get samplingResearchLink => 'Full research data';
 
   @override
   String get close => 'Close';
@@ -961,22 +971,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get mobileMaiaSource => 'Mobile Maia source code';
-
-  @override
-  String get samplingFullRange =>
-      'These settings let Maia use its full range of predicted human moves. In our tests at the 1600 setting, they produced opening choices much closer to rating-filtered Lichess games.';
-
-  @override
-  String get samplingStrength =>
-      'Lower settings reduce variety and can make Maia stronger. We favor a more human opening repertoire over maximum strength. Maia’s rating describes the players it models, rather than guaranteeing an exact playing strength.';
-
-  @override
-  String get samplingTemperatureHelp =>
-      'Temperature controls how concentrated Maia’s move probabilities are. At 0, Maia always chooses the move the model predicts humans are most likely to play. Lower positive values favor the most likely moves more strongly; higher values give less likely moves more chance.';
-
-  @override
-  String get samplingTopPHelp =>
-      'Top-P ranks moves from most to least likely, then keeps the smallest leading group whose combined probability reaches this value. Lower values restrict the choice to more likely moves; 1.00 keeps every legal move.';
 
   @override
   String get aboutPoweredBy =>
@@ -1004,7 +998,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get samplingRecommendationWarning =>
-      'Temperature or Top-P differs from the recommended 1.00. See the information button for details.';
+      'Lowering Temperature or Top-P may make Maia stronger in the middlegame, but reduce opening variety. See the information button for details.';
 
   @override
   String get couldNotOpenPgn => 'Could not open PGN.';
@@ -1097,4 +1091,312 @@ class AppLocalizationsEn extends AppLocalizations {
   String recentDrawResult(String result) {
     return 'Draw ($result)';
   }
+
+  @override
+  String get electronicBoardExperimental => 'Electronic board (experimental)';
+
+  @override
+  String get connectBoard => 'Connect board';
+
+  @override
+  String get chooseBoard => 'Choose a board';
+
+  @override
+  String get chooseAnotherBoard => 'Choose another board';
+
+  @override
+  String get boardSearching => 'Searching for boards…';
+
+  @override
+  String get boardConnecting => 'Connecting to board…';
+
+  @override
+  String get boardDisconnected => 'Board disconnected';
+
+  @override
+  String get boardConnectionError =>
+      'Could not connect. Check Bluetooth and the board, then retry.';
+
+  @override
+  String get boardStartingPosition =>
+      'Set up the standard starting position on your board.';
+
+  @override
+  String get boardReady => 'Board ready';
+
+  @override
+  String get boardExperimentalNotice =>
+      'New board support is experimental. Please verify moves on both screens and report connection problems.';
+
+  @override
+  String get boardGameRestriction =>
+      'Electronic-board games start from the standard position and use unlimited time.';
+
+  @override
+  String get boardConfirmSetup => 'I have set up the starting position';
+
+  @override
+  String get boardConfirmSetupHelp =>
+      'Check every piece before starting. This board cannot verify piece identity.';
+
+  @override
+  String get boardChooseMove => 'Confirm your board move';
+
+  @override
+  String get boardAmbiguousMove =>
+      'The board cannot distinguish these moves. Choose the move you played.';
+
+  @override
+  String get boardUnavailable =>
+      'This board is not ready. Reconnect, or continue on your phone.';
+
+  @override
+  String get boardNewGameConfirmInstruction =>
+      'Press NEW GAME again within 2.5 seconds to confirm, or use the buttons below.';
+
+  @override
+  String get boardNewGameConfirmationExpired =>
+      'To confirm on the board, press NEW GAME twice within 2.5 seconds.';
+
+  @override
+  String get boardPhysicalMove => 'Complete the move on your board.';
+
+  @override
+  String get boardResetPhysical =>
+      'Restore the position shown on screen before continuing.';
+
+  @override
+  String get boardNoResults =>
+      'No supported board found. Wake your board and try again.';
+
+  @override
+  String get boardWaitingForSelection => 'Choose a board to connect.';
+
+  @override
+  String get boardReconnect => 'Reconnect board';
+
+  @override
+  String get boardLockedPegasus =>
+      'Pegasus is locked. This Dev build does not include its manufacturer initialization key.';
+
+  @override
+  String get boardMotorRecovery =>
+      'Continue on your phone. This experimental adapter cannot safely restore the board’s motor state.';
+
+  @override
+  String get boardConfirmPosition => 'Confirm the physical position';
+
+  @override
+  String get boardConfirmPositionHelp =>
+      'Check that every piece matches the position on screen.';
+
+  @override
+  String get maiaHistorySetting => 'Use move history';
+
+  @override
+  String get maiaHistoryHelp =>
+      'Let Maia consider up to seven previous positions as well as the current position. This improved prediction of human moves by about 2 percentage points in our tests with the 79M model, but sometimes encouraged repeated copying in low-rated openings. We were not able to establish a strength increase. Off is recommended for now.';
+
+  @override
+  String get maiaHistoryResearch => 'Read the move-history research';
+
+  @override
+  String get maiaHistoryOn => 'Move history: on';
+
+  @override
+  String get maiaHistoryOff => 'Move history: off';
+
+  @override
+  String get chessboardDeviceName => 'Chessboard';
+
+  @override
+  String namedBoardConnected(String boardName) {
+    return '$boardName connected';
+  }
+
+  @override
+  String namedBoardDisconnected(String boardName) {
+    return '$boardName disconnected';
+  }
+
+  @override
+  String get saveMaiaSamplingData => 'Save Maia sampling data';
+
+  @override
+  String get samplingDataHelp =>
+      'Save Maia’s move probabilities, settings and selected moves on this device to explore how it plays.\n\nExported files contain board positions, move history and model inputs and decisions.\n\nThe last 10 recorded games are saved and presented newest first. Older games may be removed sooner if the storage limit is reached. This is separate from Recent Games.\n\nUse this feature if you are interested in studying the technical details of how Maia works. Data cannot be viewed in the app. It is exported to an easy-to-view HTML file containing a subset of the data, or a JSONL file containing all the recorded data.\n\nThis is off by default, and we recommend keeping it off unless you are interested in researching how Maia works.';
+
+  @override
+  String get clearSamplingData => 'Clear sampling data';
+
+  @override
+  String samplingDataStatus(int count) {
+    return '$count decisions saved';
+  }
+
+  @override
+  String get samplingDataError =>
+      'Could not access sampling data. Playing is unaffected.';
+
+  @override
+  String get samplingSave => 'Save…';
+
+  @override
+  String get samplingShare => 'Share…';
+
+  @override
+  String get samplingSummary => 'Maia’s choices';
+
+  @override
+  String get samplingReadable => 'Readable report (HTML)';
+
+  @override
+  String get samplingReadableHint =>
+      'Moves, probabilities and board diagrams. Opens in a browser.';
+
+  @override
+  String get samplingResearchHint =>
+      'Raw model inputs and outputs for technical analysis.';
+
+  @override
+  String get samplingReportExplanation =>
+      'Percentages show the chance of each move being selected after your Temperature and Top-P settings were applied. They are not winning chances or move-quality scores.';
+
+  @override
+  String get samplingReportPartial =>
+      'Only recorded Maia decisions are shown, not a complete game. Takebacks and retries can repeat a move number.';
+
+  @override
+  String get samplingReportMissing =>
+      'Some capture data was removed or could not be saved. This report may have gaps.';
+
+  @override
+  String get samplingPlayed => 'Played';
+
+  @override
+  String get samplingNotPlayed => 'Not recorded as played';
+
+  @override
+  String get samplingAlternatives => 'Likely alternatives';
+
+  @override
+  String samplingGame(String number) {
+    return 'Game $number';
+  }
+
+  @override
+  String samplingRecords(String count) {
+    return 'Recorded decisions: $count';
+  }
+
+  @override
+  String get samplingMostProbable => 'Most probable';
+
+  @override
+  String get samplingPlayedMostProbable => 'Played the most probable move';
+
+  @override
+  String samplingChance(String move, String odds) {
+    return '$move had about a 1 in $odds chance of being played.';
+  }
+
+  @override
+  String samplingCertain(String move) {
+    return '$move was certain to be selected (100%).';
+  }
+
+  @override
+  String samplingAlmostCertain(String move) {
+    return '$move was almost certain to be selected.';
+  }
+
+  @override
+  String get samplingReportRetention =>
+      'The last 10 recorded games are saved and presented newest first. Older games may be removed sooner if the storage limit is reached.';
+
+  @override
+  String get samplingJumpToGame => 'Jump to game';
+
+  @override
+  String get samplingBackToGames => 'Back to game list';
+
+  @override
+  String get samplingIncomplete => 'Incomplete';
+
+  @override
+  String get samplingUnknownResult => 'Unknown result';
+
+  @override
+  String get samplingOpeningUnknown => 'Unknown opening';
+
+  @override
+  String get samplingTimeUnknown => 'Unknown time';
+
+  @override
+  String get samplingWin => 'Victory';
+
+  @override
+  String get samplingLoss => 'Defeat';
+
+  @override
+  String get samplingDraw => 'Draw';
+
+  @override
+  String get samplingDeleteData => 'Delete data';
+
+  @override
+  String get samplingClearConfirmation =>
+      'Delete all Maia sampling data? It cannot be recovered.';
+
+  @override
+  String get analysisSettings => 'Analysis settings';
+
+  @override
+  String get samplingData => 'Sampling data';
+
+  @override
+  String get resetSettingsDefaultsScope =>
+      'Resets all settings on this screen. Saved games and sampling data are kept.';
+
+  @override
+  String get settingsResetError =>
+      'Some settings could not be reset. Please try again.';
+
+  @override
+  String get resetSettingsConfirmation => 'Reset all settings to default?';
+
+  @override
+  String get resetSettingsKeepData =>
+      'Your saved games and sampling data will be kept.';
+
+  @override
+  String get resetSettingsAction => 'Reset settings';
+
+  @override
+  String get samplingHelpIntro =>
+      'Temperature and Top-P control how Maia chooses between moves.';
+
+  @override
+  String get samplingHelpVariety =>
+      'Increasing Temperature and Top-P is like making Maia a more volatile player, as Maia becomes more likely to play low-probability moves. These may be blunders, but they may also be brilliant moves!';
+
+  @override
+  String get samplingHelpDefaults =>
+      'If you value maximum variety, and you also want Maia to play a broad range of human openings, including sidelines, then keep the default values of 1.0 and 1.0.';
+
+  @override
+  String get samplingHelpStrength =>
+      'If you prefer a stronger opponent playing fewer blunders, experiment with moving Temperature and Top-P values down.';
+
+  @override
+  String get samplingHelpArgmax =>
+      'Setting Temperature to 0 will cause Maia to use argmax, which is a technical way of saying that Maia will always play what it predicts is the most probable human move in a given position. Careful! In our research at the 1600 setting, argmax Maia outperformed Maia at 1.0 / 1.0 by the equivalent of about 300 Elo points in direct matches.';
+
+  @override
+  String get samplingHelpTopP =>
+      'For balanced play, you may consider keeping Temperature at 1.0 and setting Top-P to 0.95. This maintains variety while eliminating low-probability moves, which can often be blunders—but can also be good moves. Top-P essentially cuts off low-probability moves. Setting it to 0.95 keeps moves accounting for at least 95% of the probability after Temperature is applied. The remaining moves cannot be selected by Maia.';
+
+  @override
+  String get samplingHelpResearchIntro =>
+      'We experimented with these settings at 1600 Elo and published our full findings here:';
 }

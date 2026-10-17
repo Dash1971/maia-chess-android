@@ -149,6 +149,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get topP => 'Top-P';
 
   @override
+  String get maxOpeningVariety => '开局多样性最大化';
+
+  @override
+  String get maxOpeningVarietyHelp =>
+      '当温度和Top-P均为默认值1.0 / 1.0时，无需启用。双方各自的前五步使用1.0 / 1.0，从第6步起恢复您设置的值。\n\n此设置旨在让Maia的开局尽可能多样，同时在之后的对局中通过降低温度和/或Top-P，减少选择低概率走法的机会，从而有望提升棋力。';
+
+  @override
   String get maiaAnalysisRating => 'Maia 分析等级分';
 
   @override
@@ -165,7 +172,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get gameAnalysisQuality => '对局分析质量';
 
   @override
-  String get resetEngineDefaults => '恢复引擎默认设置';
+  String get resetSettingsDefaults => '恢复默认设置';
 
   @override
   String get boardSounds => '电子棋盘提示音';
@@ -866,10 +873,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get samplingTitle => '温度和 Top-P';
 
   @override
-  String get samplingDefaultsQuestion => '为什么温度和 Top-P 都设为 1.00？';
+  String get samplingDefaultsQuestion => '选择你想要的变化程度';
 
   @override
-  String get samplingResearch => '阅读采样研究';
+  String get samplingResearch => '完整研究数据（JSONL）';
+
+  @override
+  String get samplingResearchLink => '完整研究数据（英文）';
 
   @override
   String get close => '关闭';
@@ -888,22 +898,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get mobileMaiaSource => 'Mobile Maia 源代码';
-
-  @override
-  String get samplingFullRange =>
-      '这些设置让 Maia 可在模型预测的完整人类着法范围内选择。在等级分设为 1600 的测试中，其开局选择更接近按等级分筛选的 Lichess 对局。';
-
-  @override
-  String get samplingStrength =>
-      '较低的设置会减少着法的多样性，并可能让 Maia 更强。我们更重视接近人类棋手的开局选择，而不是追求最大棋力。Maia 的等级分表示其模拟的棋手群体，并不保证相同的实战棋力。';
-
-  @override
-  String get samplingTemperatureHelp =>
-      '温度控制 Maia 的走法概率有多集中。设为 0 时，Maia 总是选择模型预测人类最可能走的一步。大于 0 的较低值会使选择更集中于高概率走法；较高值则让低概率走法有更多机会被选中。';
-
-  @override
-  String get samplingTopPHelp =>
-      'Top-P 将走法按概率从高到低排序，保留累计概率达到设定值的最小一组走法。较低值会将选择限制在高概率走法中；1.00 则保留所有合法走法。';
 
   @override
   String get aboutPoweredBy => '由多伦多大学计算社会科学实验室开发、模仿人类棋风的国际象棋引擎 Maia-3 提供支持。';
@@ -929,7 +923,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get samplingRecommendationWarning =>
-      '温度或 Top-P 与推荐值 1.00 不同。详情请点击信息按钮。';
+      '降低温度或Top-P可能让Maia在中局更强，但会减少开局变化。详情请查看信息按钮。';
 
   @override
   String get couldNotOpenPgn => '无法打开 PGN。';
@@ -1018,4 +1012,289 @@ class AppLocalizationsZh extends AppLocalizations {
   String recentDrawResult(String result) {
     return '和棋（$result）';
   }
+
+  @override
+  String get electronicBoardExperimental => '电子棋盘（实验性功能）';
+
+  @override
+  String get connectBoard => '连接棋盘';
+
+  @override
+  String get chooseBoard => '选择棋盘';
+
+  @override
+  String get chooseAnotherBoard => '选择其他棋盘';
+
+  @override
+  String get boardSearching => '正在搜索棋盘…';
+
+  @override
+  String get boardConnecting => '正在连接棋盘…';
+
+  @override
+  String get boardDisconnected => '棋盘连接已断开';
+
+  @override
+  String get boardConnectionError => '无法连接。请检查蓝牙和棋盘，然后重试。';
+
+  @override
+  String get boardStartingPosition => '请在棋盘上摆好标准起始局面。';
+
+  @override
+  String get boardReady => '棋盘已就绪';
+
+  @override
+  String get boardExperimentalNotice => '新棋盘支持仍处于实验阶段。请核对两个屏幕上的走法，并报告连接问题。';
+
+  @override
+  String get boardGameRestriction => '电子棋盘对局从标准起始局面开始，时间不限。';
+
+  @override
+  String get boardConfirmSetup => '我已摆好起始局面';
+
+  @override
+  String get boardConfirmSetupHelp => '开始前请检查每个棋子。此棋盘无法识别棋子种类。';
+
+  @override
+  String get boardChooseMove => '确认棋盘上的走法';
+
+  @override
+  String get boardAmbiguousMove => '棋盘无法区分这些走法。请选择你实际走出的那一步。';
+
+  @override
+  String get boardUnavailable => '棋盘尚未就绪。请重新连接，或在手机上继续。';
+
+  @override
+  String get boardNewGameConfirmInstruction =>
+      '请在2.5秒内再次按下NEW GAME以确认，或使用下方按钮。';
+
+  @override
+  String get boardNewGameConfirmationExpired => '如需在棋盘上确认，请在2.5秒内按两次NEW GAME。';
+
+  @override
+  String get boardPhysicalMove => '请在棋盘上完成这一步。';
+
+  @override
+  String get boardResetPhysical => '继续前，请将棋盘恢复为屏幕上显示的局面。';
+
+  @override
+  String get boardNoResults => '未找到支持的棋盘。请唤醒棋盘后重试。';
+
+  @override
+  String get boardWaitingForSelection => '请选择要连接的棋盘。';
+
+  @override
+  String get boardReconnect => '重新连接棋盘';
+
+  @override
+  String get boardLockedPegasus => 'Pegasus已锁定。此Dev版本未包含厂商的初始化密钥。';
+
+  @override
+  String get boardMotorRecovery => '请在手机上继续。此实验性连接功能无法安全恢复棋盘的电机状态。';
+
+  @override
+  String get boardConfirmPosition => '确认实体棋盘局面';
+
+  @override
+  String get boardConfirmPositionHelp => '请确认每个棋子的位置都与屏幕上显示的局面一致。';
+
+  @override
+  String get maiaHistorySetting => '使用历史局面';
+
+  @override
+  String get maiaHistoryHelp =>
+      '让 Maia 在考虑当前局面的同时，参考最多七个先前局面。在我们使用 79M 模型的测试中，这使人类走法的预测准确率提高了约 2 个百分点，但有时也会使低等级分的开局更容易反复模仿对手的走法。我们未能确认棋力有所提高。目前建议关闭。';
+
+  @override
+  String get maiaHistoryResearch => '阅读历史局面研究（英文）';
+
+  @override
+  String get maiaHistoryOn => '历史局面：开启';
+
+  @override
+  String get maiaHistoryOff => '历史局面：关闭';
+
+  @override
+  String get chessboardDeviceName => '棋盘';
+
+  @override
+  String namedBoardConnected(String boardName) {
+    return '已连接$boardName';
+  }
+
+  @override
+  String namedBoardDisconnected(String boardName) {
+    return '$boardName已断开连接';
+  }
+
+  @override
+  String get saveMaiaSamplingData => '保存 Maia 选招数据';
+
+  @override
+  String get samplingDataHelp =>
+      '将 Maia 的走法概率、设置和所选走法保存在此设备上，以便研究它如何下棋。\n\n导出的文件包含棋盘局面、走法历史，以及模型的输入和决策。\n\n最近 10 局有记录的对局数据会被保存，并按从新到旧的顺序呈现。如果达到存储上限，较早的对局数据可能会提前删除。这些数据与“最近对局”分开保存。\n\n如果您想研究 Maia 工作原理的技术细节，可以使用此功能。数据无法在应用内查看。您可以导出包含部分数据、便于查看的 HTML 文件，或包含所有已记录数据的 JSONL 文件。\n\n此功能默认关闭。除非您想研究 Maia 的工作原理，否则我们建议保持关闭。';
+
+  @override
+  String get clearSamplingData => '清除选招数据';
+
+  @override
+  String samplingDataStatus(int count) {
+    return '已保存 $count 条决策';
+  }
+
+  @override
+  String get samplingDataError => '无法访问选招数据。不影响对局。';
+
+  @override
+  String get samplingSave => '保存…';
+
+  @override
+  String get samplingShare => '分享…';
+
+  @override
+  String get samplingSummary => 'Maia 的选择';
+
+  @override
+  String get samplingReadable => '易读报告（HTML）';
+
+  @override
+  String get samplingReadableHint => '在浏览器中查看走法、概率和棋盘图。';
+
+  @override
+  String get samplingResearchHint => '供技术分析使用的模型原始输入和输出。';
+
+  @override
+  String get samplingReportExplanation =>
+      '百分比表示应用当时的 Temperature 和 Top-P 设置后，每步棋被选中的概率，并非获胜概率或走法质量评分。';
+
+  @override
+  String get samplingReportPartial =>
+      '仅显示已记录的 Maia 决策，并非完整棋谱。悔棋或重试可能导致同一回合出现多条记录。';
+
+  @override
+  String get samplingReportMissing => '部分记录已被删除或未能保存。此报告可能存在缺失。';
+
+  @override
+  String get samplingPlayed => '实际走法';
+
+  @override
+  String get samplingNotPlayed => '未记录为已走';
+
+  @override
+  String get samplingAlternatives => '其他可能走法';
+
+  @override
+  String samplingGame(String number) {
+    return '对局 $number';
+  }
+
+  @override
+  String samplingRecords(String count) {
+    return '已记录决策：$count';
+  }
+
+  @override
+  String get samplingMostProbable => '最可能的走法';
+
+  @override
+  String get samplingPlayedMostProbable => '下出了最可能的走法';
+
+  @override
+  String samplingChance(String move, String odds) {
+    return '$move 被选中的概率约为 $odds 分之一。';
+  }
+
+  @override
+  String samplingCertain(String move) {
+    return '$move 必定会被选中（100%）。';
+  }
+
+  @override
+  String samplingAlmostCertain(String move) {
+    return '$move 几乎必定会被选中。';
+  }
+
+  @override
+  String get samplingReportRetention =>
+      '保存最近记录的10局棋，并按从新到旧的顺序显示。达到存储上限时，较早的对局可能会提前删除。';
+
+  @override
+  String get samplingJumpToGame => '跳转到对局';
+
+  @override
+  String get samplingBackToGames => '返回对局列表';
+
+  @override
+  String get samplingIncomplete => '未完成';
+
+  @override
+  String get samplingUnknownResult => '结果未知';
+
+  @override
+  String get samplingOpeningUnknown => '开局未知';
+
+  @override
+  String get samplingTimeUnknown => '时间未知';
+
+  @override
+  String get samplingWin => '胜局';
+
+  @override
+  String get samplingLoss => '负局';
+
+  @override
+  String get samplingDraw => '平局';
+
+  @override
+  String get samplingDeleteData => '删除数据';
+
+  @override
+  String get samplingClearConfirmation => '要删除所有 Maia 选招数据吗？删除后无法恢复。';
+
+  @override
+  String get analysisSettings => '分析设置';
+
+  @override
+  String get samplingData => '选招数据';
+
+  @override
+  String get resetSettingsDefaultsScope => '将此页面上的所有设置恢复为默认值。已保存的对局和采样数据会保留。';
+
+  @override
+  String get settingsResetError => '部分设置未能重置，请重试。';
+
+  @override
+  String get resetSettingsConfirmation => '将所有设置恢复为默认值？';
+
+  @override
+  String get resetSettingsKeepData => '已保存的对局和采样数据会保留。';
+
+  @override
+  String get resetSettingsAction => '重置设置';
+
+  @override
+  String get samplingHelpIntro => '温度和 Top-P 控制 Maia 如何在不同走法之间做出选择。';
+
+  @override
+  String get samplingHelpVariety =>
+      '提高温度和 Top-P，就像让 Maia 成为一个发挥更不稳定的棋手，因为它更容易选择低概率的走法。这些走法可能是败着，也可能是妙着！';
+
+  @override
+  String get samplingHelpDefaults =>
+      '如果你希望对局尽可能多样，也希望 Maia 能下出人类棋手使用的各种开局，包括冷门变化，那么请保留默认值 1.0 和 1.0。';
+
+  @override
+  String get samplingHelpStrength => '如果你希望对手更强、败着更少，可以尝试降低温度和 Top-P 的值。';
+
+  @override
+  String get samplingHelpArgmax =>
+      '将温度设为 0 会让 Maia 使用 argmax。这个技术术语的意思是：在给定局面中，Maia 总会选择它预测人类最有可能下的一步。注意！在我们以 1600 为等级分设置的研究中，使用 argmax 的 Maia 在与 1.0 / 1.0 的 Maia 直接对局时，取得了相当于约 300 Elo 分优势的成绩。';
+
+  @override
+  String get samplingHelpTopP =>
+      '如果想兼顾强度和多样性，可以将温度保持在 1.0，并把 Top-P 设为 0.95。这样既能保留多样性，又能排除一些低概率走法。这些走法往往可能是败着，但也可能是好棋。简单来说，Top-P 会筛掉低概率的走法。设为 0.95 时，它会保留应用温度设置后累计概率至少达到 95% 的走法。其余走法不会被 Maia 选中。';
+
+  @override
+  String get samplingHelpResearchIntro =>
+      '我们在 1600 Elo 设置下试验了这些参数，完整研究结果已发布在这里：';
 }

@@ -12,15 +12,28 @@ class MaiaInferenceQueue {
   static Future<void> _tail = Future<void>.value();
   static bool _firstInferencePending = true;
 
+  @visibleForTesting
+  static void resetForTesting() {
+    assert(() {
+      // Widget tests have separate fake-clock zones. Production never resets
+      // the queue; tests reset only after draining their mocked inference.
+      _tail = Future<void>.value();
+      _firstInferencePending = false;
+      return true;
+    }());
+  }
+
   static Future<Float32List?> predict(
     Map<String, Object> arguments, {
     MaiaInferenceScope? replaceableScope,
+    CapturedDecision? capture,
     Duration timeout = const Duration(seconds: 90),
   }) {
     final result = Completer<Float32List?>();
     final generation = replaceableScope?.begin();
     _tail = _tail.catchError((_) {}).then((_) async {
       if (generation != null && !replaceableScope!.isCurrent(generation)) {
+        capture?.data['queueOutcome'] = 'cancelled-before-inference';
         result.complete(null);
         return;
       }
@@ -31,9 +44,12 @@ class MaiaInferenceQueue {
           _firstInferencePending = false;
           await AppDiagnostics.recordEvent('maia-first-inference-start');
         }
+        capture?.data['queueOutcome'] = 'inference-started';
         final response = await maiaEngineChannel
             .invokeMethod<Float32List>('predict', arguments)
             .timeout(timeout);
+        capture?.output(response);
+        capture?.data['queueOutcome'] = 'inference-returned';
         if (firstInference) {
           await AppDiagnostics.recordEvent(
             'maia-first-inference-complete durationMs=${timer.elapsedMilliseconds}',
