@@ -51,8 +51,7 @@ completes.
 - **Improved Chessnut connection and reset.** Choose between detected boards when needed, see which board connected, and reset a game with the physical NEW GAME button while keeping your side.
 
 See the [complete 2.4 release notes](docs/release-notes/v2.4.0.md) and
-[earlier release notes](docs/release-notes). This PR prepares 2.4; it is not yet
-published, and the download links still serve the current Stable release.
+[earlier release notes](docs/release-notes).
 
 Active development continues in the separate
 [Mobile Maia Preview repository](https://github.com/Dash1971/maia-chess-android-preview).
