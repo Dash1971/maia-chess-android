@@ -75,3 +75,25 @@ NDK, and Clang provenance. To verify a developer-signed APK, use
 [`apksigcopier`](https://github.com/obfusk/apksigcopier) to extract its
 signature, apply that signature to the independently built unsigned APK, and
 compare the reconstructed APK byte-for-byte with the published APK.
+
+## Gradle security pin
+
+The wrapper uses Gradle **9.8.1** and verifies the official distribution SHA-256.
+CI and the local release script run `python3 tool/verify_gradle_wrapper.py`
+before using Gradle. This offline check prevents an accidental rollback to the
+vulnerable 9.3.1 pin even when advisory indexes have not caught up. When changing
+Gradle, update the wrapper and the reviewed version/checksum in that check
+only after upstream security and build compatibility review.
+
+Gradle 9.8.1 fixes GHSA-mvvg-497x-hmj8, GHSA-xwqc-3h47-hg64 and
+GHSA-j5m7-59rp-24f5. See the
+[upstream release notes](https://docs.gradle.org/9.8.1/release-notes.html).
+This update retains Flutter 3.47.5, AGP 9.1.0, Kotlin 2.4.20 and Java 17;
+no app dependency, engine, model or version is changed. Final-release
+qualification must still use its exact source commit.
+
+The current canonical F-Droid recipe invokes Flutter, which uses the source
+repository's Gradle wrapper. It does not pin Gradle 9.3.1 independently, so this
+wrapper update does not require changing the inherited recipe. Verify that
+assumption again against live canonical metadata at publication; do not replace
+historical release tags or change already-published artifacts.

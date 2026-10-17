@@ -9,6 +9,8 @@ dart_bin=${DART_BIN:-$(dirname -- "$flutter_path")/dart}
 
 cd "$repo_root"
 
+python3 tool/verify_gradle_wrapper.py
+
 # Check both the committed source and local metadata before an expensive build.
 python3 tool/check_release_source.py --ref HEAD
 python3 tool/check_release_source.py
