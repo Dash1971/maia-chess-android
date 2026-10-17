@@ -5,7 +5,7 @@ from check_zapstore_metadata import check_description, markdown_description
 
 class ZapstoreDescriptionTest(unittest.TestCase):
     HTML = "<b>Play &amp; learn</b><ul><li>One</li><li>Two</li></ul><b>Offline</b>\nNo account."
-    MARKDOWN = "**Play & learn**\n\n- One\n- Two\n\n**Offline**\nNo account."
+    MARKDOWN = "**Play & learn**\n\n- One\n- Two\n\n**Offline**\n\nNo account."
 
     def test_headings_lists_entities_and_section_boundaries(self):
         self.assertEqual(self.MARKDOWN, markdown_description(self.HTML))

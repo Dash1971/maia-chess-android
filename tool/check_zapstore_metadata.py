@@ -33,7 +33,8 @@ def markdown_description(html):
     parser = DescriptionParser()
     parser.feed(html)
     parser.close()
-    return re.sub(r"\n{3,}", "\n\n", "".join(parser.parts)).strip()
+    markdown = re.sub(r"(\*\*)\n", r"\1\n\n", "".join(parser.parts))
+    return re.sub(r"\n{3,}", "\n\n", markdown).strip()
 
 
 def check_description(config, html):
