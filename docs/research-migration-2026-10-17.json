@@ -1,0 +1,1809 @@
+{
+  "researchRepository": "https://github.com/Dash1971/mobile-maia-research",
+  "researchCommit": "1ec178838019cb7fc78efcb709707289bac1371a",
+  "sourceCommit": "6b396cf112bc3fa1ce5cf3c966c6d406481fee98",
+  "sourceFiles": 299,
+  "byteIdentical": 296,
+  "editorialOnly": [
+    "README.md",
+    "followup/README.md",
+    "SHA256SUMS"
+  ],
+  "brokenRelativeMarkdownTargets": [],
+  "files": [
+    {
+      "path": "APP-NOTE.md",
+      "sourceSha256": "6b003d4d9a5f37cac6a41f6f66ab1a1f0d85a3c598afd889234d9ad5bbcc2d6e",
+      "researchSha256": "6b003d4d9a5f37cac6a41f6f66ab1a1f0d85a3c598afd889234d9ad5bbcc2d6e",
+      "byteIdentical": true
+    },
+    {
+      "path": "MEASUREMENT-SHA256SUMS",
+      "sourceSha256": "57c887b04bb4fde98dd1e6301c11608e3109a060b0668ae4314032dd280b1437",
+      "researchSha256": "57c887b04bb4fde98dd1e6301c11608e3109a060b0668ae4314032dd280b1437",
+      "byteIdentical": true
+    },
+    {
+      "path": "PROTOCOL.md",
+      "sourceSha256": "a1dde9f3d9bb5443159b31573588844dfd3bf4bf0b0587022a907faec6367890",
+      "researchSha256": "a1dde9f3d9bb5443159b31573588844dfd3bf4bf0b0587022a907faec6367890",
+      "byteIdentical": true
+    },
+    {
+      "path": "README.md",
+      "sourceSha256": "82d50e35afbe981c4ff3a220c5669dd0f6600bee78d0badadd0d695aa655cc7f",
+      "researchSha256": "6efca47c601d643736403d415f05d3772f89ddb9c4f4fc351eb972cde84456ab",
+      "byteIdentical": false
+    },
+    {
+      "path": "REPORT.md",
+      "sourceSha256": "152b3e693cac44ba129bee11fe0d55fa8439cd4c33b259a4a03e2a664e436d3b",
+      "researchSha256": "152b3e693cac44ba129bee11fe0d55fa8439cd4c33b259a4a03e2a664e436d3b",
+      "byteIdentical": true
+    },
+    {
+      "path": "SHA256SUMS",
+      "sourceSha256": "527aeb59f2df7058c658796a6394ff160ba41455e3ca9cfbaa21ed7a8d4dde6c",
+      "researchSha256": "9861cd10780315a124f9136427ff35fdfb7e7a23c97b82030c5dd501ba96b3d0",
+      "byteIdentical": false
+    },
+    {
+      "path": "build_publication.py",
+      "sourceSha256": "026637db4c5b92b6798f698141ed86ba9080b7437e66f205270b2487cfaedfc2",
+      "researchSha256": "026637db4c5b92b6798f698141ed86ba9080b7437e66f205270b2487cfaedfc2",
+      "byteIdentical": true
+    },
+    {
+      "path": "diagnostics/5m-draw-independent-verification.json",
+      "sourceSha256": "9edd44aa9a652d7805ae4f5740fda3f47840a123a5e215ff3efa733e8e2000da",
+      "researchSha256": "9edd44aa9a652d7805ae4f5740fda3f47840a123a5e215ff3efa733e8e2000da",
+      "byteIdentical": true
+    },
+    {
+      "path": "diagnostics/5m-independent-statistical-checks.json",
+      "sourceSha256": "d2ceacf573c60cd07250708f5fb347a1ff4753a39369cb44f7a9c3c0ab7f81b8",
+      "researchSha256": "d2ceacf573c60cd07250708f5fb347a1ff4753a39369cb44f7a9c3c0ab7f81b8",
+      "byteIdentical": true
+    },
+    {
+      "path": "diagnostics/AUDIT.md",
+      "sourceSha256": "9c0f4b762c7f143c71d9a095f58d4fef408442f005fa34ae7c41852019aef2f5",
+      "researchSha256": "9c0f4b762c7f143c71d9a095f58d4fef408442f005fa34ae7c41852019aef2f5",
+      "byteIdentical": true
+    },
+    {
+      "path": "diagnostics/README.md",
+      "sourceSha256": "353a065aea3c1adc363c2251ffb91265f510e9ceeefe59049baf35280f0cc985",
+      "researchSha256": "353a065aea3c1adc363c2251ffb91265f510e9ceeefe59049baf35280f0cc985",
+      "byteIdentical": true
+    },
+    {
+      "path": "diagnostics/final-audit.md",
+      "sourceSha256": "5c29b35a028f63c9d4c8bf51efe7a64fbf22e3dc40aa0ea1a9d92c842cd5b15b",
+      "researchSha256": "5c29b35a028f63c9d4c8bf51efe7a64fbf22e3dc40aa0ea1a9d92c842cd5b15b",
+      "byteIdentical": true
+    },
+    {
+      "path": "diagnostics/manifest.json",
+      "sourceSha256": "a1600542f9f879442adc31b539ea4d97ed1f545dfd01637647df3990650b30cd",
+      "researchSha256": "a1600542f9f879442adc31b539ea4d97ed1f545dfd01637647df3990650b30cd",
+      "byteIdentical": true
+    },
+    {
+      "path": "diagnostics/manifest_combined.json",
+      "sourceSha256": "ffcdc37e789f9bfac8ad0188de02f1b7cf2d0fc96fc885ace7cd0fdf43073c6c",
+      "researchSha256": "ffcdc37e789f9bfac8ad0188de02f1b7cf2d0fc96fc885ace7cd0fdf43073c6c",
+      "byteIdentical": true
+    },
+    {
+      "path": "diagnostics/metrics.csv",
+      "sourceSha256": "609fd5bbac05931c3b8501b1cffce0f1ce29bf618b701c066e23ab148ea88173",
+      "researchSha256": "609fd5bbac05931c3b8501b1cffce0f1ce29bf618b701c066e23ab148ea88173",
+      "byteIdentical": true
+    },
+    {
+      "path": "diagnostics/portable-file-comparison.json",
+      "sourceSha256": "ded25821044d17a06e47c223e1c664a4745dd8dab6c6ec097ed0f41af45e5e14",
+      "researchSha256": "ded25821044d17a06e47c223e1c664a4745dd8dab6c6ec097ed0f41af45e5e14",
+      "byteIdentical": true
+    },
+    {
+      "path": "diagnostics/positions.json",
+      "sourceSha256": "dc6ac6d7ad3f5dec638ddf1d625ec18724966795a759d024562e0154a9d432c7",
+      "researchSha256": "dc6ac6d7ad3f5dec638ddf1d625ec18724966795a759d024562e0154a9d432c7",
+      "byteIdentical": true
+    },
+    {
+      "path": "diagnostics/positions_black.json",
+      "sourceSha256": "570f67c698fe74ee268d9e23db5cc7a1a3b7cd7da630ba1e87c2843237eb1091",
+      "researchSha256": "570f67c698fe74ee268d9e23db5cc7a1a3b7cd7da630ba1e87c2843237eb1091",
+      "byteIdentical": true
+    },
+    {
+      "path": "diagnostics/positions_white.json",
+      "sourceSha256": "a8e30005f4ea15637d6de8a5c1bab664d7b390548c0ac7d6316d9b3c8b3e2e94",
+      "researchSha256": "a8e30005f4ea15637d6de8a5c1bab664d7b390548c0ac7d6316d9b3c8b3e2e94",
+      "byteIdentical": true
+    },
+    {
+      "path": "diagnostics/raw.jsonl",
+      "sourceSha256": "a088fbfc43d515c8e3ae39378febcb0098517fe4ee007ca52b0ca2f5f89d77ac",
+      "researchSha256": "a088fbfc43d515c8e3ae39378febcb0098517fe4ee007ca52b0ca2f5f89d77ac",
+      "byteIdentical": true
+    },
+    {
+      "path": "diagnostics/recompute_diagnostics.py",
+      "sourceSha256": "7e16b1c6a00a0b276a500dfe993a6b8b8604a4539e173efd7b7c06c709ccc811",
+      "researchSha256": "7e16b1c6a00a0b276a500dfe993a6b8b8604a4539e173efd7b7c06c709ccc811",
+      "byteIdentical": true
+    },
+    {
+      "path": "diagnostics/reproduction-cached/manifest.json",
+      "sourceSha256": "bd6bb7b7565f5227feaa778b13c07e94c0ca286474355610134405351c3dc979",
+      "researchSha256": "bd6bb7b7565f5227feaa778b13c07e94c0ca286474355610134405351c3dc979",
+      "byteIdentical": true
+    },
+    {
+      "path": "diagnostics/reproduction-cached/positions.json",
+      "sourceSha256": "dc6ac6d7ad3f5dec638ddf1d625ec18724966795a759d024562e0154a9d432c7",
+      "researchSha256": "dc6ac6d7ad3f5dec638ddf1d625ec18724966795a759d024562e0154a9d432c7",
+      "byteIdentical": true
+    },
+    {
+      "path": "diagnostics/reproduction-cached/summary_balanced.json",
+      "sourceSha256": "7e72f38b9515e0457f4095e956f4076fe18f67ee6213e51ce5f2704c9af2ec29",
+      "researchSha256": "7e72f38b9515e0457f4095e956f4076fe18f67ee6213e51ce5f2704c9af2ec29",
+      "byteIdentical": true
+    },
+    {
+      "path": "diagnostics/reproduction-cached/summary_close_positions.json",
+      "sourceSha256": "0ec4c1f0283a5ab6ae3aa4c36c4ea210c1097318b25fa01ae03dac6ac085bb6a",
+      "researchSha256": "0ec4c1f0283a5ab6ae3aa4c36c4ea210c1097318b25fa01ae03dac6ac085bb6a",
+      "byteIdentical": true
+    },
+    {
+      "path": "diagnostics/reproduction-smoke/manifest.json",
+      "sourceSha256": "0be0244f3b845f3e1f5fee20691cc479aa5bd7828782e1947f82e300283258cf",
+      "researchSha256": "0be0244f3b845f3e1f5fee20691cc479aa5bd7828782e1947f82e300283258cf",
+      "byteIdentical": true
+    },
+    {
+      "path": "diagnostics/reproduction-smoke/positions.json",
+      "sourceSha256": "dc6ac6d7ad3f5dec638ddf1d625ec18724966795a759d024562e0154a9d432c7",
+      "researchSha256": "dc6ac6d7ad3f5dec638ddf1d625ec18724966795a759d024562e0154a9d432c7",
+      "byteIdentical": true
+    },
+    {
+      "path": "diagnostics/reproduction-smoke/raw.jsonl",
+      "sourceSha256": "0033ca224d19be07a66b015126be7a6f7347c0c254b0b3e6326e09e9df2b13e3",
+      "researchSha256": "0033ca224d19be07a66b015126be7a6f7347c0c254b0b3e6326e09e9df2b13e3",
+      "byteIdentical": true
+    },
+    {
+      "path": "diagnostics/reproduction-verification.json",
+      "sourceSha256": "34df7c47832464253dfa4ca103c8c31fc7eef92c2e2b319371e7b62fc8026b2c",
+      "researchSha256": "34df7c47832464253dfa4ca103c8c31fc7eef92c2e2b319371e7b62fc8026b2c",
+      "byteIdentical": true
+    },
+    {
+      "path": "diagnostics/run_black_diagnostics.py",
+      "sourceSha256": "2ffeef8b6e2f35f1726ebdce6e240685c2b2a79fa0e733b33f57af6723c2dec6",
+      "researchSha256": "2ffeef8b6e2f35f1726ebdce6e240685c2b2a79fa0e733b33f57af6723c2dec6",
+      "byteIdentical": true
+    },
+    {
+      "path": "diagnostics/run_diagnostics.py",
+      "sourceSha256": "7a3af1dccd84109cbd01805e6d4f6491a9764721f4863b78de9fc936cfad32d3",
+      "researchSha256": "7a3af1dccd84109cbd01805e6d4f6491a9764721f4863b78de9fc936cfad32d3",
+      "byteIdentical": true
+    },
+    {
+      "path": "diagnostics/source_first30_games.json",
+      "sourceSha256": "1453bdfc389f0bb84e3a31d947a42af7582fe3155815eca9187e77cb771ec534",
+      "researchSha256": "1453bdfc389f0bb84e3a31d947a42af7582fe3155815eca9187e77cb771ec534",
+      "byteIdentical": true
+    },
+    {
+      "path": "diagnostics/statistical-audit.md",
+      "sourceSha256": "930be5f5bdb46556984c1d879132d2e5e483009418ab365ce7538e7077eb298e",
+      "researchSha256": "930be5f5bdb46556984c1d879132d2e5e483009418ab365ce7538e7077eb298e",
+      "byteIdentical": true
+    },
+    {
+      "path": "diagnostics/summarize_close_positions.py",
+      "sourceSha256": "858d1b1ca337034d659a70b896f472e66b0fc0fe3395f46cbbc9ef9c3d935324",
+      "researchSha256": "858d1b1ca337034d659a70b896f472e66b0fc0fe3395f46cbbc9ef9c3d935324",
+      "byteIdentical": true
+    },
+    {
+      "path": "diagnostics/summarize_diagnostics.py",
+      "sourceSha256": "238102a5d64120a48bbe6058cfbd32fc9ecbbd8ebf7af830e233c9e686e41647",
+      "researchSha256": "238102a5d64120a48bbe6058cfbd32fc9ecbbd8ebf7af830e233c9e686e41647",
+      "byteIdentical": true
+    },
+    {
+      "path": "diagnostics/summary_balanced.json",
+      "sourceSha256": "7e72f38b9515e0457f4095e956f4076fe18f67ee6213e51ce5f2704c9af2ec29",
+      "researchSha256": "7e72f38b9515e0457f4095e956f4076fe18f67ee6213e51ce5f2704c9af2ec29",
+      "byteIdentical": true
+    },
+    {
+      "path": "diagnostics/summary_close_positions.json",
+      "sourceSha256": "0ec4c1f0283a5ab6ae3aa4c36c4ea210c1097318b25fa01ae03dac6ac085bb6a",
+      "researchSha256": "0ec4c1f0283a5ab6ae3aa4c36c4ea210c1097318b25fa01ae03dac6ac085bb6a",
+      "byteIdentical": true
+    },
+    {
+      "path": "diagnostics/verification.json",
+      "sourceSha256": "4bebdddea0b8421fe10be32596eb39ce6dc25af08487f7fadab33ab81156e1ef",
+      "researchSha256": "4bebdddea0b8421fe10be32596eb39ce6dc25af08487f7fadab33ab81156e1ef",
+      "byteIdentical": true
+    },
+    {
+      "path": "diagnostics/verify_diagnostics.py",
+      "sourceSha256": "6601253978ce5962d56bf7f3eebf7d61a740d916a7f0585860fc3324468568dd",
+      "researchSha256": "6601253978ce5962d56bf7f3eebf7d61a740d916a7f0585860fc3324468568dd",
+      "byteIdentical": true
+    },
+    {
+      "path": "discord-evidence.md",
+      "sourceSha256": "3f661d29b7f6bcb595a382a22e8a5c4c959f6a0d45aea2814449f9b9af8acdbe",
+      "researchSha256": "3f661d29b7f6bcb595a382a22e8a5c4c959f6a0d45aea2814449f9b9af8acdbe",
+      "byteIdentical": true
+    },
+    {
+      "path": "figures/cover.pdf",
+      "sourceSha256": "34d28ecbc4cd8739d06c35a436489f8563d8c4be316ae1a15387a3bdf16cfe26",
+      "researchSha256": "34d28ecbc4cd8739d06c35a436489f8563d8c4be316ae1a15387a3bdf16cfe26",
+      "byteIdentical": true
+    },
+    {
+      "path": "figures/cover.png",
+      "sourceSha256": "de92e2db50f5d48650c53eebccbcaa87d2110af721ec723ab374fa91cc45b6d3",
+      "researchSha256": "de92e2db50f5d48650c53eebccbcaa87d2110af721ec723ab374fa91cc45b6d3",
+      "byteIdentical": true
+    },
+    {
+      "path": "figures/cover.svg",
+      "sourceSha256": "60e6aa91484d3947cdbf62025419fae443063852426ec04bdda11099077ac61a",
+      "researchSha256": "60e6aa91484d3947cdbf62025419fae443063852426ec04bdda11099077ac61a",
+      "byteIdentical": true
+    },
+    {
+      "path": "figures/first-moves.pdf",
+      "sourceSha256": "9680202eab87a18b776411d22fea88e7678a842d7c6d1ffa36020a9079307472",
+      "researchSha256": "9680202eab87a18b776411d22fea88e7678a842d7c6d1ffa36020a9079307472",
+      "byteIdentical": true
+    },
+    {
+      "path": "figures/first-moves.png",
+      "sourceSha256": "9594225f30d909cd75705c986f4ecae99a477cbe81c9fc802dc4d3390b5e050b",
+      "researchSha256": "9594225f30d909cd75705c986f4ecae99a477cbe81c9fc802dc4d3390b5e050b",
+      "byteIdentical": true
+    },
+    {
+      "path": "figures/first-moves.svg",
+      "sourceSha256": "e64f1635823d2fe5982646542a924cbfda177b13fd7bca4f5a57f4740212ff32",
+      "researchSha256": "e64f1635823d2fe5982646542a924cbfda177b13fd7bca4f5a57f4740212ff32",
+      "byteIdentical": true
+    },
+    {
+      "path": "figures/match-strength.pdf",
+      "sourceSha256": "03d418a79fa753bf6a6ed90d04c402379ebfcb90dc7518c21dffcb6345dbb867",
+      "researchSha256": "03d418a79fa753bf6a6ed90d04c402379ebfcb90dc7518c21dffcb6345dbb867",
+      "byteIdentical": true
+    },
+    {
+      "path": "figures/match-strength.png",
+      "sourceSha256": "a678bcd2471cc8bd11d084ce36f70fd9db95b507e0fe694e6d4eaad4374f829d",
+      "researchSha256": "a678bcd2471cc8bd11d084ce36f70fd9db95b507e0fe694e6d4eaad4374f829d",
+      "byteIdentical": true
+    },
+    {
+      "path": "figures/match-strength.svg",
+      "sourceSha256": "3c0c7b255a5c6cff995fe5e109566442871e44d40c993ab3703d88061e63bf54",
+      "researchSha256": "3c0c7b255a5c6cff995fe5e109566442871e44d40c993ab3703d88061e63bf54",
+      "byteIdentical": true
+    },
+    {
+      "path": "figures/opening-distance.pdf",
+      "sourceSha256": "6951b2c20f802fb100ff403623e2efb287f68db4cf2199978411670b97cce952",
+      "researchSha256": "6951b2c20f802fb100ff403623e2efb287f68db4cf2199978411670b97cce952",
+      "byteIdentical": true
+    },
+    {
+      "path": "figures/opening-distance.png",
+      "sourceSha256": "7db0635fc43a054a9b47e184be09f655f21f6ca5b7fa6e02d98141e55d369263",
+      "researchSha256": "7db0635fc43a054a9b47e184be09f655f21f6ca5b7fa6e02d98141e55d369263",
+      "byteIdentical": true
+    },
+    {
+      "path": "figures/opening-distance.svg",
+      "sourceSha256": "462bc76eea5d55e8dc7729a4658520079e32c6dd3733af064f11bf35af9e5deb",
+      "researchSha256": "462bc76eea5d55e8dc7729a4658520079e32c6dd3733af064f11bf35af9e5deb",
+      "byteIdentical": true
+    },
+    {
+      "path": "figures/opening-variety.pdf",
+      "sourceSha256": "f2107c4093230205801c1bacab14086f470f1c19a54ec618c4038742623f45b7",
+      "researchSha256": "f2107c4093230205801c1bacab14086f470f1c19a54ec618c4038742623f45b7",
+      "byteIdentical": true
+    },
+    {
+      "path": "figures/opening-variety.png",
+      "sourceSha256": "87071573b3879c81a483fe7acd6bea00d3ba1abb54e5fd7e041f95f6f0262739",
+      "researchSha256": "87071573b3879c81a483fe7acd6bea00d3ba1abb54e5fd7e041f95f6f0262739",
+      "byteIdentical": true
+    },
+    {
+      "path": "figures/opening-variety.svg",
+      "sourceSha256": "26aecf999e48655868d2b874b06b3af617bae38b55700824ad15f66b4afb22aa",
+      "researchSha256": "26aecf999e48655868d2b874b06b3af617bae38b55700824ad15f66b4afb22aa",
+      "byteIdentical": true
+    },
+    {
+      "path": "first-move-probabilities.json",
+      "sourceSha256": "21a016b1313a9fb307b806e423080cbc2d8a09b6964824a4b839e4d58e1d4c44",
+      "researchSha256": "21a016b1313a9fb307b806e423080cbc2d8a09b6964824a4b839e4d58e1d4c44",
+      "byteIdentical": true
+    },
+    {
+      "path": "first_moves.py",
+      "sourceSha256": "8051fd354f3b00960e9b67a8ee0941a8637b07789836617f60381d1f1bbc290f",
+      "researchSha256": "8051fd354f3b00960e9b67a8ee0941a8637b07789836617f60381d1f1bbc290f",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/RAW-SHA256SUMS",
+      "sourceSha256": "23ab79fc83f7594cd280a9974903e00e64886d76defaf3f72a94f4a9f4ecdea4",
+      "researchSha256": "23ab79fc83f7594cd280a9974903e00e64886d76defaf3f72a94f4a9f4ecdea4",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/README.md",
+      "sourceSha256": "08145216c03fd5ab77c6216bfb3027f3464893041850e1450a6ab75deff3c9b6",
+      "researchSha256": "457049fc2413dc85e437e0f4dfdc5415ed7e0099c008d9a78a85b7d7493bfbeb",
+      "byteIdentical": false
+    },
+    {
+      "path": "followup/archive-provenance.json",
+      "sourceSha256": "a28ea6f0ad91b0fd66810d3656aadb9ea286672f5d05fb168d1534dd26152d49",
+      "researchSha256": "a28ea6f0ad91b0fd66810d3656aadb9ea286672f5d05fb168d1534dd26152d49",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/audit/README.md",
+      "sourceSha256": "cf97deec90a519b2071b23d92cbbbef9cd1dfd8b55529b794fba700a7957c1eb",
+      "researchSha256": "cf97deec90a519b2071b23d92cbbbef9cd1dfd8b55529b794fba700a7957c1eb",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/audit/audit_final_games.py",
+      "sourceSha256": "b4d54d605622ef5bb93f1a6c056cc17069d6e4ff85f81e4e2f0d45f4538a89db",
+      "researchSha256": "b4d54d605622ef5bb93f1a6c056cc17069d6e4ff85f81e4e2f0d45f4538a89db",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/audit/audit_game_snapshot.py",
+      "sourceSha256": "3d4591f9a14c0a102e46dffff9b2fbd0d8ce86813df33f44f7ab17b3ba2f8a95",
+      "researchSha256": "3d4591f9a14c0a102e46dffff9b2fbd0d8ce86813df33f44f7ab17b3ba2f8a95",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/audit/cached_diagnostics.py",
+      "sourceSha256": "d0e8671b21cba4deba68594096bb82c6ce2cf1fae0ba0201658068455938a49c",
+      "researchSha256": "d0e8671b21cba4deba68594096bb82c6ce2cf1fae0ba0201658068455938a49c",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/audit/console-output.json",
+      "sourceSha256": "d4b5a803fc58711c499c0582ca95990902f16b38a904f98fd263847229dfea86",
+      "researchSha256": "d4b5a803fc58711c499c0582ca95990902f16b38a904f98fd263847229dfea86",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/audit/diagnostic-summary.json",
+      "sourceSha256": "1fa1cd60ac5f5faca8189d9d93bd6b8efde3dace62744b856b682c54fab175da",
+      "researchSha256": "1fa1cd60ac5f5faca8189d9d93bd6b8efde3dace62744b856b682c54fab175da",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/audit/final-audit.json",
+      "sourceSha256": "91e96d269968a282b91bfe629e7af7c48c17cc876b30c3e97f11d65e07a6fb1b",
+      "researchSha256": "91e96d269968a282b91bfe629e7af7c48c17cc876b30c3e97f11d65e07a6fb1b",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/audit/first100-audit.json",
+      "sourceSha256": "994deaf902a836120207c08a54ab304950859f100da977496b4a13602ea82c68",
+      "researchSha256": "994deaf902a836120207c08a54ab304950859f100da977496b4a13602ea82c68",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/audit/first100-games.jsonl",
+      "sourceSha256": "60a4409202a40f6400edc35746f5df57f18648d87a2bccd8f87e239d2b316c4e",
+      "researchSha256": "60a4409202a40f6400edc35746f5df57f18648d87a2bccd8f87e239d2b316c4e",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/audit/manifest.json",
+      "sourceSha256": "9b18caa902c309f5ddee7c8870720a437ddf8470b4184f62d03b12e4d81ef8b6",
+      "researchSha256": "9b18caa902c309f5ddee7c8870720a437ddf8470b4184f62d03b12e4d81ef8b6",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/audit/opening-cutoff-rows.jsonl",
+      "sourceSha256": "2cd943ac750f3f05661090564df5d5425477837ecd582a58403f9f8cbf7622c1",
+      "researchSha256": "2cd943ac750f3f05661090564df5d5425477837ecd582a58403f9f8cbf7622c1",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/audit/opening-cutoff-summary.json",
+      "sourceSha256": "9478c210ed4b8ab6d79092f029b13ad30cf6dd1b7ae83045fb836efedd29a84b",
+      "researchSha256": "9478c210ed4b8ab6d79092f029b13ad30cf6dd1b7ae83045fb836efedd29a84b",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/audit/position-metrics.jsonl",
+      "sourceSha256": "692de73876ffcbdfc9c7468bafcbec837088b1a2786b2bae37db8b9323eef99a",
+      "researchSha256": "692de73876ffcbdfc9c7468bafcbec837088b1a2786b2bae37db8b9323eef99a",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/audit/source-audit.md",
+      "sourceSha256": "d438a01619c33c2e0f33a13b5559012e14afd74e3f0a8fcdea280d2dec23b778",
+      "researchSha256": "d438a01619c33c2e0f33a13b5559012e14afd74e3f0a8fcdea280d2dec23b778",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/cached-statistics-reproduction.json",
+      "sourceSha256": "85e0ae42e3c10a34ad2259f4f255d96742c2641830db69ec85b36832297a4af9",
+      "researchSha256": "85e0ae42e3c10a34ad2259f4f255d96742c2641830db69ec85b36832297a4af9",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/conditional-check.json",
+      "sourceSha256": "cdd0bd153cb349fb002d96ff70acd6c33bca8c0efcef02fde58e5db207967aab",
+      "researchSha256": "cdd0bd153cb349fb002d96ff70acd6c33bca8c0efcef02fde58e5db207967aab",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/conditional_check.py",
+      "sourceSha256": "612d334ee70b0fdc06f9b9bad5d3cf20c2bf350a4476e891b98612429e2fd2b2",
+      "researchSha256": "612d334ee70b0fdc06f9b9bad5d3cf20c2bf350a4476e891b98612429e2fd2b2",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/first-move-check.json",
+      "sourceSha256": "72b9a4fa0e59e7f977d07391d59dc1ba46fb133da38fe5b5b7273ee334e927ec",
+      "researchSha256": "72b9a4fa0e59e7f977d07391d59dc1ba46fb133da38fe5b5b7273ee334e927ec",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/first_move_check.py",
+      "sourceSha256": "c3d8449da49b2da6ffc7d2bbbcd5c49f141ef104f6f53f6afb1c4accf89c47f0",
+      "researchSha256": "c3d8449da49b2da6ffc7d2bbbcd5c49f141ef104f6f53f6afb1c4accf89c47f0",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/openings/PROTOCOL.md",
+      "sourceSha256": "19bfbffcea4f46af0ff328c07afc560674e48aafd95d080ba8a26c50e310191b",
+      "researchSha256": "19bfbffcea4f46af0ff328c07afc560674e48aafd95d080ba8a26c50e310191b",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/openings/actual-two-ply95.json",
+      "sourceSha256": "f5e42dc3358fef5307aa3acbd24bb3920eca9958e59a2852455c19a375bff19e",
+      "researchSha256": "f5e42dc3358fef5307aa3acbd24bb3920eca9958e59a2852455c19a375bff19e",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/openings/analyze.py",
+      "sourceSha256": "c50d05e7b524c75611fb5a35ddb5e051c9c7bf9aebacf8eb1ecc2c6d5e07670e",
+      "researchSha256": "c50d05e7b524c75611fb5a35ddb5e051c9c7bf9aebacf8eb1ecc2c6d5e07670e",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/openings/bookfree-reproduction95.json",
+      "sourceSha256": "f8bdb2b71613bbd87b0029fd997e9fa24cb6a70e89c252453f4e566654f1ceb5",
+      "researchSha256": "f8bdb2b71613bbd87b0029fd997e9fa24cb6a70e89c252453f4e566654f1ceb5",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/openings/conditional-run95.json",
+      "sourceSha256": "11d4121729a3f13c61871ac44649109a0fbe8fbbcba8d4816838f1b1a3344108",
+      "researchSha256": "11d4121729a3f13c61871ac44649109a0fbe8fbbcba8d4816838f1b1a3344108",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/openings/conditional-summary95.json",
+      "sourceSha256": "07c44a215af9621388d35ee5bdb885ca577cb6d751988310a495209545d3548a",
+      "researchSha256": "07c44a215af9621388d35ee5bdb885ca577cb6d751988310a495209545d3548a",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/openings/conditional.py",
+      "sourceSha256": "34675b913cf68ad72e6766680781dd7f2fc7a13db69b94ec2fec271a629e3042",
+      "researchSha256": "34675b913cf68ad72e6766680781dd7f2fc7a13db69b94ec2fec271a629e3042",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/openings/conditional95.json",
+      "sourceSha256": "7d1d57920c24ca747b24390a3b4ecc39f7a20454db4e5ec07751ba7fd8d13d72",
+      "researchSha256": "7d1d57920c24ca747b24390a3b4ecc39f7a20454db4e5ec07751ba7fd8d13d72",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/openings/diversity.py",
+      "sourceSha256": "1e77fb800ca6fd28ecae9728de2f812f4c9b741dd6d57c6b441bcb939f004e9f",
+      "researchSha256": "1e77fb800ca6fd28ecae9728de2f812f4c9b741dd6d57c6b441bcb939f004e9f",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/openings/exact-policy95.json",
+      "sourceSha256": "c14cd00a776d3ababeee8cf9533a1693c8b96cee1a34958a66f029cf88869696",
+      "researchSha256": "c14cd00a776d3ababeee8cf9533a1693c8b96cee1a34958a66f029cf88869696",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/openings/family-diversity95.json",
+      "sourceSha256": "7aed5553de0d81100b31a670322ad8e667ba96a4278fb7f0041c672dfbbeb8f8",
+      "researchSha256": "7aed5553de0d81100b31a670322ad8e667ba96a4278fb7f0041c672dfbbeb8f8",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/openings/independent-conditional-check95.json",
+      "sourceSha256": "a7a2a79b54bb11314056e2248de5539a00f3f7afb49ad7d464a590fc12e1f0d0",
+      "researchSha256": "a7a2a79b54bb11314056e2248de5539a00f3f7afb49ad7d464a590fc12e1f0d0",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/openings/input-validation95.json",
+      "sourceSha256": "3affdfa34b66ac7adda32a8872324d7aa2768fe01a9e75bc119d01f7332d85c0",
+      "researchSha256": "3affdfa34b66ac7adda32a8872324d7aa2768fe01a9e75bc119d01f7332d85c0",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/openings/label-seed-validation95.json",
+      "sourceSha256": "6721e5d4fe435d01cce7172e2c6065a98b321c0948fb509906685c77771e09a3",
+      "researchSha256": "6721e5d4fe435d01cce7172e2c6065a98b321c0948fb509906685c77771e09a3",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/openings/mobile_policy.py",
+      "sourceSha256": "8e3f203b9f26b3ce0a7b01b8cf22101a23cb4339306c4f4d3d8df8794cb0bc98",
+      "researchSha256": "8e3f203b9f26b3ce0a7b01b8cf22101a23cb4339306c4f4d3d8df8794cb0bc98",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/openings/openings95.md",
+      "sourceSha256": "1eff1a9282e018add01ad617ec3912530b29d7b390a58acc93d582a67fce8b7d",
+      "researchSha256": "1eff1a9282e018add01ad617ec3912530b29d7b390a58acc93d582a67fce8b7d",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/openings/policy-validation95.json",
+      "sourceSha256": "a03a89c932249f77c505c43b16f4e214f34b4b05cb72afecb43193dc9cd9bcc6",
+      "researchSha256": "a03a89c932249f77c505c43b16f4e214f34b4b05cb72afecb43193dc9cd9bcc6",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/openings/requirements.txt",
+      "sourceSha256": "8ba0963180c6d1f12d05ade87b94b071f38fa1770d8b54651119c37de9a3ffc6",
+      "researchSha256": "8ba0963180c6d1f12d05ade87b94b071f38fa1770d8b54651119c37de9a3ffc6",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/openings/rollout-validation95.json",
+      "sourceSha256": "fe5cf561ce9d3a9337f2678083e817f5787c43c0b3acc0e66f0275310934ff2e",
+      "researchSha256": "fe5cf561ce9d3a9337f2678083e817f5787c43c0b3acc0e66f0275310934ff2e",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/openings/rollout.py",
+      "sourceSha256": "126fee34d2356041a08394ec0d484dbb2dbe4aaf665e8f322f0a69e2f2601626",
+      "researchSha256": "126fee34d2356041a08394ec0d484dbb2dbe4aaf665e8f322f0a69e2f2601626",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/openings/rollouts95.json",
+      "sourceSha256": "ce3c372903b09165338aaf9069c9612bdb562e9fdab20c66c9512f511ed58838",
+      "researchSha256": "ce3c372903b09165338aaf9069c9612bdb562e9fdab20c66c9512f511ed58838",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/openings/run-start.json",
+      "sourceSha256": "b8034bc62a37b3f9e2d5cca453492aff0b008d2597c588a89d26a0fc93fb6f25",
+      "researchSha256": "b8034bc62a37b3f9e2d5cca453492aff0b008d2597c588a89d26a0fc93fb6f25",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/openings/run.json",
+      "sourceSha256": "f09d84aa22cae998d271c415060906ff6ccbaa214bf39a4e5c12f71ae15e1c1e",
+      "researchSha256": "f09d84aa22cae998d271c415060906ff6ccbaa214bf39a4e5c12f71ae15e1c1e",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/openings/source-hashes.json",
+      "sourceSha256": "9041f2c2d0dc98de8aa9ae55945dd93a4890f80e714cdf983cc24c80f3c97ceb",
+      "researchSha256": "9041f2c2d0dc98de8aa9ae55945dd93a4890f80e714cdf983cc24c80f3c97ceb",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/openings/summary95.json",
+      "sourceSha256": "d9409f3c13a899f7e69f44c1a5eb12d22954dfa9987d4c93433990d2a1481bd6",
+      "researchSha256": "d9409f3c13a899f7e69f44c1a5eb12d22954dfa9987d4c93433990d2a1481bd6",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/openings/validate_labels.py",
+      "sourceSha256": "52280b8f71604cf9609cf808ef95240dd3015f9cdaf4c0d2e8acea35ea4dacfd",
+      "researchSha256": "52280b8f71604cf9609cf808ef95240dd3015f9cdaf4c0d2e8acea35ea4dacfd",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/openings/validate_policy.py",
+      "sourceSha256": "6e3e2b62486869136d4353b3ee77b5ba29e966087d19cbe43fad70629a20ce94",
+      "researchSha256": "6e3e2b62486869136d4353b3ee77b5ba29e966087d19cbe43fad70629a20ce94",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/reproduce.py",
+      "sourceSha256": "deb24f73711e63b7e1f56713b88031b4e134fd191135f16df92b24368f3353d9",
+      "researchSha256": "deb24f73711e63b7e1f56713b88031b4e134fd191135f16df92b24368f3353d9",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/requirements-cached.txt",
+      "sourceSha256": "0fa90a2fd6bb3999b8bff0c4b750258748865a41990b2930ad112f9b69a5da96",
+      "researchSha256": "0fa90a2fd6bb3999b8bff0c4b750258748865a41990b2930ad112f9b69a5da96",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/strength/COMMANDS.md",
+      "sourceSha256": "3326ffbab2027ac103363be43d83f5d0d0c4f489dc922f9418d51bfb9735960b",
+      "researchSha256": "3326ffbab2027ac103363be43d83f5d0d0c4f489dc922f9418d51bfb9735960b",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/strength/PROTOCOL.md",
+      "sourceSha256": "7d5fdf163753d2c53069818a3841948bf15ec99e3ca0017f7c0791f80f0d0dd0",
+      "researchSha256": "7d5fdf163753d2c53069818a3841948bf15ec99e3ca0017f7c0791f80f0d0dd0",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/strength/SUMMARY.md",
+      "sourceSha256": "01007852d2d4f380ba16e0b57dde4e788fbaba19997fdccc81c714acec80d7ab",
+      "researchSha256": "01007852d2d4f380ba16e0b57dde4e788fbaba19997fdccc81c714acec80d7ab",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/strength/analyze_results.py",
+      "sourceSha256": "66581c1be5fa5b937e08c90b316ee3717d59ae8661effbd3b5c0af133f1b2c4f",
+      "researchSha256": "66581c1be5fa5b937e08c90b316ee3717d59ae8661effbd3b5c0af133f1b2c4f",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/strength/analyze_results_executed_primary.py",
+      "sourceSha256": "7b7661e1ab82c4738686a5517d26704ed5d35fca9c71e6b3c7e87cfe3166a5c7",
+      "researchSha256": "7b7661e1ab82c4738686a5517d26704ed5d35fca9c71e6b3c7e87cfe3166a5c7",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/strength/app_rules.py",
+      "sourceSha256": "769c5bf6ad767b779297030f1cf85e8eb27df2ce3fedfdaa78ee7bc687cd869b",
+      "researchSha256": "769c5bf6ad767b779297030f1cf85e8eb27df2ce3fedfdaa78ee7bc687cd869b",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/strength/artifact_utils.py",
+      "sourceSha256": "96f77b904503371f1a71afbc5b6e5ab87abb05074380b4d384e68e58a4bc19fe",
+      "researchSha256": "96f77b904503371f1a71afbc5b6e5ab87abb05074380b4d384e68e58a4bc19fe",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/strength/check_dart_rules.dart",
+      "sourceSha256": "276d462cb3d69ee39100482dc1a4cb412871a707fdc0a1d3749e0c50b3bb0b00",
+      "researchSha256": "276d462cb3d69ee39100482dc1a4cb412871a707fdc0a1d3749e0c50b3bb0b00",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/strength/check_dart_rules.original.dart.txt",
+      "sourceSha256": "313d91845745398df5612a915f44ce7e3f8a1ab5c5697921c28b68eec8a811ed",
+      "researchSha256": "313d91845745398df5612a915f44ce7e3f8a1ab5c5697921c28b68eec8a811ed",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/strength/check_preflight.py",
+      "sourceSha256": "8e204232fad979b6938c2f5b12ba06d2353efad2a9a0efbfac32dd866c7533af",
+      "researchSha256": "8e204232fad979b6938c2f5b12ba06d2353efad2a9a0efbfac32dd866c7533af",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/strength/claim-sensitivity/games.jsonl",
+      "sourceSha256": "be44dfa5857284b22aee7d4956a1b871a6fe8e997c48ba208e99bbce307791c0",
+      "researchSha256": "be44dfa5857284b22aee7d4956a1b871a6fe8e997c48ba208e99bbce307791c0",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/strength/claim-sensitivity/games.pgn",
+      "sourceSha256": "b2a3459f5211d04189bd738f63f6514e3473de4806ab5154c18ef66cdeda5bea",
+      "researchSha256": "b2a3459f5211d04189bd738f63f6514e3473de4806ab5154c18ef66cdeda5bea",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/strength/claim-sensitivity/manifest.json",
+      "sourceSha256": "fbb9fd1303af94174d6af9647583d4e15552e1bc66e989b641d7f7026b9afc96",
+      "researchSha256": "fbb9fd1303af94174d6af9647583d4e15552e1bc66e989b641d7f7026b9afc96",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/strength/claim_sensitivity.py",
+      "sourceSha256": "9404b941024e14f26b6a682db42c550bbff937e061bc9ce4467ecf39fd822668",
+      "researchSha256": "9404b941024e14f26b6a682db42c550bbff937e061bc9ce4467ecf39fd822668",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/strength/draw-function-ast-parity.json",
+      "sourceSha256": "0c347d509b308ad163e6366434c3add2751704b7b23d5b2ac4a92939623a3e22",
+      "researchSha256": "0c347d509b308ad163e6366434c3add2751704b7b23d5b2ac4a92939623a3e22",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/strength/draw-parity-input.json",
+      "sourceSha256": "5b1c85539ba98e294385fc8e289695e797bb40c5b510ab93c3b89d61f6ba1d0a",
+      "researchSha256": "5b1c85539ba98e294385fc8e289695e797bb40c5b510ab93c3b89d61f6ba1d0a",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/strength/draw-parity-output.json",
+      "sourceSha256": "72c6a216dff07882c0bca1ed16eecd44c6b3d77f65f75d21ab4cf31e9411b0b7",
+      "researchSha256": "72c6a216dff07882c0bca1ed16eecd44c6b3d77f65f75d21ab4cf31e9411b0b7",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/strength/final-source-integrity.json",
+      "sourceSha256": "8d4f82db6e3f44e0190de8ec11be0dc3fd29dc4e7c867cbd0fbf1f8def051551",
+      "researchSha256": "8d4f82db6e3f44e0190de8ec11be0dc3fd29dc4e7c867cbd0fbf1f8def051551",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/strength/finalization-completion.json",
+      "sourceSha256": "cd062be1d8d5b74b04bee0c9e31afb0d240b45b4e49ec8f2e5a80abb62df8407",
+      "researchSha256": "cd062be1d8d5b74b04bee0c9e31afb0d240b45b4e49ec8f2e5a80abb62df8407",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/strength/finalize.py",
+      "sourceSha256": "1dedd022cb1d92f1ac15efedd8d3765d3133f391fd14bc7962327122731ea3f0",
+      "researchSha256": "1dedd022cb1d92f1ac15efedd8d3765d3133f391fd14bc7962327122731ea3f0",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/strength/integrity-claim-sensitivity-first-attempt.log",
+      "sourceSha256": "6a762d0fcaaddc3959a4cc6beaacfd9e88a7d78a03464bbe8ffe39e477503f7a",
+      "researchSha256": "6a762d0fcaaddc3959a4cc6beaacfd9e88a7d78a03464bbe8ffe39e477503f7a",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/strength/integrity-claim-sensitivity.json",
+      "sourceSha256": "73246996143017097207bf5f402fef5fda62d84bb6631aa3a72d6f4ccd1bf1b5",
+      "researchSha256": "73246996143017097207bf5f402fef5fda62d84bb6631aa3a72d6f4ccd1bf1b5",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/strength/integrity.json",
+      "sourceSha256": "6610e447af76e9a07aa9008726e18c768f01df46740e0d86bfd368254acb1854",
+      "researchSha256": "6610e447af76e9a07aa9008726e18c768f01df46740e0d86bfd368254acb1854",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/strength/mobile_policy.py",
+      "sourceSha256": "766ef7263fb4a7b487eb850e1a07995a8b62b25f8f16f5e8b68e4665fb9b4131",
+      "researchSha256": "766ef7263fb4a7b487eb850e1a07995a8b62b25f8f16f5e8b68e4665fb9b4131",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/strength/postprocessing-runtime-fix.json",
+      "sourceSha256": "3944f0f205386bd2522f6210dfb090ada9d75f1b5a18071190038621b0d64091",
+      "researchSha256": "3944f0f205386bd2522f6210dfb090ada9d75f1b5a18071190038621b0d64091",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/strength/preflight.json",
+      "sourceSha256": "37e87de94dd35bf515fdb4e9bea8d4abe30685ac643e818e7bf8198c10579911",
+      "researchSha256": "37e87de94dd35bf515fdb4e9bea8d4abe30685ac643e818e7bf8198c10579911",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/strength/replay-check.json",
+      "sourceSha256": "ef1f50941f7f81c0901867558467e64b0c4896054869b5f1a932cd91cfb9b689",
+      "researchSha256": "ef1f50941f7f81c0901867558467e64b0c4896054869b5f1a932cd91cfb9b689",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/strength/replay_selected.py",
+      "sourceSha256": "7b0851ec6875552224f68d9d16df4b39ce8db27eaf0f4810622b7cef2393c504",
+      "researchSha256": "7b0851ec6875552224f68d9d16df4b39ce8db27eaf0f4810622b7cef2393c504",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/strength/requirements.lock",
+      "sourceSha256": "1a369c8a1fe49eb622cc74961a3d963d6033eee375470912359322bc54043009",
+      "researchSha256": "1a369c8a1fe49eb622cc74961a3d963d6033eee375470912359322bc54043009",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/strength/results-claim-sensitivity.json",
+      "sourceSha256": "df352e2372171337c74a3d08e9c659373a29a3fbc4d30b8d02a7b39c8d4ed5ad",
+      "researchSha256": "df352e2372171337c74a3d08e9c659373a29a3fbc4d30b8d02a7b39c8d4ed5ad",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/strength/results-primary-original-analysis.json",
+      "sourceSha256": "eb1d06f65525e5a445d63518311611dfbb46df5de04503aef8892626065b0410",
+      "researchSha256": "eb1d06f65525e5a445d63518311611dfbb46df5de04503aef8892626065b0410",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/strength/results-primary.json",
+      "sourceSha256": "e64d68494c22341e192c297cc1020e429aca7cc32ec67be026296b9d6043f995",
+      "researchSha256": "e64d68494c22341e192c297cc1020e429aca7cc32ec67be026296b9d6043f995",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/strength/run_matches.py",
+      "sourceSha256": "eae9885ac6523aa1252f5bcb48bf94e2abdde03c3487bdb17536ff216ef5d0ef",
+      "researchSha256": "eae9885ac6523aa1252f5bcb48bf94e2abdde03c3487bdb17536ff216ef5d0ef",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/strength/seed-design-audit.json",
+      "sourceSha256": "585e525e91417e74239b8cc340d9fe5f009825c5a314bab820c19d92c1acd1ee",
+      "researchSha256": "585e525e91417e74239b8cc340d9fe5f009825c5a314bab820c19d92c1acd1ee",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/strength/shard0/games.jsonl",
+      "sourceSha256": "2136f73af8232500e387dfa61ed781e5a0cdb13e395983197ad85aa4b6d02e6f",
+      "researchSha256": "2136f73af8232500e387dfa61ed781e5a0cdb13e395983197ad85aa4b6d02e6f",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/strength/shard0/games.pgn",
+      "sourceSha256": "f933c6954f0099cd8867ce4ce103776a15bf1c6eb360e148f2d8c35d63e97ca5",
+      "researchSha256": "f933c6954f0099cd8867ce4ce103776a15bf1c6eb360e148f2d8c35d63e97ca5",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/strength/shard0/manifest.json",
+      "sourceSha256": "49f8ab1a0f2ecfab7c8f65c861a1de7d0a4f11b3bc76be8445cce42ab3693021",
+      "researchSha256": "49f8ab1a0f2ecfab7c8f65c861a1de7d0a4f11b3bc76be8445cce42ab3693021",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/strength/shard1/games.jsonl",
+      "sourceSha256": "ccfcedd035cdab2a2c55132d3afa50f93c931b5cd39e5bc01c2eb76aaf019fba",
+      "researchSha256": "ccfcedd035cdab2a2c55132d3afa50f93c931b5cd39e5bc01c2eb76aaf019fba",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/strength/shard1/games.pgn",
+      "sourceSha256": "b81212bc5090db0c1468d054c8a25bbab159187c4fcb13df1f20f0c7e4b7f917",
+      "researchSha256": "b81212bc5090db0c1468d054c8a25bbab159187c4fcb13df1f20f0c7e4b7f917",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/strength/shard1/manifest.json",
+      "sourceSha256": "53e4366171b773aa7b37b658ccaabf99cc5620fa74df10819b005415ad8a755c",
+      "researchSha256": "53e4366171b773aa7b37b658ccaabf99cc5620fa74df10819b005415ad8a755c",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/strength/shard2/games.jsonl",
+      "sourceSha256": "df13fffe68a53ad898687ceb8c1714b51d72ef0b7ecc7a77218280ab499667d7",
+      "researchSha256": "df13fffe68a53ad898687ceb8c1714b51d72ef0b7ecc7a77218280ab499667d7",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/strength/shard2/games.pgn",
+      "sourceSha256": "3a7755f385ed9bb6c6980e2340cd4c9de5f37c7d3e01e98fe205ad61eecd0111",
+      "researchSha256": "3a7755f385ed9bb6c6980e2340cd4c9de5f37c7d3e01e98fe205ad61eecd0111",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/strength/shard2/manifest.json",
+      "sourceSha256": "7dd5c934c94bcc7abfe15ad8d5d0397f159a7099dc1e02e14e6b7730ab560049",
+      "researchSha256": "7dd5c934c94bcc7abfe15ad8d5d0397f159a7099dc1e02e14e6b7730ab560049",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/strength/shard3/games.jsonl",
+      "sourceSha256": "0d455d4e4131eb24ea1b26e01ccbf7822312f97734d9d891d4389734b71912db",
+      "researchSha256": "0d455d4e4131eb24ea1b26e01ccbf7822312f97734d9d891d4389734b71912db",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/strength/shard3/games.pgn",
+      "sourceSha256": "d2b0f084cf3e6ca24960e1d1ed89754154b0cc8fb223e162479ff13aaa040579",
+      "researchSha256": "d2b0f084cf3e6ca24960e1d1ed89754154b0cc8fb223e162479ff13aaa040579",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/strength/shard3/manifest.json",
+      "sourceSha256": "7c67fee191ada3018ac52fd40db68b08cc2c7b5b58685ec285cb12be07e068b6",
+      "researchSha256": "7c67fee191ada3018ac52fd40db68b08cc2c7b5b58685ec285cb12be07e068b6",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/strength/shard4/games.jsonl",
+      "sourceSha256": "0627a0d62a98c4c562c08394fa40c5aab18e3644321013e28284f10a38758a8b",
+      "researchSha256": "0627a0d62a98c4c562c08394fa40c5aab18e3644321013e28284f10a38758a8b",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/strength/shard4/games.pgn",
+      "sourceSha256": "46538e380974b4f55b5e13dd545e9858c112f7d139747675700448d7a7309f5f",
+      "researchSha256": "46538e380974b4f55b5e13dd545e9858c112f7d139747675700448d7a7309f5f",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/strength/shard4/manifest.json",
+      "sourceSha256": "413373d8e22b2c34ca5df528eb72ffcedc5e0b88498e4677e681c07ae94d4a49",
+      "researchSha256": "413373d8e22b2c34ca5df528eb72ffcedc5e0b88498e4677e681c07ae94d4a49",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/strength/shard5/games.jsonl",
+      "sourceSha256": "f198bfd9a6e51c2a1b67a466797ddceddbfc047660db55893d44c86812997e6e",
+      "researchSha256": "f198bfd9a6e51c2a1b67a466797ddceddbfc047660db55893d44c86812997e6e",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/strength/shard5/games.pgn",
+      "sourceSha256": "0194ea6d2265628f4c125b885e25be3871c3d94674262df76a7392ed82f41336",
+      "researchSha256": "0194ea6d2265628f4c125b885e25be3871c3d94674262df76a7392ed82f41336",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/strength/shard5/manifest.json",
+      "sourceSha256": "988cf908df8cceb3dcdedf473eef7ceb9ed9993da80a6a937f088ae569bfd7e5",
+      "researchSha256": "988cf908df8cceb3dcdedf473eef7ceb9ed9993da80a6a937f088ae569bfd7e5",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/strength/source-pins.json",
+      "sourceSha256": "b40dc8891bc6d3c3bbf0eb600297c01064cdad23ec02e294d8d332e701595b43",
+      "researchSha256": "b40dc8891bc6d3c3bbf0eb600297c01064cdad23ec02e294d8d332e701595b43",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/strength/statistics-selfcheck.json",
+      "sourceSha256": "01e9e6db90e6888d603321357d3eb22b10a54c25532ee3ba5030d0cb326e954d",
+      "researchSha256": "01e9e6db90e6888d603321357d3eb22b10a54c25532ee3ba5030d0cb326e954d",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/strength/verify_claim_sensitivity.py",
+      "sourceSha256": "6d81b0b4e0d9b41c282c90199b8f4b9d770cbd9f2a1a685428360200ee195310",
+      "researchSha256": "6d81b0b4e0d9b41c282c90199b8f4b9d770cbd9f2a1a685428360200ee195310",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/strength/verify_claim_sensitivity_first_attempt.py",
+      "sourceSha256": "c416e914fbb9cb57138300a31191e176d374fcbd5bd74fc3edca5515e6f7f42e",
+      "researchSha256": "c416e914fbb9cb57138300a31191e176d374fcbd5bd74fc3edca5515e6f7f42e",
+      "byteIdentical": true
+    },
+    {
+      "path": "followup/strength/verify_results.py",
+      "sourceSha256": "917a5199779d77c077f1f6c7ad1ffbf90e80c7701f8b8d14bcc8609dec805b98",
+      "researchSha256": "917a5199779d77c077f1f6c7ad1ffbf90e80c7701f8b8d14bcc8609dec805b98",
+      "byteIdentical": true
+    },
+    {
+      "path": "literature.md",
+      "sourceSha256": "8ccf71bfa5ee6f559d8e0fc885931ef7728e58a5e3e263501bca19b570c8ce8c",
+      "researchSha256": "8ccf71bfa5ee6f559d8e0fc885931ef7728e58a5e3e263501bca19b570c8ce8c",
+      "byteIdentical": true
+    },
+    {
+      "path": "make_cover.py",
+      "sourceSha256": "bda5e747ce9164127fe9a70f9e0254e9f5caddb136cd2be9f20e514b45783f37",
+      "researchSha256": "bda5e747ce9164127fe9a70f9e0254e9f5caddb136cd2be9f20e514b45783f37",
+      "byteIdentical": true
+    },
+    {
+      "path": "make_figures.py",
+      "sourceSha256": "a462f0957fd7e203570f653576a4ec91ce02d93c67317172182d44f03e3b224b",
+      "researchSha256": "a462f0957fd7e203570f653576a4ec91ce02d93c67317172182d44f03e3b224b",
+      "byteIdentical": true
+    },
+    {
+      "path": "opening-validation.json",
+      "sourceSha256": "fc75ee4fee6ceadbabde7379e6e78196f3e53f12a4f203ff8e118da20953053c",
+      "researchSha256": "fc75ee4fee6ceadbabde7379e6e78196f3e53f12a4f203ff8e118da20953053c",
+      "byteIdentical": true
+    },
+    {
+      "path": "openings.md",
+      "sourceSha256": "928eed452541e717f2d014e4bcae5859c74517c92225ad7457b8f38252c7805d",
+      "researchSha256": "928eed452541e717f2d014e4bcae5859c74517c92225ad7457b8f38252c7805d",
+      "byteIdentical": true
+    },
+    {
+      "path": "openings/actual-two-ply.json",
+      "sourceSha256": "3083c72b26863b574978875b4a2f298be3292f3427f07394f2963132b8444f15",
+      "researchSha256": "3083c72b26863b574978875b4a2f298be3292f3427f07394f2963132b8444f15",
+      "byteIdentical": true
+    },
+    {
+      "path": "openings/analyze.py",
+      "sourceSha256": "1fb754ddc943f01bc7a67b1ae6d2b30d575c3c3c4dc2ccea1a5cc5a6ef82826d",
+      "researchSha256": "1fb754ddc943f01bc7a67b1ae6d2b30d575c3c3c4dc2ccea1a5cc5a6ef82826d",
+      "byteIdentical": true
+    },
+    {
+      "path": "openings/bookless-reproduction.json",
+      "sourceSha256": "2b258639e19ad5f307bf708d07979ef94b2fda9d5cd79c4f3f4f728e2ff2b182",
+      "researchSha256": "2b258639e19ad5f307bf708d07979ef94b2fda9d5cd79c4f3f4f728e2ff2b182",
+      "byteIdentical": true
+    },
+    {
+      "path": "openings/collect.py",
+      "sourceSha256": "9939fcebedb3f3de9cf9053c69bf5fcd09c4f9811002fe92cc110ccbfa030d18",
+      "researchSha256": "9939fcebedb3f3de9cf9053c69bf5fcd09c4f9811002fe92cc110ccbfa030d18",
+      "byteIdentical": true
+    },
+    {
+      "path": "openings/conditional-5m.json",
+      "sourceSha256": "93f409eb8bc873e5182bed29586eaceb8dd28f20e4679080798ba99624a2dd31",
+      "researchSha256": "93f409eb8bc873e5182bed29586eaceb8dd28f20e4679080798ba99624a2dd31",
+      "byteIdentical": true
+    },
+    {
+      "path": "openings/conditional-run.json",
+      "sourceSha256": "4ca3e46eb17687d546e82f4fb77d0d74b9332b5067bdcfa5898f65e16d419222",
+      "researchSha256": "4ca3e46eb17687d546e82f4fb77d0d74b9332b5067bdcfa5898f65e16d419222",
+      "byteIdentical": true
+    },
+    {
+      "path": "openings/conditional-summary.json",
+      "sourceSha256": "14bb3b24ba30ef86b73dcbc1368bc58078efb2762197e9f9e26dc84c0d7859ea",
+      "researchSha256": "14bb3b24ba30ef86b73dcbc1368bc58078efb2762197e9f9e26dc84c0d7859ea",
+      "byteIdentical": true
+    },
+    {
+      "path": "openings/conditional.json",
+      "sourceSha256": "b724b07aed4e737e0c810ac24e35dae86f0988da8a92d9ca9ed0d3c97f9380b4",
+      "researchSha256": "b724b07aed4e737e0c810ac24e35dae86f0988da8a92d9ca9ed0d3c97f9380b4",
+      "byteIdentical": true
+    },
+    {
+      "path": "openings/cutoff-sensitivity.json",
+      "sourceSha256": "7fe4dd2f26739c6a9d62fc78cc801f30cfe12cce5289ccaa97d7122ec72ddc69",
+      "researchSha256": "7fe4dd2f26739c6a9d62fc78cc801f30cfe12cce5289ccaa97d7122ec72ddc69",
+      "byteIdentical": true
+    },
+    {
+      "path": "openings/cutoff-summary.json",
+      "sourceSha256": "23fe6c5108c53833520fb8b319abfcfbfbcc9f89983b58edeba82155f213745e",
+      "researchSha256": "23fe6c5108c53833520fb8b319abfcfbfbcc9f89983b58edeba82155f213745e",
+      "byteIdentical": true
+    },
+    {
+      "path": "openings/exact-two-ply.json",
+      "sourceSha256": "c9e1d2d96397450388a6b7cb30b7f2e67d568078efea803b1809fedff69c794e",
+      "researchSha256": "c9e1d2d96397450388a6b7cb30b7f2e67d568078efea803b1809fedff69c794e",
+      "byteIdentical": true
+    },
+    {
+      "path": "openings/exact_two_ply.py",
+      "sourceSha256": "8baa401a87c63ff9e7bcbaba2ebdb82c9e1337a4beb1ccf0dc0de4295ae87e1f",
+      "researchSha256": "8baa401a87c63ff9e7bcbaba2ebdb82c9e1337a4beb1ccf0dc0de4295ae87e1f",
+      "byteIdentical": true
+    },
+    {
+      "path": "openings/executed-source-hashes.json",
+      "sourceSha256": "093898d5fef3063eacf27113457e56cfce9131c2d8bbc6bcdc91b9a1ed8f685c",
+      "researchSha256": "093898d5fef3063eacf27113457e56cfce9131c2d8bbc6bcdc91b9a1ed8f685c",
+      "byteIdentical": true
+    },
+    {
+      "path": "openings/experiment.py",
+      "sourceSha256": "849559bd5dd2f6acc0f8a92d8dede04d6fe3847400026fe9026a711b9bfa09dd",
+      "researchSha256": "849559bd5dd2f6acc0f8a92d8dede04d6fe3847400026fe9026a711b9bfa09dd",
+      "byteIdentical": true
+    },
+    {
+      "path": "openings/grid-sensitivity.json",
+      "sourceSha256": "a7fce2583c2f5cd127dd258c56ec26df8aa4961f3571003ba5aef25b6fa73211",
+      "researchSha256": "a7fce2583c2f5cd127dd258c56ec26df8aa4961f3571003ba5aef25b6fa73211",
+      "byteIdentical": true
+    },
+    {
+      "path": "openings/grid_sensitivity.py",
+      "sourceSha256": "a8725f0e2192f4d7e03ab6f99b4adef340670e86d11f84c790ee287ffd675c88",
+      "researchSha256": "a8725f0e2192f4d7e03ab6f99b4adef340670e86d11f84c790ee287ffd675c88",
+      "byteIdentical": true
+    },
+    {
+      "path": "openings/human-book-paths-lichess_1600_blitz_2026-05.json",
+      "sourceSha256": "580be48afa96791820a9c30fd13984cd2cc94f36d7acada41b646e289d6fbb42",
+      "researchSha256": "580be48afa96791820a9c30fd13984cd2cc94f36d7acada41b646e289d6fbb42",
+      "byteIdentical": true
+    },
+    {
+      "path": "openings/human-book-paths-lichess_1600_rapid_2026-05.json",
+      "sourceSha256": "7e8f690d260e94f1bced61b3d9a25cb5b27a5a92e36c9a5fd1c36df34f25705e",
+      "researchSha256": "7e8f690d260e94f1bced61b3d9a25cb5b27a5a92e36c9a5fd1c36df34f25705e",
+      "byteIdentical": true
+    },
+    {
+      "path": "openings/human-book-paths-lichess_1600_rapid_2026-07.json",
+      "sourceSha256": "0064f5644b1f9d45ff9b4960de86fbac1f85c7117781377b3bf2cfdd9dd585c7",
+      "researchSha256": "0064f5644b1f9d45ff9b4960de86fbac1f85c7117781377b3bf2cfdd9dd585c7",
+      "byteIdentical": true
+    },
+    {
+      "path": "openings/human-sample.json",
+      "sourceSha256": "64034d95fd234ce28149cc1ba06b447190b964acdcd63547ce2979c045e2093a",
+      "researchSha256": "64034d95fd234ce28149cc1ba06b447190b964acdcd63547ce2979c045e2093a",
+      "byteIdentical": true
+    },
+    {
+      "path": "openings/model_sensitivity.py",
+      "sourceSha256": "3a468b26e38f2af5e665198b7b593973958a337045b7c22ec62d5e02cd44435e",
+      "researchSha256": "3a468b26e38f2af5e665198b7b593973958a337045b7c22ec62d5e02cd44435e",
+      "byteIdentical": true
+    },
+    {
+      "path": "openings/recompute-smoke.json",
+      "sourceSha256": "5d82d69ff54b6f532562cef13ea294db482878ecdd6f706f458fce43856d8c7c",
+      "researchSha256": "5d82d69ff54b6f532562cef13ea294db482878ecdd6f706f458fce43856d8c7c",
+      "byteIdentical": true
+    },
+    {
+      "path": "openings/recompute_fixture.py",
+      "sourceSha256": "dbca98e28e5e54932fef8c0542825403384be26dd502c561668096594d2421e7",
+      "researchSha256": "dbca98e28e5e54932fef8c0542825403384be26dd502c561668096594d2421e7",
+      "byteIdentical": true
+    },
+    {
+      "path": "openings/reproduction-check-path.json",
+      "sourceSha256": "a184a3a46635451757ee03b94487066a00e507510bb7f56631a8c3b746b2a5bc",
+      "researchSha256": "a184a3a46635451757ee03b94487066a00e507510bb7f56631a8c3b746b2a5bc",
+      "byteIdentical": true
+    },
+    {
+      "path": "openings/requirements-lock.txt",
+      "sourceSha256": "52f096a59cd377a5b12abaa0141a40891ea9d9a28197d0c43fdb6b9025825f0c",
+      "researchSha256": "52f096a59cd377a5b12abaa0141a40891ea9d9a28197d0c43fdb6b9025825f0c",
+      "byteIdentical": true
+    },
+    {
+      "path": "openings/rollout-validation.json",
+      "sourceSha256": "c8feb36c9c36f5443377665fa0cc83884ea3d6f04d12d4722082fac1bd94f4e0",
+      "researchSha256": "c8feb36c9c36f5443377665fa0cc83884ea3d6f04d12d4722082fac1bd94f4e0",
+      "byteIdentical": true
+    },
+    {
+      "path": "openings/rollouts.json",
+      "sourceSha256": "72764af564e51e35b1eb636649aa62f8e60e320772a9ec44e54919bf5e1227e6",
+      "researchSha256": "72764af564e51e35b1eb636649aa62f8e60e320772a9ec44e54919bf5e1227e6",
+      "byteIdentical": true
+    },
+    {
+      "path": "openings/run.json",
+      "sourceSha256": "9af4752e603b8338ddea21897c94025a099cab18522200da81fc18dd2d602264",
+      "researchSha256": "9af4752e603b8338ddea21897c94025a099cab18522200da81fc18dd2d602264",
+      "byteIdentical": true
+    },
+    {
+      "path": "openings/sample_two_ply.py",
+      "sourceSha256": "1c06122a6b7c2ff39cdf46b0877e396803cf8b903e42582507a4e20faa812104",
+      "researchSha256": "1c06122a6b7c2ff39cdf46b0877e396803cf8b903e42582507a4e20faa812104",
+      "byteIdentical": true
+    },
+    {
+      "path": "openings/source/api-schema-meta.json",
+      "sourceSha256": "4a7a6bb456f5bfe46884034e5c34bf445a1f21b77d84f524d7c701ad67ba08fb",
+      "researchSha256": "4a7a6bb456f5bfe46884034e5c34bf445a1f21b77d84f524d7c701ad67ba08fb",
+      "byteIdentical": true
+    },
+    {
+      "path": "openings/source/api.yaml",
+      "sourceSha256": "9a08ce578f809f42dc4188f7cb5f6233be5290c3e9778199b899a9990205de90",
+      "researchSha256": "9a08ce578f809f42dc4188f7cb5f6233be5290c3e9778199b899a9990205de90",
+      "byteIdentical": true
+    },
+    {
+      "path": "openings/source/book_builder.py",
+      "sourceSha256": "74bf9a1b5f6af7dfcf4d26f3d1b95e706e69e88e1b474f001081f536a4c613a6",
+      "researchSha256": "74bf9a1b5f6af7dfcf4d26f3d1b95e706e69e88e1b474f001081f536a4c613a6",
+      "byteIdentical": true
+    },
+    {
+      "path": "openings/source/lichess.rs",
+      "sourceSha256": "30d42f61ee33e0e10de85f4f1485f15da4b10f1e034917135fba91758308b9b3",
+      "researchSha256": "30d42f61ee33e0e10de85f4f1485f15da4b10f1e034917135fba91758308b9b3",
+      "byteIdentical": true
+    },
+    {
+      "path": "openings/source/lichess_1600_blitz_2026-05.json",
+      "sourceSha256": "4d2e54354bf33f4a0b1bb81e2831336ace96734b6c163004b9bc8da48914b904",
+      "researchSha256": "4d2e54354bf33f4a0b1bb81e2831336ace96734b6c163004b9bc8da48914b904",
+      "byteIdentical": true
+    },
+    {
+      "path": "openings/source/lichess_1600_rapid_2026-05.json",
+      "sourceSha256": "30f6481a23c3bb3123b124f6ccb043dea1ac017fd2e1b979528e3fc4bbc83f1d",
+      "researchSha256": "30f6481a23c3bb3123b124f6ccb043dea1ac017fd2e1b979528e3fc4bbc83f1d",
+      "byteIdentical": true
+    },
+    {
+      "path": "openings/source/lichess_1600_rapid_2026-07.json",
+      "sourceSha256": "175dc346de775f6fc92ce47c646c9b11a84a9396fe1c79b39b2bdb0bf11be097",
+      "researchSha256": "175dc346de775f6fc92ce47c646c9b11a84a9396fe1c79b39b2bdb0bf11be097",
+      "byteIdentical": true
+    },
+    {
+      "path": "openings/source/lichess_openings.tsv",
+      "sourceSha256": "a91978578a76fc52e2aab69f333608a9195eefc70ca5c8fc66a8bd999a4f73c1",
+      "researchSha256": "a91978578a76fc52e2aab69f333608a9195eefc70ca5c8fc66a8bd999a4f73c1",
+      "byteIdentical": true
+    },
+    {
+      "path": "openings/source/selection.json",
+      "sourceSha256": "924580586cc7421c09040393e288ed6bb3a8f18256592ee0cdb680c043d25825",
+      "researchSha256": "924580586cc7421c09040393e288ed6bb3a8f18256592ee0cdb680c043d25825",
+      "byteIdentical": true
+    },
+    {
+      "path": "openings/source/tree-01.json",
+      "sourceSha256": "6d69d2f0dbb83bbc9be9b4ead124fe71141980b11b6a6b8d495ea54c57d79dd9",
+      "researchSha256": "6d69d2f0dbb83bbc9be9b4ead124fe71141980b11b6a6b8d495ea54c57d79dd9",
+      "byteIdentical": true
+    },
+    {
+      "path": "openings/source/tree-04.json",
+      "sourceSha256": "9494db51a13fa0046cb24c91de374c8e4b785c928f77e640d1c19e9c7ff7f55f",
+      "researchSha256": "9494db51a13fa0046cb24c91de374c8e4b785c928f77e640d1c19e9c7ff7f55f",
+      "byteIdentical": true
+    },
+    {
+      "path": "openings/source/tree-07.json",
+      "sourceSha256": "a7107b6b4c78f630ce1cd9c4625e5a9828465baffacf6847033a9adecdc1cc36",
+      "researchSha256": "a7107b6b4c78f630ce1cd9c4625e5a9828465baffacf6847033a9adecdc1cc36",
+      "byteIdentical": true
+    },
+    {
+      "path": "openings/source/tree-09.json",
+      "sourceSha256": "c313c8b624de7c5c0c2993e81cb72e938f8c55c2b44859ca7012698c26e75621",
+      "researchSha256": "c313c8b624de7c5c0c2993e81cb72e938f8c55c2b44859ca7012698c26e75621",
+      "byteIdentical": true
+    },
+    {
+      "path": "openings/summary-5m.json",
+      "sourceSha256": "71fbbb4d25c3cb6442f0df255ea31ae8bb36ac97a5673c89e5f5e3f4ea63cfb8",
+      "researchSha256": "71fbbb4d25c3cb6442f0df255ea31ae8bb36ac97a5673c89e5f5e3f4ea63cfb8",
+      "byteIdentical": true
+    },
+    {
+      "path": "openings/summary.json",
+      "sourceSha256": "a9a49bbb024cae29feca3e87d7c44913c0bb3adbfbeee0c19e290cd3bb1bfe76",
+      "researchSha256": "a9a49bbb024cae29feca3e87d7c44913c0bb3adbfbeee0c19e290cd3bb1bfe76",
+      "byteIdentical": true
+    },
+    {
+      "path": "publication-integrity.json",
+      "sourceSha256": "be567a79596663caa17fe4867a24223d533c86faa163345dd5ed4cd853385951",
+      "researchSha256": "be567a79596663caa17fe4867a24223d533c86faa163345dd5ed4cd853385951",
+      "byteIdentical": true
+    },
+    {
+      "path": "publication-validation.json",
+      "sourceSha256": "a2926ea7993398f458acf983782e68b978a9010b630847ef08cb41604dec27a4",
+      "researchSha256": "a2926ea7993398f458acf983782e68b978a9010b630847ef08cb41604dec27a4",
+      "byteIdentical": true
+    },
+    {
+      "path": "sources/literature/issue14.json",
+      "sourceSha256": "f9fcf8f6d2c78b25bb02ed9dfd2075a3ecd5d6759c215d13ae65dd88accefce9",
+      "researchSha256": "f9fcf8f6d2c78b25bb02ed9dfd2075a3ecd5d6759c215d13ae65dd88accefce9",
+      "byteIdentical": true
+    },
+    {
+      "path": "sources/literature/pr13.json",
+      "sourceSha256": "6267abf9e99f12f2f9a92aa6fab47867e91a47f7539c3037ef51c90586dc97c2",
+      "researchSha256": "6267abf9e99f12f2f9a92aa6fab47867e91a47f7539c3037ef51c90586dc97c2",
+      "byteIdentical": true
+    },
+    {
+      "path": "strength.md",
+      "sourceSha256": "483e432fe5997beb2372f2448ab5752257ef843e5bd6ac89f79d535a091987aa",
+      "researchSha256": "483e432fe5997beb2372f2448ab5752257ef843e5bd6ac89f79d535a091987aa",
+      "byteIdentical": true
+    },
+    {
+      "path": "strength/5m-app-draw/continuation-summary.json",
+      "sourceSha256": "24e35673f09c5f836661dda755ebbdd0a848851197cd59d5214268b3e07e1404",
+      "researchSha256": "24e35673f09c5f836661dda755ebbdd0a848851197cd59d5214268b3e07e1404",
+      "byteIdentical": true
+    },
+    {
+      "path": "strength/5m-app-draw/games.jsonl",
+      "sourceSha256": "8559edda88ead8448c784a612cf7708c30e470b7244d3cf530c9bf39f56c1647",
+      "researchSha256": "8559edda88ead8448c784a612cf7708c30e470b7244d3cf530c9bf39f56c1647",
+      "byteIdentical": true
+    },
+    {
+      "path": "strength/5m-app-draw/games.pgn",
+      "sourceSha256": "d1da0d2313774c6994ca5adac280dfed0fb110b63561675f5e6945a2403dac85",
+      "researchSha256": "d1da0d2313774c6994ca5adac280dfed0fb110b63561675f5e6945a2403dac85",
+      "byteIdentical": true
+    },
+    {
+      "path": "strength/5m-app-draw/manifest.json",
+      "sourceSha256": "d3a3a881f04f129acee2935cccf1c1d7e26757b065980a0595e31fce9ee33e0a",
+      "researchSha256": "d3a3a881f04f129acee2935cccf1c1d7e26757b065980a0595e31fce9ee33e0a",
+      "byteIdentical": true
+    },
+    {
+      "path": "strength/5m/games.jsonl",
+      "sourceSha256": "885c7c84c1332280f4cd31dd039a54aecd4ca2f4455301efa77617e24b6cc691",
+      "researchSha256": "885c7c84c1332280f4cd31dd039a54aecd4ca2f4455301efa77617e24b6cc691",
+      "byteIdentical": true
+    },
+    {
+      "path": "strength/5m/games.pgn",
+      "sourceSha256": "6de3d20205e257ad253771279901b578c449ce4d3f4acc254f520cda689ac56a",
+      "researchSha256": "6de3d20205e257ad253771279901b578c449ce4d3f4acc254f520cda689ac56a",
+      "byteIdentical": true
+    },
+    {
+      "path": "strength/5m/manifest.json",
+      "sourceSha256": "8ff9168c6930ddbb5fe103565aa640cf8cbc21e24bf76986c5d57453764b0880",
+      "researchSha256": "8ff9168c6930ddbb5fe103565aa640cf8cbc21e24bf76986c5d57453764b0880",
+      "byteIdentical": true
+    },
+    {
+      "path": "strength/79m-app-draw/continuation-summary.json",
+      "sourceSha256": "3f46b003d5e8e18cf926051ce5a21f22797482a2800880eb47a1c098b679bc5b",
+      "researchSha256": "3f46b003d5e8e18cf926051ce5a21f22797482a2800880eb47a1c098b679bc5b",
+      "byteIdentical": true
+    },
+    {
+      "path": "strength/79m-app-draw/games.jsonl",
+      "sourceSha256": "832d47b97f5e0f0cab18d00edf2785ea0192e498986d4e982ec69c7d3d50b577",
+      "researchSha256": "832d47b97f5e0f0cab18d00edf2785ea0192e498986d4e982ec69c7d3d50b577",
+      "byteIdentical": true
+    },
+    {
+      "path": "strength/79m-app-draw/games.pgn",
+      "sourceSha256": "25712a5aef8bf17be55f2c1f9c56dd9bda56941c8c90f3b3e5ce7c5d9a6f8df3",
+      "researchSha256": "25712a5aef8bf17be55f2c1f9c56dd9bda56941c8c90f3b3e5ce7c5d9a6f8df3",
+      "byteIdentical": true
+    },
+    {
+      "path": "strength/79m-app-draw/manifest.json",
+      "sourceSha256": "9edfe1e0d755a1f19bc50d90ef6b67473f0bf02f45ea1a2ea8a22924f5acef3b",
+      "researchSha256": "9edfe1e0d755a1f19bc50d90ef6b67473f0bf02f45ea1a2ea8a22924f5acef3b",
+      "byteIdentical": true
+    },
+    {
+      "path": "strength/79m-pair0/games.jsonl",
+      "sourceSha256": "a523292740c6d4b277cd83149edf6c8b886738006ea2e3b14cb027cbce550581",
+      "researchSha256": "a523292740c6d4b277cd83149edf6c8b886738006ea2e3b14cb027cbce550581",
+      "byteIdentical": true
+    },
+    {
+      "path": "strength/79m-pair0/games.pgn",
+      "sourceSha256": "e80490d39f0a0802e218ff7aa555a1f7a267feb6ca0c0b9059874c59d67e6aa3",
+      "researchSha256": "e80490d39f0a0802e218ff7aa555a1f7a267feb6ca0c0b9059874c59d67e6aa3",
+      "byteIdentical": true
+    },
+    {
+      "path": "strength/79m-pair0/manifest.json",
+      "sourceSha256": "a2b9198f3ea87c0deee502aacf2ac3d164fd68ca4959f0966d8df55871f56231",
+      "researchSha256": "a2b9198f3ea87c0deee502aacf2ac3d164fd68ca4959f0966d8df55871f56231",
+      "byteIdentical": true
+    },
+    {
+      "path": "strength/79m-pair1/games.jsonl",
+      "sourceSha256": "6d1f527db97696981e6ca01135342a24d4598b50388605a4dabcda75a94b746d",
+      "researchSha256": "6d1f527db97696981e6ca01135342a24d4598b50388605a4dabcda75a94b746d",
+      "byteIdentical": true
+    },
+    {
+      "path": "strength/79m-pair1/games.pgn",
+      "sourceSha256": "beaf2f1714f88876630467b73705177d8b5970cdc3e6a93936ececeddb2de47f",
+      "researchSha256": "beaf2f1714f88876630467b73705177d8b5970cdc3e6a93936ececeddb2de47f",
+      "byteIdentical": true
+    },
+    {
+      "path": "strength/79m-pair1/manifest.json",
+      "sourceSha256": "56b4101b667ac111b2642c413176d91f38eb31b0ba8f24103221af9920d3bdd5",
+      "researchSha256": "56b4101b667ac111b2642c413176d91f38eb31b0ba8f24103221af9920d3bdd5",
+      "byteIdentical": true
+    },
+    {
+      "path": "strength/79m-pair2/games.jsonl",
+      "sourceSha256": "79c5d9d6ff92d8fb0b1ebb7087f71ecd5f4a8298a545beba5b609b1fe831323e",
+      "researchSha256": "79c5d9d6ff92d8fb0b1ebb7087f71ecd5f4a8298a545beba5b609b1fe831323e",
+      "byteIdentical": true
+    },
+    {
+      "path": "strength/79m-pair2/games.pgn",
+      "sourceSha256": "3967fcda3565552b4fcecfc39b4424ee0166e1a8c0aa526c013016c6d79d0699",
+      "researchSha256": "3967fcda3565552b4fcecfc39b4424ee0166e1a8c0aa526c013016c6d79d0699",
+      "byteIdentical": true
+    },
+    {
+      "path": "strength/79m-pair2/manifest.json",
+      "sourceSha256": "bcb024840781e5055fc4f670c4ef7fa1343438cb559e12bf78520eaeb4fcd5ad",
+      "researchSha256": "bcb024840781e5055fc4f670c4ef7fa1343438cb559e12bf78520eaeb4fcd5ad",
+      "byteIdentical": true
+    },
+    {
+      "path": "strength/79m-single-knob-app-draw/continuation-summary.json",
+      "sourceSha256": "44b56952f4eb618a000a6ea190d2830d2bc717d017c490e6c476557b6a73a2d9",
+      "researchSha256": "44b56952f4eb618a000a6ea190d2830d2bc717d017c490e6c476557b6a73a2d9",
+      "byteIdentical": true
+    },
+    {
+      "path": "strength/79m-single-knob-app-draw/games.jsonl",
+      "sourceSha256": "16b9990ab5059888fe2e68050d697758acaf0fc53d0477cff63ee9fffed4dd48",
+      "researchSha256": "16b9990ab5059888fe2e68050d697758acaf0fc53d0477cff63ee9fffed4dd48",
+      "byteIdentical": true
+    },
+    {
+      "path": "strength/79m-single-knob-app-draw/games.pgn",
+      "sourceSha256": "b95e15535d0ca4ed22ba53e5dc54e4e4ca2b9692e8a238102354eb0d794e10d3",
+      "researchSha256": "b95e15535d0ca4ed22ba53e5dc54e4e4ca2b9692e8a238102354eb0d794e10d3",
+      "byteIdentical": true
+    },
+    {
+      "path": "strength/79m-single-knob-app-draw/manifest.json",
+      "sourceSha256": "830516c37543e0f33c73d112689811d2ae0a228bee0b68f784bf10440c9a1861",
+      "researchSha256": "830516c37543e0f33c73d112689811d2ae0a228bee0b68f784bf10440c9a1861",
+      "byteIdentical": true
+    },
+    {
+      "path": "strength/79m-temp-only/games.jsonl",
+      "sourceSha256": "1a1ba18d987d4616dbdfda4453dd505357f85541f3f41eae6fbbce6f4bc69342",
+      "researchSha256": "1a1ba18d987d4616dbdfda4453dd505357f85541f3f41eae6fbbce6f4bc69342",
+      "byteIdentical": true
+    },
+    {
+      "path": "strength/79m-temp-only/games.pgn",
+      "sourceSha256": "cd909c31088690f64c88f3324c6a56d843ce25b0cb187763f0720f60b62180fb",
+      "researchSha256": "cd909c31088690f64c88f3324c6a56d843ce25b0cb187763f0720f60b62180fb",
+      "byteIdentical": true
+    },
+    {
+      "path": "strength/79m-temp-only/manifest.json",
+      "sourceSha256": "b8fa6cf03848c520c1098b5e4ba72acb8385b3409a4d710abbba9f9f28c3625e",
+      "researchSha256": "b8fa6cf03848c520c1098b5e4ba72acb8385b3409a4d710abbba9f9f28c3625e",
+      "byteIdentical": true
+    },
+    {
+      "path": "strength/79m-topp-only/games.jsonl",
+      "sourceSha256": "e0f48f4d5511fd1e79e27be784db6c7b254f4318b7fd35143a0a512cb6a5196b",
+      "researchSha256": "e0f48f4d5511fd1e79e27be784db6c7b254f4318b7fd35143a0a512cb6a5196b",
+      "byteIdentical": true
+    },
+    {
+      "path": "strength/79m-topp-only/games.pgn",
+      "sourceSha256": "a6c9b32f6971af187bca65ee3e03bf6be1d38dabf2bc27259c9a87adb1b62f9e",
+      "researchSha256": "a6c9b32f6971af187bca65ee3e03bf6be1d38dabf2bc27259c9a87adb1b62f9e",
+      "byteIdentical": true
+    },
+    {
+      "path": "strength/79m-topp-only/manifest.json",
+      "sourceSha256": "900ce1e87470daa543f5cfaaad5a9ee13fca6a2be72d0641152440c832c7df2c",
+      "researchSha256": "900ce1e87470daa543f5cfaaad5a9ee13fca6a2be72d0641152440c832c7df2c",
+      "byteIdentical": true
+    },
+    {
+      "path": "strength/analysis-method-label.diff",
+      "sourceSha256": "e30488812a6d1b02d400ebde6aa96f3fad697d5e703b01ffe421854bdc2dd6f2",
+      "researchSha256": "e30488812a6d1b02d400ebde6aa96f3fad697d5e703b01ffe421854bdc2dd6f2",
+      "byteIdentical": true
+    },
+    {
+      "path": "strength/analyze_strength.py",
+      "sourceSha256": "afbd5734b6dca95fdae81fa1a60600c9a71fdca97f3aa8fbb1628a58ac44cd34",
+      "researchSha256": "afbd5734b6dca95fdae81fa1a60600c9a71fdca97f3aa8fbb1628a58ac44cd34",
+      "byteIdentical": true
+    },
+    {
+      "path": "strength/analyze_strength_5m_executed.py",
+      "sourceSha256": "44573aeea08d1704de75cb47963f32885f0cbd637e0fd44b5098b7b7766a66f5",
+      "researchSha256": "44573aeea08d1704de75cb47963f32885f0cbd637e0fd44b5098b7b7766a66f5",
+      "byteIdentical": true
+    },
+    {
+      "path": "strength/app_draw_sensitivity.py",
+      "sourceSha256": "2bdc8da4644e973f551f2b9576218e3bdf7e93abffcd4d0ce3e000cac4dd41fd",
+      "researchSha256": "2bdc8da4644e973f551f2b9576218e3bdf7e93abffcd4d0ce3e000cac4dd41fd",
+      "byteIdentical": true
+    },
+    {
+      "path": "strength/app_draw_sensitivity_79m.py",
+      "sourceSha256": "87de948d7a9122c9d2b621d07b182132cfcb42d724bf5ba3ef343a6dae9ca15e",
+      "researchSha256": "87de948d7a9122c9d2b621d07b182132cfcb42d724bf5ba3ef343a6dae9ca15e",
+      "byteIdentical": true
+    },
+    {
+      "path": "strength/check_coverage_seeds.py",
+      "sourceSha256": "fef6ffa3f76dd2c499dbcaa11c9673cc76fb232c66049e3a70ac95ee973a3ee7",
+      "researchSha256": "fef6ffa3f76dd2c499dbcaa11c9673cc76fb232c66049e3a70ac95ee973a3ee7",
+      "byteIdentical": true
+    },
+    {
+      "path": "strength/coverage-seed-integrity.json",
+      "sourceSha256": "5bd84074422ae8687daeebb76e0cc357bd396f2d680f23b3402a5505f07da580",
+      "researchSha256": "5bd84074422ae8687daeebb76e0cc357bd396f2d680f23b3402a5505f07da580",
+      "byteIdentical": true
+    },
+    {
+      "path": "strength/final-source-integrity.json",
+      "sourceSha256": "a930a4f988e4f5ee41ab9aa67f5ced4133dd19ffc7ff4f2fca0bbd47c2fc1528",
+      "researchSha256": "a930a4f988e4f5ee41ab9aa67f5ced4133dd19ffc7ff4f2fca0bbd47c2fc1528",
+      "byteIdentical": true
+    },
+    {
+      "path": "strength/integrity-5m-app-draw.json",
+      "sourceSha256": "9edd44aa9a652d7805ae4f5740fda3f47840a123a5e215ff3efa733e8e2000da",
+      "researchSha256": "9edd44aa9a652d7805ae4f5740fda3f47840a123a5e215ff3efa733e8e2000da",
+      "byteIdentical": true
+    },
+    {
+      "path": "strength/integrity-5m.json",
+      "sourceSha256": "87c421e5803206d8d64d3c3ac68b6e6ba81497b313857f1a43acb8a7ca9a4612",
+      "researchSha256": "87c421e5803206d8d64d3c3ac68b6e6ba81497b313857f1a43acb8a7ca9a4612",
+      "byteIdentical": true
+    },
+    {
+      "path": "strength/integrity-79m-app-draw.json",
+      "sourceSha256": "2ce6427f706a9f8c523b745f89af591f8cb8d854251156c4c3aa865e5f9aa567",
+      "researchSha256": "2ce6427f706a9f8c523b745f89af591f8cb8d854251156c4c3aa865e5f9aa567",
+      "byteIdentical": true
+    },
+    {
+      "path": "strength/integrity-79m.json",
+      "sourceSha256": "6101855a238fb3eefb4557f968fcaeb4b124c70823c5efb9b9f51f439e0e6050",
+      "researchSha256": "6101855a238fb3eefb4557f968fcaeb4b124c70823c5efb9b9f51f439e0e6050",
+      "byteIdentical": true
+    },
+    {
+      "path": "strength/integrity-pair0.json",
+      "sourceSha256": "51815d44d871033b72ee86ba868a86ad14db58a442d69c7b46dd562fb3127f94",
+      "researchSha256": "51815d44d871033b72ee86ba868a86ad14db58a442d69c7b46dd562fb3127f94",
+      "byteIdentical": true
+    },
+    {
+      "path": "strength/integrity-single-knob-app-draw.json",
+      "sourceSha256": "4c2cfa75317f3c1dacc4a07ce7eead3e05655214136b2a3993461304825e7266",
+      "researchSha256": "4c2cfa75317f3c1dacc4a07ce7eead3e05655214136b2a3993461304825e7266",
+      "byteIdentical": true
+    },
+    {
+      "path": "strength/integrity-single-knob.json",
+      "sourceSha256": "abedbc6e2f7efc01db99da9b312b4565790730b42710b699ec0e1be3c012333f",
+      "researchSha256": "abedbc6e2f7efc01db99da9b312b4565790730b42710b699ec0e1be3c012333f",
+      "byteIdentical": true
+    },
+    {
+      "path": "strength/integrity-temp-only.json",
+      "sourceSha256": "059f107b83dd83973c76e9de8eb0181456791b40cc9509bdcf217a9d80e3124f",
+      "researchSha256": "059f107b83dd83973c76e9de8eb0181456791b40cc9509bdcf217a9d80e3124f",
+      "byteIdentical": true
+    },
+    {
+      "path": "strength/lfs5-response.json",
+      "sourceSha256": "09e138d556058db3539de125c3394d3fcbed95ce1ef1b3b84b9cc790964f10a2",
+      "researchSha256": "09e138d556058db3539de125c3394d3fcbed95ce1ef1b3b84b9cc790964f10a2",
+      "byteIdentical": true
+    },
+    {
+      "path": "strength/mobile_policy.py",
+      "sourceSha256": "8e3f203b9f26b3ce0a7b01b8cf22101a23cb4339306c4f4d3d8df8794cb0bc98",
+      "researchSha256": "8e3f203b9f26b3ce0a7b01b8cf22101a23cb4339306c4f4d3d8df8794cb0bc98",
+      "byteIdentical": true
+    },
+    {
+      "path": "strength/model5-upstream-metadata.json",
+      "sourceSha256": "896bdc58118c33b7087d9428af7a10e86cacbbcf87413e3c713033a498255d9e",
+      "researchSha256": "896bdc58118c33b7087d9428af7a10e86cacbbcf87413e3c713033a498255d9e",
+      "byteIdentical": true
+    },
+    {
+      "path": "strength/model5-upstream-tree.json",
+      "sourceSha256": "80e5a1539e7ba8d7ad5e5e382f4bc28ba816ab7a19aa43f6904e03701fb4f753",
+      "researchSha256": "80e5a1539e7ba8d7ad5e5e382f4bc28ba816ab7a19aa43f6904e03701fb4f753",
+      "byteIdentical": true
+    },
+    {
+      "path": "strength/parity.json",
+      "sourceSha256": "fd2108bb5e738cce786c3ab0de9c55b66361d46538f339999fd7e7ffcf5214e5",
+      "researchSha256": "fd2108bb5e738cce786c3ab0de9c55b66361d46538f339999fd7e7ffcf5214e5",
+      "byteIdentical": true
+    },
+    {
+      "path": "strength/pilot-replay-check.json",
+      "sourceSha256": "1bb8a887bd5f717ec23c69012991b38417e2932e9adcd1180740a5d11591d98a",
+      "researchSha256": "1bb8a887bd5f717ec23c69012991b38417e2932e9adcd1180740a5d11591d98a",
+      "byteIdentical": true
+    },
+    {
+      "path": "strength/portable-continuation-seed.diff",
+      "sourceSha256": "4bbb65291a6d33317b84afa6d4628f8ae8ad668c0e716030fdecf65604607ba8",
+      "researchSha256": "4bbb65291a6d33317b84afa6d4628f8ae8ad668c0e716030fdecf65604607ba8",
+      "byteIdentical": true
+    },
+    {
+      "path": "strength/portable-parity.json",
+      "sourceSha256": "fd2108bb5e738cce786c3ab0de9c55b66361d46538f339999fd7e7ffcf5214e5",
+      "researchSha256": "fd2108bb5e738cce786c3ab0de9c55b66361d46538f339999fd7e7ffcf5214e5",
+      "byteIdentical": true
+    },
+    {
+      "path": "strength/portable/README.md",
+      "sourceSha256": "09a06d617bf7401e7bb6eb488f322ebd916ab81a01a02ccb6490745ecfc985b2",
+      "researchSha256": "09a06d617bf7401e7bb6eb488f322ebd916ab81a01a02ccb6490745ecfc985b2",
+      "byteIdentical": true
+    },
+    {
+      "path": "strength/portable/analyze_strength.py",
+      "sourceSha256": "afbd5734b6dca95fdae81fa1a60600c9a71fdca97f3aa8fbb1628a58ac44cd34",
+      "researchSha256": "afbd5734b6dca95fdae81fa1a60600c9a71fdca97f3aa8fbb1628a58ac44cd34",
+      "byteIdentical": true
+    },
+    {
+      "path": "strength/portable/app_draw_sensitivity.py",
+      "sourceSha256": "87de948d7a9122c9d2b621d07b182132cfcb42d724bf5ba3ef343a6dae9ca15e",
+      "researchSha256": "87de948d7a9122c9d2b621d07b182132cfcb42d724bf5ba3ef343a6dae9ca15e",
+      "byteIdentical": true
+    },
+    {
+      "path": "strength/portable/mobile_policy.py",
+      "sourceSha256": "766ef7263fb4a7b487eb850e1a07995a8b62b25f8f16f5e8b68e4665fb9b4131",
+      "researchSha256": "766ef7263fb4a7b487eb850e1a07995a8b62b25f8f16f5e8b68e4665fb9b4131",
+      "byteIdentical": true
+    },
+    {
+      "path": "strength/portable/reference/maia3_reference.dart",
+      "sourceSha256": "5d5f59bd71ee8cf696358e0ab5fd6d554081f86dc61f501e6156021ea0366b6c",
+      "researchSha256": "5d5f59bd71ee8cf696358e0ab5fd6d554081f86dc61f501e6156021ea0366b6c",
+      "byteIdentical": true
+    },
+    {
+      "path": "strength/portable/requirements.lock",
+      "sourceSha256": "1a369c8a1fe49eb622cc74961a3d963d6033eee375470912359322bc54043009",
+      "researchSha256": "1a369c8a1fe49eb622cc74961a3d963d6033eee375470912359322bc54043009",
+      "byteIdentical": true
+    },
+    {
+      "path": "strength/portable/run_strength.py",
+      "sourceSha256": "8d13ee49b92a49a5b6248a49d7940330a76dd7da8e99053a48280f63d5fe62de",
+      "researchSha256": "8d13ee49b92a49a5b6248a49d7940330a76dd7da8e99053a48280f63d5fe62de",
+      "byteIdentical": true
+    },
+    {
+      "path": "strength/portable/run_supplement.py",
+      "sourceSha256": "19852f7dca0ec1b88534712f59f32df712a3c113f0cd10fa18b91914189390f4",
+      "researchSha256": "19852f7dca0ec1b88534712f59f32df712a3c113f0cd10fa18b91914189390f4",
+      "byteIdentical": true
+    },
+    {
+      "path": "strength/portable/verify_games.py",
+      "sourceSha256": "eeaf43bc6063453275d753c52b3ce89836187251ec55afa8b6e684c978a909c8",
+      "researchSha256": "eeaf43bc6063453275d753c52b3ce89836187251ec55afa8b6e684c978a909c8",
+      "byteIdentical": true
+    },
+    {
+      "path": "strength/portable/verify_policy.py",
+      "sourceSha256": "2370e61b9a3e56561df6ad64d6183d6f9a3b7ea9bb4ca32954907a43d5a47665",
+      "researchSha256": "2370e61b9a3e56561df6ad64d6183d6f9a3b7ea9bb4ca32954907a43d5a47665",
+      "byteIdentical": true
+    },
+    {
+      "path": "strength/portable/verify_sensitivity.py",
+      "sourceSha256": "65c8c90ac4d6bd53bb42b0f415b1042296f752c5103c5a2b4158c8e7a164f992",
+      "researchSha256": "65c8c90ac4d6bd53bb42b0f415b1042296f752c5103c5a2b4158c8e7a164f992",
+      "byteIdentical": true
+    },
+    {
+      "path": "strength/requirements.lock",
+      "sourceSha256": "1a369c8a1fe49eb622cc74961a3d963d6033eee375470912359322bc54043009",
+      "researchSha256": "1a369c8a1fe49eb622cc74961a3d963d6033eee375470912359322bc54043009",
+      "byteIdentical": true
+    },
+    {
+      "path": "strength/results-5m-app-draw.json",
+      "sourceSha256": "921fe80e2000e7bd64521ec2a51edef8a9ce01b66208bddae2fb1739c874ee04",
+      "researchSha256": "921fe80e2000e7bd64521ec2a51edef8a9ce01b66208bddae2fb1739c874ee04",
+      "byteIdentical": true
+    },
+    {
+      "path": "strength/results-5m.json",
+      "sourceSha256": "28b509dd30e0c39dc5239a7a9c2422386596526d998a2b220570c96291e081d9",
+      "researchSha256": "28b509dd30e0c39dc5239a7a9c2422386596526d998a2b220570c96291e081d9",
+      "byteIdentical": true
+    },
+    {
+      "path": "strength/results-79m-app-draw.json",
+      "sourceSha256": "6f318e9026b605dd72873590cf72f3131372c1c3132dd723aa63689de847f946",
+      "researchSha256": "6f318e9026b605dd72873590cf72f3131372c1c3132dd723aa63689de847f946",
+      "byteIdentical": true
+    },
+    {
+      "path": "strength/results-79m.json",
+      "sourceSha256": "dbb7ed515f819aa3320ad8514c787799f9087415d8086b866fc9b6a31a0b65b9",
+      "researchSha256": "dbb7ed515f819aa3320ad8514c787799f9087415d8086b866fc9b6a31a0b65b9",
+      "byteIdentical": true
+    },
+    {
+      "path": "strength/results-single-knob-app-draw.json",
+      "sourceSha256": "6dc506598ad60cb020e472bf8278beb24f852198a6b2de15110ad63592d24371",
+      "researchSha256": "6dc506598ad60cb020e472bf8278beb24f852198a6b2de15110ad63592d24371",
+      "byteIdentical": true
+    },
+    {
+      "path": "strength/results-single-knob.json",
+      "sourceSha256": "ebfc2b1c8e8586f0483c92c3a3e9f83bdf369880ae336aed63830f701016db40",
+      "researchSha256": "ebfc2b1c8e8586f0483c92c3a3e9f83bdf369880ae336aed63830f701016db40",
+      "byteIdentical": true
+    },
+    {
+      "path": "strength/run_strength.py",
+      "sourceSha256": "8d13ee49b92a49a5b6248a49d7940330a76dd7da8e99053a48280f63d5fe62de",
+      "researchSha256": "8d13ee49b92a49a5b6248a49d7940330a76dd7da8e99053a48280f63d5fe62de",
+      "byteIdentical": true
+    },
+    {
+      "path": "strength/run_supplement.py",
+      "sourceSha256": "19852f7dca0ec1b88534712f59f32df712a3c113f0cd10fa18b91914189390f4",
+      "researchSha256": "19852f7dca0ec1b88534712f59f32df712a3c113f0cd10fa18b91914189390f4",
+      "byteIdentical": true
+    },
+    {
+      "path": "strength/source-pins.json",
+      "sourceSha256": "0338fabecf5c232b31ff9d6b0cec5b8cffc7bd4d77f0175e11d278e9953327b5",
+      "researchSha256": "0338fabecf5c232b31ff9d6b0cec5b8cffc7bd4d77f0175e11d278e9953327b5",
+      "byteIdentical": true
+    },
+    {
+      "path": "strength/statistics-selfcheck.json",
+      "sourceSha256": "268a054b7ee223723c0aa51c3fed41345e425c9c636c91d17ed1ee85848551d8",
+      "researchSha256": "268a054b7ee223723c0aa51c3fed41345e425c9c636c91d17ed1ee85848551d8",
+      "byteIdentical": true
+    },
+    {
+      "path": "strength/verify_games.py",
+      "sourceSha256": "eeaf43bc6063453275d753c52b3ce89836187251ec55afa8b6e684c978a909c8",
+      "researchSha256": "eeaf43bc6063453275d753c52b3ce89836187251ec55afa8b6e684c978a909c8",
+      "byteIdentical": true
+    },
+    {
+      "path": "strength/verify_policy.py",
+      "sourceSha256": "096a314d85c11ab3a3a567477723a5f22aa93a0e2582baca2aef10563f9634b7",
+      "researchSha256": "096a314d85c11ab3a3a567477723a5f22aa93a0e2582baca2aef10563f9634b7",
+      "byteIdentical": true
+    },
+    {
+      "path": "strength/verify_sensitivity.py",
+      "sourceSha256": "65c8c90ac4d6bd53bb42b0f415b1042296f752c5103c5a2b4158c8e7a164f992",
+      "researchSha256": "65c8c90ac4d6bd53bb42b0f415b1042296f752c5103c5a2b4158c8e7a164f992",
+      "byteIdentical": true
+    },
+    {
+      "path": "validate_openings.py",
+      "sourceSha256": "aff420d6e8345dc9c045ed86f64e85c86c0ba83c9364669e0da21a0944847a7b",
+      "researchSha256": "aff420d6e8345dc9c045ed86f64e85c86c0ba83c9364669e0da21a0944847a7b",
+      "byteIdentical": true
+    }
+  ]
+}

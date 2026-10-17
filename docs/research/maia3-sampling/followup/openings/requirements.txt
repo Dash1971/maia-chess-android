@@ -1,4 +1,0 @@
-numpy==2.5.3
-onnxruntime==1.30.0
-chess==1.11.2
-python-chess==1.999
