@@ -32,6 +32,12 @@ from the resolved graph blocks the audit. Known active advisories, unresolved de
 malformed responses or persistent network errors fail the job. Fix or review
 findings; do not turn an unavailable advisory service into a clean result.
 
+Before Gradle executes, CI also runs `tool/verify_gradle_wrapper.py` to enforce
+our reviewed distribution and checksum. The October 2026 Gradle advisories
+were initially absent from OSV's exact-version result; a green advisory query
+must never override a known upstream advisory. Keep this offline guard when
+promoting Preview and update its pin only with a qualified toolchain change.
+
 This checks published package advisories, not every vulnerability. Flutter/Dart
 SDKs, bundled native engine internals, models and the complete build-tool
 transitive graph still need the upstream review above. It is not a source audit,
