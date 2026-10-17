@@ -6,7 +6,7 @@ its exact source SHA, tests, hashes, signing identity and remaining limitations.
 
 | Channel | Version / status | Package and model | Scope |
 | --- | --- | --- | --- |
-| [Stable](https://github.com/Dash1971/maia-chess-android/releases) | Published 2.3.0; 2.4.0+81 prepared in this PR, not published | `com.dash1971.maia_chess`, 79M | Production app; use Stable's release guide for GitHub, Zapstore and F-Droid. |
+| [Stable](https://github.com/Dash1971/maia-chess-android/releases) | [2.4.0/code 81 published on GitHub](https://github.com/Dash1971/maia-chess-android/releases/tag/v2.4.0); see [store status](https://github.com/Dash1971/maia-chess-android/pull/54#issuecomment-6233972011) | `com.dash1971.maia_chess`, 79M | Production app; use Stable's release guide for GitHub, Zapstore and F-Droid. |
 | [Preview](https://github.com/Dash1971/maia-chess-android-preview/releases) | Published [2.4.0-beta.15](https://github.com/Dash1971/maia-chess-android-preview/releases/tag/v2.4.0-beta.15), code 2417 | `com.dash1971.maia_chess.preview`, 79M | Maia help/history experiment and Chessnut improvements. Grand Kingdom and DGT are disabled. |
 | [Dev](https://github.com/Dash1971/maia-chess-android-preview-dev/releases/tag/v2.4.0-alpha.2-dev) | Published 2.4.0-alpha.2-dev, code 2402 | `com.dash1971.maia_chess.preview.dev`, 5M | Prototype Grand Kingdom/DGT work remains here. This release retains the previous, longer history subtitle. |
 
@@ -36,7 +36,7 @@ installations update in place using the established Preview certificate.
 - Physical Chessnut acceptance remains with the owner/testers. Automated tests
   cannot confirm radio reliability, physical LEDs or button behavior on hardware.
 
-## Opening-variety candidate for Stable 2.4
+## Opening variety promoted in Stable 2.4
 
 Beta.15 (2417) is published for #152, superseding beta.14 as the intended
 final candidate. It adds optional full sampling through move 5, then the user's
@@ -44,7 +44,8 @@ configured Temperature/Top-P from move 6. New games freeze their sampling
 configuration; older saves never silently opt in. JSONL records effective and
 configured values, while HTML uses the existing effective probability display.
 No new inference, model, engine or board-support changes. Exact-source CI,
-independent Linux build comparison and signed Android qualification passed. Stable 2.4 stays unpublished pending owner acceptance.
+independent Linux build comparison and signed Android qualification passed.
+This behavior is now promoted into Stable 2.4.0 after owner acceptance.
 
 ## Beta.14 baseline for Stable 2.4
 
@@ -55,9 +56,9 @@ play example now recommends Temperature 1.0 and Top-P 0.95. Settings defaults,
 models and sampling behavior are unchanged.
 
 The release PR records exact-source CI, independent Linux reproduction, signed
-upgrade and Android checks before publication. After owner acceptance, Stable
-2.4 should promote this app behavior and qualified toolchain; a newly discovered
-app fix requires another tested Preview candidate. Stable packaging, metadata,
+upgrade and Android checks before publication. Stable 2.4 promotes this app
+behavior and qualified toolchain together with beta.15 opening variety. Future
+app fixes require their own tested Preview candidate. Stable packaging, metadata,
 signing and F-Droid/Zapstore release checks remain separate obligations.
 
 ## Stable 2.4 promotion boundary
@@ -95,10 +96,17 @@ Shared Chessnut discovery/lifecycle code remains active and must still be tested
 If the prototypes remain unmaintained long-term, review their separation/removal
 as planned cleanup rather than enabling them to finish a release.
 
-The Stable 2.4 preparation includes PR #53’s Gradle 9.8.1 fix and checksum
-guard, resolving the findings in the [2026-10-17 upstream review](dependency-audit-2026-10-17.md).
-The final merged Stable source still needs its own release qualification; passing
-Preview checks or an advisory query does not replace that qualification.
+Stable 2.4 includes PR #53’s Gradle 9.8.1 fix and checksum guard, incorporated
+through #54, resolving the findings in the
+[2026-10-17 upstream review](dependency-audit-2026-10-17.md). The final released
+source is `b35b2078116f56323439b25c0fbc184b53135780` (PRs #54 and #55).
+Its own release qualification passed, including exact-source CI, independent
+canonical F-Droid build/scans, matching unsigned APKs, signature reconstruction
+and signed Android checks. The
+[verification bundle](https://github.com/Dash1971/maia-chess-android/releases/download/v2.4.0/Mobile-Maia-v2.4.0-verification.zip)
+and [live distribution record](https://github.com/Dash1971/maia-chess-android/pull/54#issuecomment-6233972011)
+keep build qualification separate from store publication. Later documentation
+commits do not change the immutable release tag or APK.
 
 ## Dev limitations
 
