@@ -152,6 +152,13 @@ class AppLocalizationsKo extends AppLocalizations {
   String get topP => 'Top-P';
 
   @override
+  String get maxOpeningVariety => '오프닝 다양성 최대화';
+
+  @override
+  String get maxOpeningVarietyHelp =>
+      '온도와 Top-P가 기본값인 1.0 / 1.0이면 필요하지 않습니다. 양측이 각각 처음 다섯 수를 둘 때는 1.0 / 1.0을 사용하고, 여섯 번째 수부터는 설정한 값으로 돌아갑니다.\n\nMaia의 오프닝을 최대한 다양하게 하면서, 이후에는 온도나 Top-P를 낮춰 확률이 낮은 수를 선택할 가능성을 줄임으로써 더 강한 플레이를 할 수 있도록 하는 것이 목적입니다.';
+
+  @override
   String get maiaAnalysisRating => 'Maia 분석 레이팅';
 
   @override
@@ -168,7 +175,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get gameAnalysisQuality => '대국 분석 품질';
 
   @override
-  String get resetEngineDefaults => '엔진 기본값 복원';
+  String get resetSettingsDefaults => '설정을 기본값으로 초기화';
 
   @override
   String get boardSounds => '전자 보드 알림음';
@@ -875,10 +882,13 @@ class AppLocalizationsKo extends AppLocalizations {
   String get samplingTitle => '온도와 Top-P';
 
   @override
-  String get samplingDefaultsQuestion => '왜 온도와 Top-P를 1.00으로 설정하나요?';
+  String get samplingDefaultsQuestion => '원하는 수의 다양성을 선택하세요';
 
   @override
-  String get samplingResearch => '샘플링 연구 읽기';
+  String get samplingResearch => '전체 연구 데이터 (JSONL)';
+
+  @override
+  String get samplingResearchLink => '전체 연구 데이터 (영어)';
 
   @override
   String get close => '닫기';
@@ -897,22 +907,6 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get mobileMaiaSource => 'Mobile Maia 소스 코드';
-
-  @override
-  String get samplingFullRange =>
-      '이 설정은 Maia가 예측한 사람의 수를 폭넓게 사용하도록 합니다. 1600 설정의 테스트에서는 오프닝 선택이 같은 레이팅 범위의 Lichess 대국에 훨씬 가까웠습니다.';
-
-  @override
-  String get samplingStrength =>
-      '설정값을 낮추면 수의 다양성이 줄고 Maia가 더 강해질 수 있습니다. 우리는 최대한 강한 플레이보다 사람다운 오프닝 레퍼토리를 중시합니다. Maia의 레이팅은 모델링 대상 플레이어의 수준을 나타내며, 정확한 경기력을 보장하지 않습니다.';
-
-  @override
-  String get samplingTemperatureHelp =>
-      '온도는 Maia의 수 선택 확률이 얼마나 집중되는지 조절합니다. 0이면 모델이 사람이 둘 가능성이 가장 높다고 예측한 수를 항상 선택합니다. 0보다 큰 낮은 값은 가능성이 높은 수에 확률을 더 집중시키고, 높은 값은 가능성이 낮은 수에도 더 많은 기회를 줍니다.';
-
-  @override
-  String get samplingTopPHelp =>
-      'Top-P는 수를 확률이 높은 순서로 정렬한 뒤, 확률의 합이 설정값에 도달할 때까지 선택 후보에 포함합니다. 값이 낮으면 확률이 높은 수로 선택이 좁혀지고, 1.00이면 모든 합법적인 수를 유지합니다.';
 
   @override
   String get aboutPoweredBy =>
@@ -940,7 +934,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get samplingRecommendationWarning =>
-      '온도 또는 Top-P가 권장값 1.00과 다릅니다. 자세한 내용은 정보 버튼을 확인하세요.';
+      '온도나 Top-P를 낮추면 미들게임에서 Maia가 더 강해질 수 있지만, 오프닝의 다양성은 줄어듭니다. 자세한 내용은 정보 버튼을 확인하세요.';
 
   @override
   String get couldNotOpenPgn => 'PGN을 열 수 없습니다.';
@@ -1030,4 +1024,298 @@ class AppLocalizationsKo extends AppLocalizations {
   String recentDrawResult(String result) {
     return '무승부 ($result)';
   }
+
+  @override
+  String get electronicBoardExperimental => '전자 체스보드(실험 기능)';
+
+  @override
+  String get connectBoard => '체스보드 연결';
+
+  @override
+  String get chooseBoard => '체스보드 선택';
+
+  @override
+  String get chooseAnotherBoard => '다른 체스보드 선택';
+
+  @override
+  String get boardSearching => '체스보드 검색 중…';
+
+  @override
+  String get boardConnecting => '체스보드 연결 중…';
+
+  @override
+  String get boardDisconnected => '체스보드 연결이 끊어졌습니다';
+
+  @override
+  String get boardConnectionError => '연결하지 못했습니다. 블루투스와 체스보드를 확인한 뒤 다시 시도하세요.';
+
+  @override
+  String get boardStartingPosition => '체스보드에 표준 시작 포지션을 배치하세요.';
+
+  @override
+  String get boardReady => '체스보드가 준비되었습니다';
+
+  @override
+  String get boardExperimentalNotice =>
+      '새 체스보드 지원은 실험 단계입니다. 두 화면에서 수를 확인하고 연결 문제를 알려 주세요.';
+
+  @override
+  String get boardGameRestriction => '전자 체스보드 대국은 표준 시작 포지션에서 무제한 시간으로 시작합니다.';
+
+  @override
+  String get boardConfirmSetup => '시작 포지션을 배치했습니다';
+
+  @override
+  String get boardConfirmSetupHelp =>
+      '시작 전에 모든 기물을 확인하세요. 이 체스보드는 기물의 종류를 식별할 수 없습니다.';
+
+  @override
+  String get boardChooseMove => '체스보드에서 둔 수 확인';
+
+  @override
+  String get boardAmbiguousMove => '체스보드가 이 수들을 구별할 수 없습니다. 실제로 둔 수를 선택하세요.';
+
+  @override
+  String get boardUnavailable => '체스보드가 준비되지 않았습니다. 다시 연결하거나 휴대전화에서 계속하세요.';
+
+  @override
+  String get boardNewGameConfirmInstruction =>
+      '2.5초 안에 NEW GAME을 다시 눌러 확인하거나 아래 버튼을 사용하세요.';
+
+  @override
+  String get boardNewGameConfirmationExpired =>
+      '체스보드에서 확인하려면 2.5초 안에 NEW GAME을 두 번 누르세요.';
+
+  @override
+  String get boardPhysicalMove => '체스보드에서 수를 완성하세요.';
+
+  @override
+  String get boardResetPhysical => '계속하기 전에 체스보드를 화면에 표시된 포지션으로 되돌리세요.';
+
+  @override
+  String get boardNoResults => '지원되는 체스보드를 찾지 못했습니다. 체스보드를 깨운 뒤 다시 시도하세요.';
+
+  @override
+  String get boardWaitingForSelection => '연결할 체스보드를 선택하세요.';
+
+  @override
+  String get boardReconnect => '체스보드 다시 연결';
+
+  @override
+  String get boardLockedPegasus =>
+      'Pegasus가 잠겨 있습니다. 이 Dev 빌드에는 제조사의 초기화 키가 포함되어 있지 않습니다.';
+
+  @override
+  String get boardMotorRecovery =>
+      '휴대전화에서 계속하세요. 이 실험용 연결 기능은 체스보드의 모터 상태를 안전하게 복원할 수 없습니다.';
+
+  @override
+  String get boardConfirmPosition => '실제 체스보드 포지션 확인';
+
+  @override
+  String get boardConfirmPositionHelp => '모든 기물이 화면에 표시된 포지션과 일치하는지 확인하세요.';
+
+  @override
+  String get maiaHistorySetting => '이전 포지션 사용';
+
+  @override
+  String get maiaHistoryHelp =>
+      'Maia가 현재 포지션과 함께 이전 포지션을 최대 7개까지 고려하도록 합니다. 79M 모델을 사용한 저희 테스트에서는 사람의 수를 예측하는 정확도가 약 2%포인트 높아졌지만, 낮은 레이팅의 오프닝에서 상대의 수를 계속 따라 하는 경향이 강해지기도 했습니다. 실력 향상은 확인하지 못했습니다. 현재는 끄는 것을 권장합니다.';
+
+  @override
+  String get maiaHistoryResearch => '이전 포지션 연구 읽기 (영어)';
+
+  @override
+  String get maiaHistoryOn => '이전 포지션: 켜짐';
+
+  @override
+  String get maiaHistoryOff => '이전 포지션: 꺼짐';
+
+  @override
+  String get chessboardDeviceName => '체스보드';
+
+  @override
+  String namedBoardConnected(String boardName) {
+    return '$boardName 연결됨';
+  }
+
+  @override
+  String namedBoardDisconnected(String boardName) {
+    return '$boardName 연결 끊김';
+  }
+
+  @override
+  String get saveMaiaSamplingData => 'Maia 수 선택 데이터 저장';
+
+  @override
+  String get samplingDataHelp =>
+      'Maia가 어떻게 두는지 살펴볼 수 있도록 수별 확률, 설정, 선택한 수를 이 기기에 저장합니다.\n\n내보낸 파일에는 보드 포지션, 수 기록, 모델 입력 및 선택 결과가 포함됩니다.\n\n데이터가 기록된 최근 10경기를 저장하고 최신 경기부터 보여 줍니다. 저장 용량 한도에 도달하면 이전 경기 데이터가 더 일찍 삭제될 수 있습니다. 이 데이터는 최근 대국과 별개입니다.\n\nMaia의 작동 원리를 기술적으로 자세히 연구하고 싶다면 이 기능을 사용하세요. 데이터는 앱 안에서 볼 수 없습니다. 일부 데이터를 보기 쉽게 정리한 HTML 파일이나 기록된 모든 데이터가 담긴 JSONL 파일로 내보낼 수 있습니다.\n\n기본값은 꺼짐이며, Maia의 작동 원리를 연구하려는 경우가 아니라면 꺼 두는 것을 권장합니다.';
+
+  @override
+  String get clearSamplingData => '수 선택 데이터 삭제';
+
+  @override
+  String samplingDataStatus(int count) {
+    return '판단 $count개 저장됨';
+  }
+
+  @override
+  String get samplingDataError => '수 선택 데이터에 접근할 수 없습니다. 대국에는 영향이 없습니다.';
+
+  @override
+  String get samplingSave => '저장하기…';
+
+  @override
+  String get samplingShare => '공유…';
+
+  @override
+  String get samplingSummary => 'Maia의 수 선택';
+
+  @override
+  String get samplingReadable => '읽기 쉬운 보고서 (HTML)';
+
+  @override
+  String get samplingReadableHint => '브라우저에서 수, 확률, 보드 그림을 볼 수 있습니다.';
+
+  @override
+  String get samplingResearchHint => '기술 분석을 위한 모델의 원시 입력과 출력입니다.';
+
+  @override
+  String get samplingReportExplanation =>
+      '백분율은 당시 Temperature와 Top-P 설정을 적용한 뒤 각 수가 선택될 확률입니다. 승률이나 수의 좋고 나쁨을 나타내는 점수가 아닙니다.';
+
+  @override
+  String get samplingReportPartial =>
+      '기록된 Maia의 판단만 표시하며, 전체 기보는 아닙니다. 무르기나 재시도로 같은 수 번호가 반복될 수 있습니다.';
+
+  @override
+  String get samplingReportMissing =>
+      '일부 기록이 삭제되었거나 저장되지 않았습니다. 보고서에 누락된 내용이 있을 수 있습니다.';
+
+  @override
+  String get samplingPlayed => '둔 수';
+
+  @override
+  String get samplingNotPlayed => '실제로 둔 기록 없음';
+
+  @override
+  String get samplingAlternatives => '선택 가능성이 높은 다른 수';
+
+  @override
+  String samplingGame(String number) {
+    return '게임 $number';
+  }
+
+  @override
+  String samplingRecords(String count) {
+    return '기록된 판단: $count';
+  }
+
+  @override
+  String get samplingMostProbable => '선택 확률이 가장 높은 수';
+
+  @override
+  String get samplingPlayedMostProbable => '선택 확률이 가장 높은 수를 두었습니다';
+
+  @override
+  String samplingChance(String move, String odds) {
+    return '$move 선택 확률은 약 $odds분의 1이었습니다.';
+  }
+
+  @override
+  String samplingCertain(String move) {
+    return '$move 선택 확률은 100%였습니다.';
+  }
+
+  @override
+  String samplingAlmostCertain(String move) {
+    return '$move 선택 확률은 거의 100%였습니다.';
+  }
+
+  @override
+  String get samplingReportRetention =>
+      '최근 기록한 10개 대국을 저장하고 최신순으로 표시합니다. 저장 용량 한도에 도달하면 이전 대국이 더 일찍 삭제될 수 있습니다.';
+
+  @override
+  String get samplingJumpToGame => '대국으로 이동';
+
+  @override
+  String get samplingBackToGames => '대국 목록으로 돌아가기';
+
+  @override
+  String get samplingIncomplete => '미완료';
+
+  @override
+  String get samplingUnknownResult => '결과 알 수 없음';
+
+  @override
+  String get samplingOpeningUnknown => '오프닝 알 수 없음';
+
+  @override
+  String get samplingTimeUnknown => '시간 알 수 없음';
+
+  @override
+  String get samplingWin => '승리';
+
+  @override
+  String get samplingLoss => '패배';
+
+  @override
+  String get samplingDraw => '무승부';
+
+  @override
+  String get samplingDeleteData => '데이터 삭제';
+
+  @override
+  String get samplingClearConfirmation =>
+      'Maia의 수 선택 데이터를 모두 삭제할까요? 복구할 수 없습니다.';
+
+  @override
+  String get analysisSettings => '분석 설정';
+
+  @override
+  String get samplingData => '수 선택 데이터';
+
+  @override
+  String get resetSettingsDefaultsScope =>
+      '이 화면의 모든 설정을 기본값으로 되돌립니다. 저장된 대국과 샘플링 데이터는 유지됩니다.';
+
+  @override
+  String get settingsResetError => '일부 설정을 초기화하지 못했습니다. 다시 시도해 주세요.';
+
+  @override
+  String get resetSettingsConfirmation => '모든 설정을 기본값으로 되돌릴까요?';
+
+  @override
+  String get resetSettingsKeepData => '저장된 대국과 샘플링 데이터는 유지됩니다.';
+
+  @override
+  String get resetSettingsAction => '설정 초기화';
+
+  @override
+  String get samplingHelpIntro => '온도와 Top-P는 Maia가 여러 수 중에서 어떤 수를 선택할지 조절합니다.';
+
+  @override
+  String get samplingHelpVariety =>
+      '온도와 Top-P를 높이면 Maia가 낮은 확률의 수를 둘 가능성이 커져, 기복이 더 큰 선수처럼 플레이합니다. 이런 수는 블런더일 수도 있지만, 매우 좋은 수일 수도 있습니다!';
+
+  @override
+  String get samplingHelpDefaults =>
+      '최대한 다양한 대국을 즐기고 싶고, 비주류 변화까지 포함해 사람들이 두는 폭넓은 오프닝을 Maia가 구사하길 원한다면 기본값인 1.0과 1.0을 유지하세요.';
+
+  @override
+  String get samplingHelpStrength =>
+      '블런더를 덜 하는 더 강한 상대를 원한다면 온도와 Top-P 값을 낮춰 보세요.';
+
+  @override
+  String get samplingHelpArgmax =>
+      '온도를 0으로 설정하면 Maia는 argmax라는 방식을 사용합니다. 쉽게 말해, 주어진 포지션에서 사람이 둘 가능성이 가장 높다고 Maia가 예측한 수를 항상 선택한다는 뜻입니다. 주의하세요! 레이팅을 1600으로 설정한 저희 연구에서 argmax Maia는 1.0 / 1.0 Maia와의 직접 대결에서 약 300 Elo 차이에 해당하는 우위를 보였습니다.';
+
+  @override
+  String get samplingHelpTopP =>
+      '강함과 다양성의 균형을 원한다면 온도를 1.0으로 유지하고 Top-P를 0.95로 설정해 보세요. 다양성을 유지하면서 낮은 확률의 수를 제외할 수 있습니다. 이런 수는 블런더인 경우가 많지만 좋은 수일 수도 있습니다. Top-P는 간단히 말해 낮은 확률의 수를 후보에서 제외하는 설정입니다. 0.95로 설정하면 온도가 적용된 뒤의 확률을 합해 최소 95%가 되는 수들을 남깁니다. 나머지 수는 Maia가 선택할 수 없습니다.';
+
+  @override
+  String get samplingHelpResearchIntro =>
+      '저희는 1600 Elo 설정에서 이 값들을 실험했으며, 전체 연구 결과를 여기에 공개했습니다:';
 }

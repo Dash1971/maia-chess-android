@@ -33,7 +33,7 @@ completes.
 ## Contents
 
 - [Download and install](#download-and-install)
-- [What's new in Mobile Maia 2.3](#mobile-maia-23)
+- [What's new in Mobile Maia 2.4](#mobile-maia-24)
 - [Feature guide](#feature-guide)
 - [Google Play, iPhone, and forks](#availability-and-forks)
 - [Support and contributing](#support-and-contributing)
@@ -42,14 +42,17 @@ completes.
 - [Credits and attributions](#credits-and-attributions)
 - [Licensing](#licensing)
 
-## Mobile Maia 2.3
+## Mobile Maia 2.4
 
-- **Ten interface languages**, following your device language or your choice in Settings.
-- **A clearer game library**, preserving played dates and chronological order, with subtle colors for wins, losses, draws, and unfinished games.
-- **More time-control choices**, with Lichess-style quick presets and quicker optional human-like pauses for bullet and short blitz.
+- **More opening variety when you want it.** Keep Maia's full range of opening choices for the first five moves, then use your configured Temperature and Top-P from move 6.
+- **Explore how Maia chooses.** Optionally save its actual move probabilities and choices, then export a readable HTML report or the full research data.
+- **Clearer engine settings.** Separate game, engine and analysis sections, updated help in all ten languages, optional move-history input, and a confirmed reset of Settings defaults.
+- **Smoother play and review.** Queued premoves stay in their planned positions as the queue advances. Long opening names stay on one line, with details on tap when truncated. Home returns directly from restored post-game analysis.
+- **Improved Chessnut connection and reset.** Choose between detected boards when needed, see which board connected, and reset a game with the physical NEW GAME button while keeping your side.
 
-See the [complete 2.3 release notes](docs/release-notes/v2.3.0.md) and
-[earlier release notes](docs/release-notes).
+See the [complete 2.4 release notes](docs/release-notes/v2.4.0.md) and
+[earlier release notes](docs/release-notes). This PR prepares 2.4; it is not yet
+published, and the download links still serve the current Stable release.
 
 Active development continues in the separate
 [Mobile Maia Preview repository](https://github.com/Dash1971/maia-chess-android-preview).
@@ -58,10 +61,10 @@ this stable blue-icon app.
 
 ## Feature guide
 
-The refreshed 2.3 Home, Settings, clock-menu and Recent Games images below are
-renders of the actual Flutter screens (sample records in Recent Games), not
-Android APK qualification evidence. Unchanged board/review screenshots are
-retained from earlier Stable releases. See [capture provenance](docs/release-notes/v2.3.0.md#screenshots).
+The engine and analysis Settings screenshots are refreshed for 2.4 using the
+promoted Flutter screens. They show illustrative settings, not a qualified
+Android APK. Unchanged Home, library and board images are retained from earlier
+Stable releases. See [capture provenance](docs/release-notes/v2.4.0.md#screenshots).
 
 ### Choose a game or analysis workflow
 
@@ -129,7 +132,7 @@ silently substituted for a Traditional Chinese system preference.
 ### Advanced play and review settings
 
 <p align="center">
-  <img src="docs/screenshots/20261003_v0_stable_2_2_engine_settings.png" width="42%" alt="Stable 2.2 engine settings showing Temperature 1.00, Top-P 1.00, Maia analysis rating, and Fast review quality">
+  <img src="docs/screenshots/20261017_v0_stable_2_4_engine_settings.png" width="42%" alt="Engine settings with optional opening variety, move history and local sampling capture">
 </p>
 
 Advanced settings control premoves, an optional exact 100 ms premove charge,
@@ -138,7 +141,7 @@ rating used during review, an optional **second Maia engine** at another rating,
 and full-game analysis quality. This example compares Maia 1600 and Maia 2400:
 
 <p align="center">
-  <img src="docs/screenshots/20261003_v0_stable_2_2_dual_maia_settings.png" width="42%" alt="Stable 2.2 settings with second Maia engine enabled, primary analysis rating 1600, and second analysis rating 2400">
+  <img src="docs/screenshots/20261017_v0_stable_2_4_analysis_settings.png" width="42%" alt="Analysis settings with Maia 1600 and Maia 2400, review quality, Chessnut sounds and confirmed Settings reset">
 </p>
 
 **Fast** is the new-game and reset default; **Balanced** and **Thorough** offer deeper
@@ -158,20 +161,55 @@ We also tested **1.0 / 0.95**: it gained about **71 Elo** against 1/1 in 1,200 g
 
 The previous **0.5 / 0.9** settings came from our [Maia2](https://github.com/Dash1971/maia2-local-stack) and [Maia3](https://github.com/Dash1971/maia3-local-stack) local stacks, which used opening books to supply variety. Mobile Maia has no opening book, so we now favor variety in Maia's own choices, accepting the reduction in playing strength.
 
-[See the visual report, results and reproducible data](docs/research/maia3-sampling/REPORT.md).
+[See the visual report, results and reproducible data](https://github.com/Dash1971/mobile-maia-research/blob/main/studies/maia3-sampling/REPORT.md).
 
-### Why move-history input is off
+### Max variety in opening
 
-Mobile Maia supplies the current position to Maia rather than the preceding
-positions, to reduce repetitive copying in low-Elo openings. In our Stonewall
-test at 600, after `1.d4 d5 2.e3 e6 3.Bd3 Bd6`, history raised the probability
-of copying all five next moves through castling from **0.0084% to 34.2%**.
+This optional setting uses **Temperature 1.0 / Top-P 1.0 for the first five
+moves by each side**, then your configured values from move 6. For example,
+you can keep Temperature at 1.0 and set Top-P to 0.95 for later play, without
+filtering opening choices during those first five moves. It also works with
+Temperature 0: the opening stays varied, then Maia chooses its most probable
+move from move 6. This does not guarantee a particular strength gain.
 
-History also improved average human-move prediction, so this is a gameplay
-tradeoff, not a claim that disabling it makes Maia stronger. It is our design
-decision; upstream supports optional history and defaults it off, but we found
-no explicit recommendation against using it.
-[Read the research, limitations and reproducible results](https://github.com/Dash1971/mobile-maia-research/blob/main/studies/move-history-2026-10-09/REPORT.md).
+The option is off by default. At 1.0 / 1.0 it is off and grayed out because
+there is nothing to override; its information button remains available.
+Returning both sliders to 1.0 clears the option. New games retain their sampling
+settings when resumed; older saved games do not automatically adopt opening
+variety. Takebacks and **Continue from here** use the position's actual move
+number, rather than restarting the opening allowance.
+
+The idea was inspired by [Maia3-tauri](https://github.com/outusuke/maia3-tauri)
+by [outusuke](https://github.com/outusuke). Mobile Maia's implementation and
+five-move cutoff are its own.
+
+### Optional move-history input
+
+**Use move history** lets Maia consider up to seven previous positions alongside
+the current position. It remains off by default and off is recommended for now.
+In our 79M tests it improved human-move prediction by about 2%, but sometimes
+encouraged repeated copying in low-rated openings; no strength increase was
+observed. Saved games retain their recorded history setting.
+[Read the research and limitations](https://github.com/Dash1971/mobile-maia-research/blob/main/studies/move-history-2026-10-09/REPORT.md).
+
+### Save Maia sampling data
+
+For players interested in how Maia works, **Save Maia sampling data** optionally
+records its settings, probabilities and chosen moves on the device. It is off
+by default and is separate from Recent games and diagnostics.
+
+The last **ten recorded games**, including unfinished games, are saved and
+exported newest first. A 64 MiB safety limit can remove older captures sooner.
+Use the three-dot menu to **Save…** or **Share…**, then choose a readable offline
+**HTML report** or full **JSONL research data**. Reports show known players,
+results, openings, actual selection probabilities after Temperature/Top-P,
+plain-language odds and move arrows on a board. Captures cover Maia decisions,
+not every move in a complete PGN. Deleting captures asks for confirmation and
+does not delete saved games or previously exported files.
+
+Settings now groups game, engine, analysis and Chessnut options. **Reset settings
+to default**, above Copy diagnostics, asks for confirmation and keeps saved
+games and sampling data.
 
 ### Play against a human-like opponent
 
@@ -211,6 +249,9 @@ moves 13–16 and the projected board shows the signature finish: White's army
 reset on its back rank with `Qd1#`. Mobile Maia previews only the player's
 queued moves, not the opponent king's forced walk, so this is an homage rather
 than a move-for-move reconstruction.
+
+Queued pieces stay in their planned positions as each premove is played, while
+the remaining premove highlights shrink.
 
 Enable **Allow multiple premoves** to plan up to 64 moves while Maia is
 thinking. After each Maia reply, only the next premove runs, and only if it is
@@ -264,6 +305,13 @@ temporary piece lifts and partial castling as unfinished, and lights mismatched
 squares when correction is needed. Optional board sounds distinguish check,
 checkmate, and a complete-looking illegal move.
 
+Connect searches for recognized Chessnut boards. A single board connects
+automatically; multiple candidates open a chooser. Connection messages identify
+the board. The board's NEW GAME button opens the reset warning; a second press
+within 2.5 seconds confirms it. The game stays on screen, keeps the colors and
+waits for the LED-guided physical setup before starting again. DGT Pegasus and
+Square Off Grand Kingdom remain blocked in Stable pending separate acceptance.
+
 Reconnect keeps the game and verifies the physical position before play
 continues. Pending Maia and takeback lights are restored. **Play in app** moves
 the same unfinished game to on-screen input while retaining its moves,
@@ -297,7 +345,10 @@ The fixed board sits above a scrollable, clickable move list. Select any move
 to inspect that position, use the arrows one ply at a time, or hold them to
 jump to the beginning or end of the main line. The bundled Lichess CC0 opening
 dataset supplies offline ECO codes, detailed variation names, and
-transposition-aware matching. Interactive Stockfish analysis first returns a
+transposition-aware matching. Long names remain on one line; an information
+button appears only when the name is truncated, opening the full name without
+pushing the engine panel down. Home returns directly from post-game analysis
+after the app resumes or restores its screen. Interactive Stockfish analysis first returns a
 quick result and then refines the same selected position.
 
 ### Why Stockfish 19 Light?
@@ -619,6 +670,10 @@ adapted and translated to Dart from
 open-source chess GUI by Francisco Salgueiro and contributors. The pinned
 upstream revision and licence details are recorded in
 [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).
+
+The **Max variety in opening** idea is credited to
+[Maia3-tauri](https://github.com/outusuke/maia3-tauri) by outusuke. This is an
+idea attribution; no Maia3-tauri source code is incorporated for this feature.
 
 ## Licensing
 

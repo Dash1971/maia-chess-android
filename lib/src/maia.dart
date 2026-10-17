@@ -71,19 +71,45 @@ class MaiaPositionAnalysis {
 class MaiaEncoding {
   static final Random _random = Random();
 
-  static Float32List historicalTokens(List<String> positions) {
-    // Maia-3 exposes reconstructed move history as an optional UCI mode. Its
-    // released engine default repeats the current position in all eight board
-    // slots. Alternating independently mirrored historical FENs can otherwise
-    // create a strong false copy-the-opponent signal when Maia plays Black.
-    final current = tokenizeFen(positions.last);
+  /// Effective eight-board input, oldest first. Each board uses its own
+  /// side-to-move orientation, matching the validated upstream encoder.
+  static List<String> historyWindow(
+    List<String> positions, {
+    bool useMoveHistory = false,
+  }) {
+    if (positions.isEmpty) throw ArgumentError.value(positions, 'positions');
+    final window = useMoveHistory
+        ? positions.skip(max(0, positions.length - 8)).toList()
+        : <String>[positions.last];
+    return List.unmodifiable([
+      ...List<String>.filled(8 - window.length, window.first),
+      ...window,
+    ]);
+  }
+
+  static String historyKey(
+    List<String> positions, {
+    bool useMoveHistory = false,
+  }) =>
+      '${useMoveHistory ? "history" : "current"}\n${historyWindow(positions, useMoveHistory: useMoveHistory).join("\n")}';
+
+  static Float32List historicalTokens(
+    List<String> positions, {
+    bool useMoveHistory = false,
+  }) {
+    // History is an experimental input choice; off retains the released
+    // engine's current-board repetition. Observed opening copying with history
+    // is model behavior, not evidence of an orientation bug.
+    final encoded = <String, List<double>>{};
+    final boards = historyWindow(positions, useMoveHistory: useMoveHistory)
+        .map((fen) => encoded.putIfAbsent(fen, () => tokenizeFen(fen)))
+        .toList(growable: false);
     return Float32List.fromList(
       List<double>.generate(64 * 97, (index) {
         final square = index ~/ 97;
         final channel = index % 97;
         if (channel == 96) return 0;
-        final pieceChannel = channel % 12;
-        return current[square * 12 + pieceChannel];
+        return boards[channel ~/ 12][square * 12 + channel % 12];
       }),
     );
   }
@@ -129,10 +155,11 @@ class MaiaEncoding {
     double temperature = 1.0,
     double topP = 1.0,
     Random? random,
+    void Function(Map<String, Object?>)? onSample,
   }) {
     final safeTopP = topP.clamp(0.0, 1.0);
     if (temperature <= 0) {
-      return legalMoves.reduce((best, move) {
+      final selected = legalMoves.reduce((best, move) {
         final bestIndex = moveIndex(uci(best), game.turn == chess.Color.BLACK);
         final moveIndexValue = moveIndex(
           uci(move),
@@ -140,6 +167,10 @@ class MaiaEncoding {
         );
         return logits[moveIndexValue] > logits[bestIndex] ? move : best;
       });
+      onSample?.call(
+        _samplingTrace(game, legalMoves, temperature, topP, selected, null),
+      );
+      return selected;
     }
     final safeTemperature = temperature.clamp(0.001, 1.0);
     final scored = legalMoves.map((move) {
@@ -178,13 +209,65 @@ class MaiaEncoding {
       0,
       (sum, item) => sum + item.weight,
     );
-    var target = (random ?? _random).nextDouble() * nucleusTotal;
+    final draw = (random ?? _random).nextDouble();
+    var target = draw * nucleusTotal;
+    var lower = 0.0;
+    void record(chess.Move selected) {
+      if (onSample == null) return;
+      onSample(
+        _samplingTrace(game, legalMoves, temperature, topP, selected, {
+          'draw': draw,
+          'target': draw * nucleusTotal,
+          'total': nucleusTotal,
+          'lower': lower,
+          'upper': lower + nucleus.firstWhere((v) => v.move == selected).weight,
+          'nucleusCount': nucleus.length,
+          'weightedOrder': weighted
+              .map((v) => {'uci': uci(v.move), 'weight': v.weight})
+              .toList(),
+        }),
+      );
+    }
+
     for (final item in nucleus) {
       target -= item.weight;
-      if (target <= 0) return item.move;
+      if (target <= 0) {
+        record(item.move);
+        return item.move;
+      }
+      lower += item.weight;
     }
+    lower -= nucleus.last.weight;
+    record(nucleus.last.move);
     return nucleus.last.move;
   }
+
+  static Map<String, Object?> _samplingTrace(
+    chess.Chess game,
+    List<chess.Move> moves,
+    double temperature,
+    double topP,
+    chess.Move selected,
+    Map<String, Object?>? random,
+  ) => {
+    'temperature': temperature,
+    'topP': topP,
+    'effectiveTemperature': temperature <= 0
+        ? 0.0
+        : temperature.clamp(0.001, 1.0),
+    'effectiveTopP': topP.clamp(0.0, 1.0),
+    'mode': random == null ? 'argmax' : 'random',
+    'selected': uci(selected),
+    'legalOrder': moves
+        .map(
+          (m) => {
+            'uci': uci(m),
+            'index': moveIndex(uci(m), game.turn == chess.Color.BLACK),
+          },
+        )
+        .toList(),
+    'random': random,
+  };
 
   static ({double probability, String topMove}) reviewMove(
     chess.Chess game,

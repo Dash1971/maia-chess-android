@@ -20,8 +20,10 @@ require(releaseSigningValues.all { it == null } || releaseSigningValues.all { it
         "MOBILE_MAIA_KEY_PASSWORD together."
 }
 
+val maiaRuntimeVersion = "1.24.3"
+
 dependencies {
-    implementation("com.microsoft.onnxruntime:onnxruntime-android:1.24.3")
+    implementation("com.microsoft.onnxruntime:onnxruntime-android:$maiaRuntimeVersion")
     androidTestImplementation("androidx.test.ext:junit:1.2.1")
     androidTestImplementation("androidx.test:runner:1.6.2")
 }
@@ -42,6 +44,10 @@ android {
 
     defaultConfig {
         applicationId = "com.dash1971.maia_chess"
+        // Unflavored Stable keeps the canonical F-Droid build command.
+        // The shared native transport gates experimental boards on this value.
+        buildConfigField("String", "FLAVOR", "\"stable\"")
+        buildConfigField("String", "MAIA_RUNTIME_VERSION", "\"$maiaRuntimeVersion\"")
         buildConfigField("String", "MAIA_MODEL_ASSET", "\"flutter_assets/assets/models/maia3-79m.onnx\"")
         buildConfigField("String", "MAIA_MODEL_FILE", "\"maia3-79m-3454b03a-sha256.onnx\"")
         buildConfigField("long", "MAIA_MODEL_BYTES", "316034244L")

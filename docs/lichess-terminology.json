@@ -1559,6 +1559,246 @@
           "reason": "Add sentence punctuation to the upstream turn announcement, matching in-game status messages."
         }
       }
+    },
+    "samplingSave": {
+      "upstream_key": "save",
+      "upstream": {
+        "en": "Save",
+        "ja": "保存",
+        "zh": "保存",
+        "ko": "저장하기",
+        "es": "Guardar",
+        "de": "Speichern",
+        "fr": "Enregistrer",
+        "ru": "Сохранить",
+        "hi": "सहेजें",
+        "pt": "Salvar"
+      },
+      "adaptations": {
+        "en": {
+          "value": "Save…",
+          "reason": "Opens a format choice before saving or sharing sampling reports; ellipsis marks the extra step. Omit PGN because the formats here are HTML and JSONL."
+        },
+        "ja": {
+          "value": "保存…",
+          "reason": "Opens a format choice before saving or sharing sampling reports; ellipsis marks the extra step. Omit PGN because the formats here are HTML and JSONL."
+        },
+        "zh": {
+          "value": "保存…",
+          "reason": "Opens a format choice before saving or sharing sampling reports; ellipsis marks the extra step. Omit PGN because the formats here are HTML and JSONL."
+        },
+        "ko": {
+          "value": "저장하기…",
+          "reason": "Opens a format choice before saving or sharing sampling reports; ellipsis marks the extra step. Omit PGN because the formats here are HTML and JSONL."
+        },
+        "es": {
+          "value": "Guardar…",
+          "reason": "Opens a format choice before saving or sharing sampling reports; ellipsis marks the extra step. Omit PGN because the formats here are HTML and JSONL."
+        },
+        "de": {
+          "value": "Speichern…",
+          "reason": "Opens a format choice before saving or sharing sampling reports; ellipsis marks the extra step. Omit PGN because the formats here are HTML and JSONL."
+        },
+        "fr": {
+          "value": "Enregistrer…",
+          "reason": "Opens a format choice before saving or sharing sampling reports; ellipsis marks the extra step. Omit PGN because the formats here are HTML and JSONL."
+        },
+        "ru": {
+          "value": "Сохранить…",
+          "reason": "Opens a format choice before saving or sharing sampling reports; ellipsis marks the extra step. Omit PGN because the formats here are HTML and JSONL."
+        },
+        "hi": {
+          "value": "सहेजें…",
+          "reason": "Opens a format choice before saving or sharing sampling reports; ellipsis marks the extra step. Omit PGN because the formats here are HTML and JSONL."
+        },
+        "pt": {
+          "value": "Salvar…",
+          "reason": "Opens a format choice before saving or sharing sampling reports; ellipsis marks the extra step. Omit PGN because the formats here are HTML and JSONL."
+        }
+      }
+    },
+    "samplingShare": {
+      "upstream_key": "mobileShareGamePGN",
+      "upstream": {
+        "en": "Share PGN",
+        "ja": "PGN を共有",
+        "zh": "分享 PGN",
+        "ko": "PGN 공유",
+        "es": "Compartir PGN",
+        "de": "PGN teilen",
+        "fr": "Partager le PGN",
+        "ru": "Поделиться PGN",
+        "hi": "पीजीएन शेयर करें",
+        "pt": "Compartilhar PGN"
+      },
+      "adaptations": {
+        "en": {
+          "value": "Share…",
+          "reason": "Opens a format choice before saving or sharing sampling reports; ellipsis marks the extra step. Omit PGN because the formats here are HTML and JSONL."
+        },
+        "ja": {
+          "value": "共有…",
+          "reason": "Opens a format choice before saving or sharing sampling reports; ellipsis marks the extra step. Omit PGN because the formats here are HTML and JSONL."
+        },
+        "zh": {
+          "value": "分享…",
+          "reason": "Opens a format choice before saving or sharing sampling reports; ellipsis marks the extra step. Omit PGN because the formats here are HTML and JSONL."
+        },
+        "ko": {
+          "value": "공유…",
+          "reason": "Opens a format choice before saving or sharing sampling reports; ellipsis marks the extra step. Omit PGN because the formats here are HTML and JSONL."
+        },
+        "es": {
+          "value": "Compartir…",
+          "reason": "Opens a format choice before saving or sharing sampling reports; ellipsis marks the extra step. Omit PGN because the formats here are HTML and JSONL."
+        },
+        "de": {
+          "value": "Teilen…",
+          "reason": "Opens a format choice before saving or sharing sampling reports; ellipsis marks the extra step. Omit PGN because the formats here are HTML and JSONL."
+        },
+        "fr": {
+          "value": "Partager…",
+          "reason": "Opens a format choice before saving or sharing sampling reports; ellipsis marks the extra step. Omit PGN because the formats here are HTML and JSONL."
+        },
+        "ru": {
+          "value": "Поделиться…",
+          "reason": "Opens a format choice before saving or sharing sampling reports; ellipsis marks the extra step. Omit PGN because the formats here are HTML and JSONL."
+        },
+        "hi": {
+          "value": "साझा करें…",
+          "reason": "Opens a format choice before saving or sharing sampling reports; ellipsis marks the extra step. Omit PGN because the formats here are HTML and JSONL."
+        },
+        "pt": {
+          "value": "Compartilhar…",
+          "reason": "Opens a format choice before saving or sharing sampling reports; ellipsis marks the extra step. Omit PGN because the formats here are HTML and JSONL."
+        }
+      }
+    },
+    "samplingWin": {
+      "upstream_key": "victory",
+      "upstream": {
+        "en": "Victory",
+        "ja": "勝ち",
+        "zh": "胜局",
+        "ko": "승리",
+        "es": "Victoria",
+        "de": "Sieg",
+        "fr": "Victoire",
+        "ru": "Победа",
+        "hi": "जीत!",
+        "pt": "Vitória"
+      },
+      "adaptations": {}
+    },
+    "samplingLoss": {
+      "upstream_key": "defeat",
+      "upstream": {
+        "en": "Defeat",
+        "ja": "負け",
+        "zh": "负局",
+        "ko": "패배",
+        "es": "Derrota",
+        "de": "Niederlage",
+        "fr": "Défaite",
+        "ru": "Поражение",
+        "hi": "हार",
+        "pt": "Derrota"
+      },
+      "adaptations": {}
+    },
+    "samplingDraw": {
+      "upstream_key": "draw",
+      "upstream": {
+        "en": "Draw",
+        "ja": "引き分け",
+        "zh": "平局",
+        "ko": "무승부",
+        "es": "Tablas",
+        "de": "Remis",
+        "fr": "Partie nulle",
+        "ru": "Ничья",
+        "hi": "खेल बराबरी पे समाप्त",
+        "pt": "Empate"
+      },
+      "adaptations": {}
+    },
+    "samplingDeleteData": {
+      "upstream_key": "delete",
+      "upstream": {
+        "en": "Delete",
+        "ja": "削除",
+        "zh": "删除",
+        "ko": "삭제",
+        "es": "Borrar",
+        "de": "Löschen",
+        "fr": "Effacer",
+        "ru": "Удалить",
+        "hi": "हटाएँ",
+        "pt": "Excluir"
+      },
+      "adaptations": {
+        "en": {
+          "value": "Delete data",
+          "reason": "Adds the data object to Lichess’s Delete action so the destructive confirmation is explicit."
+        },
+        "ja": {
+          "value": "データを削除",
+          "reason": "Adds the data object to Lichess’s Delete action so the destructive confirmation is explicit."
+        },
+        "zh": {
+          "value": "删除数据",
+          "reason": "Adds the data object to Lichess’s Delete action so the destructive confirmation is explicit."
+        },
+        "ko": {
+          "value": "데이터 삭제",
+          "reason": "Adds the data object to Lichess’s Delete action so the destructive confirmation is explicit."
+        },
+        "es": {
+          "value": "Borrar datos",
+          "reason": "Adds the data object to Lichess’s Delete action so the destructive confirmation is explicit."
+        },
+        "de": {
+          "value": "Daten löschen",
+          "reason": "Adds the data object to Lichess’s Delete action so the destructive confirmation is explicit."
+        },
+        "fr": {
+          "value": "Effacer les données",
+          "reason": "Adds the data object to Lichess’s Delete action so the destructive confirmation is explicit."
+        },
+        "ru": {
+          "value": "Удалить данные",
+          "reason": "Adds the data object to Lichess’s Delete action so the destructive confirmation is explicit."
+        },
+        "hi": {
+          "value": "डेटा हटाएँ",
+          "reason": "Adds the data object to Lichess’s Delete action so the destructive confirmation is explicit."
+        },
+        "pt": {
+          "value": "Excluir dados",
+          "reason": "Adds the data object to Lichess’s Delete action so the destructive confirmation is explicit."
+        }
+      }
+    },
+    "analysisSettings": {
+      "upstream_key": "preferencesAnalysisSettings",
+      "upstream": {
+        "en": "Analysis settings",
+        "ja": "解析に関する設定",
+        "zh": "分析设置",
+        "ko": "분석 설정",
+        "es": "Preferencias de análisis",
+        "de": "Analyse-Einstellungen",
+        "fr": "Paramètres d'analyse",
+        "ru": "Настройки анализа",
+        "hi": null,
+        "pt": "Configurações de análise"
+      },
+      "adaptations": {
+        "hi": {
+          "value": "विश्लेषण की सेटिंग",
+          "reason": "No translation for this key in the pinned upstream catalog; use native Hindi wording."
+        }
+      }
     }
   }
 }

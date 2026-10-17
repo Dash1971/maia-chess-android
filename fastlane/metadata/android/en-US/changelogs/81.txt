@@ -1,0 +1,6 @@
+Mobile Maia 2.4.0
+• Optional maximum opening variety for five moves, then your chosen settings.
+• Save Maia’s choices and probabilities; export readable reports or research data.
+• Clearer engine settings and help in ten languages; optional move history.
+• Improved Chessnut connection and physical NEW GAME reset.
+• Smoother multiple premoves, compact opening-name details, and reliable Home navigation.

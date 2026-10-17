@@ -6,6 +6,7 @@ import 'dart:math';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 
+import 'package:crypto/crypto.dart' as crypto;
 import 'package:chess/chess.dart' as chess;
 import 'package:chessground/chessground.dart' as cg;
 import 'package:dartchess/dartchess.dart' as dc;
@@ -17,8 +18,10 @@ import 'package:flutter/foundation.dart'
         LicenseEntryWithLineBreaks,
         mapEquals,
         listEquals,
+        setEquals,
         visibleForTesting;
 import 'package:flutter/services.dart';
+import 'package:flutter/semantics.dart' show OrdinalSortKey;
 import 'package:intl/intl.dart' show NumberFormat;
 import 'package:multistockfish/multistockfish.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -32,6 +35,11 @@ part 'src/session_history.dart';
 part 'src/pgn_files.dart';
 
 part 'src/maia_queue.dart';
+part 'src/sampling_capture.dart';
+part 'src/sampling_capture_settings.dart';
+part 'src/settings_widgets.dart';
+part 'src/sampling_report.dart';
+part 'src/sampling_report_format.dart';
 part 'src/diagnostics.dart';
 part 'src/session_types.dart';
 part 'src/variation_tree.dart';
@@ -42,6 +50,9 @@ part 'src/active_session_store.dart';
 part 'src/session_model.dart';
 part 'src/openings.dart';
 part 'src/chessnut.dart';
+part 'src/electronic_board.dart';
+part 'src/board_reset.dart';
+part 'src/board_flow.dart';
 part 'src/history_navigation.dart';
 part 'src/sound_effect.dart';
 part 'src/game_feedback.dart';
@@ -52,6 +63,7 @@ part 'src/review.dart';
 part 'src/review_widgets.dart';
 part 'src/stockfish.dart';
 part 'src/maia.dart';
+part 'src/maia_play_settings.dart';
 part 'src/app_language.dart';
 
 Future<void> main() async {

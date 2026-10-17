@@ -155,6 +155,13 @@ class AppLocalizationsRu extends AppLocalizations {
   String get topP => 'Top-P';
 
   @override
+  String get maxOpeningVariety => 'Максимальное разнообразие в дебюте';
+
+  @override
+  String get maxOpeningVarietyHelp =>
+      'Не требуется, если Температура и Top-P имеют значения по умолчанию 1,0 / 1,0. Для первых пяти ходов каждой стороны используются значения 1,0 / 1,0, а с 6-го хода снова применяются ваши настройки.\n\nЦель — обеспечить Maia максимальное разнообразие в дебюте и возможность более сильной игры в дальнейшем: снижение Температуры и/или Top-P уменьшает шанс выбора маловероятных ходов.';
+
+  @override
   String get maiaAnalysisRating => 'Рейтинг Maia для анализа';
 
   @override
@@ -171,7 +178,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get gameAnalysisQuality => 'Качество анализа партии';
 
   @override
-  String get resetEngineDefaults => 'Сбросить настройки движка';
+  String get resetSettingsDefaults => 'Восстановить настройки по умолчанию';
 
   @override
   String get boardSounds => 'Звуки доски';
@@ -974,10 +981,14 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get samplingDefaultsQuestion =>
-      'Почему температура 1.00 и Top-P 1.00?';
+      'Выберите, насколько разнообразной будет игра';
 
   @override
-  String get samplingResearch => 'Прочитать исследование выбора ходов';
+  String get samplingResearch => 'Полные данные для исследования (JSONL)';
+
+  @override
+  String get samplingResearchLink =>
+      'Полные данные для исследования (на английском)';
 
   @override
   String get close => 'Закрыть';
@@ -996,22 +1007,6 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get mobileMaiaSource => 'Исходный код Mobile Maia';
-
-  @override
-  String get samplingFullRange =>
-      'Эти настройки позволяют Maia выбирать из всего спектра предсказываемых человеческих ходов. В наших тестах при рейтинге 1600 выбор дебютных ходов был намного ближе к партиям Lichess, отобранным по рейтингу игроков.';
-
-  @override
-  String get samplingStrength =>
-      'Более низкие значения уменьшают разнообразие ходов и могут сделать Maia сильнее. Мы предпочитаем более человеческий дебютный репертуар максимальной силе игры. Рейтинг Maia описывает игроков, поведение которых она моделирует, и не гарантирует точно такую же силу игры.';
-
-  @override
-  String get samplingTemperatureHelp =>
-      'Температура определяет, насколько вероятности выбора Maia сосредоточены на отдельных ходах. При 0 Maia всегда выбирает ход, который, по прогнозу модели, люди сыграли бы с наибольшей вероятностью. Низкие положительные значения усиливают предпочтение наиболее вероятных ходов; высокие дают больше шансов менее вероятным ходам.';
-
-  @override
-  String get samplingTopPHelp =>
-      'Top-P упорядочивает ходы от наиболее до наименее вероятных, затем оставляет наименьшую группу ходов в начале списка, суммарная вероятность которой достигает этого значения. Низкие значения ограничивают выбор более вероятными ходами; 1.00 сохраняет все допустимые ходы.';
 
   @override
   String get aboutPoweredBy =>
@@ -1039,7 +1034,7 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get samplingRecommendationWarning =>
-      'Температура или Top-P отличается от рекомендуемого значения 1.00. Подробности доступны по кнопке информации.';
+      'Снижение температуры или Top-P может усилить игру Maia в миттельшпиле, но уменьшает разнообразие дебютов. Подробнее — по кнопке информации.';
 
   @override
   String get couldNotOpenPgn => 'Не удалось открыть PGN.';
@@ -1132,4 +1127,315 @@ class AppLocalizationsRu extends AppLocalizations {
   String recentDrawResult(String result) {
     return 'Ничья ($result)';
   }
+
+  @override
+  String get electronicBoardExperimental =>
+      'Электронная доска (экспериментально)';
+
+  @override
+  String get connectBoard => 'Подключить доску';
+
+  @override
+  String get chooseBoard => 'Выбрать доску';
+
+  @override
+  String get chooseAnotherBoard => 'Выбрать другую доску';
+
+  @override
+  String get boardSearching => 'Поиск досок…';
+
+  @override
+  String get boardConnecting => 'Подключение к доске…';
+
+  @override
+  String get boardDisconnected => 'Доска отключена';
+
+  @override
+  String get boardConnectionError =>
+      'Не удалось подключиться. Проверьте Bluetooth и доску и повторите попытку.';
+
+  @override
+  String get boardStartingPosition =>
+      'Расставьте фигуры на доске в стандартной начальной позиции.';
+
+  @override
+  String get boardReady => 'Доска готова';
+
+  @override
+  String get boardExperimentalNotice =>
+      'Поддержка новых досок экспериментальная. Проверяйте ходы на обоих экранах и сообщайте о проблемах с подключением.';
+
+  @override
+  String get boardGameRestriction =>
+      'Партии на электронной доске начинаются со стандартной начальной позиции и идут без ограничения времени.';
+
+  @override
+  String get boardConfirmSetup => 'Я расставил фигуры в начальной позиции';
+
+  @override
+  String get boardConfirmSetupHelp =>
+      'Перед началом проверьте каждую фигуру. Эта доска не может определять тип фигуры.';
+
+  @override
+  String get boardChooseMove => 'Подтвердите ход на доске';
+
+  @override
+  String get boardAmbiguousMove =>
+      'Доска не может различить эти ходы. Выберите ход, который вы сделали.';
+
+  @override
+  String get boardUnavailable =>
+      'Доска не готова. Подключите её заново или продолжите на телефоне.';
+
+  @override
+  String get boardNewGameConfirmInstruction =>
+      'Для подтверждения нажмите NEW GAME ещё раз в течение 2,5 секунды или используйте кнопки ниже.';
+
+  @override
+  String get boardNewGameConfirmationExpired =>
+      'Для подтверждения на доске нажмите NEW GAME дважды в течение 2,5 секунды.';
+
+  @override
+  String get boardPhysicalMove => 'Завершите ход на доске.';
+
+  @override
+  String get boardResetPhysical =>
+      'Прежде чем продолжить, восстановите на доске позицию, показанную на экране.';
+
+  @override
+  String get boardNoResults =>
+      'Совместимая доска не найдена. Разбудите доску и повторите попытку.';
+
+  @override
+  String get boardWaitingForSelection => 'Выберите доску для подключения.';
+
+  @override
+  String get boardReconnect => 'Подключить доску заново';
+
+  @override
+  String get boardLockedPegasus =>
+      'Pegasus заблокирован. Эта Dev-сборка не содержит ключ инициализации производителя.';
+
+  @override
+  String get boardMotorRecovery =>
+      'Продолжите на телефоне. Этот экспериментальный адаптер не может безопасно восстановить состояние мотора доски.';
+
+  @override
+  String get boardConfirmPosition => 'Подтвердить позицию на физической доске';
+
+  @override
+  String get boardConfirmPositionHelp =>
+      'Проверьте, что каждая фигура соответствует позиции на экране.';
+
+  @override
+  String get maiaHistorySetting => 'Учитывать историю позиций';
+
+  @override
+  String get maiaHistoryHelp =>
+      'Позвольте Maia учитывать до семи предыдущих позиций вместе с текущей. В наших тестах с моделью 79M это повысило точность предсказания человеческих ходов примерно на 2 процентных пункта, но иногда усиливало склонность многократно копировать ходы соперника в дебютах при низком рейтинге. Установить повышение силы игры нам не удалось. Пока рекомендуем оставить эту настройку выключенной.';
+
+  @override
+  String get maiaHistoryResearch =>
+      'Читать исследование истории позиций (на английском)';
+
+  @override
+  String get maiaHistoryOn => 'История позиций: включена';
+
+  @override
+  String get maiaHistoryOff => 'История позиций: выключена';
+
+  @override
+  String get chessboardDeviceName => 'Шахматная доска';
+
+  @override
+  String namedBoardConnected(String boardName) {
+    return '$boardName: подключено';
+  }
+
+  @override
+  String namedBoardDisconnected(String boardName) {
+    return '$boardName: отключено';
+  }
+
+  @override
+  String get saveMaiaSamplingData => 'Сохранять данные о выборе ходов Maia';
+
+  @override
+  String get samplingDataHelp =>
+      'Сохраняйте вероятности ходов Maia, настройки и выбранные ходы на этом устройстве, чтобы изучать её игру.\n\nЭкспортируемые файлы содержат позиции на доске, историю ходов, входные данные и решения модели.\n\nСохраняются последние 10 партий с записанными данными, начиная с самой новой. Старые партии могут быть удалены раньше, если достигнут лимит хранилища. Эти данные хранятся отдельно от раздела «Недавние игры».\n\nИспользуйте эту функцию, если вам интересно изучить технические подробности работы Maia. Просмотреть данные в приложении нельзя. Они экспортируются в удобный для просмотра HTML-файл с частью данных или в JSONL-файл со всеми записанными данными.\n\nПо умолчанию функция выключена. Рекомендуем оставить её выключенной, если вы не планируете исследовать работу Maia.';
+
+  @override
+  String get clearSamplingData => 'Удалить данные о выборе ходов';
+
+  @override
+  String samplingDataStatus(int count) {
+    return 'Сохранено решений: $count';
+  }
+
+  @override
+  String get samplingDataError =>
+      'Не удалось получить доступ к данным о выборе ходов. Это не мешает игре.';
+
+  @override
+  String get samplingSave => 'Сохранить…';
+
+  @override
+  String get samplingShare => 'Поделиться…';
+
+  @override
+  String get samplingSummary => 'Выбор ходов Maia';
+
+  @override
+  String get samplingReadable => 'Читаемый отчёт (HTML)';
+
+  @override
+  String get samplingReadableHint =>
+      'Ходы, вероятности и диаграммы. Открывается в браузере.';
+
+  @override
+  String get samplingResearchHint =>
+      'Исходные входные и выходные данные модели для технического анализа.';
+
+  @override
+  String get samplingReportExplanation =>
+      'Проценты показывают вероятность выбора каждого хода после применения ваших настроек температуры и Top-P. Это не шансы на победу и не оценка качества хода.';
+
+  @override
+  String get samplingReportPartial =>
+      'Показаны только записанные решения Maia, а не полная партия. Из-за отмены ходов и повторных попыток номера ходов могут повторяться.';
+
+  @override
+  String get samplingReportMissing =>
+      'Часть данных удалена или не была сохранена. В отчёте могут быть пропуски.';
+
+  @override
+  String get samplingPlayed => 'Сыграно';
+
+  @override
+  String get samplingNotPlayed => 'Не записан как сыгранный';
+
+  @override
+  String get samplingAlternatives => 'Вероятные альтернативы';
+
+  @override
+  String samplingGame(String number) {
+    return 'Партия $number';
+  }
+
+  @override
+  String samplingRecords(String count) {
+    return 'Записано решений: $count';
+  }
+
+  @override
+  String get samplingMostProbable => 'Наиболее вероятный';
+
+  @override
+  String get samplingPlayedMostProbable => 'Сыгран наиболее вероятный ход';
+
+  @override
+  String samplingChance(String move, String odds) {
+    return 'Вероятность выбора хода $move составляла примерно 1 из $odds.';
+  }
+
+  @override
+  String samplingCertain(String move) {
+    return 'Ход $move выбирался гарантированно (100%).';
+  }
+
+  @override
+  String samplingAlmostCertain(String move) {
+    return 'Ход $move выбирался почти наверняка.';
+  }
+
+  @override
+  String get samplingReportRetention =>
+      'Последние 10 записанных партий сохраняются и отображаются от новых к старым. Старые партии могут быть удалены раньше, если достигнут лимит хранилища.';
+
+  @override
+  String get samplingJumpToGame => 'Перейти к партии';
+
+  @override
+  String get samplingBackToGames => 'К списку партий';
+
+  @override
+  String get samplingIncomplete => 'Не завершена';
+
+  @override
+  String get samplingUnknownResult => 'Результат неизвестен';
+
+  @override
+  String get samplingOpeningUnknown => 'Дебют неизвестен';
+
+  @override
+  String get samplingTimeUnknown => 'Время неизвестно';
+
+  @override
+  String get samplingWin => 'Победа';
+
+  @override
+  String get samplingLoss => 'Поражение';
+
+  @override
+  String get samplingDraw => 'Ничья';
+
+  @override
+  String get samplingDeleteData => 'Удалить данные';
+
+  @override
+  String get samplingClearConfirmation =>
+      'Удалить все данные о выборе ходов Maia? Восстановить их будет невозможно.';
+
+  @override
+  String get analysisSettings => 'Настройки анализа';
+
+  @override
+  String get samplingData => 'Данные о выборе ходов';
+
+  @override
+  String get resetSettingsDefaultsScope =>
+      'Сбрасывает все настройки на этом экране. Сохранённые партии и данные выборки сохраняются.';
+
+  @override
+  String get settingsResetError =>
+      'Не удалось сбросить некоторые настройки. Попробуйте ещё раз.';
+
+  @override
+  String get resetSettingsConfirmation =>
+      'Восстановить все настройки по умолчанию?';
+
+  @override
+  String get resetSettingsKeepData =>
+      'Ваши сохранённые партии и данные выборки сохранятся.';
+
+  @override
+  String get resetSettingsAction => 'Сбросить настройки';
+
+  @override
+  String get samplingHelpIntro =>
+      'Температура и Top-P определяют, как Maia выбирает между возможными ходами.';
+
+  @override
+  String get samplingHelpVariety =>
+      'При повышении Температуры и Top-P Maia становится более непредсказуемым соперником, поскольку чаще выбирает маловероятные ходы. Это могут быть зевки, но могут быть и отличные ходы!';
+
+  @override
+  String get samplingHelpDefaults =>
+      'Если вам нужно максимальное разнообразие и вы хотите, чтобы Maia играла широкий набор человеческих дебютов, включая побочные варианты, оставьте значения по умолчанию: 1,0 и 1,0.';
+
+  @override
+  String get samplingHelpStrength =>
+      'Если вы предпочитаете более сильного соперника, который реже зевает, попробуйте уменьшить значения Температуры и Top-P.';
+
+  @override
+  String get samplingHelpArgmax =>
+      'При Температуре 0 Maia использует argmax. Этот технический термин означает, что Maia всегда играет ход, который, по её прогнозу, человек с наибольшей вероятностью выберет в данной позиции. Осторожно! В нашем исследовании при настройке рейтинга 1600 Maia с argmax превосходила Maia с настройками 1,0 / 1,0 в прямых встречах на величину, эквивалентную примерно 300 пунктам Elo.';
+
+  @override
+  String get samplingHelpTopP =>
+      'Для баланса силы и разнообразия можно оставить Температуру на 1,0 и установить Top-P на 0,95. Это сохраняет разнообразие, исключая маловероятные ходы, которые часто могут быть зевками, но могут быть и хорошими ходами. По сути, Top-P отсекает наименее вероятные ходы. При значении 0,95 остаются ходы, на которые приходится в сумме не менее 95 % вероятности после применения Температуры. Остальные ходы Maia выбрать не сможет.';
+
+  @override
+  String get samplingHelpResearchIntro =>
+      'Мы экспериментировали с этими настройками при рейтинге 1600 Elo и опубликовали все результаты здесь:';
 }

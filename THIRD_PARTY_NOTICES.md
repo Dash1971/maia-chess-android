@@ -173,3 +173,17 @@ reference strings and context adaptations are recorded in
 `docs/LICHESS_TERMINOLOGY.md`. The adapted material remains subject to GPL-3.0;
 Mobile Maia as a combined application is distributed under AGPL-3.0-only as
 permitted by section 13 of AGPL-3.0.
+
+## Dart crypto
+
+- Project: <https://github.com/dart-lang/core/tree/main/pkgs/crypto>
+- Copyright: The Dart project authors
+- Licence: BSD 3-Clause (included in Flutter's generated package licences)
+- Used for local sampling-export SHA-256 checksums; no network functionality.
+
+Readable sampling reports embed the existing Cburnett pieces as WebP images.
+The original artwork by Colin M. L. Burnett is also offered under CC BY-SA 3.0
+(see <https://commons.wikimedia.org/wiki/File:Chess_plt45.svg> and the related
+piece set). The report carries artist attribution, the conversion notice, and
+links to the artwork and <https://creativecommons.org/licenses/by-sa/3.0/>.
+No external image requests are made when opening a report.

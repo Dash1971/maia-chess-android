@@ -18,6 +18,7 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
+import android.os.SystemClock
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import io.flutter.plugin.common.BinaryMessenger
@@ -35,7 +36,7 @@ class ChessnutBridge(
         private const val METHOD_CHANNEL = "maia_chess/chessnut"
         private const val EVENT_CHANNEL = "maia_chess/chessnut/events"
         private const val PERMISSION_REQUEST = 7103
-        private const val SCAN_TIMEOUT_MS = 10_000L
+        private const val SCAN_TIMEOUT_MS = 3_000L
         private const val WRITE_GAP_MS = 100L
 
         private val WRITE_UUID = UUID.fromString("1B7E8272-2877-41C3-B46E-CF057C562023")
@@ -53,6 +54,24 @@ class ChessnutBridge(
         activity.getSystemService(Context.BLUETOOTH_SERVICE) as? BluetoothManager
     private val adapter: BluetoothAdapter?
         get() = bluetoothManager?.adapter
+
+    // Connection safety and Chessnut behavior are shared by all channels.
+    // BoardChannelPolicy alone decides which board families are permitted.
+    private val preferences = activity.getSharedPreferences("verified_electronic_boards", Context.MODE_PRIVATE)
+    private data class Candidate(val device: BluetoothDevice, val name: String, val kind: String)
+    private val discovery = BoardDiscoveryWindow<Candidate>()
+    private var connectMode = "remembered"
+    private var requestedBoardId: String? = null
+    private var boardId: String? = null
+    private var boardKind = "chessnut"
+    private var connectionSession = UUID.randomUUID().toString()
+    private var selectedAddress: String? = null
+    private var motorPending = false
+    private val positionFrames = ChessnutNotificationFrames(false)
+    private val confirmationFrames = ChessnutNotificationFrames(true)
+    private val uartService = UUID.fromString("6e400001-b5a3-f393-e0a9-e50e24dcca9e")
+    private val uartWrite = UUID.fromString("6e400002-b5a3-f393-e0a9-e50e24dcca9e")
+    private val uartNotify = UUID.fromString("6e400003-b5a3-f393-e0a9-e50e24dcca9e")
 
     private var eventSink: EventChannel.EventSink? = null
     private var pendingPermissionResult: MethodChannel.Result? = null
@@ -88,7 +107,36 @@ class ChessnutBridge(
 
     override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
         when (call.method) {
-            "connect" -> connect(result)
+            "connect" -> {
+                if (pendingPermissionResult != null) {
+                    result.error("permission_pending", "A Bluetooth permission request is already open.", null); return
+                }
+                connectMode = call.argument<String>("mode") ?: "remembered"
+                requestedBoardId = call.argument<String>("boardId")
+                connect(result)
+            }
+            "discover" -> {
+                if (pendingPermissionResult != null) {
+                    result.error("permission_pending", "A Bluetooth permission request is already open.", null); return
+                }
+                disconnect("Board disconnected.")
+                connectMode = "discover"
+                requestedBoardId = null
+                connect(result)
+            }
+            "selectBoard" -> {
+                val candidate = discovery.select(call.argument<String>("candidateId"))
+                if (candidate == null || !BoardChannelPolicy.supports(BuildConfig.FLAVOR, candidate.kind)) result.error("stale_candidate", "Choose a board from a fresh search.", null)
+                else {
+                    discovery.clear()
+                    boardKind = candidate.kind
+                    boardId = null
+                    selectedAddress = candidate.device.address
+                    connectGatt(candidate.device, candidate.name)
+                    result.success(null)
+                }
+            }
+            "startBoardGame", "movePiece", "acknowledgeMove", "confirmPosition" -> squareOffCommand(call, result)
             "disconnect" -> {
                 disconnect("Chessnut disconnected.")
                 result.success(null)
@@ -102,7 +150,7 @@ class ChessnutBridge(
     override fun onListen(arguments: Any?, events: EventChannel.EventSink?) {
         eventSink = events
         emitStatus(state, stateMessage, deviceName)
-        if (ready) {
+        if (ready && boardKind == "chessnut") {
             enqueueWrite(INIT_COMMAND)
             enqueueWrite(BATTERY_COMMAND)
         }
@@ -120,6 +168,7 @@ class ChessnutBridge(
         if (requestCode != PERMISSION_REQUEST) return false
         val result = pendingPermissionResult
         pendingPermissionResult = null
+        if (result == null) return true
         if (grantResults.isNotEmpty() && grantResults.all { it == PackageManager.PERMISSION_GRANTED }) {
             try {
                 if (adapter?.isEnabled != true) {
@@ -128,7 +177,7 @@ class ChessnutBridge(
                     emitError(message)
                     return true
                 }
-                startScan()
+                startConnection()
                 result?.success(null)
             } catch (error: Throwable) {
                 result?.error("connect_failed", error.message, null)
@@ -143,12 +192,25 @@ class ChessnutBridge(
     }
 
     private fun connect(result: MethodChannel.Result) {
+        // Legacy saves have no identity: start a fresh Chessnut-only search,
+        // never reuse an unrelated ready/in-flight connection.
+        if (BoardReconnectPolicy.needsFreshConnection(connectMode, requestedBoardId, boardId)) {
+            stopScan()
+            disconnectGatt()
+            state = "disconnected"
+        }
         if (ready) {
             emitStatus("ready", "Chessnut is ready.", deviceName)
+            if (boardKind == "pegasus") {
+                // Dart resets occupancy history when reconnecting after a parser error.
+                // Field updates cannot recover that history without a fresh complete dump.
+                enqueueWrite(byteArrayOf(0x5a))
+                enqueueWrite(byteArrayOf(0x42))
+            }
             result.success(null)
             return
         }
-        if (scanCallback != null || state == "connecting") {
+        if (scanCallback != null || (gatt != null && (state == "connecting" || state == "connected"))) {
             result.success(null)
             return
         }
@@ -176,7 +238,7 @@ class ChessnutBridge(
             return
         }
         try {
-            startScan()
+            startConnection()
             result.success(null)
         } catch (error: Throwable) {
             result.error("connect_failed", error.message, null)
@@ -191,8 +253,34 @@ class ChessnutBridge(
             listOf(Manifest.permission.ACCESS_FINE_LOCATION)
         }
 
+    private fun startConnection() {
+        if (BoardReconnectPolicy.needsLegacyDiscovery(connectMode, requestedBoardId)) {
+            // Pre-promotion Chessnut saves have no board identity. Discover only
+            // Chessnut, then establish an identity after physical-position sync.
+            startScan()
+            return
+        }
+        if (connectMode != "discover") {
+            val targetId = requestedBoardId ?: boardId ?: preferences.getString("last_id", null)
+            val address = targetId?.let { preferences.getString("address_$it", null) }
+            if (address != null) {
+                disconnectGatt()
+                boardId = targetId
+                selectedAddress = address
+                boardKind = preferences.getString("kind_$targetId", "chessnut") ?: "chessnut"
+                connectGatt(adapter!!.getRemoteDevice(address), preferences.getString("name_$targetId", "Board") ?: "Board")
+                return
+            }
+            if (connectMode == "reconnect") throw IllegalStateException("The selected board is unavailable. Continue on the phone or explicitly choose another board.")
+        }
+        startScan()
+    }
+
     private fun startScan() {
+        connectionSession = UUID.randomUUID().toString()
         disconnectGatt()
+        discovery.clear()
+        boardId = null
         scanAttempts++
         val scanner = adapter?.bluetoothLeScanner
             ?: throw IllegalStateException("Bluetooth LE scanning is unavailable.")
@@ -204,12 +292,18 @@ class ChessnutBridge(
                 } catch (_: SecurityException) {
                     ""
                 }
-                if (!looksLikeChessnut(name)) return
-                stopScan()
-                connectGatt(result.device, name.ifBlank { "Chessnut" })
+                mainHandler.post {
+                    if (scanCallback !== this) return@post
+                    val kind = BoardChannelPolicy.discover(BuildConfig.FLAVOR, name) ?: return@post
+                    if (BoardReconnectPolicy.needsLegacyDiscovery(connectMode, requestedBoardId) && kind != "chessnut") return@post
+                    val address = result.device.address
+                    discovery.add(address, Candidate(result.device, name, kind))
+                }
             }
 
             override fun onScanFailed(errorCode: Int) {
+                mainHandler.post {
+                if (scanCallback !== this) return@post
                 stopScan()
                 emitStatus(
                     "error",
@@ -217,6 +311,7 @@ class ChessnutBridge(
                     deviceName,
                     "scanErrorCode=$errorCode",
                 )
+                }
             }
         }
         scanCallback = callback
@@ -224,7 +319,23 @@ class ChessnutBridge(
         mainHandler.postDelayed({
             if (scanCallback === callback) {
                 stopScan()
-                emitError("No Chessnut found. Check that the board is on and nearby.")
+                val candidates = discovery.snapshot()
+                when (candidates.size) {
+                    0 -> emitError("No board found. Check that the board is on and nearby.")
+                    1 -> {
+                        val candidate = candidates.values.first()
+                        discovery.clear()
+                        boardKind = candidate.kind
+                        selectedAddress = candidate.device.address
+                        connectGatt(candidate.device, candidate.name)
+                    }
+                    else -> {
+                        emitStatus("choosing", "Choose a board.")
+                        emit(mapOf("type" to "candidates", "candidates" to candidates.map { (id, candidate) ->
+                            mapOf("id" to id, "name" to candidate.name, "kind" to candidate.kind)
+                        }))
+                    }
+                }
             }
         }, SCAN_TIMEOUT_MS)
     }
@@ -244,6 +355,10 @@ class ChessnutBridge(
     }
 
     private fun connectGatt(device: BluetoothDevice, name: String) {
+        check(BoardChannelPolicy.supports(BuildConfig.FLAVOR, boardKind)) {
+            "This board is available only in the Dev build."
+        }
+        connectionSession = UUID.randomUUID().toString()
         deviceName = name
         emitStatus("connecting", "Connecting to $name…", name)
         serviceDiscoveryStarted = false
@@ -256,6 +371,10 @@ class ChessnutBridge(
                 device.connectGatt(activity, false, gattCallback)
             }
             if (gatt == null) failConnection("Could not open the Chessnut connection.")
+            val source = gatt
+            mainHandler.postDelayed({
+                if (gatt === source && !ready) failConnection("Board connection timed out. Try reconnecting.")
+            }, 15_000L)
         } catch (error: SecurityException) {
             failConnection(error.message ?: "Bluetooth permission was revoked.")
         }
@@ -322,7 +441,7 @@ class ChessnutBridge(
             characteristic: BluetoothGattCharacteristic,
         ) {
             if (this@ChessnutBridge.gatt === gatt) {
-                handleNotification(characteristic.uuid, characteristic.value ?: byteArrayOf())
+                handleNotification(gatt, characteristic.uuid, characteristic.value ?: byteArrayOf())
             }
         }
 
@@ -332,7 +451,7 @@ class ChessnutBridge(
             value: ByteArray,
         ) {
             if (this@ChessnutBridge.gatt === gatt) {
-                handleNotification(characteristic.uuid, value)
+                handleNotification(gatt, characteristic.uuid, value)
             }
         }
 
@@ -347,9 +466,10 @@ class ChessnutBridge(
                     failConnection("Could not enable Chessnut notifications (status $status).")
                     return@post
                 }
+                if (descriptor.characteristic.uuid != configuringDescriptor) return@post
                 when (configuringDescriptor) {
                     DATA_UUID -> enableNotifications(confirmationCharacteristic)
-                    CONFIRM_UUID -> finishConfiguration()
+                    CONFIRM_UUID, uartNotify -> finishConfiguration()
                     else -> Unit
                 }
             }
@@ -362,6 +482,7 @@ class ChessnutBridge(
         ) {
             mainHandler.post {
                 if (this@ChessnutBridge.gatt !== gatt) return@post
+                if (!writeInProgress || activeWrite == null || characteristic.uuid != writeCharacteristic?.uuid) return@post
                 writeInProgress = false
                 val completedWrite = activeWrite
                 activeWrite = null
@@ -395,11 +516,26 @@ class ChessnutBridge(
     }
 
     private fun configureServices(services: List<BluetoothGattService>) {
-        writeCharacteristic = findCharacteristic(services, WRITE_UUID)
-        dataCharacteristic = findCharacteristic(services, DATA_UUID)
-        confirmationCharacteristic = findCharacteristic(services, CONFIRM_UUID)
-        if (writeCharacteristic == null || dataCharacteristic == null || confirmationCharacteristic == null) {
-            failConnection("The connected board does not expose the expected Chessnut BLE service.")
+        if (!BoardChannelPolicy.supports(BuildConfig.FLAVOR, boardKind)) {
+            failConnection("This board is available only in the Dev build."); return
+        }
+        if (boardKind == "chessnut") {
+            writeCharacteristic = findCharacteristic(services, WRITE_UUID)
+            dataCharacteristic = findCharacteristic(services, DATA_UUID)
+            confirmationCharacteristic = findCharacteristic(services, CONFIRM_UUID)
+        } else {
+            val service = services.firstOrNull { it.uuid == uartService }
+            writeCharacteristic = service?.getCharacteristic(uartWrite)
+            dataCharacteristic = service?.getCharacteristic(uartNotify)
+            confirmationCharacteristic = null
+        }
+        val write = writeCharacteristic
+        val data = dataCharacteristic
+        if (write == null || data == null ||
+            (boardKind == "chessnut" && confirmationCharacteristic == null) ||
+            (write.properties and (BluetoothGattCharacteristic.PROPERTY_WRITE or BluetoothGattCharacteristic.PROPERTY_WRITE_NO_RESPONSE) == 0) ||
+            (data.properties and BluetoothGattCharacteristic.PROPERTY_NOTIFY == 0)) {
+            failConnection("The connected board does not expose the expected $boardKind BLE profile.")
             return
         }
         enableNotifications(dataCharacteristic)
@@ -445,36 +581,53 @@ class ChessnutBridge(
     }
 
     private fun finishConfiguration() {
+        if (!BoardChannelPolicy.supports(BuildConfig.FLAVOR, boardKind)) {
+            failConnection("This board is available only in the Dev build."); return
+        }
         ready = true
         emitStatus("ready", "Chessnut is ready.", deviceName)
-        enqueueWrite(INIT_COMMAND)
-        enqueueWrite(BATTERY_COMMAND)
+        if (selectedAddress != null) {
+            val address = selectedAddress!!
+            val existing = preferences.getString("id_$address", null)
+            boardId = existing ?: UUID.randomUUID().toString()
+            preferences.edit().putString("id_$address", boardId)
+                .putString("address_$boardId", address).putString("kind_$boardId", boardKind)
+                .putString("name_$boardId", deviceName).putString("last_id", boardId).apply()
+            emitStatus("ready", "$deviceName is ready.", deviceName)
+        }
+        when (boardKind) {
+            "chessnut" -> { enqueueWrite(INIT_COMMAND); enqueueWrite(BATTERY_COMMAND) }
+            "pegasus" -> {
+                // No manufacturer application key: compatibility requires an already unlocked profile.
+                enqueueWrite(byteArrayOf(0x5a)); enqueueWrite(byteArrayOf(0x44)); enqueueWrite(byteArrayOf(0x42))
+            }
+            "squareOff" -> enqueueWrite("xCONNECTEDz".toByteArray(Charsets.US_ASCII))
+        }
     }
 
-    private fun handleNotification(uuid: UUID, value: ByteArray) {
+    private fun handleNotification(source: BluetoothGatt, uuid: UUID, value: ByteArray) {
+        val snapshot = value.copyOf()
         mainHandler.post {
-            if (uuid == DATA_UUID && value.size >= 32) {
-                emit(
-                    mapOf(
-                        "type" to "position",
-                        "data" to value.map { it.toInt() and 0xff },
-                        "nativeReady" to ready,
-                        "gattPresent" to (gatt != null),
-                    )
-                )
-            } else if (uuid == CONFIRM_UUID &&
-                value.size >= 4 && value[0] == 0x2a.toByte() && value[1] == 0x02.toByte()
-            ) {
-                val raw = value[2].toInt() and 0xff
-                val percent = raw and 0x7f
-                if (percent <= 100) {
-                    emit(
-                        mapOf(
-                            "type" to "battery",
-                            "percent" to percent,
-                            "charging" to ((raw and 0x80) != 0),
-                        )
-                    )
+            if (gatt !== source) return@post
+            if (boardKind != "chessnut") {
+                if (snapshot.size <= 1024) emit(mapOf("type" to "boardData", "boardKind" to boardKind,
+                    "data" to snapshot.map { it.toInt() and 255 }, "connectionSession" to connectionSession), source)
+                return@post
+            }
+            val frames = when (uuid) {
+                DATA_UUID -> positionFrames.feed(snapshot, SystemClock.elapsedRealtime())
+                CONFIRM_UUID -> confirmationFrames.feed(snapshot, SystemClock.elapsedRealtime())
+                else -> emptyList()
+            }
+            for (frame in frames) {
+                if (uuid == DATA_UUID) emit(mapOf("type" to "position", "data" to frame.map { it.toInt() and 255 },
+                    "nativeReady" to ready, "gattPresent" to true), source)
+                else if (frame.contentEquals(byteArrayOf(0x0f, 0x01, 0x02))) {
+                    emit(mapOf("type" to "newGame", "connectionSession" to connectionSession), source)
+                } else if (frame.size == 4 && frame[0] == 0x2a.toByte()) {
+                    val raw = frame[2].toInt() and 255
+                    if ((raw and 127) <= 100) emit(mapOf("type" to "battery", "percent" to (raw and 127),
+                        "charging" to ((raw and 128) != 0)), source)
                 }
             }
         }
@@ -485,6 +638,15 @@ class ChessnutBridge(
             result.error("not_connected", "Chessnut is not ready.", null)
             return
         }
+        if (boardKind == "pegasus") {
+            val squares = call.argument<List<Number>>("squares")?.map { it.toInt() }
+            if (squares == null || squares.size > 64 || squares.any { it !in 0..63 }) {
+                result.error("bad_arguments", "Expected DGT square indices.", null); return
+            }
+            val command = ElectronicBoardProtocol.pegasusLeds(squares)
+            enqueueWrite(command, completion = result); return
+        }
+        if (boardKind != "chessnut") { result.error("unsupported", "This board has no LED guidance.", null); return }
         val values = call.argument<List<Number>>("command")
         if (values == null || values.size != 10 || values[0].toInt() != 0x0a || values[1].toInt() != 0x08) {
             result.error("bad_arguments", "Expected a Chessnut LED command.", null)
@@ -497,6 +659,7 @@ class ChessnutBridge(
     }
 
     private fun beep(call: MethodCall, result: MethodChannel.Result) {
+        if (boardKind != "chessnut") { result.error("unsupported", "This board has no buzzer adapter.", null); return }
         if (!ready) {
             result.error("not_connected", "Chessnut is not ready.", null)
             return
@@ -513,11 +676,55 @@ class ChessnutBridge(
         )
     }
 
+    private fun squareOffCommand(call: MethodCall, result: MethodChannel.Result) {
+        if (BuildConfig.FLAVOR != "dev" || !ready || boardKind != "squareOff" || call.argument<String>("connectionSession") != connectionSession) {
+            result.error("invalid_session", "The selected board session is unavailable.", null); return
+        }
+        if (call.method == "confirmPosition") {
+            // Explicit local reconciliation only; never send an unsupported physical command.
+            motorPending = false
+            result.success(null)
+            return
+        }
+        if (motorPending && call.method == "startBoardGame") {
+            result.error("motor_busy", "Confirm the prior board movement before starting a game.", null); return
+        }
+        val command = when (call.method) {
+            "startBoardGame" -> when (call.argument<String>("player")) {
+                "white" -> "GAMEWHITE"; "black" -> "GAMEBLACK"; "live" -> "LIVE"
+                else -> { result.error("bad_arguments", "Expected player colour.", null); return }
+            }
+            "acknowledgeMove" -> if (call.argument<Boolean>("accepted") == true) {
+                // Dart has verified a subsequent legal physical move in the current position.
+                // GAMEWHITE/GAMEBLACK firmware need not report an explicit motor OK.
+                motorPending = false
+                "OK"
+            } else "ERR"
+            else -> {
+                val uci = call.argument<String>("uci") ?: ""
+                if (runCatching { ElectronicBoardProtocol.squareOffMove(uci, call.argument<String>("connectionSession"), connectionSession) }.isFailure) {
+                    result.error("bad_arguments", "Expected a four-character board move.", null); return
+                }
+                if (motorPending || writeInProgress || writeQueue.isNotEmpty()) {
+                    result.error("motor_busy", "Confirm the prior board movement before sending another.", null); return
+                }
+                motorPending = true
+                uci
+            }
+        }
+        if (call.method == "startBoardGame") enqueueWrite("xRSTVARz".toByteArray(Charsets.US_ASCII))
+        enqueueWrite("x${command}z".toByteArray(Charsets.US_ASCII), completion = result)
+    }
+
     private fun enqueueWrite(
         command: ByteArray,
         failureIsFatal: Boolean = true,
         completion: MethodChannel.Result? = null,
     ) {
+        if (!BoardChannelPolicy.supports(BuildConfig.FLAVOR, boardKind)) {
+            completion?.error("unsupported", "This board is available only in the Dev build.", null)
+            return
+        }
         if (isLedCommand(command)) {
             // LED state is absolute, not an event. Keep only the newest queued
             // state so rapid board notifications cannot replay stale guidance.
@@ -534,6 +741,10 @@ class ChessnutBridge(
                 return
             }
         }
+        if (writeQueue.size >= 32) {
+            completion?.error("queue_full", "Board command queue is full.", null)
+            return
+        }
         writeQueue.add(PendingWrite(command.copyOf(), failureIsFatal, completion))
         writeNext()
     }
@@ -543,6 +754,8 @@ class ChessnutBridge(
         val currentGatt = gatt ?: return
         val characteristic = writeCharacteristic ?: return
         val pendingWrite = writeQueue.removeFirst()
+        val writeType = if (characteristic.properties and BluetoothGattCharacteristic.PROPERTY_WRITE != 0)
+            BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT else BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE
         val command = pendingWrite.command
         activeWrite = pendingWrite
         writeInProgress = true
@@ -551,17 +764,22 @@ class ChessnutBridge(
                 currentGatt.writeCharacteristic(
                     characteristic,
                     command,
-                    BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT,
+                    writeType,
                 ) == android.bluetooth.BluetoothStatusCodes.SUCCESS
             } else {
                 @Suppress("DEPRECATION")
-                characteristic.writeType = BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
+                characteristic.writeType = writeType
                 @Suppress("DEPRECATION")
                 characteristic.value = command
                 @Suppress("DEPRECATION")
                 currentGatt.writeCharacteristic(characteristic)
             }
-            if (started) return
+            if (started) {
+                mainHandler.postDelayed({
+                    if (gatt === currentGatt && activeWrite === pendingWrite) failConnection("Board command acknowledgement timed out. Reconnect before continuing.")
+                }, 5_000L)
+                return
+            }
             writeInProgress = false
             activeWrite = null
             pendingWrite.completion?.error(
@@ -589,7 +807,9 @@ class ChessnutBridge(
     private fun scheduleNextWrite() {
         if (writeGapInProgress) return
         writeGapInProgress = true
+        val source = gatt
         mainHandler.postDelayed({
+            if (gatt !== source) return@postDelayed
             writeGapInProgress = false
             writeNext()
         }, WRITE_GAP_MS)
@@ -599,7 +819,11 @@ class ChessnutBridge(
         command.size == 10 && command[0] == 0x0a.toByte() && command[1] == 0x08.toByte()
 
     private fun disconnect(message: String) {
+        connectionSession = UUID.randomUUID().toString()
+        pendingPermissionResult?.error("cancelled", "Board connection was cancelled.", null)
+        pendingPermissionResult = null
         stopScan()
+        discovery.clear()
         try {
             gatt?.disconnect()
         } catch (_: SecurityException) {
@@ -623,6 +847,9 @@ class ChessnutBridge(
             )
         }
         ready = false
+        positionFrames.reset()
+        confirmationFrames.reset()
+        motorPending = false
         serviceDiscoveryStarted = false
         writeCharacteristic = null
         dataCharacteristic = null
@@ -667,12 +894,20 @@ class ChessnutBridge(
         emit(
             buildMap<String, Any> {
                 put("type", "status")
+                put("boardKind", boardKind)
+                boardId?.let { put("boardId", it) }
+                put("connectionSession", connectionSession)
+                put("capabilities", mapOf("pieceIdentity" to (boardKind == "chessnut"),
+                    "occupancy" to (boardKind == "pegasus"), "leds" to (boardKind != "squareOff"),
+                    "sound" to (boardKind == "chessnut"), "battery" to (boardKind == "chessnut"),
+                    "physicalButtons" to (boardKind == "chessnut"), "motors" to (boardKind == "squareOff")))
                 put("state", newState)
                 put("message", message)
                 if (name != null) put("deviceName", name)
                 val details = listOfNotNull(errorDiagnostic, diagnostic).joinToString(" ")
                 if (details.isNotEmpty()) put("diagnostic", details)
-            }
+            },
+            expectedGatt = if (newState == "ready" || newState == "connected") gatt else null,
         )
     }
 
@@ -683,8 +918,19 @@ class ChessnutBridge(
         emitError(message)
     }
 
-    private fun emit(event: Map<String, Any>) {
-        mainHandler.post { eventSink?.success(event) }
+    private fun emit(event: Map<String, Any>, expectedGatt: BluetoothGatt? = null) {
+        val sessionSnapshot = connectionSession
+        val decorated = buildMap<String, Any> {
+            putAll(event)
+            put("connectionSession", sessionSnapshot)
+            put("boardKind", boardKind)
+            boardId?.let { put("boardId", it) }
+        }
+        mainHandler.post {
+            if (connectionSession != sessionSnapshot) return@post
+            if (expectedGatt != null && gatt !== expectedGatt) return@post
+            eventSink?.success(decorated)
+        }
     }
 
     fun diagnosticsSnapshot(): Map<String, Any> {
@@ -716,6 +962,8 @@ class ChessnutBridge(
     }
 
     fun close() {
+        connectionSession = UUID.randomUUID().toString()
+        eventSink = null
         pendingPermissionResult?.error("cancelled", "Chessnut connection was cancelled.", null)
         pendingPermissionResult = null
         disconnectGatt()

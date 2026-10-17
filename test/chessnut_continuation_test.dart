@@ -74,6 +74,79 @@ void main() {
         .setMockMethodCallHandler(maiaEngineChannel, null),
   );
 
+  testWidgets(
+    'valid native position recovers decode error and applies one move',
+    (tester) async {
+      final board = SimulatedElectronicBoard();
+      board.connectFen =
+          'rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq e6 0 2';
+      await ActiveSessionStore.save(savedGame(extra: {'clockPaused': false}));
+      await mountGame(tester, board);
+      await tester.tap(find.text('Reconnect'));
+      await tester.pumpAndSettle();
+      final decoder = ChessnutEventDecoder(detailed: true);
+      board.controller.add(
+        decoder.decode({
+          'type': 'position',
+          'data': [0x0e, ...List<int>.filled(31, 0)],
+          'nativeReady': true,
+          'gattPresent': true,
+        }),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Reconnect'), findsOneWidget);
+      final bytes = <int>[];
+      const codes = {
+        '.': 0,
+        'q': 1,
+        'k': 2,
+        'b': 3,
+        'p': 4,
+        'n': 5,
+        'R': 6,
+        'P': 7,
+        'r': 8,
+        'B': 9,
+        'N': 10,
+        'Q': 11,
+        'K': 12,
+      };
+      final after = ChessnutProtocol.pieceMapFromFen(
+        'rnbqkbnr/pppp1ppp/8/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2',
+      );
+      for (var rank = 8; rank >= 1; rank--) {
+        for (var file = 7; file >= 1; file -= 2) {
+          final a = after['${String.fromCharCode(97 + file)}$rank'] ?? '.';
+          final b = after['${String.fromCharCode(96 + file)}$rank'] ?? '.';
+          bytes.add(codes[a]! | (codes[b]! << 4));
+        }
+      }
+      board.controller.add(
+        decoder.decode({
+          'type': 'position',
+          'data': bytes,
+          'nativeReady': true,
+          'gattPresent': true,
+        }),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Reconnect'), findsNothing);
+      expect((await ActiveSessionStore.load())!['uciMoves'], [
+        'e2e4',
+        'e7e5',
+        'g1f3',
+        'b8c6',
+      ]);
+      expect(board.leds.last, containsAll(['b8', 'c6']));
+      final preferences = await SharedPreferences.getInstance();
+      expect(
+        preferences.getStringList('diagnosticEntriesV1')!.join(),
+        contains('recovery=valid-position'),
+      );
+      await disposeGame(tester, board);
+    },
+  );
+
   for (final (name, pgn, result) in [
     ('checkmate', '1. f3 e5 2. g4 Qh4# 0-1', null),
     ('resignation', '[Result "0-1"]\n1. e4 e5 0-1', '0-1'),

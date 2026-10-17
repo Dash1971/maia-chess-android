@@ -116,3 +116,179 @@ fonts and native-language acceptance still require human review.
 
 Lichess translation attribution is included in `THIRD_PARTY_NOTICES.md`, which is
 bundled in the app's license information.
+
+## Experimental electronic-board Dev messages
+
+Added 28 electronic-board messages in all ten catalogs for device selection,
+connection recovery, physical setup, ambiguous moves and hardware-button
+confirmation. These are app-specific device operations; the pinned Lichess
+reference has no direct equivalent for the complete messages. They reuse the
+existing chess vocabulary for moves, positions, pieces and unlimited time where
+the meaning applies. The standard physical starting arrangement is described
+explicitly rather than copying a board-editor action label. Japanese uses the
+established physical-setup term 初期配置; Hindi uses a natural sentence form
+for the starting arrangement, rather than the upstream standalone label with
+a trailing colon. Unlimited-time prose describes the absence of a clock; it
+does not mechanically insert a standalone adjective into an instruction.
+
+`NEW GAME` remains unchanged in every language because it names the physical
+button printed on supported hardware. The surrounding instructions are translated,
+including the two-press confirmation window. Bluetooth likewise retains its
+protocol name. No new placeholders or English prose fallbacks were introduced.
+The translations and review CSV remain provisional pending native-speaker review.
+
+## Plain-language sampling guidance (Dev review)
+
+Temperature, Top-P and Maia's human-move predictions are app-specific concepts.
+The revised help uses examples rather than new preset controls, and distinguishes
+likely human moves from objectively best moves. All ten catalogs retain the same
+meaning. Decimal commas are used in the European-language examples where customary.
+The Spanish temperature paragraph follows the native-speaker suggestion in
+Stable #23; timed-premove help restores the missing clock condition while retaining
+Lichess's existing “movimiento anticipado” terminology.
+
+The source of truth for the evidence remains the sampling study (1600 setting),
+not a claim of guaranteed strength at every rating. No sampling defaults, saved
+settings or algorithms change with this copy update.
+
+The experimental move-history setting adds six messages in every language.
+“History” here means previous board positions supplied to Maia, not the move-list
+navigation action; languages may explicitly say previous positions to avoid that
+ambiguity. The help limits its research claim to the 79M tests, keeps the option
+experimental and off by default, and explains saved-session behavior. This is
+app-specific prose, not an upstream Lichess translation. Both Maia probability
+sheets and accessible engine-label tooltips identify the effective input mode.
+
+## Named electronic-board connection status
+
+Connection/disconnection confirmations name the recognized product (for example,
+Chessnut Go or DGT Pegasus), falling back to the brand or a localized chessboard
+label when identification is unavailable. These hardware connection messages have
+no direct equivalent in the pinned Lichess terminology baseline. Product names
+remain unchanged; all ten languages translate the surrounding status. Languages
+where product-name gender is ambiguous use a compact device-status label. Setup
+and recovery instructions still take priority over a connection confirmation.
+
+## Sampling data export (#122)
+
+The opt-in sampling capture label, help, counts and export/clear actions are
+Maia-specific features with no direct equivalent in the pinned Lichess catalog.
+They have dedicated wording in all ten languages. The dialog retains the
+existing Lichess-aligned Close action. No shared chess terminology is redefined.
+As with other app-specific prose, these are editorial translations, not a claim
+of native-speaker certification.
+
+## Readable sampling reports (#128)
+
+Report explanations, partial-capture notices, effective selection probabilities and research
+format descriptions are Maia-specific and translated in all ten catalogs.
+Save follows the pinned Lichess `save` label, adding an ellipsis because another
+choice follows. Share follows the meaning of `mobileShareGamePGN`, omitting PGN
+because these exports are HTML/JSONL; both adaptations are recorded in the
+terminology reference. White/Black, Temperature, Top-P, history input status,
+Cancel and chess notation reuse existing app concepts. Report SAN remains
+standard international algebraic notation, as in the existing move list.
+These translations require the normal native-speaker review; automated checks
+verify consistency, placeholders and layout, not linguistic certification.
+
+The report uses probabilities after the recorded Temperature/Top-P settings.
+The localized reciprocal (“about a 1 in X chance”), certainty wording and
+most-probable labels are Maia-specific explanatory prose. “View summary” and
+its screen were removed; Save/Share remain the only export actions.
+
+## Sampling report game metadata
+
+The report keeps the latest ten captured games and lists them newest first;
+its retention notice explains that storage limits can remove older games sooner.
+The setting help gives the same policy in every language. Existing White, Black
+and You labels are reused. Game results use the pinned Lichess `victory`, `defeat`
+and `draw` translations, recorded as three additional reference entries. Missing
+results, openings and timestamps, incomplete captures, and report navigation are
+app-specific contextual descriptions translated in every catalog. They do not
+claim that incomplete captures are complete game records.
+
+## Sampling deletion confirmation
+
+The confirmation reuses the pinned Cancel translations. “Delete data” adapts
+Lichess’s Delete verb with an explicit object in each language; the reference
+records this context adaptation. The concise warning is app-specific prose
+explaining that deleting sampling data cannot be undone. Separately saved/shared
+files remain unaffected. All ten translations receive layout and terminology checks; this is not native-speaker
+certification.
+
+## Settings organisation (#137)
+
+Analysis settings uses pinned Lichess `preferencesAnalysisSettings` in nine
+languages; Hindi has no upstream value and uses a documented native fallback.
+Sampling data and the reset-scope explanation are Maia-specific prose translated
+in all ten languages. The move-history setting and on-status drop only their
+experimental suffix; the substantive help, off recommendation and saved-session
+behaviour remain unchanged. Experimental electronic-board wording is untouched.
+The now-unused inline history subtitle and export-row title were removed.
+
+## Research-link language and settings help
+
+Research report links have a dedicated label separate from the JSONL export
+format. Both report links identify English as the document language in all
+non-English catalogs (Japanese: 英文). These are Maia-specific research labels,
+not direct Lichess equivalents. Sampling help omits the automatic-upload sentence
+in every language; file-content and retention explanations remain unchanged.
+Reset settings to default sits above Diagnostics and restores every preference
+shown on Settings, including language (system default), sounds/haptics, board
+sounds and sampling recording (off). Its scope note and failure message are
+app-specific, translated in all ten languages. Stored games, sampling captures
+and home game-setup selections are preserved. Sampling retention wording now
+explicitly says the last ten recorded games are saved and shown newest first.
+
+The settings reset requires explicit confirmation. The dialog keeps the pinned
+Lichess Cancel label and uses app-specific reset/preserved-data wording in all
+ten languages. Cancel, Back and outside dismissal do not change preferences.
+
+## Expanded sampling explanation — Preview beta.13
+
+The Temperature/Top-P dialog follows the maintainer-approved seven-paragraph
+English copy, translated into all nine other languages. These explanations are
+Maia-specific, with no direct Lichess equivalent; shared chess terms retain the
+existing Lichess baseline. The new paragraph IDs replace the former example-list
+messages rather than keeping unused translations. Research links still identify
+English in non-English locales.
+
+Translations preserve the distinction between low probability and poor move
+quality, the roughly 300 Elo equivalent result in direct matches at the 1600
+setting, and a Top-P cutoff covering at least 95% of probability after Temperature.
+Decimal commas follow the established European-language conventions. These are
+editorially reviewed translations, not native-speaker certification. Existing
+all-language tests check the expanded dialog at 320px and 200% text, its paragraph
+order, accessible research link and dismissal, with unchanged engine settings.
+
+## Move-history and capture help refresh
+
+The two information dialogs follow the maintainer's shorter move-history copy
+and research-oriented capture explanation in all ten languages. These are
+Maia-specific explanations; existing Lichess terminology, setting titles and
+research-link labels are retained.
+
+The [move-history study](https://github.com/Dash1971/mobile-maia-research/blob/main/studies/move-history-2026-10-09/REPORT.md)
+measured top-move prediction accuracy of 57.00% without history and 59.36% with
+history. The help rounds this to about two **percentage points**, not a relative
+two percent. It says a strength increase was not established, rather than
+implying that a complete-game strength trial found no improvement.
+
+Capture help distinguishes the readable HTML subset from all **recorded** data
+in JSONL; neither promises an uninterrupted recording of every move. It retains
+the ten-game/storage-limit explanation and separation from Recent Games, and
+recommends keeping capture off unless researching Maia. Only help text changes;
+capture, retention, saved-session choices and engine defaults are unchanged.
+
+## Maximum opening variety
+
+The maximum-opening-variety setting and its help are Maia-specific sampling
+controls with no direct equivalent in the pinned Lichess catalog. All ten
+languages explain that each side's first five moves use Temperature/Top-P
+1.0 / 1.0, with the configured values restored from move 6. The help identifies
+the default values as making this option unnecessary and describes potentially
+stronger later play without promising a strength increase. It preserves the
+distinction between low move probability and poor move quality. Existing chess
+vocabulary and localized Temperature labels are retained; European-language
+translations follow the established decimal-comma convention. These are
+editorial translations, subject to the usual native-speaker review.

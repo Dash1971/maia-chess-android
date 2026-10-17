@@ -1,0 +1,4 @@
+{"schema":"mobile-maia-board-capture-v1","board":"chessnut","model":"unspecified"}
+{"t_ms":0,"direction":"rx","characteristic":"data","hex":"012458233185444444440000000000000000000000000000000077777777a6c99b6a00000000"}
+{"t_ms":100,"direction":"rx","characteristic":"data","hex":"01245823318e444444440000000000000000000000000000000077777777a6c99b6a00000000"}
+{"t_ms":300,"direction":"rx","characteristic":"data","hex":"012458233185444444440000000000000000007000000000000077077777a6c99b6a00000000"}

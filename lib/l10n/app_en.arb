@@ -184,6 +184,14 @@
   "@topP": {
     "description": "Settings: Top-P"
   },
+  "maxOpeningVariety": "Max variety in opening",
+  "@maxOpeningVariety": {
+    "description": "Settings: maximize opening variety for the first five moves by each side"
+  },
+  "maxOpeningVarietyHelp": "Not needed when Temperature and Top-P are at their default values of 1.0 / 1.0. Uses 1.0 / 1.0 for the first five moves by each side, then returns to your configured settings from move 6.\n\nThe goal is to give Maia maximum opening variety while allowing potentially stronger play later in the game by reducing the chance of low-probability moves through lower Temperature and/or Top-P.",
+  "@maxOpeningVarietyHelp": {
+    "description": "Settings help: opening sampling override and its purpose"
+  },
   "maiaAnalysisRating": "Maia analysis rating",
   "@maiaAnalysisRating": {
     "description": "Settings: Maia analysis rating"
@@ -204,9 +212,9 @@
   "@gameAnalysisQuality": {
     "description": "Settings: Game analysis quality"
   },
-  "resetEngineDefaults": "Reset engine defaults",
-  "@resetEngineDefaults": {
-    "description": "Settings: Reset engine defaults"
+  "resetSettingsDefaults": "Reset settings to default",
+  "@resetSettingsDefaults": {
+    "description": "Settings: Reset settings on this screen to their defaults"
   },
   "boardSounds": "Board sounds",
   "@boardSounds": {
@@ -1219,13 +1227,17 @@
   "@samplingTitle": {
     "description": "Play screen: Temperature and Top-P"
   },
-  "samplingDefaultsQuestion": "Why Temperature 1.00 and Top-P 1.00?",
+  "samplingDefaultsQuestion": "Choose how much variety you want",
   "@samplingDefaultsQuestion": {
-    "description": "Play screen: Why Temperature 1.00 and Top-P 1.00?"
+    "description": "Maia-specific sampling help: Choose how much variety you want"
   },
-  "samplingResearch": "Read the sampling research",
+  "samplingResearch": "Full research data (JSONL)",
+  "samplingResearchLink": "Full research data",
+  "@samplingResearchLink": {
+    "description": "Link to the English-language sampling research report, not the JSONL export. Non-English labels identify the document language."
+  },
   "@samplingResearch": {
-    "description": "Play screen: Read the sampling research"
+    "description": "Maia-specific offline sampling report; use Lichess vocabulary where the action matches."
   },
   "close": "Close",
   "@close": {
@@ -1251,22 +1263,6 @@
   "@mobileMaiaSource": {
     "description": "Play screen: Mobile Maia source code"
   },
-  "samplingFullRange": "These settings let Maia use its full range of predicted human moves. In our tests at the 1600 setting, they produced opening choices much closer to rating-filtered Lichess games.",
-  "@samplingFullRange": {
-    "description": "Play help, about or error message: These settings let Maia use its full range of predicted human moves. In our tests at the 1600 setting, they produced opening choices much closer to rating-filtered Lichess games."
-  },
-  "samplingStrength": "Lower settings reduce variety and can make Maia stronger. We favor a more human opening repertoire over maximum strength. Maia’s rating describes the players it models, rather than guaranteeing an exact playing strength.",
-  "@samplingStrength": {
-    "description": "Play help, about or error message: Lower settings reduce variety and can make Maia stronger. We favor a more human opening repertoire over maximum strength. Maia’s rating describes the players it models, rather than guaranteeing an exact playing strength."
-  },
-  "samplingTemperatureHelp": "Temperature controls how concentrated Maia’s move probabilities are. At 0, Maia always chooses the move the model predicts humans are most likely to play. Lower positive values favor the most likely moves more strongly; higher values give less likely moves more chance.",
-  "@samplingTemperatureHelp": {
-    "description": "Play help, about or error message: Temperature controls how adventurous Maia is. At 0, Maia always chooses its most likely human move. Higher values make less likely moves more common."
-  },
-  "samplingTopPHelp": "Top-P ranks moves from most to least likely, then keeps the smallest leading group whose combined probability reaches this value. Lower values restrict the choice to more likely moves; 1.00 keeps every legal move.",
-  "@samplingTopPHelp": {
-    "description": "Play help, about or error message: Top-P limits Maia to the smallest group of moves whose combined probability reaches this value. Lower values narrow the choice to more likely moves; 1.00 keeps every legal move."
-  },
   "aboutPoweredBy": "Powered by Maia-3, the human-like chess engine developed by the University of Toronto Computational Social Science Lab.",
   "@aboutPoweredBy": {
     "description": "Play help, about or error message: Powered by Maia-3, the human-like chess engine developed by the University of Toronto Computational Social Science Lab."
@@ -1291,9 +1287,9 @@
   "@aboutIndependent": {
     "description": "Play help, about or error message: This independent community app is not an official Maia-3 or University of Toronto, Lichess, or En Croissant application."
   },
-  "samplingRecommendationWarning": "Temperature or Top-P differs from the recommended 1.00. See the information button for details.",
+  "samplingRecommendationWarning": "Lowering Temperature or Top-P may make Maia stronger in the middlegame, but reduce opening variety. See the information button for details.",
   "@samplingRecommendationWarning": {
-    "description": "Play help, about or error message: Temperature or Top-P differs from the recommended 1.00. See the information button for details."
+    "description": "Maia-specific sampling help: Lowering Temperature or Top-P may make Maia stronger in the middlegame, but reduce opening variety. See the information button for details."
   },
   "couldNotOpenPgn": "Could not open PGN.",
   "@couldNotOpenPgn": {
@@ -1452,5 +1448,398 @@
         "description": "Canonical chess result: 1-0, 0-1 or 1/2-1/2; preserve notation."
       }
     }
+  },
+  "electronicBoardExperimental": "Electronic board (experimental)",
+  "@electronicBoardExperimental": {
+    "description": "Electronic board Dev support: Experimental electronic-board settings section title; includes occupancy-only and motorized boards."
+  },
+  "connectBoard": "Connect board",
+  "@connectBoard": {
+    "description": "Electronic board Dev support: Button that opens electronic-board scan and connection flow."
+  },
+  "chooseBoard": "Choose a board",
+  "@chooseBoard": {
+    "description": "Electronic board Dev support: Discovered-board picker title."
+  },
+  "chooseAnotherBoard": "Choose another board",
+  "@chooseAnotherBoard": {
+    "description": "Electronic board Dev support: Button to rescan and select a different board."
+  },
+  "boardSearching": "Searching for boards…",
+  "@boardSearching": {
+    "description": "Electronic board Dev support: Bluetooth board scan in progress."
+  },
+  "boardConnecting": "Connecting to board…",
+  "@boardConnecting": {
+    "description": "Electronic board Dev support: Bluetooth board connection in progress."
+  },
+  "boardDisconnected": "Board disconnected",
+  "@boardDisconnected": {
+    "description": "Electronic board Dev support: Board connection lost status."
+  },
+  "boardConnectionError": "Could not connect. Check Bluetooth and the board, then retry.",
+  "@boardConnectionError": {
+    "description": "Electronic board Dev support: Connection failure recovery instruction; Bluetooth is a product/protocol name."
+  },
+  "boardStartingPosition": "Set up the standard starting position on your board.",
+  "@boardStartingPosition": {
+    "description": "Electronic board Dev support: Physical standard initial-position setup instruction."
+  },
+  "boardReady": "Board ready",
+  "@boardReady": {
+    "description": "Electronic board Dev support: Physical board synchronization complete status."
+  },
+  "boardExperimentalNotice": "New board support is experimental. Please verify moves on both screens and report connection problems.",
+  "@boardExperimentalNotice": {
+    "description": "Electronic board Dev support: Experimental support notice; compare the app screens and report connection issues."
+  },
+  "boardGameRestriction": "Electronic-board games start from the standard position and use unlimited time.",
+  "@boardGameRestriction": {
+    "description": "Electronic board Dev support: Physical-board game constraint: standard initial position and no clock."
+  },
+  "boardConfirmSetup": "I have set up the starting position",
+  "@boardConfirmSetup": {
+    "description": "Electronic board Dev support: User confirmation of physical standard initial-position setup."
+  },
+  "boardConfirmSetupHelp": "Check every piece before starting. This board cannot verify piece identity.",
+  "@boardConfirmSetupHelp": {
+    "description": "Electronic board Dev support: Occupancy-only board limitation: it senses presence, not piece identity."
+  },
+  "boardChooseMove": "Confirm your board move",
+  "@boardChooseMove": {
+    "description": "Electronic board Dev support: Title of legal-move ambiguity picker."
+  },
+  "boardAmbiguousMove": "The board cannot distinguish these moves. Choose the move you played.",
+  "@boardAmbiguousMove": {
+    "description": "Electronic board Dev support: Occupancy-only ambiguity explanation; player chooses the move actually made."
+  },
+  "boardUnavailable": "This board is not ready. Reconnect, or continue on your phone.",
+  "@boardUnavailable": {
+    "description": "Electronic board Dev support: Board unavailable recovery: reconnect or continue with phone input."
+  },
+  "boardNewGameConfirmInstruction": "Press NEW GAME again within 2.5 seconds to confirm, or use the buttons below.",
+  "@boardNewGameConfirmInstruction": {
+    "description": "Electronic board Dev support: Physical NEW GAME button second-press confirmation within 2.5 seconds; retain NEW GAME hardware marking."
+  },
+  "boardNewGameConfirmationExpired": "To confirm on the board, press NEW GAME twice within 2.5 seconds.",
+  "@boardNewGameConfirmationExpired": {
+    "description": "Electronic board Dev support: Expired physical NEW GAME confirmation instruction; retain NEW GAME hardware marking."
+  },
+  "boardPhysicalMove": "Complete the move on your board.",
+  "@boardPhysicalMove": {
+    "description": "Electronic board Dev support: Instruction to finish a physical move before proceeding."
+  },
+  "boardResetPhysical": "Restore the position shown on screen before continuing.",
+  "@boardResetPhysical": {
+    "description": "Electronic board Dev support: Instruction to restore physical board to the app position before proceeding."
+  },
+  "boardNoResults": "No supported board found. Wake your board and try again.",
+  "@boardNoResults": {
+    "description": "Electronic board Dev support: Empty supported Bluetooth board scan result and recovery instruction."
+  },
+  "boardWaitingForSelection": "Choose a board to connect.",
+  "@boardWaitingForSelection": {
+    "description": "Electronic board Dev support: Disconnected status while waiting for player to select a board."
+  },
+  "boardReconnect": "Reconnect board",
+  "@boardReconnect": {
+    "description": "Electronic board Dev support: Button to reconnect selected physical board."
+  },
+  "boardLockedPegasus": "Pegasus is locked. This Dev build does not include its manufacturer initialization key.",
+  "@boardLockedPegasus": {
+    "description": "Electronic board Dev support: Manufacturer initialization missing/locked state; Dev means the separate development build."
+  },
+  "boardMotorRecovery": "Continue on your phone. This experimental adapter cannot safely restore the board’s motor state.",
+  "@boardMotorRecovery": {
+    "description": "Electronic board Dev support: Motorized-board safety recovery instruction; continue with phone input because firmware motor state cannot be restored."
+  },
+  "boardConfirmPosition": "Confirm the physical position",
+  "@boardConfirmPosition": {
+    "description": "Electronic board Dev support: Button to explicitly confirm physical-board setup matches the current logical position."
+  },
+  "boardConfirmPositionHelp": "Check that every piece matches the position on screen.",
+  "@boardConfirmPositionHelp": {
+    "description": "Electronic board Dev support: Help for explicit physical-position confirmation, including piece identities."
+  },
+  "maiaHistorySetting": "Use move history",
+  "@maiaHistorySetting": {
+    "description": "Maia-specific history setting/help: Use move history"
+  },
+  "maiaHistoryHelp": "Let Maia consider up to seven previous positions as well as the current position. This improved prediction of human moves by about 2 percentage points in our tests with the 79M model, but sometimes encouraged repeated copying in low-rated openings. We were not able to establish a strength increase. Off is recommended for now.",
+  "@maiaHistoryHelp": {
+    "description": "Maia-specific move-history help. The prediction gain is about 2 percentage points (57.00% to 59.36%), not a relative 2%. A playing-strength increase was not established; do not imply a full-game strength trial."
+  },
+  "maiaHistoryResearch": "Read the move-history research",
+  "@maiaHistoryResearch": {
+    "description": "Maia-specific history setting/help: Read the move-history research"
+  },
+  "maiaHistoryOn": "Move history: on",
+  "@maiaHistoryOn": {
+    "description": "Maia-specific history setting/help: Move history: on"
+  },
+  "maiaHistoryOff": "Move history: off",
+  "@maiaHistoryOff": {
+    "description": "Maia-specific history setting/help: Move history: off"
+  },
+  "chessboardDeviceName": "Chessboard",
+  "@chessboardDeviceName": {
+    "description": "Generic electronic chessboard name when no brand or model is known."
+  },
+  "namedBoardConnected": "{boardName} connected",
+  "@namedBoardConnected": {
+    "description": "Electronic board status, only after transport is ready. Board name is a canonical product name or the localized generic chessboard name.",
+    "placeholders": {
+      "boardName": {
+        "type": "String",
+        "description": "Product name, e.g. Chessnut Go or DGT Pegasus; do not translate product names."
+      }
+    }
+  },
+  "namedBoardDisconnected": "{boardName} disconnected",
+  "@namedBoardDisconnected": {
+    "description": "Electronic board disconnected status. Keep the last known board name until another connection begins.",
+    "placeholders": {
+      "boardName": {
+        "type": "String",
+        "description": "Product name, e.g. Chessnut Go or DGT Pegasus; do not translate product names."
+      }
+    }
+  },
+  "saveMaiaSamplingData": "Save Maia sampling data",
+  "samplingDataHelp": "Save Maia’s move probabilities, settings and selected moves on this device to explore how it plays.\n\nExported files contain board positions, move history and model inputs and decisions.\n\nThe last 10 recorded games are saved and presented newest first. Older games may be removed sooner if the storage limit is reached. This is separate from Recent Games.\n\nUse this feature if you are interested in studying the technical details of how Maia works. Data cannot be viewed in the app. It is exported to an easy-to-view HTML file containing a subset of the data, or a JSONL file containing all the recorded data.\n\nThis is off by default, and we recommend keeping it off unless you are interested in researching how Maia works.",
+  "clearSamplingData": "Clear sampling data",
+  "samplingDataStatus": "{count} decisions saved",
+  "samplingDataError": "Could not access sampling data. Playing is unaffected.",
+  "@saveMaiaSamplingData": {
+    "description": "App-specific opt-in local Maia decision capture; separate from diagnostics and Recent Games."
+  },
+  "@samplingDataHelp": {
+    "description": "Maia-specific research capture help: last ten recorded games, separate from Recent Games; readable HTML subset versus all recorded data in JSONL, viewed outside the app. Off by default and recommended off unless researching. All recorded data does not promise a complete game capture."
+  },
+  "@clearSamplingData": {
+    "description": "App-specific opt-in local Maia decision capture; separate from diagnostics and Recent Games."
+  },
+  "@samplingDataStatus": {
+    "description": "App-specific opt-in local Maia decision capture; separate from diagnostics and Recent Games.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@samplingDataError": {
+    "description": "App-specific opt-in local Maia decision capture; separate from diagnostics and Recent Games."
+  },
+  "samplingSave": "Save…",
+  "@samplingSave": {
+    "description": "Maia-specific offline sampling report; use Lichess vocabulary where the action matches."
+  },
+  "samplingShare": "Share…",
+  "@samplingShare": {
+    "description": "Maia-specific offline sampling report; use Lichess vocabulary where the action matches."
+  },
+  "samplingSummary": "Maia’s choices",
+  "@samplingSummary": {
+    "description": "Maia-specific offline sampling report; use Lichess vocabulary where the action matches."
+  },
+  "samplingReadable": "Readable report (HTML)",
+  "@samplingReadable": {
+    "description": "Maia-specific offline sampling report; use Lichess vocabulary where the action matches."
+  },
+  "samplingReadableHint": "Moves, probabilities and board diagrams. Opens in a browser.",
+  "@samplingReadableHint": {
+    "description": "Maia-specific offline sampling report; use Lichess vocabulary where the action matches."
+  },
+  "samplingResearchHint": "Raw model inputs and outputs for technical analysis.",
+  "@samplingResearchHint": {
+    "description": "Maia-specific offline sampling report; use Lichess vocabulary where the action matches."
+  },
+  "samplingReportExplanation": "Percentages show the chance of each move being selected after your Temperature and Top-P settings were applied. They are not winning chances or move-quality scores.",
+  "@samplingReportExplanation": {
+    "description": "Offline report of recorded Maia selection probabilities after Temperature and Top-P."
+  },
+  "samplingReportPartial": "Only recorded Maia decisions are shown, not a complete game. Takebacks and retries can repeat a move number.",
+  "@samplingReportPartial": {
+    "description": "Maia-specific offline sampling report; use Lichess vocabulary where the action matches."
+  },
+  "samplingReportMissing": "Some capture data was removed or could not be saved. This report may have gaps.",
+  "@samplingReportMissing": {
+    "description": "Maia-specific offline sampling report; use Lichess vocabulary where the action matches."
+  },
+  "samplingPlayed": "Played",
+  "@samplingPlayed": {
+    "description": "Maia-specific offline sampling report; use Lichess vocabulary where the action matches."
+  },
+  "samplingNotPlayed": "Not recorded as played",
+  "@samplingNotPlayed": {
+    "description": "Maia-specific offline sampling report; use Lichess vocabulary where the action matches."
+  },
+  "samplingAlternatives": "Likely alternatives",
+  "@samplingAlternatives": {
+    "description": "Maia-specific offline sampling report; use Lichess vocabulary where the action matches."
+  },
+  "samplingGame": "Game {number}",
+  "@samplingGame": {
+    "description": "Maia-specific offline sampling report; use Lichess vocabulary where the action matches.",
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "samplingRecords": "Recorded decisions: {count}",
+  "@samplingRecords": {
+    "description": "Maia-specific offline sampling report; use Lichess vocabulary where the action matches.",
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "samplingMostProbable": "Most probable",
+  "@samplingMostProbable": {
+    "description": "Offline report of recorded Maia selection probabilities after Temperature and Top-P."
+  },
+  "samplingPlayedMostProbable": "Played the most probable move",
+  "@samplingPlayedMostProbable": {
+    "description": "Offline report of recorded Maia selection probabilities after Temperature and Top-P."
+  },
+  "samplingChance": "{move} had about a 1 in {odds} chance of being played.",
+  "@samplingChance": {
+    "description": "Offline report of recorded Maia selection probabilities after Temperature and Top-P.",
+    "placeholders": {
+      "move": {
+        "type": "String",
+        "example": "e6"
+      },
+      "odds": {
+        "type": "String",
+        "example": "5.5"
+      }
+    }
+  },
+  "samplingCertain": "{move} was certain to be selected (100%).",
+  "@samplingCertain": {
+    "description": "Offline report of recorded Maia selection probabilities after Temperature and Top-P.",
+    "placeholders": {
+      "move": {
+        "type": "String",
+        "example": "e6"
+      }
+    }
+  },
+  "samplingAlmostCertain": "{move} was almost certain to be selected.",
+  "@samplingAlmostCertain": {
+    "description": "Offline report of recorded Maia selection probabilities after Temperature and Top-P.",
+    "placeholders": {
+      "move": {
+        "type": "String",
+        "example": "e6"
+      }
+    }
+  },
+  "samplingReportRetention": "The last 10 recorded games are saved and presented newest first. Older games may be removed sooner if the storage limit is reached.",
+  "samplingJumpToGame": "Jump to game",
+  "samplingBackToGames": "Back to game list",
+  "samplingIncomplete": "Incomplete",
+  "samplingUnknownResult": "Unknown result",
+  "samplingOpeningUnknown": "Unknown opening",
+  "samplingTimeUnknown": "Unknown time",
+  "samplingWin": "Victory",
+  "samplingLoss": "Defeat",
+  "samplingDraw": "Draw",
+  "@samplingReportRetention": {
+    "description": "Explains report game order, ten-game retention, and earlier removal under the storage limit."
+  },
+  "@samplingJumpToGame": {
+    "description": "Accessible game chooser label for jumping to a game section."
+  },
+  "@samplingBackToGames": {
+    "description": "Navigation link back to the report game list."
+  },
+  "@samplingIncomplete": {
+    "description": "Recorded game has no final result yet."
+  },
+  "@samplingUnknownResult": {
+    "description": "No known result is available in this historical record."
+  },
+  "@samplingOpeningUnknown": {
+    "description": "No opening name is available for this game."
+  },
+  "@samplingTimeUnknown": {
+    "description": "No valid timestamp is available for this game."
+  },
+  "@samplingWin": {
+    "description": "Recorded game result: the human player won."
+  },
+  "@samplingLoss": {
+    "description": "Recorded game result: the human player lost."
+  },
+  "@samplingDraw": {
+    "description": "Recorded game result: the game was drawn."
+  },
+  "samplingDeleteData": "Delete data",
+  "samplingClearConfirmation": "Delete all Maia sampling data? It cannot be recovered.",
+  "@samplingDeleteData": {
+    "description": "Sampling data: destructive confirmation button. Lichess Delete adapted with an explicit data object."
+  },
+  "@samplingClearConfirmation": {
+    "description": "Sampling data: confirm irreversible deletion of app-local captures only, excluding separately saved/shared exports."
+  },
+  "analysisSettings": "Analysis settings",
+  "samplingData": "Sampling data",
+  "resetSettingsDefaultsScope": "Resets all settings on this screen. Saved games and sampling data are kept.",
+  "@analysisSettings": {
+    "description": "Settings section for analysis ratings and full-game analysis quality. Uses Lichess preferencesAnalysisSettings."
+  },
+  "@samplingData": {
+    "description": "Settings: stored Maia sampling captures, with saved count and export/delete actions."
+  },
+  "@resetSettingsDefaultsScope": {
+    "description": "Reset all preferences shown on Settings, including language, sounds and recording; preserve stored games and captures."
+  },
+  "settingsResetError": "Some settings could not be reset. Please try again.",
+  "@settingsResetError": {
+    "description": "Settings reset persistence failure; retry is safe and saved games are unaffected."
+  },
+  "resetSettingsConfirmation": "Reset all settings to default?",
+  "@resetSettingsConfirmation": {
+    "description": "Settings reset confirmation: question."
+  },
+  "resetSettingsKeepData": "Your saved games and sampling data will be kept.",
+  "@resetSettingsKeepData": {
+    "description": "Settings reset confirmation: preservation notice."
+  },
+  "resetSettingsAction": "Reset settings",
+  "@resetSettingsAction": {
+    "description": "Settings reset confirmation: explicit confirmation action."
+  },
+  "samplingHelpIntro": "Temperature and Top-P control how Maia chooses between moves.",
+  "@samplingHelpIntro": {
+    "description": "User-approved Maia-specific sampling help, paragraph 1. Preserve the strength/variety distinction, the direct-match result at setting 1600, and probability mass (not number of moves). Use established local chess terminology."
+  },
+  "samplingHelpVariety": "Increasing Temperature and Top-P is like making Maia a more volatile player, as Maia becomes more likely to play low-probability moves. These may be blunders, but they may also be brilliant moves!",
+  "@samplingHelpVariety": {
+    "description": "User-approved Maia-specific sampling help, paragraph 2. Preserve the strength/variety distinction, the direct-match result at setting 1600, and probability mass (not number of moves). Use established local chess terminology."
+  },
+  "samplingHelpDefaults": "If you value maximum variety, and you also want Maia to play a broad range of human openings, including sidelines, then keep the default values of 1.0 and 1.0.",
+  "@samplingHelpDefaults": {
+    "description": "User-approved Maia-specific sampling help, paragraph 3. Preserve the strength/variety distinction, the direct-match result at setting 1600, and probability mass (not number of moves). Use established local chess terminology."
+  },
+  "samplingHelpStrength": "If you prefer a stronger opponent playing fewer blunders, experiment with moving Temperature and Top-P values down.",
+  "@samplingHelpStrength": {
+    "description": "User-approved Maia-specific sampling help, paragraph 4. Preserve the strength/variety distinction, the direct-match result at setting 1600, and probability mass (not number of moves). Use established local chess terminology."
+  },
+  "samplingHelpArgmax": "Setting Temperature to 0 will cause Maia to use argmax, which is a technical way of saying that Maia will always play what it predicts is the most probable human move in a given position. Careful! In our research at the 1600 setting, argmax Maia outperformed Maia at 1.0 / 1.0 by the equivalent of about 300 Elo points in direct matches.",
+  "@samplingHelpArgmax": {
+    "description": "User-approved Maia-specific sampling help, paragraph 5. Preserve the strength/variety distinction, the direct-match result at setting 1600, and probability mass (not number of moves). Use established local chess terminology."
+  },
+  "samplingHelpTopP": "For balanced play, you may consider keeping Temperature at 1.0 and setting Top-P to 0.95. This maintains variety while eliminating low-probability moves, which can often be blunders—but can also be good moves. Top-P essentially cuts off low-probability moves. Setting it to 0.95 keeps moves accounting for at least 95% of the probability after Temperature is applied. The remaining moves cannot be selected by Maia.",
+  "@samplingHelpTopP": {
+    "description": "User-approved Maia-specific sampling help, paragraph 6. Preserve the strength/variety distinction, the direct-match result at setting 1600, and probability mass (not number of moves). Use established local chess terminology."
+  },
+  "samplingHelpResearchIntro": "We experimented with these settings at 1600 Elo and published our full findings here:",
+  "@samplingHelpResearchIntro": {
+    "description": "User-approved Maia-specific sampling help, paragraph 7. Preserve the strength/variety distinction, the direct-match result at setting 1600, and probability mass (not number of moves). Use established local chess terminology."
   }
 }

@@ -186,7 +186,8 @@ enum _PlayMessage {
   ) => switch (state) {
     ElectronicBoardConnectionState.disconnected =>
       _PlayMessage.chessnutIsDisconnected,
-    ElectronicBoardConnectionState.scanning => _PlayMessage.searchingChessnut,
+    ElectronicBoardConnectionState.scanning ||
+    ElectronicBoardConnectionState.choosing => _PlayMessage.searchingChessnut,
     ElectronicBoardConnectionState.connecting ||
     ElectronicBoardConnectionState.connected => _PlayMessage.connectingChessnut,
     ElectronicBoardConnectionState.ready => _PlayMessage.chessnutReady,
