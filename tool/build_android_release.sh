@@ -3,6 +3,7 @@
 set -eu
 
 repo_root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+python3 "$repo_root/tool/build_workspace.py" preflight
 flutter_bin=${FLUTTER_BIN:-flutter}
 flutter_path=$(command -v "$flutter_bin")
 dart_bin=${DART_BIN:-$(dirname -- "$flutter_path")/dart}

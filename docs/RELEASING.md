@@ -279,6 +279,15 @@ that can publish an unqualified APK.
 
 ## 5. Leave a reproducible record and clean up
 
+Follow [build storage and cleanup](BUILD_WORKSPACE.md) on every build, test and
+signing host. Clean disposable bulk output promptly after the public-download
+checks and retention of the required qualification evidence; do not wait for
+a follow-up documentation PR or pending F-Droid catalog publication. Keep
+artifacts still needed by an active channel step until that step has completed,
+and record the owner, reason and expiry for anything retained. Record the cleanup
+report with the distribution evidence. Shared tooling changes follow
+[the counterpart-review rule](SHARED_BUILD_PROCESS.md).
+
 Create or update a distribution status comment on the release PR, linked from
 the GitHub release. Record the exact version and source SHA, a UTC check time,
 and evidence links for each row below. Update that same record as pending
