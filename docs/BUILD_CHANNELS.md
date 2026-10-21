@@ -15,6 +15,14 @@ intended repository and enable prereleases for Preview/Dev. Installing Preview
 does not upgrade Dev or transfer its saved games/preferences. Existing Preview
 installations update in place using the established Preview certificate.
 
+## Release instructions
+
+- [Stable release procedure](https://github.com/Dash1971/maia-chess-android/blob/main/docs/RELEASING.md):
+  full qualification, stores and post-release README/feature/screenshot updates.
+- [Preview and Dev release procedure](https://github.com/Dash1971/maia-chess-android-preview/blob/main/docs/RELEASING.md):
+  Preview upstream review and README/roadmap pass; lightweight Dev publication
+  by default, with no published-download check.
+
 ## Preview acceptance
 
 - Use move history remains off by default, with its own information button.

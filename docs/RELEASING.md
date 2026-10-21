@@ -14,6 +14,31 @@ only to build, prepare, or review a PR do not authorize publication. F-Droid's
 build and catalog schedule remains outside our control: distinguish pending
 upstream work from a completed store update.
 
+## At a glance
+
+- Check disk space on all build/test hosts.
+- Review upstream security advisories and available updates; record decisions.
+- Prepare release notes, README feature introductions, screenshots and store
+  metadata, then freeze the exact source commit.
+- Run GitHub tests/security checks and build the unsigned APK on GitHub Ubuntu.
+- Independently build on Linux using the canonical F-Droid recipe and scans.
+- Require both unsigned APKs to match exactly, then sign the verified Linux APK.
+- Run Android emulator checks on an Apple Silicon Mac or another suitable host:
+  real Maia/Stockfish, gameplay/analysis, saving/restoring, changed features and
+  signed upgrade/data preservation. Record the scope; physical board acceptance
+  remains separate. A Mac test build does not replace the qualified Linux APK.
+- Pass the combined release/F-Droid reproducibility gate and publish on GitHub.
+- Verify the actual public APK; check F-Droid update detection and track its
+  build/catalog publication separately.
+- Publish the same verified APK to Zapstore and verify its listing/download.
+- Clean task-owned bulk output promptly after the applicable download checks.
+- Finish the post-release documentation pass before closing the release task.
+
+Ordinary PR CI runs code, chess/game, storage, layout, translation, native-policy
+and verification-tool regressions. The manual Android job builds and checks
+packaging; it does not run the ARM64 emulator integration or signed-upgrade
+checks. The detailed gates below remain authoritative.
+
 ## 0. Review upstream dependencies and security
 
 At each Stable promotion, inspect `flutter pub outdated`, Flutter/Dart and
@@ -58,8 +83,9 @@ flutter build apk --release --config-only --no-pub
 ## 1. Prepare and freeze the source
 
 Review the README, Fastlane title/description/screenshots, current version-code
-changelog, and GitHub release text against what the app actually ships. Include
-the metadata **before** freezing the source. Inspect each README and Fastlane
+changelog, and GitHub release text against what the app actually ships. Add a
+plain-language introduction for each new user-facing feature, explaining where
+to find it and how to use it. Include the metadata **before** freezing the source. Inspect each README and Fastlane
 screenshot when a promotion changes labels, control grouping, defaults or
 branding. Refresh affected images from the current UI, update their captions
 and capture provenance, and check that the feature text uses the same labels.
@@ -320,3 +346,20 @@ keys and unrelated services. Record cleanup and remaining upstream limitations.
 owner from publishing directly with GitHub APIs. No repository permissions or
 release protections are changed by this tooling. If publication is later
 automated, its publisher must require this gate before creating a public release.
+
+## 6. Finish the post-release documentation pass
+
+After publication, check the README, release notes and user-facing documentation
+against the shipped version. Update the current version/download links, link the
+published release notes, complete introductions for new features, and refresh any
+remaining screenshots affected by the release. Reconcile roadmap items where
+appropriate, without presenting pending store publication as completed. Record
+the documentation changes, or that no further changes were needed, in the
+release PR before closing the release task.
+
+Prepare feature descriptions and affected release/store screenshots before the
+source freeze in section 1. This final pass updates current documentation; it
+never moves the published tag, changes the published APK, or retroactively alters
+metadata inside that tag. Documentation-only follow-up commits do not require
+rebuilding the unchanged published release. Keep the release's exact source SHA
+clear, and never defer bulk cleanup until this documentation work merges.
