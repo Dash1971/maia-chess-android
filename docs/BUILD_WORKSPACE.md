@@ -1,7 +1,7 @@
 # Build storage and cleanup
 
-Canonical releases build on GitHub Linux; independent reproduction uses the
-configured Mac mini Linux machine. Mac builds and tests remain supported
+Canonical releases build on GitHub Linux; independent reproduction uses a
+separate Linux host. Mac builds and tests remain supported
 without an additional authorization gate. Apple Silicon is useful for
 hardware-accelerated ARM64 Android emulator checks
 ([Android documentation](https://developer.android.com/studio/run/emulator-acceleration)).
@@ -48,11 +48,13 @@ must never be placed in this disposable directory.
 
 ## Finish a publication or abandon a build
 
-1. Verify the actual published download against the qualified signed APK and
-   source, including the bundled model checksum. Save the release URL/tag,
-   source SHA, APK/model hashes, provenance and compact test results outside
-   bulk output. The cleanup tool records the evidence hash; it does not perform
-   publication verification itself.
+1. For Stable and Preview, verify the actual published download against the
+   qualified signed APK and source, including the bundled model checksum. For a
+   Dev release, confirm the release/upload command succeeded; no public-APK
+   re-download or post-publication verification is required. Save the release
+   URL/tag, source SHA, APK/model hashes, provenance and compact test/publication
+   notes outside bulk output, with the channel and scope clear. The cleanup tool records the
+   evidence hash; it does not perform publication verification itself.
 2. Stop task-owned builds, Gradle daemons, containers and emulators. Check for
    open files/processes on all intended paths. Do not stop shared processes or
    another chat's work. Never clean an active checkout.
@@ -67,7 +69,9 @@ python3 tool/build_workspace.py clean --scratch ../release-results/bulk \
 ```
 
 The default is a dry run. Apply requires the stopped-process declaration,
-publication verification declaration and nonempty retained evidence. For a
+publication verification declaration and nonempty retained evidence. For Dev,
+`--publication-verified` declares the successful release/upload and retained
+notes described above; it does not assert a public-download check. For a
 failed/cancelled build, save diagnostics and replace `--publication-verified`
 with `--abandoned`. Omit `--scratch` when cleaning only checkout intermediates.
 
@@ -95,9 +99,10 @@ using their recorded identities after stopping them. Delete merged temporary
 branches only after the release tag preserves their source and no unique
 unmerged commits remain. Keep automatic merged-branch deletion enabled.
 
-Cleanup follows public-download verification immediately, including on the Mac;
-it must not wait for a follow-up documentation PR. Record the cleanup report
-and intentionally retained paths in the release PR. Any bulk output kept for
+Cleanup follows public-download verification for Stable/Preview, or successful
+publication for Dev, immediately, including on the Mac; it must not wait for a
+follow-up documentation PR. Record the cleanup report and intentionally retained
+paths in the release PR. Any bulk output kept for
 active investigation needs a reason, owner and expiry; clean it at handoff when
 the work is abandoned. Shared cache eviction is separate maintenance and
 requires checking for other users. GitHub-hosted runners are ephemeral and CI

@@ -32,6 +32,11 @@ procedure; follow its gates even for metadata-only releases.
   complete while Zapstore is unverified or F-Droid publication is pending. Own
   the follow-up, record blockers and the next action, and report any user action
   actually needed; do not make the user discover missing store updates.
+- Complete the post-release README/documentation pass in release-guide section 6:
+  current release links/notes, new-feature introductions, affected screenshots
+  and roadmap where appropriate. Prepare release/store content before freezing
+  source; later documentation does not change the published tag or APK. Do not
+  defer bulk cleanup until documentation merges.
 - Retain sanitized evidence on GitHub and clean up only this task's temporary
   builds/containers. Preserve shared SDKs, caches, keys, and unrelated services.
 
