@@ -34,6 +34,10 @@ description: |
 
   Chessnut Air and Go boards can connect over Bluetooth for untimed games from the standard starting position, with lights showing Maia's moves. Other Chessnut models have not been confirmed.
 
+  On Android 11 and older, connecting a Chessnut board requires location permission to scan for Bluetooth devices. Mobile Maia does not use it to determine your location. Android 12 and newer use Nearby devices permissions instead. On-screen chess does not need location permission.
+
+  Mobile Maia works entirely offline, with zero telemetry: no analytics, tracking, or data sent to servers. Your games and analysis stay on your device unless you choose to export or share them.
+
   **Before you download**
 
   The download is several hundred megabytes because the Maia-3 79M model is included for offline use. Maia's rating setting guides the human moves it predicts; it is not a guaranteed playing strength.
