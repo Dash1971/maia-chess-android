@@ -51,6 +51,9 @@ class ReproducibleFlutterSdkTest(unittest.TestCase):
     def test_revision_guard(self, run):
         run.return_value = subprocess.CompletedProcess([], 0, PINNED_FLUTTER_REVISION + "\n", "")
         verify_flutter_revision(Path("/flutter"))
+        run.return_value = subprocess.CompletedProcess([], 0, "6a19cca56475dbfba1478ee68d7bd0c2ef891da1\n", "")
+        with self.assertRaisesRegex(ValueError, "Refusing to patch Flutter"):
+            verify_flutter_revision(Path("/flutter"))
         run.return_value = subprocess.CompletedProcess([], 0, "wrong\n", "")
         with self.assertRaisesRegex(ValueError, "Refusing to patch Flutter"):
             verify_flutter_revision(Path("/flutter"))

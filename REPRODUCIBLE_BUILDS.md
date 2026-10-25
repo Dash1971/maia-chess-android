@@ -103,3 +103,7 @@ repository's Gradle wrapper. It does not pin Gradle 9.3.1 independently, so this
 wrapper update does not require changing the inherited recipe. Verify that
 assumption again against live canonical metadata at publication; do not replace
 historical release tags or change already-published artifacts.
+
+## Flutter 3.47.8 security pin — 2026-10-25
+
+Current builds use Flutter **3.47.8**, full revision `737ba8f885dc774b53b442759999a312c9461e4e`, with Dart **3.13.7**, to address [GHSA-frr6-h895-5pxp](https://github.com/dart-lang/sdk/security/advisories/GHSA-frr6-h895-5pxp). Earlier sections document the original 3.47.5 backport. Review of 3.47.8 confirms that the guarded asset-variant sorting backport and stable package-URI workaround are still required. The revision/source-shape guards remain strict and the old vulnerable SDK revision is rejected. Independent Linux equality and signature reconstruction remain required for releases; this pin update does not waive any qualification gate or authorize another channel’s publication.

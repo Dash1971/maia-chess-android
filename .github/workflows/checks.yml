@@ -33,8 +33,8 @@ jobs:
         run: tool/test_board_native.sh
       - name: Install pinned Flutter
         run: |
-          git clone --depth 1 --branch 3.47.5 https://github.com/flutter/flutter.git "$RUNNER_TEMP/flutter"
-          test "$(git -C "$RUNNER_TEMP/flutter" rev-parse HEAD)" = 6a19cca56475dbfba1478ee68d7bd0c2ef891da1
+          git clone --depth 1 --branch 3.47.8 https://github.com/flutter/flutter.git "$RUNNER_TEMP/flutter"
+          test "$(git -C "$RUNNER_TEMP/flutter" rev-parse HEAD)" = 737ba8f885dc774b53b442759999a312c9461e4e
           echo "$RUNNER_TEMP/flutter/bin" >> "$GITHUB_PATH"
       - run: flutter pub get --enforce-lockfile
       - name: Verify localization catalogs and generated code
@@ -70,8 +70,8 @@ jobs:
           java-version: '17'
       - name: Install pinned Flutter
         run: |
-          git clone --depth 1 --branch 3.47.5 https://github.com/flutter/flutter.git "$RUNNER_TEMP/flutter"
-          test "$(git -C "$RUNNER_TEMP/flutter" rev-parse HEAD)" = 6a19cca56475dbfba1478ee68d7bd0c2ef891da1
+          git clone --depth 1 --branch 3.47.8 https://github.com/flutter/flutter.git "$RUNNER_TEMP/flutter"
+          test "$(git -C "$RUNNER_TEMP/flutter" rev-parse HEAD)" = 737ba8f885dc774b53b442759999a312c9461e4e
           echo "$RUNNER_TEMP/flutter/bin" >> "$GITHUB_PATH"
       - run: flutter pub get --enforce-lockfile
       - name: Resolve release dependencies without building the APK
@@ -117,8 +117,8 @@ jobs:
           java-version: '17'
       - name: Install pinned Flutter
         run: |
-          git clone --depth 1 --branch 3.47.5 https://github.com/flutter/flutter.git "$RUNNER_TEMP/flutter"
-          test "$(git -C "$RUNNER_TEMP/flutter" rev-parse HEAD)" = 6a19cca56475dbfba1478ee68d7bd0c2ef891da1
+          git clone --depth 1 --branch 3.47.8 https://github.com/flutter/flutter.git "$RUNNER_TEMP/flutter"
+          test "$(git -C "$RUNNER_TEMP/flutter" rev-parse HEAD)" = 737ba8f885dc774b53b442759999a312c9461e4e
           echo "$RUNNER_TEMP/flutter/bin" >> "$GITHUB_PATH"
       - run: python3 tool/verify_model.py
       - name: Build release APK
