@@ -20,6 +20,8 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Verify Flutter pins and reproducibility guards
+        run: python3 -m unittest discover -s tool -p 'prepare_reproducible_flutter_sdk_test.py'
       - name: Verify reviewed Gradle security pin
         run: python3 tool/verify_gradle_wrapper.py
       - name: Check committed release source and Fastlane listing

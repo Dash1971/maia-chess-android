@@ -7,6 +7,7 @@ from pathlib import Path
 import subprocess
 
 
+PINNED_FLUTTER_VERSION = "3.47.8"
 PINNED_FLUTTER_REVISION = "737ba8f885dc774b53b442759999a312c9461e4e"
 ASSET_TOOL = Path("packages/flutter_tools/lib/src/asset.dart")
 FLUTTER_TOOL_CACHE_FILES = (
