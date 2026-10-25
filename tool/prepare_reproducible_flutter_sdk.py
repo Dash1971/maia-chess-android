@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 
-"""Backport deterministic asset-variant ordering to pinned Flutter 3.47.5."""
+"""Backport deterministic asset-variant ordering to pinned Flutter 3.47.8."""
 
 import argparse
 from pathlib import Path
 import subprocess
 
 
-PINNED_FLUTTER_REVISION = "6a19cca56475dbfba1478ee68d7bd0c2ef891da1"
+PINNED_FLUTTER_VERSION = "3.47.8"
+PINNED_FLUTTER_REVISION = "737ba8f885dc774b53b442759999a312c9461e4e"
 ASSET_TOOL = Path("packages/flutter_tools/lib/src/asset.dart")
 FLUTTER_TOOL_CACHE_FILES = (
     Path("bin/cache/flutter_tools.snapshot"),

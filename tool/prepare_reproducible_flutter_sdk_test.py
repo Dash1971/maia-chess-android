@@ -1,3 +1,5 @@
+import json
+import re
 import subprocess
 import tempfile
 from pathlib import Path
@@ -7,11 +9,41 @@ from unittest.mock import patch
 from prepare_reproducible_flutter_sdk import (
     PATCHED,
     PINNED_FLUTTER_REVISION,
+    PINNED_FLUTTER_VERSION,
     UNPATCHED,
     invalidate_flutter_tool_snapshot,
     patch_asset_tool,
     verify_flutter_revision,
 )
+
+
+class FlutterPinConsistencyTest(unittest.TestCase):
+    """F-Droid/FVM and every CI installer must select the reviewed SDK."""
+
+    def test_fvm_uses_reviewed_flutter_version(self):
+        root = Path(__file__).resolve().parents[1]
+        config = json.loads((root / ".fvmrc").read_text())
+        self.assertEqual(config["flutter"], PINNED_FLUTTER_VERSION,
+                         "F-Droid reads .fvmrc; update it with the SDK guard and CI")
+
+    def test_ci_uses_reviewed_flutter_version_and_revision(self):
+        root = Path(__file__).resolve().parents[1]
+        workflow = (root / ".github/workflows/checks.yml").read_text()
+        # Fail closed if an installer changes shape: update this contract too.
+        installs = re.findall(
+            r'git clone --depth 1 --branch (\S+) '
+            r'https://github\.com/flutter/flutter\.git "\$RUNNER_TEMP/flutter"',
+            workflow,
+        )
+        revisions = re.findall(
+            r'test "\$\(git -C "\$RUNNER_TEMP/flutter" rev-parse HEAD\)" = (\S+)',
+            workflow,
+        )
+        self.assertTrue(installs, "No reviewed Flutter installer found in CI")
+        self.assertEqual(len(installs), workflow.count("https://github.com/flutter/flutter.git"))
+        self.assertEqual(len(installs), len(revisions), "Every installer needs a revision guard")
+        self.assertEqual(installs, [PINNED_FLUTTER_VERSION] * len(installs))
+        self.assertEqual(revisions, [PINNED_FLUTTER_REVISION] * len(installs))
 
 
 class ReproducibleFlutterSdkTest(unittest.TestCase):
@@ -51,6 +83,9 @@ class ReproducibleFlutterSdkTest(unittest.TestCase):
     def test_revision_guard(self, run):
         run.return_value = subprocess.CompletedProcess([], 0, PINNED_FLUTTER_REVISION + "\n", "")
         verify_flutter_revision(Path("/flutter"))
+        run.return_value = subprocess.CompletedProcess([], 0, "6a19cca56475dbfba1478ee68d7bd0c2ef891da1\n", "")
+        with self.assertRaisesRegex(ValueError, "Refusing to patch Flutter"):
+            verify_flutter_revision(Path("/flutter"))
         run.return_value = subprocess.CompletedProcess([], 0, "wrong\n", "")
         with self.assertRaisesRegex(ValueError, "Refusing to patch Flutter"):
             verify_flutter_revision(Path("/flutter"))

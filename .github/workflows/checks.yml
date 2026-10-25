@@ -20,6 +20,8 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Verify Flutter pins and reproducibility guards
+        run: python3 -m unittest discover -s tool -p 'prepare_reproducible_flutter_sdk_test.py'
       - name: Verify reviewed Gradle security pin
         run: python3 tool/verify_gradle_wrapper.py
       - name: Check committed release source and Fastlane listing
@@ -33,8 +35,8 @@ jobs:
         run: tool/test_board_native.sh
       - name: Install pinned Flutter
         run: |
-          git clone --depth 1 --branch 3.47.5 https://github.com/flutter/flutter.git "$RUNNER_TEMP/flutter"
-          test "$(git -C "$RUNNER_TEMP/flutter" rev-parse HEAD)" = 6a19cca56475dbfba1478ee68d7bd0c2ef891da1
+          git clone --depth 1 --branch 3.47.8 https://github.com/flutter/flutter.git "$RUNNER_TEMP/flutter"
+          test "$(git -C "$RUNNER_TEMP/flutter" rev-parse HEAD)" = 737ba8f885dc774b53b442759999a312c9461e4e
           echo "$RUNNER_TEMP/flutter/bin" >> "$GITHUB_PATH"
       - run: flutter pub get --enforce-lockfile
       - name: Verify localization catalogs and generated code
@@ -70,8 +72,8 @@ jobs:
           java-version: '17'
       - name: Install pinned Flutter
         run: |
-          git clone --depth 1 --branch 3.47.5 https://github.com/flutter/flutter.git "$RUNNER_TEMP/flutter"
-          test "$(git -C "$RUNNER_TEMP/flutter" rev-parse HEAD)" = 6a19cca56475dbfba1478ee68d7bd0c2ef891da1
+          git clone --depth 1 --branch 3.47.8 https://github.com/flutter/flutter.git "$RUNNER_TEMP/flutter"
+          test "$(git -C "$RUNNER_TEMP/flutter" rev-parse HEAD)" = 737ba8f885dc774b53b442759999a312c9461e4e
           echo "$RUNNER_TEMP/flutter/bin" >> "$GITHUB_PATH"
       - run: flutter pub get --enforce-lockfile
       - name: Resolve release dependencies without building the APK
@@ -117,8 +119,8 @@ jobs:
           java-version: '17'
       - name: Install pinned Flutter
         run: |
-          git clone --depth 1 --branch 3.47.5 https://github.com/flutter/flutter.git "$RUNNER_TEMP/flutter"
-          test "$(git -C "$RUNNER_TEMP/flutter" rev-parse HEAD)" = 6a19cca56475dbfba1478ee68d7bd0c2ef891da1
+          git clone --depth 1 --branch 3.47.8 https://github.com/flutter/flutter.git "$RUNNER_TEMP/flutter"
+          test "$(git -C "$RUNNER_TEMP/flutter" rev-parse HEAD)" = 737ba8f885dc774b53b442759999a312c9461e4e
           echo "$RUNNER_TEMP/flutter/bin" >> "$GITHUB_PATH"
       - run: python3 tool/verify_model.py
       - name: Build release APK
