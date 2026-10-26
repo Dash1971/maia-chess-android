@@ -21,18 +21,20 @@ description: |
 
   - Compare the moves Maia thinks people would play with Stockfish's suggestions. You can compare two Maia ratings side by side.
   - Review a whole game with an evaluation graph, accuracy scores and move annotations.
-  - Explore positions and variations, then continue playing from a position you choose.
+  - Explore variations, edit board positions and continue playing from a position you choose.
+  - Optionally show Maia’s expected score alongside its move probabilities.
 
   **Keep your chess on your phone**
 
   - Open PGN games or FEN positions, and save or share PGN files with comments and variations.
   - Browse recent games and look up opening names offline.
-  - Choose from ten interface languages.
+  - Choose from ten interface languages, light or dark themes, system colors and an optional pure-black background.
+  - Customize board colors, piece sets and move aids.
   - Optionally export Maia’s actual move probabilities and choices in a readable offline report.
 
   **Experimental Chessnut support**
 
-  Chessnut Air and Go boards can connect over Bluetooth for untimed games from the standard starting position, with lights showing Maia's moves. Other Chessnut models have not been confirmed.
+  Chessnut Air and Go boards can connect over Bluetooth for untimed games, including continuing from an analysis position. Lights guide piece setup and show Maia's moves. Other Chessnut models have not been confirmed.
 
   On Android 11 and older, connecting a Chessnut board requires location permission to scan for Bluetooth devices. Mobile Maia does not use it to determine your location. Android 12 and newer use Nearby devices permissions instead. On-screen chess does not need location permission.
 

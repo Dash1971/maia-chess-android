@@ -159,7 +159,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get maxOpeningVarietyHelp =>
-      'No es necesario si Temperatura y Top-P tienen sus valores predeterminados de 1,0 / 1,0. Utiliza 1,0 / 1,0 durante los cinco primeros movimientos de cada bando y vuelve a los valores configurados a partir del movimiento 6.\n\nEl objetivo es ofrecer a Maia la máxima variedad en la apertura y, más adelante en la partida, permitir un juego potencialmente más fuerte al reducir la posibilidad de elegir movimientos de baja probabilidad mediante valores más bajos de Temperatura y/o Top-P.';
+      'Activada por defecto. Usa temperatura y Top-P 1,0 / 1,0 durante las primeras cinco jugadas de cada bando y tus ajustes desde la sexta. Mantiene opciones amplias en la apertura y permite descartar jugadas poco probables después. Respeta el número de jugada de la posición, también al reanudar o continuar una partida.\n\nNo hace falta con 1,0 / 1,0: el interruptor queda apagado y no se puede activar porque esos ajustes ya ofrecen toda la variedad durante la partida.';
 
   @override
   String get maiaAnalysisRating => 'Elo de Maia para analizar';
@@ -393,6 +393,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get promoteVariation => 'Promocionar variante';
+
+  @override
+  String get mainLine => 'la línea principal';
 
   @override
   String get makeMainLine => 'Convertir en línea principal';
@@ -723,7 +726,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get recentCancelSelection => 'Cancelar selección';
 
   @override
-  String get recentClearSelection => 'Borrar selección';
+  String get recentClearSelection => 'Deseleccionar todo';
 
   @override
   String get recentSelectAll => 'Seleccionar todas las partidas';
@@ -956,7 +959,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get chessnutGameRestriction =>
-      'Chessnut solo admite partidas sin límite de tiempo desde la posición inicial estándar.';
+      'Las partidas con Chessnut no tienen límite de tiempo.';
 
   @override
   String get samplingTitle => 'Temperatura y Top-P';
@@ -968,8 +971,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get samplingResearch => 'Datos completos de investigación (JSONL)';
 
   @override
-  String get samplingResearchLink =>
-      'Datos completos de investigación (en inglés)';
+  String get samplingResearchLink => 'Guía visual e investigación (en inglés)';
 
   @override
   String get close => 'Cerrar';
@@ -1016,7 +1018,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get samplingRecommendationWarning =>
-      'Bajar la temperatura o Top-P puede hacer que Maia juegue mejor en el medio juego, pero reduce la variedad en las aperturas. Consulta el botón de información para más detalles.';
+      'Maia puede tener un repertorio de aperturas más limitado si desactivas la máxima variedad en la apertura.';
 
   @override
   String get couldNotOpenPgn => 'No se pudo abrir el PGN.';
@@ -1149,7 +1151,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get boardGameRestriction =>
-      'Las partidas con tablero electrónico empiezan desde la posición inicial estándar y sin límite de tiempo.';
+      'Las partidas con tablero electrónico no tienen límite de tiempo.';
 
   @override
   String get boardConfirmSetup => 'He colocado la posición inicial';
@@ -1214,7 +1216,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get maiaHistoryHelp =>
-      'Permite que Maia tenga en cuenta hasta siete posiciones anteriores, además de la posición actual. Esto mejoró la precisión al predecir jugadas humanas en unos 2 puntos porcentuales en nuestras pruebas con el modelo 79M, pero a veces favoreció la imitación repetida de jugadas en aperturas de bajo nivel. No pudimos confirmar una mejora en la fuerza de juego. Por ahora, recomendamos dejarlo desactivado.';
+      'Permite que Maia use hasta siete posiciones anteriores al elegir una jugada. En nuestras pruebas con el modelo 79M, esto mejoró la precisión al predecir jugadas humanas en unos 2 puntos porcentuales, pero a veces llevó a imitar repetidamente jugadas en aperturas de jugadores con menor Elo. Por ahora, recomendamos dejarlo desactivado.';
 
   @override
   String get maiaHistoryResearch =>
@@ -1376,7 +1378,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get resetSettingsDefaultsScope =>
-      'Restablece todos los ajustes de esta pantalla. Se conservan las partidas guardadas y los datos de muestreo.';
+      'Restablece todos los ajustes de esta pantalla. Se conservan las partidas guardadas y los datos de selección de jugadas.';
 
   @override
   String get settingsResetError =>
@@ -1388,36 +1390,248 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get resetSettingsKeepData =>
-      'Se conservarán tus partidas guardadas y los datos de muestreo.';
+      'Se conservarán tus partidas guardadas y los datos de selección de jugadas.';
 
   @override
   String get resetSettingsAction => 'Restablecer ajustes';
 
   @override
   String get samplingHelpIntro =>
-      'La Temperatura y Top-P controlan cómo elige Maia entre las distintas jugadas.';
+      'La temperatura y Top-P se combinan para determinar la variedad en el juego de Maia.\n\nRecomendamos una temperatura de 1,0, Top-P de 0,95 y Máxima variedad en la apertura activada. Estos son los ajustes predeterminados. Según nuestra investigación, ofrecen un buen equilibrio entre un juego parecido al humano, variedad en la apertura y menos errores graves poco habituales.\n\nSigue leyendo para saber cómo funcionan estos ajustes.';
 
   @override
   String get samplingHelpVariety =>
-      'Subir la Temperatura y Top-P es como hacer que Maia sea un jugador más impredecible, ya que aumenta la posibilidad de que elija jugadas poco probables. ¡Pueden ser errores graves, pero también jugadas brillantes!';
+      'Temperatura\n\nCon temperatura 0, Maia siempre juega la jugada que predice como la más probable para un jugador del Elo seleccionado. Esto se llama técnicamente argmax.\n\nCon temperatura 1, Maia considera todas las jugadas que predice que podría hacer un jugador del Elo seleccionado y elige entre ellas según sus probabilidades.\n\nCon una temperatura entre 0 y 1, Maia da más peso a las jugadas que considera más probables. Cuanto menor es la temperatura, más predecibles son sus elecciones.\n\nPor ejemplo, en nuestras pruebas con el modelo 79M y un Elo de entrada de 1600 para ambos jugadores, las probabilidades de apertura de Maia con blancas fueron aproximadamente:\n\n• 1. e4: 64%\n• 1. d4: 25%\n• 1. c4: 3%\n• Todas las demás jugadas juntas: 8%\n\nCon temperatura 0, Maia siempre jugó 1. e4.\n\nCon temperatura 0,5, jugó 1. e4 aproximadamente el 86% de las veces y 1. d4 aproximadamente el 13%. Las demás jugadas seguían siendo posibles, pero juntas sumaban menos del 1%.\n\nCon temperatura 1, Maia siguió las probabilidades originales indicadas arriba.';
 
   @override
   String get samplingHelpDefaults =>
-      'Si buscas la máxima variedad y quieres que Maia juegue un amplio repertorio de aperturas humanas, incluidas líneas secundarias, mantén los valores predeterminados de 1,0 y 1,0.';
+      'Top-P\n\nTop-P filtra las jugadas disponibles después de que la temperatura ajuste sus probabilidades.\n\nCon Top-P 1, no se aplica ningún filtro. Todas las jugadas disponibles pueden jugarse según sus probabilidades ajustadas por la temperatura.\n\nCon Top-P 0,95, Maia conserva las jugadas más probables hasta que su probabilidad conjunta alcanza al menos el 95% y después elige entre ellas. Las jugadas excluidas representan como máximo el 5% de la probabilidad.\n\nCon Top-P 0, Maia siempre elige la jugada más probable. Tiene el mismo efecto que temperatura 0: basta con poner cualquiera de los dos ajustes a 0 para obtener argmax.\n\nEn nuestro ejemplo de apertura, temperatura 1 y Top-P 0,60 harían que Maia siempre jugara 1. e4. Esa jugada por sí sola representa alrededor del 64% de la probabilidad, así que no hacen falta otras para alcanzar el umbral del 60%.';
 
   @override
   String get samplingHelpStrength =>
-      'Si prefieres un rival más fuerte que cometa menos errores graves, prueba a bajar los valores de Temperatura y Top-P.';
+      '¿Cómo afectan estos ajustes al juego de Maia?\n\nPuedes imaginar Top-P como un ángel en el hombro de Maia. Con 0, el ángel le dice a Maia que ignore las jugadas menos probables, que pueden incluir errores graves o jugadas poco sólidas. Con 1,0, el ángel se ha ido y Maia podría elegir incluso la jugada más disparatada e improbable.\n\nEn nuestras pruebas de enfrentamientos directos con el ajuste de 1600, argmax superó a temperatura 1,0 / Top-P 1,0 por el equivalente a unos 300 puntos Elo. Sin embargo, argmax también limitó las opciones de apertura a un repertorio reducido, compuesto principalmente por líneas principales.';
 
   @override
   String get samplingHelpArgmax =>
-      'Al poner la Temperatura a 0, Maia utiliza argmax, una forma técnica de decir que siempre elegirá la jugada que predice como más probable para un humano en una posición dada. ¡Ojo! En nuestra investigación con el nivel ajustado a 1600, Maia con argmax superó a Maia con 1,0 / 1,0 por el equivalente a unos 300 puntos Elo en enfrentamientos directos.';
+      'Por eso introdujimos Máxima variedad en la apertura: un interruptor que hace que Maia juegue con temperatura 1,0 y Top-P 1,0 durante las primeras cinco jugadas de cada bando. ¡Puede que veas alguna locura en la apertura! A partir de la sexta jugada, Maia vuelve a los ajustes que hayas configurado.';
 
   @override
   String get samplingHelpTopP =>
-      'Para equilibrar fuerza y variedad, puedes mantener la Temperatura en 1,0 y poner Top-P en 0,95. Esto conserva la variedad y elimina jugadas poco probables, que a menudo pueden ser errores graves, aunque también pueden ser buenas jugadas. Básicamente, Top-P descarta las jugadas menos probables. Al ponerlo en 0,95, conserva jugadas que suman al menos el 95 % de la probabilidad después de aplicar la Temperatura. Maia no podrá elegir las jugadas restantes.';
+      'Recomendamos mantener activada Máxima variedad en la apertura, con la temperatura en 1,0 y Top-P en 0,95. Es como tener un jugador creativo con un ángel en el hombro que, al menos, lo disuade de jugar las jugadas más descabelladas: las menos probables, cuya probabilidad conjunta suma hasta un 5%. Es cierto que podrían ser brillantes, pero también pueden ser errores graves y absurdos. Así se busca un buen equilibrio entre variedad en la apertura, creatividad en el medio juego y un juego más fuerte al excluir algunos errores graves de probabilidad muy baja.\n\nPara quienes se atrevan, la temperatura 0 produjo el juego más fuerte en nuestras pruebas. ¡Buena suerte!';
 
   @override
   String get samplingHelpResearchIntro =>
-      'Experimentamos con estos ajustes a 1600 Elo y publicamos todos los resultados aquí:';
+      'Consulta la guía visual para conocer la investigación que respalda estas decisiones y acceder a los resultados completos.';
+
+  @override
+  String get samplingFullVarietyNotice =>
+      'Maia puede cometer más errores graves poco habituales con temperatura y Top-P en 1,0 / 1,0.';
+
+  @override
+  String get samplingArgmaxNotice =>
+      'Maia puede jugar más fuerte con temperatura o Top-P en 0. ¡Buena suerte!';
+
+  @override
+  String get topPNotUsed => 'Top-P: No se usa';
+
+  @override
+  String get topPNotUsedTitle => 'Por qué no se usa Top-P';
+
+  @override
+  String get topPNotUsedHelp =>
+      'Con temperatura 0, Maia siempre elige una de las jugadas más probables, así que Top-P no tiene efecto. Su valor se conserva y vuelve a estar disponible al subir la temperatura. Si la máxima variedad en la apertura está activada, las primeras cinco jugadas de cada bando siguen usando 1,0 / 1,0.';
+
+  @override
+  String get samplingLowerNotice =>
+      'Maia puede jugar más fuerte con una temperatura o un Top-P más bajos.';
+
+  @override
+  String get appearance => 'Apariencia';
+
+  @override
+  String get appearanceSystemColors => 'Usar colores del sistema';
+
+  @override
+  String get appearanceSystemColorsHelp =>
+      'Usar la paleta de colores de Android';
+
+  @override
+  String get appearanceSystemColorsUnavailable =>
+      'No disponible en este dispositivo. Requiere Android 12 o posterior.';
+
+  @override
+  String get appearancePureBlack => 'Fondo negro puro';
+
+  @override
+  String get appearancePureBlackHelp => 'Usar fondos negros en el modo oscuro';
+
+  @override
+  String get appearancePreferenceError =>
+      'La apariencia ha cambiado, pero no se ha podido guardar. Inténtalo de nuevo.';
+
+  @override
+  String get appearanceTheme => 'Tema';
+
+  @override
+  String get appearanceLight => 'Claro';
+
+  @override
+  String get appearanceDark => 'Oscuro';
+
+  @override
+  String get appearanceSystemDefault => 'Tema del dispositivo';
+
+  @override
+  String get boardSettings => 'Tablero';
+
+  @override
+  String get boardCoordinates => 'Coordenadas del tablero';
+
+  @override
+  String get boardLegalMoves => 'Destinos de movimientos legales';
+
+  @override
+  String get boardLastMove => 'Resaltar el último movimiento';
+
+  @override
+  String get boardAnimation => 'Animación de las piezas';
+
+  @override
+  String get boardMagnify => 'Aumentar la pieza arrastrada';
+
+  @override
+  String get boardDragTarget => 'Marcador de destino de la pieza arrastrada';
+
+  @override
+  String get boardTargetCircle => 'Círculo';
+
+  @override
+  String get boardTargetSquare => 'Cuadrado';
+
+  @override
+  String get boardTargetNone => 'Ninguna';
+
+  @override
+  String get boardPreferenceError =>
+      'No se han podido guardar los ajustes del tablero. Inténtalo de nuevo.';
+
+  @override
+  String get boardDesign => 'Tablero';
+
+  @override
+  String get boardPieceSet => 'Estilo de piezas';
+
+  @override
+  String get showMaiaScore => 'Mostrar victoria (puntuación) de Maia en %';
+
+  @override
+  String get maiaScore => 'Puntuación Maia';
+
+  @override
+  String get maiaScoreEqual => 'Igualada';
+
+  @override
+  String get maiaScoreHelp =>
+      'Muestra en la parte superior de la pantalla la evaluación de Maia sobre las posibilidades de ganar (puntuar).\nEl punto blanco o negro indica a qué bando se refiere el porcentaje.';
+
+  @override
+  String get maiaScoreExpectedHelp =>
+      'Por ejemplo, Blancas 60% significa que Maia estima que las blancas conseguirían unos 60 puntos en 100 partidas desde esta posición. Una victoria vale 1 punto; unas tablas, ½.';
+
+  @override
+  String get maiaScoreInputsHelp =>
+      'La estimación supone que ambos jugadores tienen el Elo de análisis seleccionado para Maia. Si activas dos Maias, cada una calcula su estimación con su propio Elo.';
+
+  @override
+  String get maiaScorePreferenceError =>
+      'No se han podido guardar los ajustes de puntuación Maia. Inténtalo de nuevo.';
+
+  @override
+  String get maiaScoreStockfishHelp =>
+      'Puede ser útil compararla con la evaluación de Stockfish. Que Stockfish considere que un bando está mejor no significa que a una persona le resulte fácil encontrar las jugadas correctas para convertir esa ventaja en victoria.';
+
+  @override
+  String get editorMoveTool => 'Mover piezas';
+
+  @override
+  String get editorEraseTool => 'Borrar piezas';
+
+  @override
+  String get editorEmptySquare => 'Casilla vacía';
+
+  @override
+  String get editorPositionSettings => 'Ajustes de la posición';
+
+  @override
+  String get editorImageImportUnavailable =>
+      'Importar posición desde una imagen (aún no disponible)';
+
+  @override
+  String get editorShareFen => 'Compartir FEN';
+
+  @override
+  String get editorFenMetadata => 'Metadatos FEN';
+
+  @override
+  String get editorHalfmoveClock => 'Contador de medias jugadas';
+
+  @override
+  String get editorFullmoveNumber => 'Número de jugada';
+
+  @override
+  String get editorWhitePawn => 'Peón blanco';
+
+  @override
+  String get editorWhiteKnight => 'Caballo blanco';
+
+  @override
+  String get editorWhiteBishop => 'Alfil blanco';
+
+  @override
+  String get editorWhiteRook => 'Torre blanca';
+
+  @override
+  String get editorWhiteQueen => 'Dama blanca';
+
+  @override
+  String get editorWhiteKing => 'Rey blanco';
+
+  @override
+  String get editorBlackPawn => 'Peón negro';
+
+  @override
+  String get editorBlackKnight => 'Caballo negro';
+
+  @override
+  String get editorBlackBishop => 'Alfil negro';
+
+  @override
+  String get editorBlackRook => 'Torre negra';
+
+  @override
+  String get editorBlackQueen => 'Dama negra';
+
+  @override
+  String get editorBlackKing => 'Rey negro';
+
+  @override
+  String get continuationUseBoard => 'Usar tablero electrónico';
+
+  @override
+  String get continuationConnectHelp => 'Conecta un tablero compatible.';
+
+  @override
+  String get continuationBoardUntimed =>
+      'Las partidas con tablero electrónico no tienen límite de tiempo.';
+
+  @override
+  String get continuationSetUpBoard => 'Preparar el tablero';
+
+  @override
+  String get continuationSetupHelp =>
+      'Coloca en tu tablero la posición que aparece en pantalla. La partida empieza cuando las piezas coinciden.';
+
+  @override
+  String get continuationBoardUnsupported =>
+      'Por ahora, continuar desde una posición solo es compatible con los tableros Chessnut.';
 }

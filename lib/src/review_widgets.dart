@@ -762,7 +762,9 @@ class MoveClassificationSummary extends StatelessWidget {
                       )
                       .toList(growable: false);
                   return DefaultTextStyle.merge(
-                    style: TextStyle(color: classification.color),
+                    style: TextStyle(
+                      color: chessTextColor(context, classification.color),
+                    ),
                     child: Row(
                       children: [
                         countButton(white, l10n(context).white, classification),

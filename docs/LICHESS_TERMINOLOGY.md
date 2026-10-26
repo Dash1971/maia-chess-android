@@ -292,3 +292,151 @@ distinction between low move probability and poor move quality. Existing chess
 vocabulary and localized Temperature labels are retained; European-language
 translations follow the established decimal-comma convention. These are
 editorial translations, subject to the usual native-speaker review.
+
+
+## 2.5 sampling defaults and two explanation levels (draft)
+
+Both explanation levels, the contextual notices, opening-variety help and the
+Temperature-zero Top-P explanation are Maia-specific concepts without direct
+Lichess equivalents. All ten catalogs retain existing chess vocabulary and
+translate the new prose; no new English-only fallback is introduced. Research
+links are marked English in non-English catalogs. Simple prose keeps the
+creative-player/angel analogy but does not equate probability with move quality.
+Technical prose defines the crossing-move nucleus and distinguishes probability
+mass from a per-move cutoff. Research results name the tested 1600 input, not
+the new 1500 default. Editorial review is not native-speaker certification.
+
+### Approved simple sampling explanation follow-up
+
+The Simple explanation now uses the maintainer-approved English copy verbatim
+and faithful translations in all nine other languages, preserving the
+conservative OTB / creative blitz and angel / devil analogies. This remains
+Maia-specific prose with no complete Lichess equivalent; the existing localized
+Temperature and chess vocabulary is retained. Technical guidance is unchanged.
+The restricted-opening notice now applies below Temperature 1 or Top-P 1 when
+opening variety is off, including the recommended Top-P 0.95.
+
+Lower nonzero sampling settings with opening variety on now also have a
+Maia-specific strength notice from move 6, translated into all ten languages.
+Only the zero-setting notices retain “Good luck!”. The approved help copy is
+unchanged.
+
+With opening variety off, lower nonzero settings show the same translated
+strength advice without the move-six qualifier or “Good luck!”, alongside the
+existing limited-opening notice. Both notices are checked at 320px/200% text in
+all ten languages.
+
+Strength notices use a separate threshold from the repertoire notice: below the
+recommended defaults (Temperature < 1.0 or Top-P < 0.95), with or without opening
+variety. The repertoire threshold remains below 1.0 with variety off. Translated
+wording and the approved explanations are unchanged.
+
+## Appearance settings (#124)
+
+Theme, Light and Dark follow the pinned Lichess mobile catalogs in all ten
+languages. The system-colors label adapts the pinned `mobileSystemColors` to an
+explicit independent switch; Chinese explicitly says colors so it cannot be
+confused with following system brightness. These references are recorded in the
+terminology baseline. Appearance, OLED explanation, platform availability and
+storage-error prose are contextual app settings, translated in all ten catalogs.
+The initial implementation reused the language-selector System default message;
+the October quality review below replaces that context-unsafe reuse. As elsewhere, automated
+layout/consistency checks are not native-speaker certification.
+
+
+## Platform and AI terminology quality review — 2026-10-20
+
+The [all-catalog quality review](TRANSLATION_QUALITY_REVIEW.md) supplements the
+chess baseline with official Google platform and AI references. Keep Lichess as
+the first source for equivalent chess/UI concepts. Compare context rather than
+assuming any upstream translation is automatically appropriate.
+
+Appearance now uses a dedicated `appearanceSystemDefault`, pinned to Lichess
+`deviceTheme` in nine languages, with a documented Google Hindi fallback and an
+English context adaptation. The language selector keeps `systemDefault`; its
+French/Hindi translations explicitly mean system language and cannot label a
+light/dark theme choice. Documented Google theme-selector adaptations retain the
+upstream snapshot but use Japanese ライト / ダーク, French Clair, and Hindi
+हल्के रंग वाली थीम / गहरे रंग वाली थीम. Pure black remains a separate preference.
+
+Official localized AI references corroborate Temperature vocabulary and the
+conventional Top-P identifier. Their terminology does not replace Maia's own
+sampling algorithm, edge cases, opening override, defaults or research results.
+The quality review records source-language fallbacks and editorial corrections,
+including reports, reset warnings, prose numbers and grammatical consistency.
+
+## Engine help translation review (2026-10-25)
+
+The English Temperature/Top-P dialog now uses the approved single explanation,
+including opening probabilities, the Temperature 0.5 example, cumulative Top-P
+filtering, and the first-five-moves override. Its technical/simple selector and
+six obsolete localization messages were removed in all catalogs. The English
+move-history help is shorter and retains the research link and off recommendation.
+
+The approved English is unchanged by the translation pass. All nine other
+languages now translate its six sampling sections and shortened history help
+(63 updated messages). The examples, probabilities, cumulative Top-P thresholds,
+research comparison and five-moves-per-side override retain the English meaning.
+Localized decimal separators and existing chess/sampling terminology are used.
+The six existing samplingHelp IDs remain in reading order; translator descriptions
+reflect their revised sections. No direct Lichess equivalents were introduced.
+The review CSV and generated localization code are updated. The existing widget
+test exercises both dialogs and research links in all ten languages at 200% text
+size. Automated checks verify structure and layout, not native-speaker approval;
+the review CSV retains its native-review status.
+
+This Preview change describes Preview's 1.0 / 0.95 defaults with opening variety
+on. Stable retains its own 1.0 / 1.0 defaults; the full text must not be copied
+there until those defaults are promoted. No build, CI or cleanup tooling changes
+require a companion PR.
+
+## Configurable board aids (#178)
+
+The Board section uses the pinned board, coordinates, animation, drag magnification,
+shape and target terms in all ten languages. Compact headings omit coordinate
+ranges. Last-move highlighting is narrower than Lichess's combined last-move/check
+setting, so its translations explicitly name only the last move. Legal destinations
+name the destination marks; committed premove overlays remain independent.
+Japanese animation wording omits the upstream speed qualifier because this is a
+boolean switch. Each adaptation is recorded in the terminology reference. The
+persistence error is app-specific prose. These translations remain subject to
+native-speaker review.
+
+## Board and piece design selectors (#177)
+
+Board design and Piece set use pinned Lichess `board` and `pieceSet` terms,
+including native Hindi fallbacks where the upstream catalog has no value.
+Design names remain Lichess's artwork proper names, including Cburnett and
+Kiwen-suwi, in every language. Selected state is exposed through native semantics
+in addition to its visible checkmark. Persistence errors reuse the board-aid text.
+
+## Optional Maia expected score (#186)
+
+The eight new score/settings/help/error messages describe Maia-specific model
+outcomes and have no direct Lichess equivalent. Existing White/Black, analysis,
+draw and victory labels retain the pinned translations. All ten catalogs follow the requester’s approved English: the 60 points in
+100 games example explains half-point draws; each engine uses its own rating
+for both players; Stockfish advantage can be difficult for a human to convert. These
+translations remain subject to native-speaker review.
+## Lichess-style board editor (#189)
+
+The Move/Delete actions name pieces explicitly in tooltips and screen-reader
+labels, and Share game becomes Share FEN for the editor's exported position.
+These adaptations are recorded against the pinned upstream catalogs. Position
+settings, unavailable image import, empty squares and FEN counter descriptions
+are editor-specific labels in all ten languages. No Variant/Challenge labels or
+camera-working-state claims are introduced. Source interaction reference and
+layout adaptations are pinned in `docs/BOARD_EDITOR.md`.
+The Hindi dragged-piece target label corrects upstream grammatical agreement
+and uses मोहरा for a chess piece. The original reference is retained with a
+documented adaptation; the terminology regression rejects restoring the typo.
+
+Editor piece names use complete singular phrases for each colour and role, rather
+than concatenating the White/Black player labels. The pinned Lichess catalog has
+no complete coloured-piece labels; existing Lichess role names are retained with
+native word order and grammatical agreement (for example Rey blanco / Dama blanca,
+Roi blanc / Dame blanche). Dedicated messages cover all twelve kinds in all
+ten languages, including palette tooltips and board-square accessibility labels.
+
+Spanish Maia-score help explicitly names Elo as the rating input for both players,
+keeping it distinct from the predicted game score. The English meaning is unchanged.

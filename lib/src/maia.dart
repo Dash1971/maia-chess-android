@@ -56,7 +56,11 @@ class MaiaMoveProbability {
 }
 
 class MaiaPositionAnalysis {
-  const MaiaPositionAnalysis(this.moves, {this.hasRawProbabilities = true});
+  const MaiaPositionAnalysis(
+    this.moves, {
+    this.hasRawProbabilities = true,
+    this.outcome,
+  });
 
   factory MaiaPositionAnalysis.single(String uci) => MaiaPositionAnalysis([
     MaiaMoveProbability(uci: uci, probability: 1),
@@ -64,6 +68,7 @@ class MaiaPositionAnalysis {
 
   final List<MaiaMoveProbability> moves;
   final bool hasRawProbabilities;
+  final MaiaOutcome? outcome;
 
   String? get topMove => moves.firstOrNull?.uci;
 }

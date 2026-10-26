@@ -35,6 +35,7 @@ IDENTICAL_ALLOWED = {
     'positionNumber': {'fr'},
 }
 ARGUMENT = re.compile(r'\{([A-Za-z][A-Za-z0-9_]*)(?=\s*[,}])')
+CANONICAL_TOKENS = {'aboutLicence': ('AGPL-3.0-only',)}
 
 
 def unique_object(pairs):
@@ -78,6 +79,16 @@ def check(root, *, check_csv=True):
                 errors.append(f'{lang}.{key}: placeholders {sorted(used)} != {sorted(expected)}')
             if lang != 'en' and message == data['en'][key] and lang not in IDENTICAL_ALLOWED.get(key, set()):
                 errors.append(f'{lang}.{key}: untranslated English (or add a justified technical exception)')
+            # Whole-message equality misses English terms embedded in translated
+            # prose (previously present in the Japanese/CJK/Hindi HTML reports).
+            # Top-P, softmax and API identifiers remain canonical technical names.
+            if (lang != 'en' and isinstance(catalog.get('temperature'), str)
+                    and catalog['temperature'].casefold() != 'temperature'
+                    and re.search(r'(?<![A-Za-z])temperature(?![A-Za-z])', message, re.I)):
+                errors.append(f'{lang}.{key}: untranslated Temperature term; use the localized sampling label')
+            for token in CANONICAL_TOKENS.get(key, ()):
+                if token not in message:
+                    errors.append(f'{lang}.{key}: missing canonical identifier {token}')
     if check_csv:
         try:
             with (root / 'docs/l10n_review.csv').open(newline='') as source:

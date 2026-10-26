@@ -48,43 +48,47 @@ Future<void> disposeApp(WidgetTester tester) async {
 void main() {
   setUp(() => SharedPreferences.setMockInitialValues({}));
 
-  testWidgets(
-    'default opening variety is off and disabled with accessible help',
-    (tester) async {
-      final semantics = tester.ensureSemantics();
-      await tester.pumpWidget(settingsApp());
-      await openSettings(tester);
-      await tester.ensureVisible(key('opening-variety-help'));
-      await tester.pumpAndSettle();
-      expect(varietyWidget(tester).value, isFalse);
-      expect(varietyWidget(tester).onChanged, isNull);
-      expect(tester.widget<Switch>(varietySwitch).onChanged, isNull);
-      expect(
-        tester
-            .getSemantics(key('opening-variety-help'))
-            .getSemanticsData()
-            .tooltip,
-        'Max variety in opening',
-      );
-      expect(key('opening-variety-help').hitTestable(), findsOneWidget);
-      await tester.tap(key('opening-variety-help'));
-      await tester.pumpAndSettle();
-      final strings = await AppLocalizations.delegate.load(const Locale('en'));
-      expect(find.text(strings.maxOpeningVarietyHelp), findsOneWidget);
-      await tester.tap(find.text(strings.close));
-      await tester.pumpAndSettle();
-      expect(find.byType(AlertDialog), findsNothing);
-      expect(varietyWidget(tester).value, isFalse);
-      expect(tester.takeException(), isNull);
-      semantics.dispose();
-      await disposeApp(tester);
-    },
-  );
+  testWidgets('new defaults enable opening variety with accessible help', (
+    tester,
+  ) async {
+    final semantics = tester.ensureSemantics();
+    await tester.pumpWidget(settingsApp());
+    await openSettings(tester);
+    await tester.ensureVisible(key('opening-variety-help'));
+    await tester.pumpAndSettle();
+    expect(varietyWidget(tester).value, isTrue);
+    expect(varietyWidget(tester).onChanged, isNotNull);
+    expect(tester.widget<Switch>(varietySwitch).onChanged, isNotNull);
+    expect(
+      tester
+          .getSemantics(key('opening-variety-help'))
+          .getSemanticsData()
+          .tooltip,
+      'Max variety in opening',
+    );
+    expect(key('opening-variety-help').hitTestable(), findsOneWidget);
+    await tester.tap(key('opening-variety-help'));
+    await tester.pumpAndSettle();
+    final strings = await AppLocalizations.delegate.load(const Locale('en'));
+    expect(find.text(strings.maxOpeningVarietyHelp), findsOneWidget);
+    await tester.tap(find.text(strings.close));
+    await tester.pumpAndSettle();
+    expect(find.byType(AlertDialog), findsNothing);
+    expect(varietyWidget(tester).value, isTrue);
+    expect(tester.takeException(), isNull);
+    semantics.dispose();
+    await disposeApp(tester);
+  });
 
   for (final sliderId in ['temperature-setting', 'top-p-setting']) {
     testWidgets(
       '$sliderId enables opening variety and preserves it on relaunch',
       (tester) async {
+        SharedPreferences.setMockInitialValues({
+          'temperatureV2': 1.0,
+          'topPV2': 1.0,
+          'maxOpeningVarietyV1': false,
+        });
         await tester.pumpWidget(settingsApp());
         await openSettings(tester);
         await setSamplingSlider(tester, sliderId, 0.5);
@@ -140,27 +144,25 @@ void main() {
     },
   );
 
-  testWidgets('reset defaults clears persisted opening variety', (
-    tester,
-  ) async {
+  testWidgets('reset restores opening variety and Top-P 0.95', (tester) async {
     SharedPreferences.setMockInitialValues({
       'temperatureV2': 0.5,
-      'maxOpeningVarietyV1': true,
+      'maxOpeningVarietyV1': false,
     });
     await tester.pumpWidget(settingsApp());
     await openSettings(tester);
-    expect(varietyWidget(tester).value, isTrue);
+    expect(varietyWidget(tester).value, isFalse);
     await tester.ensureVisible(key('reset-settings-defaults'));
     await tester.tap(key('reset-settings-defaults'));
     await tester.pumpAndSettle();
     await tester.tap(key('confirm-reset-settings'));
     await tester.pumpAndSettle();
     final prefs = await SharedPreferences.getInstance();
-    expect(prefs.getBool('maxOpeningVarietyV1'), isFalse);
+    expect(prefs.getBool('maxOpeningVarietyV1'), isTrue);
     expect(prefs.getDouble('temperatureV2'), 1.0);
-    expect(prefs.getDouble('topPV2'), 1.0);
-    expect(varietyWidget(tester).value, isFalse);
-    expect(varietyWidget(tester).onChanged, isNull);
+    expect(prefs.getDouble('topPV2'), 0.95);
+    expect(varietyWidget(tester).value, isTrue);
+    expect(varietyWidget(tester).onChanged, isNotNull);
     expect(tester.takeException(), isNull);
     await disposeApp(tester);
   });
@@ -172,7 +174,7 @@ void main() {
     <String>['true'],
   ]) {
     testWidgets(
-      'malformed opening preference $value safely falls back to off',
+      'malformed opening preference $value safely falls back to the new default',
       (tester) async {
         SharedPreferences.setMockInitialValues({
           'temperatureV2': 0.5,
@@ -180,7 +182,7 @@ void main() {
         });
         await tester.pumpWidget(settingsApp());
         await openSettings(tester);
-        expect(varietyWidget(tester).value, isFalse);
+        expect(varietyWidget(tester).value, isTrue);
         expect(varietyWidget(tester).onChanged, isNotNull);
         expect(tester.takeException(), isNull);
         await disposeApp(tester);
@@ -191,7 +193,11 @@ void main() {
   testWidgets('stale enabled preference at default sampling displays off', (
     tester,
   ) async {
-    SharedPreferences.setMockInitialValues({'maxOpeningVarietyV1': true});
+    SharedPreferences.setMockInitialValues({
+      'maxOpeningVarietyV1': true,
+      'temperatureV2': 1.0,
+      'topPV2': 1.0,
+    });
     await tester.pumpWidget(settingsApp());
     await openSettings(tester);
     expect(varietyWidget(tester).value, isFalse);
@@ -204,6 +210,10 @@ void main() {
     testWidgets(
       'opening help scrolls and closes at 320px/200% in ${locale.languageCode}',
       (tester) async {
+        SharedPreferences.setMockInitialValues({
+          'temperatureV2': 1.0,
+          'topPV2': 1.0,
+        });
         tester.view.physicalSize = const Size(320, 568);
         tester.view.devicePixelRatio = 1;
         addTearDown(tester.view.resetPhysicalSize);
@@ -252,9 +262,6 @@ void main() {
   final output = Platform.environment['MAIA_OPENING_VARIETY_SCREENSHOT_DIR'];
   if (output != null) {
     testWidgets('render opening variety setting and help', (tester) async {
-      final previousShadows = debugDisableShadows;
-      debugDisableShadows = false;
-
       tester.view.physicalSize = const Size(412, 892);
       tester.view.devicePixelRatio = 1;
       addTearDown(tester.view.resetPhysicalSize);
@@ -302,7 +309,7 @@ void main() {
         alignment: 0,
       );
       await shot('opening-variety-default');
-      await setSamplingSlider(tester, 'top-p-setting', 0.95);
+      await setSamplingSlider(tester, 'temperature-setting', 0.5);
       await tester.ensureVisible(varietySwitch);
       await tester.tap(varietySwitch);
       await tester.pumpAndSettle();
@@ -315,7 +322,6 @@ void main() {
       await shot('opening-variety-help');
       expect(tester.takeException(), isNull);
       await disposeApp(tester);
-      debugDisableShadows = previousShadows;
     });
   }
 }

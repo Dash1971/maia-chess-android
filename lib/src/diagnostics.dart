@@ -214,7 +214,7 @@ class DiagnosticsErrorScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ColoredBox(
-      color: const Color(0xff171a18),
+      color: Theme.of(context).scaffoldBackgroundColor,
       child: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -232,13 +232,19 @@ class DiagnosticsErrorScreen extends StatelessWidget {
                   Text(
                     l10n(context).diagnosticsScreenError,
                     textAlign: TextAlign.center,
-                    style: TextStyle(color: Colors.white, fontSize: 18),
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurface,
+                      fontSize: 18,
+                    ),
                   ),
                   const SizedBox(height: 12),
                   Text(
                     l10n(context).diagnosticsScreenInstructions,
                     textAlign: TextAlign.center,
-                    style: TextStyle(color: Colors.white70, fontSize: 14),
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      fontSize: 14,
+                    ),
                   ),
                   const SizedBox(height: 20),
                   FilledButton.icon(

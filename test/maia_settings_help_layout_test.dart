@@ -88,6 +88,13 @@ void main() {
         if (previousTop != null) expect(top, greaterThan(previousTop));
         previousTop = top;
       }
+      expect(find.byKey(const ValueKey('sampling-help-simple')), findsNothing);
+      expect(
+        find.byKey(const ValueKey('sampling-help-technical')),
+        findsNothing,
+      );
+
+      expect(tester.takeException(), isNull);
       expect(find.text(strings.samplingResearchLink), findsOneWidget);
       expect(find.text(strings.samplingResearch), findsNothing);
       expect(strings.samplingResearchLink, isNot(contains('JSONL')));
@@ -95,7 +102,7 @@ void main() {
       expect(find.text(strings.maiaHistoryHelp), findsNothing);
       expect(find.byKey(const ValueKey('history-research-link')), findsNothing);
       for (final (key, path) in [
-        ('sampling-research-link', 'studies/maia3-sampling/REPORT.md'),
+        ('sampling-research-link', 'guides/choosing-maia-settings/README.md'),
         ('history-research-link', 'studies/move-history-2026-10-09/REPORT.md'),
       ]) {
         if (key == 'history-research-link') {

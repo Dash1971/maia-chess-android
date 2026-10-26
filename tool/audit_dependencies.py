@@ -20,8 +20,31 @@ import time
 
 import yaml
 
+import check_board_style_assets
+
 ROOT = Path(__file__).resolve().parents[1]
 ENDPOINT = 'https://api.osv.dev/v1/query'
+CHESSGROUND_VERSION = '10.1.1'
+
+
+def check_vendored_chessground(root, item):
+    """Only the reviewed, byte-identical renderer may use a local Pub source."""
+    if (item['version'] != CHESSGROUND_VERSION or
+            item['description'] != {'path': 'third_party/chessground', 'relative': True} or
+            item['description']['relative'] is not True):
+        raise ValueError('Unreviewed vendored chessground lock entry')
+    manifest = json.loads((root / 'docs/board-style-assets.json').read_text())
+    expected = {
+        'renderer_repository': 'https://github.com/lichess-org/flutter-chessground',
+        'renderer_revision': '0bd34fbe720097c4a51172e2c0d8f697637eda01',
+        'renderer_tag': 'v' + CHESSGROUND_VERSION,
+    }
+    if any(manifest.get(key) != value for key, value in expected.items()):
+        raise ValueError('Unreviewed vendored chessground renderer pin')
+    pubspec = yaml.safe_load((root / 'third_party/chessground/pubspec.yaml').read_text())
+    if pubspec.get('name') != 'chessground' or pubspec.get('version') != CHESSGROUND_VERSION:
+        raise ValueError('Unreviewed vendored chessground package identity')
+    check_board_style_assets.check(root=root)
 
 
 def inventory(root, maven):
@@ -30,8 +53,11 @@ def inventory(root, maven):
     for name, item in lock['packages'].items():
         if item['source'] == 'sdk':
             continue  # Flutter/Dart are reviewed separately, not Pub packages.
-        if item['source'] != 'hosted' or item['description']['url'] != 'https://pub.dev':
+        if name == 'chessground' and item['source'] == 'path':
+            check_vendored_chessground(root, item)
+        elif item['source'] != 'hosted' or item['description']['url'] != 'https://pub.dev':
             raise ValueError(f'Unreviewed dependency source: {name}')
+        # The vendored renderer still queries upstream Pub advisories at its pin.
         packages.append(dict(ecosystem='Pub', name=name, version=item['version']))
     if not packages:
         raise ValueError('Empty Pub lockfile')

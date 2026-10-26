@@ -30,6 +30,14 @@ class LichessTerminologyTest(unittest.TestCase):
             'es.settings: differs from reviewed Lichess terminology',
         ])
 
+    def test_hindi_drag_target_does_not_restore_upstream_grammar_error(self):
+        path = self.root / 'lib/l10n/app_hi.arb'
+        data = json.loads(path.read_text())
+        data['boardDragTarget'] = 'खींचा गया टुकड़े का लक्ष्य'
+        path.write_text(json.dumps(data))
+        self.assertIn('hi.boardDragTarget: differs from reviewed Lichess terminology',
+                      check(self.root))
+
     def test_context_exception_must_explain_its_reason(self):
         data = json.loads(self.reference.read_text())
         data['entries']['promoteVariation']['adaptations']['ja']['reason'] = ''

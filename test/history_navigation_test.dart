@@ -1,3 +1,5 @@
+import 'dart:ui' show SemanticsAction;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -107,4 +109,52 @@ void main() {
     }
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets(
+    'a boundary can disable tapping while retaining accessible long press',
+    (tester) async {
+      final semantics = tester.ensureSemantics();
+      try {
+        var taps = 0;
+        var holds = 0;
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: MoveHistoryNavigator(
+                previousKey: const ValueKey('previous'),
+                nextKey: const ValueKey('next'),
+                canGoBack: true,
+                canGoForward: false,
+                canHoldNext: true,
+                onFirst: () {},
+                onPrevious: () {},
+                onNext: () => taps++,
+                onLast: () => holds++,
+                endTooltip: 'main line',
+              ),
+            ),
+          ),
+        );
+        final next = find.byKey(const ValueKey('next'));
+        expect(tester.widget<InkWell>(next).onTap, isNull);
+        expect(tester.widget<InkWell>(next).onLongPress, isNotNull);
+        final node = tester.getSemantics(find.bySemanticsLabel('Next move'));
+        expect(node.getSemanticsData().hint, 'Hold for main line');
+        expect(node.getSemanticsData().hasAction(SemanticsAction.tap), isFalse);
+        expect(
+          node.getSemanticsData().hasAction(SemanticsAction.longPress),
+          isTrue,
+        );
+        await tester.tap(next);
+        await tester.pumpAndSettle();
+        expect(taps, 0);
+        await tester.longPress(next);
+        await tester.pumpAndSettle();
+        expect(holds, 1);
+        expect(taps, 0);
+      } finally {
+        semantics.dispose();
+      }
+    },
+  );
 }

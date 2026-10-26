@@ -1,19 +1,26 @@
 # Build channels and promotion status
 
-Updated 2026-10-17. Release pages are authoritative for published artifacts;
+Updated 2026-10-27. Release pages are authoritative for published artifacts;
 source on a branch alone is not an installed release. Each release PR records
 its exact source SHA, tests, hashes, signing identity and remaining limitations.
 
 | Channel | Version / status | Package and model | Scope |
 | --- | --- | --- | --- |
 | [Stable](https://github.com/Dash1971/maia-chess-android/releases) | [2.4.0/code 81 published on GitHub](https://github.com/Dash1971/maia-chess-android/releases/tag/v2.4.0); see [store status](https://github.com/Dash1971/maia-chess-android/pull/54#issuecomment-6233972011) | `com.dash1971.maia_chess`, 79M | Production app; use Stable's release guide for GitHub, Zapstore and F-Droid. |
-| [Preview](https://github.com/Dash1971/maia-chess-android-preview/releases) | Published [2.4.0-beta.15](https://github.com/Dash1971/maia-chess-android-preview/releases/tag/v2.4.0-beta.15), code 2417 | `com.dash1971.maia_chess.preview`, 79M | Maia help/history experiment and Chessnut improvements. Grand Kingdom and DGT are disabled. |
+| [Preview](https://github.com/Dash1971/maia-chess-android-preview/releases) | Published [2.5.0-beta.10](https://github.com/Dash1971/maia-chess-android-preview/releases/tag/v2.5.0-beta.10), code 2510 | `com.dash1971.maia_chess.preview`, 79M | 2.5 appearance, board/editor, Maia score and Chessnut continuation features. Grand Kingdom and DGT are disabled. |
 | [Dev](https://github.com/Dash1971/maia-chess-android-preview-dev/releases/tag/v2.4.0-alpha.2-dev) | Published 2.4.0-alpha.2-dev, code 2402 | `com.dash1971.maia_chess.preview.dev`, 5M | Prototype Grand Kingdom/DGT work remains here. This release retains the previous, longer history subtitle. |
 
 The three packages install side by side. Obtainium users should select the
 intended repository and enable prereleases for Preview/Dev. Installing Preview
 does not upgrade Dev or transfer its saved games/preferences. Existing Preview
 installations update in place using the established Preview certificate.
+
+## Stable 2.5 preparation
+
+2.5.0/code 82 is proposed for review, not built or published. The owner reported
+Chessnut testing passed on Preview beta.10. See [promotion scope and remaining
+release checks](stable-2.5-preparation.md). Stable 2.4.0 remains the published
+release until a separately authorized, fully qualified publication.
 
 ## Release instructions
 

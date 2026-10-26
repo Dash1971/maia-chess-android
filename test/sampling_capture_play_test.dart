@@ -25,6 +25,7 @@ void main() {
     MaiaInferenceQueue.resetForTesting();
     SharedPreferences.setMockInitialValues({
       'temperatureV2': 0.0,
+      'maxOpeningVarietyV1': false,
       'topPV2': 0.0,
     });
     dir = await Directory.systemTemp.createTemp('maia-capture-play-');

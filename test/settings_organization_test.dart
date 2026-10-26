@@ -105,6 +105,18 @@ void main() {
         'chessnutBoardSounds': false,
         samplingCapturePreference: true,
         appLanguagePreferenceKey: 'ja',
+        maiaScorePreferenceKey: true,
+        appAppearancePreferenceKey: const AppAppearance(
+          mode: ThemeMode.light,
+          systemColors: true,
+          pureBlack: true,
+        ).encode(),
+        boardPreferenceKey: const BoardPreferences(
+          board: BoardDesign.blue,
+          pieces: PieceDesign.merida,
+          coordinates: false,
+          lastMove: false,
+        ).encode(),
         'savedGame': 'saved-session-sentinel',
         'recentGames': 'saved-games-sentinel',
         maiaPlayEloPreferenceKey: 1800,
@@ -181,15 +193,19 @@ void main() {
         'humanTiming': false,
         'maiaUseMoveHistoryV1': false,
         'temperatureV2': 1.0,
-        'topPV2': 1.0,
-        'analysisElo': 1600,
+        'topPV2': 0.95,
+        'maxOpeningVarietyV1': true,
+        'analysisElo': 1500,
         secondMaiaEnabledPreferenceKey: false,
-        secondMaiaEloPreferenceKey: 2400,
+        secondMaiaEloPreferenceKey: 2600,
         gameAnalysisQualityPreferenceKey: 'fast',
         gameSoundsPreferenceKey: false,
         gameHapticsPreferenceKey: true,
         'chessnutBoardSounds': true,
         samplingCapturePreference: false,
+        appAppearancePreferenceKey: const AppAppearance().encode(),
+        maiaScorePreferenceKey: false,
+        boardPreferenceKey: const BoardPreferences().encode(),
       };
       for (final entry in defaults.entries) {
         expect(prefs.get(entry.key), entry.value);
@@ -285,6 +301,11 @@ void main() {
           'humanTiming': true,
           samplingCapturePreference: true,
           appLanguagePreferenceKey: locale.languageCode,
+          maiaScorePreferenceKey: true,
+          boardPreferenceKey: const BoardPreferences(
+            coordinates: false,
+            magnify: false,
+          ).encode(),
         };
         SharedPreferences.setMockInitialValues(before);
         await tester.pumpWidget(settingsApp(locale: locale, scale: 2));
@@ -495,15 +516,13 @@ void main() {
           secondMaiaEnabledPreferenceKey: true,
         });
         final boundaryKey = GlobalKey();
-        final screenshotLanguage = AppLanguageController();
-        addTearDown(screenshotLanguage.dispose);
         await tester.pumpWidget(
           RepaintBoundary(
             key: boundaryKey,
-            child: settingsApp(locale: locale, language: screenshotLanguage),
+            child: settingsApp(locale: locale),
           ),
         );
-        await tester.pumpAndSettle();
+        await openSettings(tester);
         Future<void> shot(String name) async {
           await tester.pumpAndSettle();
           final boundary =
@@ -520,9 +539,6 @@ void main() {
             image.dispose();
           });
         }
-
-        await openSettings(tester);
-        await shot('settings-top');
 
         for (final section in ['game', 'engine', 'analysis']) {
           await Scrollable.ensureVisible(

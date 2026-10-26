@@ -106,7 +106,7 @@
   },
   "systemDefault": "System default",
   "@systemDefault": {
-    "description": "Settings: System default"
+    "description": "System-default option in the LANGUAGE selector only. Follows the supported device-language preference. Never reuse for theme/brightness; use appearanceSystemDefault there."
   },
   "language": "Language",
   "@language": {
@@ -178,19 +178,19 @@
   },
   "temperature": "Temperature",
   "@temperature": {
-    "description": "Settings: Temperature"
+    "description": "AI sampling temperature: rescales legal-move logits before softmax; not physical device temperature. At zero Maia selects an argmax. Use the same localized term in help, value announcements and HTML reports. Official localized AI terminology sources: docs/TRANSLATION_QUALITY_REVIEW.md."
   },
   "topP": "Top-P",
   "@topP": {
-    "description": "Settings: Top-P"
+    "description": "Top-P (nucleus sampling): retain the smallest highest-probability candidate set whose cumulative probability reaches P, including the crossing move. Keep the conventional Top-P identifier. Not a per-move percentage cutoff. Official AI terminology sources: docs/TRANSLATION_QUALITY_REVIEW.md."
   },
   "maxOpeningVariety": "Max variety in opening",
   "@maxOpeningVariety": {
     "description": "Settings: maximize opening variety for the first five moves by each side"
   },
-  "maxOpeningVarietyHelp": "Not needed when Temperature and Top-P are at their default values of 1.0 / 1.0. Uses 1.0 / 1.0 for the first five moves by each side, then returns to your configured settings from move 6.\n\nThe goal is to give Maia maximum opening variety while allowing potentially stronger play later in the game by reducing the chance of low-probability moves through lower Temperature and/or Top-P.",
+  "maxOpeningVarietyHelp": "On by default. Uses Temperature and Top-P 1.0 / 1.0 for the first five moves by each side, then your configured settings from move 6. This keeps broad opening choices while allowing you to trim low-probability moves later. It follows the position’s move number, including when resuming or continuing a game.\n\nNot needed at 1.0 / 1.0: the switch is off and unavailable because those settings already give full variety throughout.",
   "@maxOpeningVarietyHelp": {
-    "description": "Settings help: opening sampling override and its purpose"
+    "description": "Maia-specific sampling guidance for the 2.5 default proposal. Preserve probability mass versus individual move probability, the five-full-move boundary and conditional direct-match strength claims. Not a Lichess equivalent. Explanation selector changes prose only."
   },
   "maiaAnalysisRating": "Maia analysis rating",
   "@maiaAnalysisRating": {
@@ -495,6 +495,10 @@
   "promoteVariation": "Promote variation",
   "@promoteVariation": {
     "description": "Review-tree action: promote a variation one parent level; a top-level variation moves to the first position. Not pawn promotion. Distinct from Make main line, which promotes repeatedly to the top."
+  },
+  "mainLine": "main line",
+  "@mainLine": {
+    "description": "Destination in the navigation hint Hold for main line. Returns from a variation to its main-line branch point without changing moves."
   },
   "makeMainLine": "Make main line",
   "@makeMainLine": {
@@ -1219,9 +1223,9 @@
   "@premoveLimit": {
     "description": "Play screen: Up to 64 premoves can be queued."
   },
-  "chessnutGameRestriction": "Chessnut play supports standard-position, unlimited games only.",
+  "chessnutGameRestriction": "Chessnut games use unlimited time.",
   "@chessnutGameRestriction": {
-    "description": "Play screen: Chessnut play supports standard-position, unlimited games only."
+    "description": "Play screen: Chessnut games have no clock."
   },
   "samplingTitle": "Temperature and Top-P",
   "@samplingTitle": {
@@ -1232,9 +1236,9 @@
     "description": "Maia-specific sampling help: Choose how much variety you want"
   },
   "samplingResearch": "Full research data (JSONL)",
-  "samplingResearchLink": "Full research data",
+  "samplingResearchLink": "Visual guide and research",
   "@samplingResearchLink": {
-    "description": "Link to the English-language sampling research report, not the JSONL export. Non-English labels identify the document language."
+    "description": "Maia-specific sampling guidance for the 2.5 default proposal. Preserve probability mass versus individual move probability, the five-full-move boundary and conditional direct-match strength claims. Not a Lichess equivalent. Explanation selector changes prose only."
   },
   "@samplingResearch": {
     "description": "Maia-specific offline sampling report; use Lichess vocabulary where the action matches."
@@ -1287,9 +1291,9 @@
   "@aboutIndependent": {
     "description": "Play help, about or error message: This independent community app is not an official Maia-3 or University of Toronto, Lichess, or En Croissant application."
   },
-  "samplingRecommendationWarning": "Lowering Temperature or Top-P may make Maia stronger in the middlegame, but reduce opening variety. See the information button for details.",
+  "samplingRecommendationWarning": "Maia may play a more limited opening repertoire with Max variety in opening disabled.",
   "@samplingRecommendationWarning": {
-    "description": "Maia-specific sampling help: Lowering Temperature or Top-P may make Maia stronger in the middlegame, but reduce opening variety. See the information button for details."
+    "description": "Maia-specific sampling guidance for the 2.5 default proposal. Preserve probability mass versus individual move probability, the five-full-move boundary and conditional direct-match strength claims. Not a Lichess equivalent. Explanation selector changes prose only."
   },
   "couldNotOpenPgn": "Could not open PGN.",
   "@couldNotOpenPgn": {
@@ -1493,9 +1497,9 @@
   "@boardExperimentalNotice": {
     "description": "Electronic board Dev support: Experimental support notice; compare the app screens and report connection issues."
   },
-  "boardGameRestriction": "Electronic-board games start from the standard position and use unlimited time.",
+  "boardGameRestriction": "Electronic-board games use unlimited time.",
   "@boardGameRestriction": {
-    "description": "Electronic board Dev support: Physical-board game constraint: standard initial position and no clock."
+    "description": "Electronic board support: physical-board games have no clock."
   },
   "boardConfirmSetup": "I have set up the starting position",
   "@boardConfirmSetup": {
@@ -1565,7 +1569,7 @@
   "@maiaHistorySetting": {
     "description": "Maia-specific history setting/help: Use move history"
   },
-  "maiaHistoryHelp": "Let Maia consider up to seven previous positions as well as the current position. This improved prediction of human moves by about 2 percentage points in our tests with the 79M model, but sometimes encouraged repeated copying in low-rated openings. We were not able to establish a strength increase. Off is recommended for now.",
+  "maiaHistoryHelp": "Let Maia use up to seven previous positions when choosing a move. In our tests with the 79M model, this improved prediction of human moves by about 2 percentage points, but sometimes led to repeated copying in lower-rated openings. We recommend leaving this off for now.",
   "@maiaHistoryHelp": {
     "description": "Maia-specific move-history help. The prediction gain is about 2 percentage points (57.00% to 59.36%), not a relative 2%. A playing-strength increase was not established; do not imply a full-game strength trial."
   },
@@ -1656,7 +1660,7 @@
   },
   "samplingReportExplanation": "Percentages show the chance of each move being selected after your Temperature and Top-P settings were applied. They are not winning chances or move-quality scores.",
   "@samplingReportExplanation": {
-    "description": "Offline report of recorded Maia selection probabilities after Temperature and Top-P."
+    "description": "HTML report introduction. Refer to the same translated Temperature/Top-P names as Settings; these are selection probabilities after sampling settings, not winning chances or objective quality scores."
   },
   "samplingReportPartial": "Only recorded Maia decisions are shown, not a complete game. Takebacks and retries can repeat a move number.",
   "@samplingReportPartial": {
@@ -1814,32 +1818,292 @@
   "@resetSettingsAction": {
     "description": "Settings reset confirmation: explicit confirmation action."
   },
-  "samplingHelpIntro": "Temperature and Top-P control how Maia chooses between moves.",
+  "samplingHelpIntro": "Temperature and Top-P combine to set the amount of variety in Maia’s play.\n\nWe recommend Temperature 1.0, Top-P 0.95, and Max variety in opening enabled. These are the default settings. Based on our research, they offer a good balance of human-like play, opening variety and fewer unusual blunders.\n\nRead on to learn how these settings work.",
   "@samplingHelpIntro": {
-    "description": "User-approved Maia-specific sampling help, paragraph 1. Preserve the strength/variety distinction, the direct-match result at setting 1600, and probability mass (not number of moves). Use established local chess terminology."
+    "description": "Engine help: Introduction and recommended defaults. Legacy message ID retained; English revised 2026-10-25. All supported languages translate this approved English explanation. Maia-specific, not a Lichess equivalent."
   },
-  "samplingHelpVariety": "Increasing Temperature and Top-P is like making Maia a more volatile player, as Maia becomes more likely to play low-probability moves. These may be blunders, but they may also be brilliant moves!",
+  "samplingHelpVariety": "Temperature\n\nAt Temperature 0, Maia always plays the move it predicts a player at the selected Elo is most likely to play. This is technically called argmax.\n\nAt Temperature 1, Maia considers the full range of moves it predicts a player at the selected Elo might play, choosing among them according to their probabilities.\n\nAt a Temperature between 0 and 1, Maia puts more weight on the moves it considers most likely. Lower Temperature values make Maia's choices more predictable.\n\nFor example, in our tests with the 79M model at rating inputs of 1600 for both players, Maia’s opening probabilities as White were approximately:\n\n• 1. e4: 64%\n• 1. d4: 25%\n• 1. c4: 3%\n• All other moves combined: 8%\n\nAt Temperature 0, Maia always played 1. e4\n\nAt Temperature 0.5, it played 1. e4 about 86% of the time and 1. d4 about 13% of the time. Other moves remained possible, but together accounted for less than 1%.\n\nAt Temperature 1, Maia followed the original probabilities listed above.",
   "@samplingHelpVariety": {
-    "description": "User-approved Maia-specific sampling help, paragraph 2. Preserve the strength/variety distinction, the direct-match result at setting 1600, and probability mass (not number of moves). Use established local chess terminology."
+    "description": "Engine help: Temperature section and opening probability examples. Legacy message ID retained; English revised 2026-10-25. All supported languages translate this approved English explanation. Maia-specific, not a Lichess equivalent."
   },
-  "samplingHelpDefaults": "If you value maximum variety, and you also want Maia to play a broad range of human openings, including sidelines, then keep the default values of 1.0 and 1.0.",
+  "samplingHelpDefaults": "Top-P\n\nTop-P filters the available moves after Temperature adjusts their probabilities.\n\nAt Top-P 1, no filtering is applied. All available moves can be played according to their temperature-adjusted probabilities.\n\nAt Top-P 0.95, Maia keeps the most likely moves whose combined probability reaches at least 95%, then chooses among them. The excluded moves account for at most 5% of the probability.\n\nAt Top-P 0, Maia always chooses the most likely move. This has the same effect as Temperature 0: either setting is sufficient to produce argmax.\n\nIn our opening example, Temperature 1 and Top-P 0.60 would make Maia always play 1. e4. That move alone accounts for about 64% of the probability, so no other moves are needed to reach the 60% threshold.",
   "@samplingHelpDefaults": {
-    "description": "User-approved Maia-specific sampling help, paragraph 3. Preserve the strength/variety distinction, the direct-match result at setting 1600, and probability mass (not number of moves). Use established local chess terminology."
+    "description": "Engine help: Top-P section and filtering example. Legacy message ID retained; English revised 2026-10-25. All supported languages translate this approved English explanation. Maia-specific, not a Lichess equivalent."
   },
-  "samplingHelpStrength": "If you prefer a stronger opponent playing fewer blunders, experiment with moving Temperature and Top-P values down.",
+  "samplingHelpStrength": "How do these settings affect Maia’s play?\n\nYou can think of Top-P as an angel on Maia’s shoulder. At 0, the angel tells Maia to ignore lower-probability moves, which can include blunders or unsound moves. At 1.0, the angel has gone, and Maia could select even the craziest, most improbable move.\n\nIn our direct-match tests at the 1600 setting, argmax outperformed Temperature 1.0 / Top-P 1.0 by the equivalent of about 300 Elo points. However, argmax also limited opening choices to a narrow range of mainly main lines.",
   "@samplingHelpStrength": {
-    "description": "User-approved Maia-specific sampling help, paragraph 4. Preserve the strength/variety distinction, the direct-match result at setting 1600, and probability mass (not number of moves). Use established local chess terminology."
+    "description": "Engine help: Effect on play, analogy and direct-match research. Legacy message ID retained; English revised 2026-10-25. All supported languages translate this approved English explanation. Maia-specific, not a Lichess equivalent."
   },
-  "samplingHelpArgmax": "Setting Temperature to 0 will cause Maia to use argmax, which is a technical way of saying that Maia will always play what it predicts is the most probable human move in a given position. Careful! In our research at the 1600 setting, argmax Maia outperformed Maia at 1.0 / 1.0 by the equivalent of about 300 Elo points in direct matches.",
+  "samplingHelpArgmax": "So, we introduced Max variety in opening: a toggle which sets Maia to play with Temperature 1.0 and Top-P 1.0 for the first five moves by each side. You might see some crazy things in the opening phase! From move six, Maia switches to your configured settings.",
   "@samplingHelpArgmax": {
-    "description": "User-approved Maia-specific sampling help, paragraph 5. Preserve the strength/variety distinction, the direct-match result at setting 1600, and probability mass (not number of moves). Use established local chess terminology."
+    "description": "Engine help: Opening variety override. Legacy message ID retained; English revised 2026-10-25. All supported languages translate this approved English explanation. Maia-specific, not a Lichess equivalent."
   },
-  "samplingHelpTopP": "For balanced play, you may consider keeping Temperature at 1.0 and setting Top-P to 0.95. This maintains variety while eliminating low-probability moves, which can often be blunders—but can also be good moves. Top-P essentially cuts off low-probability moves. Setting it to 0.95 keeps moves accounting for at least 95% of the probability after Temperature is applied. The remaining moves cannot be selected by Maia.",
+  "samplingHelpTopP": "We recommend keeping max opening variety on and Temperature set to 1.0 and Top-P set to 0.95. This is like having a creative player with an angel on its shoulder that at least talks it out of playing the totally far-out moves—the least likely moves whose combined probability is up to 5%. These might be brilliant, true, but they can also be silly blunders. So this should make for a good balance of variety in the opening, creativity in the middle game, and stronger play through the exclusion of some very low-probability blunders.\n\nFor those feeling brave, Temperature 0 produced the strongest play in our tests. Good luck!",
   "@samplingHelpTopP": {
-    "description": "User-approved Maia-specific sampling help, paragraph 6. Preserve the strength/variety distinction, the direct-match result at setting 1600, and probability mass (not number of moves). Use established local chess terminology."
+    "description": "Engine help: Recommended play and strongest tested setting. Legacy message ID retained; English revised 2026-10-25. All supported languages translate this approved English explanation. Maia-specific, not a Lichess equivalent."
   },
-  "samplingHelpResearchIntro": "We experimented with these settings at 1600 Elo and published our full findings here:",
+  "samplingHelpResearchIntro": "See the visual guide for the research behind these choices, with links to the full results.",
   "@samplingHelpResearchIntro": {
-    "description": "User-approved Maia-specific sampling help, paragraph 7. Preserve the strength/variety distinction, the direct-match result at setting 1600, and probability mass (not number of moves). Use established local chess terminology."
+    "description": "Maia-specific sampling guidance for the 2.5 default proposal. Preserve probability mass versus individual move probability, the five-full-move boundary and conditional direct-match strength claims. Not a Lichess equivalent. Explanation selector changes prose only."
+  },
+  "samplingFullVarietyNotice": "Maia may play more unusual blunders with Temperature and Top-P at 1.0 / 1.0.",
+  "@samplingFullVarietyNotice": {
+    "description": "Maia-specific sampling guidance for the 2.5 default proposal. Preserve probability mass versus individual move probability, the five-full-move boundary and conditional direct-match strength claims. Not a Lichess equivalent. Explanation selector changes prose only."
+  },
+  "samplingArgmaxNotice": "Maia may play stronger with Temperature or Top-P at 0. Good luck!",
+  "@samplingArgmaxNotice": {
+    "description": "Strength notice when Temperature or Top-P is zero, with or without opening variety. Includes Good luck. The opening override timing is explained in the help, not this short notice. Maia-specific, no Lichess equivalent."
+  },
+  "topPNotUsed": "Top-P: Not used",
+  "@topPNotUsed": {
+    "description": "Maia-specific sampling guidance for the 2.5 default proposal. Preserve probability mass versus individual move probability, the five-full-move boundary and conditional direct-match strength claims. Not a Lichess equivalent. Explanation selector changes prose only."
+  },
+  "topPNotUsedTitle": "Why Top-P is not used",
+  "@topPNotUsedTitle": {
+    "description": "Maia-specific sampling guidance for the 2.5 default proposal. Preserve probability mass versus individual move probability, the five-full-move boundary and conditional direct-match strength claims. Not a Lichess equivalent. Explanation selector changes prose only."
+  },
+  "topPNotUsedHelp": "At Temperature 0, Maia always chooses a most likely move, so Top-P has no effect. Your Top-P value is kept and becomes available again when you raise Temperature. If Max variety in opening is on, the first five moves by each side still use 1.0 / 1.0.",
+  "@topPNotUsedHelp": {
+    "description": "Maia-specific sampling guidance for the 2.5 default proposal. Preserve probability mass versus individual move probability, the five-full-move boundary and conditional direct-match strength claims. Not a Lichess equivalent. Explanation selector changes prose only."
+  },
+  "samplingLowerNotice": "Maia may play stronger with lower Temperature or Top-P.",
+  "@samplingLowerNotice": {
+    "description": "Neutral strength notice when either positive sampling setting is below its recommended default (Temperature < 1.0 or Top-P < 0.95), with or without opening variety. Also show the limited-opening notice when opening variety is off. No move-number qualifier or Good luck. Zero settings use the separate argmax notice. Maia-specific, no Lichess equivalent."
+  },
+  "appearance": "Appearance",
+  "@appearance": {
+    "description": "Appearance setting: Appearance"
+  },
+  "appearanceSystemColors": "Use system colors",
+  "@appearanceSystemColors": {
+    "description": "Appearance setting: Use system colors"
+  },
+  "appearanceSystemColorsHelp": "Match your Android color palette",
+  "@appearanceSystemColorsHelp": {
+    "description": "Appearance setting: Match your Android color palette"
+  },
+  "appearanceSystemColorsUnavailable": "Unavailable on this device. Requires Android 12 or later.",
+  "@appearanceSystemColorsUnavailable": {
+    "description": "Appearance setting: Unavailable on this device. Requires Android 12 or later."
+  },
+  "appearancePureBlack": "Pure black background",
+  "@appearancePureBlack": {
+    "description": "Appearance setting: Pure black background"
+  },
+  "appearancePureBlackHelp": "Use black backgrounds in dark mode",
+  "@appearancePureBlackHelp": {
+    "description": "Appearance setting: Use black backgrounds in dark mode"
+  },
+  "appearancePreferenceError": "Appearance changed, but could not be saved. Please try again.",
+  "@appearancePreferenceError": {
+    "description": "Appearance setting: Appearance changed, but could not be saved. Please try again."
+  },
+  "appearanceTheme": "Theme",
+  "@appearanceTheme": {
+    "description": "Appearance mode label, following Lichess."
+  },
+  "appearanceLight": "Light",
+  "@appearanceLight": {
+    "description": "Light appearance mode, not brightness intensity or piece color. Lichess baseline with documented Google platform-wording adaptations in docs/TRANSLATION_QUALITY_REVIEW.md."
+  },
+  "appearanceDark": "Dark",
+  "@appearanceDark": {
+    "description": "Dark appearance mode, not literal black or piece color. Pure-black backgrounds are a separate setting. Lichess baseline with documented Google platform-wording adaptations in docs/TRANSLATION_QUALITY_REVIEW.md."
+  },
+  "appearanceSystemDefault": "System default",
+  "@appearanceSystemDefault": {
+    "description": "System-default option in the THEME selector only. Follow device light/dark brightness; independent of language, Android accent colors and pure-black backgrounds. Lichess deviceTheme where available; sourced fallback in docs/TRANSLATION_QUALITY_REVIEW.md."
+  },
+  "boardSettings": "Board",
+  "@boardSettings": {
+    "description": "Compact Board section heading, including board display and touch-drag aids."
+  },
+  "boardCoordinates": "Board coordinates",
+  "@boardCoordinates": {
+    "description": "Board settings control; see the pinned Lichess terminology reference for scope."
+  },
+  "boardLegalMoves": "Legal-move destinations",
+  "@boardLegalMoves": {
+    "description": "Switch for legal destination dots. Already committed premove overlays are independent."
+  },
+  "boardLastMove": "Last-move highlight",
+  "@boardLastMove": {
+    "description": "Switch for last-move highlights only. Check, selection, premoves and arrows stay independent."
+  },
+  "boardAnimation": "Piece animation",
+  "@boardAnimation": {
+    "description": "Board settings control; see the pinned Lichess terminology reference for scope."
+  },
+  "boardMagnify": "Magnify dragged piece",
+  "@boardMagnify": {
+    "description": "Board settings control; see the pinned Lichess terminology reference for scope."
+  },
+  "boardDragTarget": "Dragged piece target",
+  "@boardDragTarget": {
+    "description": "Board settings control; see the pinned Lichess terminology reference for scope."
+  },
+  "boardTargetCircle": "Circle",
+  "@boardTargetCircle": {
+    "description": "Board settings control; see the pinned Lichess terminology reference for scope."
+  },
+  "boardTargetSquare": "Square",
+  "@boardTargetSquare": {
+    "description": "Board settings control; see the pinned Lichess terminology reference for scope."
+  },
+  "boardTargetNone": "None",
+  "@boardTargetNone": {
+    "description": "Board settings control; see the pinned Lichess terminology reference for scope."
+  },
+  "boardPreferenceError": "Could not save board settings. Please try again.",
+  "@boardPreferenceError": {
+    "description": "Board preference persistence failed; the displayed choice can be retried."
+  },
+  "boardDesign": "Board",
+  "@boardDesign": {
+    "description": "Visual board design selector. Style names are upstream artwork names and remain unchanged."
+  },
+  "boardPieceSet": "Piece set",
+  "@boardPieceSet": {
+    "description": "Visual piece set selector. Style names are upstream artwork names and remain unchanged."
+  },
+  "showMaiaScore": "Show Maia win (score) %",
+  "@showMaiaScore": {
+    "description": "User-approved Maia win (score) percentage setting/help, 2026-10-26. The model estimates expected game points including half-point draws. Preserve the 60 points in 100 games example, independent rating inputs and human/Stockfish comparison. Maia-specific, not a direct Lichess equivalent."
+  },
+  "maiaScore": "Maia score",
+  "@maiaScore": {
+    "description": "Maia outcome/expected-score feature. The percentage is P(win)+half P(draw), rating-conditioned for both players, not strict P(win). Keep separate from human move-choice probabilities and Stockfish."
+  },
+  "maiaScoreEqual": "Equal",
+  "@maiaScoreEqual": {
+    "description": "Maia outcome/expected-score feature. The percentage is P(win)+half P(draw), rating-conditioned for both players, not strict P(win). Keep separate from human move-choice probabilities and Stockfish."
+  },
+  "maiaScoreHelp": "Shows Maia’s assessment of winning (scoring) chances at the top of the screen.\nThe white or black dot tells you which side the percentage describes.",
+  "@maiaScoreHelp": {
+    "description": "User-approved Maia win (score) percentage setting/help, 2026-10-26. The model estimates expected game points including half-point draws. Preserve the 60 points in 100 games example, independent rating inputs and human/Stockfish comparison. Maia-specific, not a direct Lichess equivalent."
+  },
+  "maiaScoreExpectedHelp": "For example, White 60% means Maia estimates White would score about 60 points across 100 games from this position. A win earns 1 point; a draw earns ½.",
+  "@maiaScoreExpectedHelp": {
+    "description": "User-approved Maia win (score) percentage setting/help, 2026-10-26. The model estimates expected game points including half-point draws. Preserve the 60 points in 100 games example, independent rating inputs and human/Stockfish comparison. Maia-specific, not a direct Lichess equivalent."
+  },
+  "maiaScoreInputsHelp": "The estimate uses the selected Maia analysis rating for both players. With two Maias enabled, each shows its own estimate at its own rating.",
+  "@maiaScoreInputsHelp": {
+    "description": "User-approved Maia win (score) percentage setting/help, 2026-10-26. The model estimates expected game points including half-point draws. Preserve the 60 points in 100 games example, independent rating inputs and human/Stockfish comparison. Maia-specific, not a direct Lichess equivalent."
+  },
+  "maiaScorePreferenceError": "Could not save Maia score settings. Please try again.",
+  "@maiaScorePreferenceError": {
+    "description": "Maia outcome/expected-score feature. The percentage is P(win)+half P(draw), rating-conditioned for both players, not strict P(win). Keep separate from human move-choice probabilities and Stockfish."
+  },
+  "maiaScoreStockfishHelp": "It can be useful to contrast with Stockfish evaluation. Just because Stockfish thinks one side is better, does not mean that it is easy for a human to find the right moves to convert!",
+  "@maiaScoreStockfishHelp": {
+    "description": "User-approved Maia win (score) percentage setting/help, 2026-10-26. The model estimates expected game points including half-point draws. Preserve the 60 points in 100 games example, independent rating inputs and human/Stockfish comparison. Maia-specific, not a direct Lichess equivalent."
+  },
+  "editorMoveTool": "Move pieces",
+  "@editorMoveTool": {
+    "description": "Standard-chess board editor: Move pieces. Tool labels must distinguish moving existing pieces, repeated placement and erasure. FEN counters are preserved; camera recognition is unavailable."
+  },
+  "editorEraseTool": "Erase pieces",
+  "@editorEraseTool": {
+    "description": "Standard-chess board editor: Erase pieces. Tool labels must distinguish moving existing pieces, repeated placement and erasure. FEN counters are preserved; camera recognition is unavailable."
+  },
+  "editorEmptySquare": "Empty square",
+  "@editorEmptySquare": {
+    "description": "Standard-chess board editor: Empty square. Tool labels must distinguish moving existing pieces, repeated placement and erasure. FEN counters are preserved; camera recognition is unavailable."
+  },
+  "editorPositionSettings": "Position settings",
+  "@editorPositionSettings": {
+    "description": "Standard-chess board editor: Position settings. Tool labels must distinguish moving existing pieces, repeated placement and erasure. FEN counters are preserved; camera recognition is unavailable."
+  },
+  "editorImageImportUnavailable": "Import position from image (not yet available)",
+  "@editorImageImportUnavailable": {
+    "description": "Standard-chess board editor: Import position from image (not yet available). Tool labels must distinguish moving existing pieces, repeated placement and erasure. FEN counters are preserved; camera recognition is unavailable."
+  },
+  "editorShareFen": "Share FEN",
+  "@editorShareFen": {
+    "description": "Standard-chess board editor: Share FEN. Tool labels must distinguish moving existing pieces, repeated placement and erasure. FEN counters are preserved; camera recognition is unavailable."
+  },
+  "editorFenMetadata": "FEN metadata",
+  "@editorFenMetadata": {
+    "description": "Standard-chess board editor: FEN metadata. Tool labels must distinguish moving existing pieces, repeated placement and erasure. FEN counters are preserved; camera recognition is unavailable."
+  },
+  "editorHalfmoveClock": "Halfmove clock",
+  "@editorHalfmoveClock": {
+    "description": "Standard-chess board editor: Halfmove clock. Tool labels must distinguish moving existing pieces, repeated placement and erasure. FEN counters are preserved; camera recognition is unavailable."
+  },
+  "editorFullmoveNumber": "Move number",
+  "@editorFullmoveNumber": {
+    "description": "Standard-chess board editor: Move number. Tool labels must distinguish moving existing pieces, repeated placement and erasure. FEN counters are preserved; camera recognition is unavailable."
+  },
+  "editorWhitePawn": "White pawn",
+  "@editorWhitePawn": {
+    "description": "Complete singular name of a white pawn, used in editor palette tooltips and board-square accessibility labels. Use natural word order and gender agreement; keep the pinned Lichess piece-name terminology."
+  },
+  "editorWhiteKnight": "White knight",
+  "@editorWhiteKnight": {
+    "description": "Complete singular name of a white knight, used in editor palette tooltips and board-square accessibility labels. Use natural word order and gender agreement; keep the pinned Lichess piece-name terminology."
+  },
+  "editorWhiteBishop": "White bishop",
+  "@editorWhiteBishop": {
+    "description": "Complete singular name of a white bishop, used in editor palette tooltips and board-square accessibility labels. Use natural word order and gender agreement; keep the pinned Lichess piece-name terminology."
+  },
+  "editorWhiteRook": "White rook",
+  "@editorWhiteRook": {
+    "description": "Complete singular name of a white rook, used in editor palette tooltips and board-square accessibility labels. Use natural word order and gender agreement; keep the pinned Lichess piece-name terminology."
+  },
+  "editorWhiteQueen": "White queen",
+  "@editorWhiteQueen": {
+    "description": "Complete singular name of a white queen, used in editor palette tooltips and board-square accessibility labels. Use natural word order and gender agreement; keep the pinned Lichess piece-name terminology."
+  },
+  "editorWhiteKing": "White king",
+  "@editorWhiteKing": {
+    "description": "Complete singular name of a white king, used in editor palette tooltips and board-square accessibility labels. Use natural word order and gender agreement; keep the pinned Lichess piece-name terminology."
+  },
+  "editorBlackPawn": "Black pawn",
+  "@editorBlackPawn": {
+    "description": "Complete singular name of a black pawn, used in editor palette tooltips and board-square accessibility labels. Use natural word order and gender agreement; keep the pinned Lichess piece-name terminology."
+  },
+  "editorBlackKnight": "Black knight",
+  "@editorBlackKnight": {
+    "description": "Complete singular name of a black knight, used in editor palette tooltips and board-square accessibility labels. Use natural word order and gender agreement; keep the pinned Lichess piece-name terminology."
+  },
+  "editorBlackBishop": "Black bishop",
+  "@editorBlackBishop": {
+    "description": "Complete singular name of a black bishop, used in editor palette tooltips and board-square accessibility labels. Use natural word order and gender agreement; keep the pinned Lichess piece-name terminology."
+  },
+  "editorBlackRook": "Black rook",
+  "@editorBlackRook": {
+    "description": "Complete singular name of a black rook, used in editor palette tooltips and board-square accessibility labels. Use natural word order and gender agreement; keep the pinned Lichess piece-name terminology."
+  },
+  "editorBlackQueen": "Black queen",
+  "@editorBlackQueen": {
+    "description": "Complete singular name of a black queen, used in editor palette tooltips and board-square accessibility labels. Use natural word order and gender agreement; keep the pinned Lichess piece-name terminology."
+  },
+  "editorBlackKing": "Black king",
+  "@editorBlackKing": {
+    "description": "Complete singular name of a black king, used in editor palette tooltips and board-square accessibility labels. Use natural word order and gender agreement; keep the pinned Lichess piece-name terminology."
+  },
+  "continuationUseBoard": "Use electronic board",
+  "@continuationUseBoard": {
+    "description": "Continue from here dialog: toggle for playing the selected position on a physical electronic chessboard."
+  },
+  "continuationConnectHelp": "Connect a supported board.",
+  "@continuationConnectHelp": {
+    "description": "Continue from here dialog: instruction shown before a supported physical board is connected."
+  },
+  "continuationBoardUntimed": "Electronic-board games are untimed.",
+  "@continuationBoardUntimed": {
+    "description": "Continue from here dialog: explains that physical-board games do not use a clock."
+  },
+  "continuationSetUpBoard": "Set up board",
+  "@continuationSetUpBoard": {
+    "description": "Continuation game setup: heading while the player arranges physical pieces to match the selected position."
+  },
+  "continuationSetupHelp": "Set up the position shown on your board. The game starts when the pieces match.",
+  "@continuationSetupHelp": {
+    "description": "Continuation game setup: arrange the position displayed in the app on the physical board; play begins automatically when the pieces match."
+  },
+  "continuationBoardUnsupported": "Continuing from a position currently supports Chessnut boards only.",
+  "@continuationBoardUnsupported": {
+    "description": "Continue from here dialog: explains that custom-position continuation currently supports only Chessnut hardware."
   }
 }

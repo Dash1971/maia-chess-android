@@ -153,7 +153,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get maxOpeningVarietyHelp =>
-      '当温度和Top-P均为默认值1.0 / 1.0时，无需启用。双方各自的前五步使用1.0 / 1.0，从第6步起恢复您设置的值。\n\n此设置旨在让Maia的开局尽可能多样，同时在之后的对局中通过降低温度和/或Top-P，减少选择低概率走法的机会，从而有望提升棋力。';
+      '默认开启。双方前五步使用温度和Top-P 1.0 / 1.0，从第六步开始使用您配置的设置。这样可保留广泛的开局选择，同时在之后去掉部分低概率走法。恢复对局或从某局面继续时，也按该局面的回合数执行。\n\n在1.0 / 1.0时无需此选项：这些设置已在全局保留完整多样性，因此开关显示为关闭且不可选。';
 
   @override
   String get maiaAnalysisRating => 'Maia 分析等级分';
@@ -384,6 +384,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get promoteVariation => '提升变着';
+
+  @override
+  String get mainLine => '主线';
 
   @override
   String get makeMainLine => '设为主线';
@@ -867,7 +870,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get premoveLimit => '最多可设置 64 步预走棋。';
 
   @override
-  String get chessnutGameRestriction => 'Chessnut 仅支持从标准初始局面开始的无时限对局。';
+  String get chessnutGameRestriction => 'Chessnut 对局不限时。';
 
   @override
   String get samplingTitle => '温度和 Top-P';
@@ -879,7 +882,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get samplingResearch => '完整研究数据（JSONL）';
 
   @override
-  String get samplingResearchLink => '完整研究数据（英文）';
+  String get samplingResearchLink => '图解指南与研究（英文）';
 
   @override
   String get close => '关闭';
@@ -922,8 +925,7 @@ class AppLocalizationsZh extends AppLocalizations {
       '这是一款独立的社区应用，并非 Maia-3、多伦多大学、Lichess 或 En Croissant 的官方应用。';
 
   @override
-  String get samplingRecommendationWarning =>
-      '降低温度或Top-P可能让Maia在中局更强，但会减少开局变化。详情请查看信息按钮。';
+  String get samplingRecommendationWarning => '关闭开局多样性最大化后，Maia的开局选择可能更有限。';
 
   @override
   String get couldNotOpenPgn => '无法打开 PGN。';
@@ -1047,7 +1049,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get boardExperimentalNotice => '新棋盘支持仍处于实验阶段。请核对两个屏幕上的走法，并报告连接问题。';
 
   @override
-  String get boardGameRestriction => '电子棋盘对局从标准起始局面开始，时间不限。';
+  String get boardGameRestriction => '电子棋盘对局不限时。';
 
   @override
   String get boardConfirmSetup => '我已摆好起始局面';
@@ -1103,7 +1105,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get maiaHistoryHelp =>
-      '让 Maia 在考虑当前局面的同时，参考最多七个先前局面。在我们使用 79M 模型的测试中，这使人类走法的预测准确率提高了约 2 个百分点，但有时也会使低等级分的开局更容易反复模仿对手的走法。我们未能确认棋力有所提高。目前建议关闭。';
+      '让Maia在选择走法时参考最多七个先前局面。在我们使用79M模型的测试中，这使人类走法的预测准确率提高了约2个百分点，但有时也会导致低等级分的开局中反复模仿对手的走法。目前建议保持关闭。';
 
   @override
   String get maiaHistoryResearch => '阅读历史局面研究（英文）';
@@ -1165,7 +1167,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get samplingReportExplanation =>
-      '百分比表示应用当时的 Temperature 和 Top-P 设置后，每步棋被选中的概率，并非获胜概率或走法质量评分。';
+      '百分比表示应用当时的 温度 和 Top-P 设置后，每步棋被选中的概率，并非获胜概率或走法质量评分。';
 
   @override
   String get samplingReportPartial =>
@@ -1258,7 +1260,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get samplingData => '选招数据';
 
   @override
-  String get resetSettingsDefaultsScope => '将此页面上的所有设置恢复为默认值。已保存的对局和采样数据会保留。';
+  String get resetSettingsDefaultsScope => '将此页面上的所有设置恢复为默认值。已保存的对局和选招数据会保留。';
 
   @override
   String get settingsResetError => '部分设置未能重置，请重试。';
@@ -1267,34 +1269,235 @@ class AppLocalizationsZh extends AppLocalizations {
   String get resetSettingsConfirmation => '将所有设置恢复为默认值？';
 
   @override
-  String get resetSettingsKeepData => '已保存的对局和采样数据会保留。';
+  String get resetSettingsKeepData => '已保存的对局和选招数据会保留。';
 
   @override
   String get resetSettingsAction => '重置设置';
 
   @override
-  String get samplingHelpIntro => '温度和 Top-P 控制 Maia 如何在不同走法之间做出选择。';
+  String get samplingHelpIntro =>
+      '温度和Top-P共同决定Maia走法的多样性。\n\n我们建议将温度设为1.0、Top-P设为0.95，并开启“开局多样性最大化”。这些就是默认设置。根据我们的研究，这些设置能在拟人化的走法、开局多样性和减少不寻常的败着之间取得良好的平衡。\n\n下面介绍这些设置的工作原理。';
 
   @override
   String get samplingHelpVariety =>
-      '提高温度和 Top-P，就像让 Maia 成为一个发挥更不稳定的棋手，因为它更容易选择低概率的走法。这些走法可能是败着，也可能是妙着！';
+      '温度\n\n温度为0时，Maia总是选择它预测所选Elo等级分的棋手最有可能走的一步。这在技术上称为argmax。\n\n温度为1时，Maia会考虑它预测所选Elo等级分的棋手可能采用的全部走法，并按各自的概率从中选择。\n\n温度介于0和1之间时，Maia会更偏重它认为最可能的走法。温度越低，Maia的选择就越容易预测。\n\n例如，在我们使用79M模型、将双方等级分输入均设为1600的测试中，Maia执白时的第一步走法概率大致如下：\n\n• 1. e4：64%\n• 1. d4：25%\n• 1. c4：3%\n• 其他所有走法合计：8%\n\n温度为0时，Maia总是走1. e4。\n\n温度为0.5时，约86%的时候走1. e4，约13%的时候走1. d4。其他走法仍有可能出现，但合计不到1%。\n\n温度为1时，Maia按上面列出的原始概率选择走法。';
 
   @override
   String get samplingHelpDefaults =>
-      '如果你希望对局尽可能多样，也希望 Maia 能下出人类棋手使用的各种开局，包括冷门变化，那么请保留默认值 1.0 和 1.0。';
+      'Top-P\n\nTop-P在温度调整概率之后，筛选可供选择的走法。\n\nTop-P为1时，不进行筛选。所有候选走法都可以按温度调整后的概率被选中。\n\nTop-P为0.95时，Maia按概率从高到低保留走法，直到累计概率达到至少95%，然后从中选择。被排除走法的累计概率最多为5%。\n\nTop-P为0时，Maia总是选择概率最高的走法。这与温度为0的效果相同：只要其中一个设为0，就会使用argmax。\n\n在前面的开局示例中，温度为1、Top-P为0.60时，Maia总是会走1. e4。仅这一步就占约64%的概率，因此无需其他走法便能达到60%的阈值。';
 
   @override
-  String get samplingHelpStrength => '如果你希望对手更强、败着更少，可以尝试降低温度和 Top-P 的值。';
+  String get samplingHelpStrength =>
+      '这些设置会怎样影响Maia的走法？\n\n你可以把Top-P想象成Maia肩上的天使。设为0时，天使会告诉Maia忽略概率较低的走法，其中可能包括败着或不合理的走法。设为1.0时，天使离开了，Maia甚至可能选择最疯狂、最不可能出现的走法。\n\n在等级分设置为1600的直接对局测试中，argmax的表现优于温度1.0 / Top-P 1.0，相当于约300个Elo等级分的差距。不过，argmax也把开局选择限制在以主线为主的较小范围内。';
 
   @override
   String get samplingHelpArgmax =>
-      '将温度设为 0 会让 Maia 使用 argmax。这个技术术语的意思是：在给定局面中，Maia 总会选择它预测人类最有可能下的一步。注意！在我们以 1600 为等级分设置的研究中，使用 argmax 的 Maia 在与 1.0 / 1.0 的 Maia 直接对局时，取得了相当于约 300 Elo 分优势的成绩。';
+      '因此，我们加入了“开局多样性最大化”：开启后，Maia会在双方各自的前五步使用温度1.0和Top-P 1.0。你可能会在开局阶段看到一些疯狂的走法！从第六步起，Maia就会切换回你配置的设置。';
 
   @override
   String get samplingHelpTopP =>
-      '如果想兼顾强度和多样性，可以将温度保持在 1.0，并把 Top-P 设为 0.95。这样既能保留多样性，又能排除一些低概率走法。这些走法往往可能是败着，但也可能是好棋。简单来说，Top-P 会筛掉低概率的走法。设为 0.95 时，它会保留应用温度设置后累计概率至少达到 95% 的走法。其余走法不会被 Maia 选中。';
+      '我们建议保持“开局多样性最大化”开启，温度保持为1.0，Top-P保持为0.95。这就像一位富有创造力的棋手肩上有个天使，至少能劝它放弃那些特别离谱的走法——也就是概率最低、合计概率不超过5%的那些走法。它们可能是妙招，没错，但也可能是愚蠢的败着。因此，这应该能在开局的多样性、中局的创造力，以及通过排除部分极低概率的败着所获得的更强表现之间，取得良好的平衡。\n\n如果你勇于挑战，温度0在我们的测试中表现最强。祝你好运！';
 
   @override
-  String get samplingHelpResearchIntro =>
-      '我们在 1600 Elo 设置下试验了这些参数，完整研究结果已发布在这里：';
+  String get samplingHelpResearchIntro => '查看图解指南，了解这些选择背后的研究，并访问完整结果。';
+
+  @override
+  String get samplingFullVarietyNotice =>
+      '温度和Top-P为1.0 / 1.0时，Maia可能走出更多不寻常的败着。';
+
+  @override
+  String get samplingArgmaxNotice => '温度或Top-P为0时，Maia可能更强。祝您好运！';
+
+  @override
+  String get topPNotUsed => 'Top-P：不使用';
+
+  @override
+  String get topPNotUsedTitle => '为什么不使用Top-P';
+
+  @override
+  String get topPNotUsedHelp =>
+      '温度为0时，Maia总是选择一个概率最高的走法，因此Top-P不起作用。您的Top-P值会保留，提高温度后可再次使用。如果开启开局多样性，双方的前五步仍使用1.0 / 1.0。';
+
+  @override
+  String get samplingLowerNotice => '降低温度或Top-P后，Maia可能会下得更强。';
+
+  @override
+  String get appearance => '外观';
+
+  @override
+  String get appearanceSystemColors => '使用系统颜色';
+
+  @override
+  String get appearanceSystemColorsHelp => '使用 Android 的配色';
+
+  @override
+  String get appearanceSystemColorsUnavailable => '此设备不支持。需要 Android 12 或更高版本。';
+
+  @override
+  String get appearancePureBlack => '纯黑背景';
+
+  @override
+  String get appearancePureBlackHelp => '在深色模式下使用纯黑背景';
+
+  @override
+  String get appearancePreferenceError => '外观已更改，但无法保存。请重试。';
+
+  @override
+  String get appearanceTheme => '主题';
+
+  @override
+  String get appearanceLight => '浅色';
+
+  @override
+  String get appearanceDark => '深色';
+
+  @override
+  String get appearanceSystemDefault => '跟随系统';
+
+  @override
+  String get boardSettings => '棋盘';
+
+  @override
+  String get boardCoordinates => '棋盘坐标';
+
+  @override
+  String get boardLegalMoves => '合法走法落点';
+
+  @override
+  String get boardLastMove => '上一步高亮';
+
+  @override
+  String get boardAnimation => '棋子动画';
+
+  @override
+  String get boardMagnify => '放大拖动的棋子';
+
+  @override
+  String get boardDragTarget => '拖动棋子落点标记';
+
+  @override
+  String get boardTargetCircle => '圆形';
+
+  @override
+  String get boardTargetSquare => '方形';
+
+  @override
+  String get boardTargetNone => '无';
+
+  @override
+  String get boardPreferenceError => '无法保存棋盘设置。请重试。';
+
+  @override
+  String get boardDesign => '棋盘';
+
+  @override
+  String get boardPieceSet => '棋子样式';
+
+  @override
+  String get showMaiaScore => '显示 Maia 胜率（得分率）';
+
+  @override
+  String get maiaScore => 'Maia 得分';
+
+  @override
+  String get maiaScoreEqual => '均势';
+
+  @override
+  String get maiaScoreHelp => '在屏幕顶部显示 Maia 对获胜（得分）机会的评估。\n白色或黑色圆点表示该百分比对应哪一方。';
+
+  @override
+  String get maiaScoreExpectedHelp =>
+      '例如，“白方 60%”表示 Maia 估计，从此局面开始下100盘棋，白方大约能得到60分。获胜得1分，和棋得½分。';
+
+  @override
+  String get maiaScoreInputsHelp =>
+      '该估计将所选的 Maia 分析等级分应用于双方。启用两个 Maia 时，每个 Maia 都会按各自的等级分显示自己的估计。';
+
+  @override
+  String get maiaScorePreferenceError => '无法保存 Maia 得分设置。请重试。';
+
+  @override
+  String get maiaScoreStockfishHelp =>
+      '与 Stockfish 的评估对照来看可能会很有用。Stockfish 认为某一方更好，并不意味着人类就能轻易找到将优势转化为胜利的正确着法！';
+
+  @override
+  String get editorMoveTool => '移动棋子';
+
+  @override
+  String get editorEraseTool => '移除棋子';
+
+  @override
+  String get editorEmptySquare => '空格';
+
+  @override
+  String get editorPositionSettings => '局面设置';
+
+  @override
+  String get editorImageImportUnavailable => '从图片导入局面（尚不可用）';
+
+  @override
+  String get editorShareFen => '分享 FEN';
+
+  @override
+  String get editorFenMetadata => 'FEN 元数据';
+
+  @override
+  String get editorHalfmoveClock => '半回合计数';
+
+  @override
+  String get editorFullmoveNumber => '回合数';
+
+  @override
+  String get editorWhitePawn => '白兵';
+
+  @override
+  String get editorWhiteKnight => '白马';
+
+  @override
+  String get editorWhiteBishop => '白象';
+
+  @override
+  String get editorWhiteRook => '白车';
+
+  @override
+  String get editorWhiteQueen => '白后';
+
+  @override
+  String get editorWhiteKing => '白王';
+
+  @override
+  String get editorBlackPawn => '黑兵';
+
+  @override
+  String get editorBlackKnight => '黑马';
+
+  @override
+  String get editorBlackBishop => '黑象';
+
+  @override
+  String get editorBlackRook => '黑车';
+
+  @override
+  String get editorBlackQueen => '黑后';
+
+  @override
+  String get editorBlackKing => '黑王';
+
+  @override
+  String get continuationUseBoard => '使用电子棋盘';
+
+  @override
+  String get continuationConnectHelp => '请连接受支持的棋盘。';
+
+  @override
+  String get continuationBoardUntimed => '电子棋盘对局不限时。';
+
+  @override
+  String get continuationSetUpBoard => '摆好棋盘';
+
+  @override
+  String get continuationSetupHelp => '请在棋盘上摆出屏幕所示的局面。棋子位置一致后，对局即开始。';
+
+  @override
+  String get continuationBoardUnsupported => '目前仅支持使用 Chessnut 棋盘从指定局面继续对局。';
 }
