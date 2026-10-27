@@ -11,11 +11,14 @@ reading historical releases is not a routine release gate.
 
 ## The mistaken assumption
 
-The release agent did not review the available 2.4.0 delivery evidence early
-enough, treated public GitHub delivery as a newly discovered capability, and
-retained an unnecessary requirement that the new APK also have a CDN copy.
-That was a process and reasoning error. It prolonged the investigation and
-encouraged a redundant large-APK upload through an older publisher.
+The canonical release guide failed to encode the established public GitHub
+APK delivery path and required an unnecessary duplicate CDN copy. The release
+agent retained that requirement and treated GitHub delivery as newly discovered.
+That documentation and reasoning error prolonged the investigation and
+encouraged a redundant large-APK upload through an older publisher. The normal
+procedure must state the supported path directly; operators should not need to
+search old release records to discover it. The 2.4.0 evidence below corroborates
+that established capability, rather than adding a historical-review prerequisite.
 
 The actual 2.4.0 asset event
 `a10a6bfe234f3820a664ed1149a82bc665c4ff99d6d24a1be5da4c9c019c1005`
