@@ -28,6 +28,12 @@ procedure; follow its gates even for metadata-only releases.
   F-Droid's HTML. Run `tool/check_zapstore_metadata.py` with the release Python
   environment. Verify Android-compatible formatting; the website rendering
   HTML successfully is not evidence that the Android listing will look right.
+- Before replacing Zapstore app metadata, verify every proposed public image
+  with a full GET and image decode, and retain the current signed event and
+  working image references. Verify all actual media and rendered screenshots
+  immediately afterward. On failure, restore verified image references with a
+  metadata-only event immediately; pending release indexing is not a reason to
+  leave the live listing broken. Follow the media gate in docs/RELEASING.md.
 - Keep a per-channel release status record on GitHub. Do not call distribution
   complete while Zapstore is unverified or F-Droid publication is pending. Own
   the follow-up, record blockers and the next action, and report any user action

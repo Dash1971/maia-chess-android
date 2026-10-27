@@ -1,0 +1,314 @@
+[
+  {
+    "kind": 32267,
+    "id": "b55e139941db2a09520bc757a3a05c50b23a83e888df29a597bb8c192a7ba3bb",
+    "pubkey": "6d422f13061d8252cddb028c50aa93d347c74775da8e4b724c1d2a2d8f03fac8",
+    "created_at": 1793103471,
+    "tags": [
+      [
+        "d",
+        "com.dash1971.maia_chess"
+      ],
+      [
+        "name",
+        "Mobile Maia"
+      ],
+      [
+        "summary",
+        "Play human-like chess offline and review your games with Maia and Stockfish"
+      ],
+      [
+        "icon",
+        "https://cdn.zapstore.dev/29a005ab19b127c989b4dddf1a7b4e95e7659b343f58a8b6f7eafe6bff7a9b1f"
+      ],
+      [
+        "image",
+        "https://cdn.zapstore.dev/188cb5b2573fd6aa615aef7260e154ef7387861f71a6fb645ed8d85682d28c1a"
+      ],
+      [
+        "image",
+        "https://cdn.zapstore.dev/5833b624ccc1c838f00ffc42fa1ef46844f1309c0008a04f569a8bfec97578ba"
+      ],
+      [
+        "image",
+        "https://cdn.zapstore.dev/e205f0e7313835c15d7fca93f24ed8b029b2972fe266d69bf6a8fb847a953b6c"
+      ],
+      [
+        "image",
+        "https://cdn.zapstore.dev/2a6cad53ed6f68dd6a991c6cd473f3d2dac15542ee08514403e3b56e2b17dd4d"
+      ],
+      [
+        "image",
+        "https://cdn.zapstore.dev/f739884004bf80304a70e82f07a384075abaff8667e95a381db43d4d0bbd88b1"
+      ],
+      [
+        "image",
+        "https://cdn.zapstore.dev/453d1d980d6e7b8843ee21b8c355bcaff0f5bceff73d5e33811e3d299d5d8360"
+      ],
+      [
+        "image",
+        "https://cdn.zapstore.dev/8351aa2035250215eaa0a006ce46e734d1f22997f5f2cb3d436003bd2efc70c8"
+      ],
+      [
+        "image",
+        "https://cdn.zapstore.dev/eff8a9fdc23feabb98079510a598aac9b5bcefbf8b7e34c6bdd35e369fa4a8db"
+      ],
+      [
+        "repository",
+        "https://github.com/Dash1971/maia-chess-android"
+      ],
+      [
+        "f",
+        "android-arm64-v8a"
+      ],
+      [
+        "f",
+        "android-armeabi-v7a"
+      ],
+      [
+        "f",
+        "android-x86_64"
+      ],
+      [
+        "h",
+        "acfeaea6e51420e8068fac446ca9d17d7a9ef6a5d20d93894e50fee3d4902a84"
+      ]
+    ],
+    "content": "**By Maia fans, for Maia fans.** Mobile Maia is a community project for playing and studying chess with Maia on Android. It will always be free, never show ads, and always remain open source.\n\nThe app uses the human-like Maia-3 79M model from the University of Toronto’s Computational Social Science Lab for play and analysis, alongside Stockfish for comparison and game review. Everything runs locally on your phone, without an account or Internet connection.\n\nPick a Maia rating from 600 to 2600, then review your game with Maia and Stockfish to explore what you could have played. There are no subscriptions or daily analysis limits.\n\n**Play at your own pace**\n\n- Choose your side and play with a clock or without a time limit.\n- Adjust Maia's move variety and optional human-like pauses. Keep varied openings before switching to your chosen settings.\n- Take back moves, play rematches and return to saved unfinished games.\n\n**Understand your games**\n\n- Compare the moves Maia thinks people would play with Stockfish's suggestions. You can compare two Maia ratings side by side.\n- Review a whole game with an evaluation graph, accuracy scores and move annotations.\n- Explore variations, edit board positions and continue playing from a position you choose.\n- Optionally show Maia’s expected score alongside its move probabilities.\n\n**Keep your chess on your phone**\n\n- Open PGN games or FEN positions, and save or share PGN files with comments and variations.\n- Browse recent games and look up opening names offline.\n- Choose from ten interface languages, light or dark themes, system colors and an optional pure-black background.\n- Customize board colors, piece sets and move aids.\n- Optionally export Maia’s actual move probabilities and choices in a readable offline report.\n\n**Experimental Chessnut support**\n\nChessnut Air and Go boards can connect over Bluetooth for untimed games, including continuing from an analysis position. Lights guide piece setup and show Maia's moves. Other Chessnut models have not been confirmed.\n\nOn Android 11 and older, connecting a Chessnut board requires location permission to scan for Bluetooth devices. Mobile Maia does not use it to determine your location. Android 12 and newer use Nearby devices permissions instead. On-screen chess does not need location permission.\n\nMobile Maia works entirely offline, with zero telemetry: no analytics, tracking, or data sent to servers. Your games and analysis stay on your device unless you choose to export or share them.\n\n**Before you download**\n\nThe download is several hundred megabytes because the Maia-3 79M model is included for offline use. Maia's rating setting guides the human moves it predicts; it is not a guaranteed playing strength.\n\nMobile Maia is an independent community project, licensed under AGPL-3.0-only. It uses the Maia-3 79M model from the University of Toronto’s Computational Social Science Lab and Stockfish. Its chess interface and app development philosophy are informed by Lichess. Game Review’s move-classification and sacrifice-detection logic is adapted from En Croissant. It is not an official Maia Chess, University of Toronto CSSLab, Lichess, Stockfish, En Croissant or Chessnut app.\n",
+    "sig": "b18eb9e553c7ca415ec0100eb485b7b9521dae1c5e32b02aacb55fa3833b6fef1406c6d468e2f9a6b676aa776668368d832abbf1ff8cd0f9d7ec7ee424a1848f"
+  },
+  {
+    "kind": 30063,
+    "id": "36ef543171da50a9d80d839aef76a9b90906ba79bddb1aa0a13f23b4ed9b972b",
+    "pubkey": "6d422f13061d8252cddb028c50aa93d347c74775da8e4b724c1d2a2d8f03fac8",
+    "created_at": 1792243767,
+    "tags": [
+      [
+        "i",
+        "com.dash1971.maia_chess"
+      ],
+      [
+        "version",
+        "2.4.0"
+      ],
+      [
+        "d",
+        "com.dash1971.maia_chess@2.4.0"
+      ],
+      [
+        "c",
+        "main"
+      ],
+      [
+        "f",
+        "android-arm64-v8a"
+      ],
+      [
+        "f",
+        "android-armeabi-v7a"
+      ],
+      [
+        "f",
+        "android-x86_64"
+      ],
+      [
+        "e",
+        "a10a6bfe234f3820a664ed1149a82bc665c4ff99d6d24a1be5da4c9c019c1005",
+        "wss://relay.zapstore.dev"
+      ]
+    ],
+    "content": "# Mobile Maia 2.4\n\nMore opening variety, new ways to explore Maia’s choices, and smoother play on your phone or Chessnut board.\n\n- **Max variety in opening.** This optional setting uses Temperature and Top-P of 1.0 for the first five moves, then switches to your chosen settings from move 6. Enjoy varied openings while using lower settings for later play. Inspired by [Maia3-tauri](https://github.com/outusuke/maia3-tauri) by outusuke.\n- **Explore how Maia chooses its moves.** Optionally save Maia’s choices and probabilities, then export a readable offline HTML report or full JSONL research data. Reports include board diagrams, move arrows and plain-language odds, using the probabilities that actually applied during play. The latest ten recorded games are retained, subject to a storage limit.\n- **Clearer settings and explanations.** Settings are organized into sections, with revised help across all ten languages. Resetting settings now asks for confirmation and preserves saved games and sampling data.\n- **Optional move history.** Let Maia consider up to seven previous positions. This remains experimental, and leaving it off is recommended.\n- **Better Chessnut play.** Improved discovery, remembered board selection, named connection messages and reconnect handling. Press the board’s NEW GAME button twice within 2.5 seconds to reset without leaving the game screen. Colors stay the same, and LED guidance helps you reset the pieces before play resumes. The double-press NEW GAME behavior was inspired by [MoveAPiece](https://github.com/egdels/moveapiece) by egdels.\n- **Smoother premoves and analysis.** Queued premove pieces stay in place as moves are played. Long opening names offer details without shifting the layout, and Home returns correctly from restored post-game analysis.\n\nThe Maia3 79M model, Stockfish engine and default sampling settings remain unchanged. DGT Pegasus and Square Off Grand Kingdom remain experimental Dev-only projects and are **not enabled in this release**.\n\nFree, open source and offline, as always.\n\n## Installation\n\nInstall `Mobile-Maia-v2.4.0.apk` over the existing Stable app; do not uninstall first. Preview and Dev are separate apps. Existing Stable games and settings are preserved.\n\n## Verification and stores\n\nThe attached verification evidence records the exact source, CI and dependency checks, native engine and upgrade tests, independent F-Droid build and scans, matching unsigned APKs, and signing checks. These checks do not certify every physical phone or Chessnut board.\n\nGitHub, Zapstore and F-Droid publication are tracked separately in the distribution record linked below. F-Droid’s catalog updates on its own build and publication schedule.\n\n[Distribution status and verification](https://github.com/Dash1971/maia-chess-android/pull/54#issuecomment-6233972011).\n\nSource: `b35b2078116f56323439b25c0fbc184b53135780` (Stable PRs #54 and #55).\n",
+    "sig": "92eaa72f855604002384b62069c67140b7dea368ce1b0e1ac8adf2014a497d6b76382ce80b0364d1b9b140950ee1f70205fc0af2bffb0a74e07539ef85cdad96"
+  },
+  {
+    "kind": 3063,
+    "id": "a10a6bfe234f3820a664ed1149a82bc665c4ff99d6d24a1be5da4c9c019c1005",
+    "pubkey": "6d422f13061d8252cddb028c50aa93d347c74775da8e4b724c1d2a2d8f03fac8",
+    "created_at": 1792243767,
+    "tags": [
+      [
+        "i",
+        "com.dash1971.maia_chess"
+      ],
+      [
+        "x",
+        "a1df8b82969ab2ad9a1045c6a094b7b2bcc3cc316369ce75754887ae9a281577"
+      ],
+      [
+        "version",
+        "2.4.0"
+      ],
+      [
+        "url",
+        "https://github.com/Dash1971/maia-chess-android/releases/download/v2.4.0/Mobile-Maia-v2.4.0.apk"
+      ],
+      [
+        "url",
+        "https://cdn.zapstore.dev/a1df8b82969ab2ad9a1045c6a094b7b2bcc3cc316369ce75754887ae9a281577"
+      ],
+      [
+        "m",
+        "application/vnd.android.package-archive"
+      ],
+      [
+        "size",
+        "459947435"
+      ],
+      [
+        "f",
+        "android-arm64-v8a"
+      ],
+      [
+        "f",
+        "android-armeabi-v7a"
+      ],
+      [
+        "f",
+        "android-x86_64"
+      ],
+      [
+        "min_platform_version",
+        "24"
+      ],
+      [
+        "target_platform_version",
+        "36"
+      ],
+      [
+        "filename",
+        "abc225723be4849373b0d1a8578e0850_Mobile-Maia-v2.4.0.apk"
+      ],
+      [
+        "commit",
+        "b35b2078116f56323439b25c0fbc184b53135780"
+      ],
+      [
+        "version_code",
+        "81"
+      ],
+      [
+        "apk_certificate_hash",
+        "cd6c07c4efacf52bcccb83009b522c1dcad4a171197505a486f0a58edb6f172e"
+      ]
+    ],
+    "content": "",
+    "sig": "123e194f069ed33b818e4e134f186e1b891fabe32c26a74acbe57bf46f8ab250063afbb929969ee4db0b2f887f42030560592c688fb316a2bcddeec47ff86a81"
+  },
+  {
+    "kind": 3063,
+    "id": "24ed6f3ad226c7f9bac84b912869aa88d725e11f08be035e1cba34d6c6ea787d",
+    "pubkey": "6d422f13061d8252cddb028c50aa93d347c74775da8e4b724c1d2a2d8f03fac8",
+    "created_at": 1791275028,
+    "tags": [
+      [
+        "i",
+        "com.dash1971.maia_chess"
+      ],
+      [
+        "x",
+        "25a593f4815650e40e1370e805cc2dbc8a5dce2624e7e74d89b577587f0b5c5a"
+      ],
+      [
+        "version",
+        "2.3.0"
+      ],
+      [
+        "url",
+        "https://github.com/Dash1971/maia-chess-android/releases/download/v2.3.0/Mobile-Maia-v2.3.0.apk"
+      ],
+      [
+        "url",
+        "https://cdn.zapstore.dev/25a593f4815650e40e1370e805cc2dbc8a5dce2624e7e74d89b577587f0b5c5a"
+      ],
+      [
+        "m",
+        "application/vnd.android.package-archive"
+      ],
+      [
+        "size",
+        "458456491"
+      ],
+      [
+        "f",
+        "android-armeabi-v7a"
+      ],
+      [
+        "f",
+        "android-x86_64"
+      ],
+      [
+        "f",
+        "android-arm64-v8a"
+      ],
+      [
+        "min_platform_version",
+        "24"
+      ],
+      [
+        "target_platform_version",
+        "36"
+      ],
+      [
+        "filename",
+        "6e615dc60175f1fd92f4f1f401406acc_Mobile-Maia-v2.3.0.apk"
+      ],
+      [
+        "commit",
+        "b03017a1e549992f620a41fdb29a292083e68723"
+      ],
+      [
+        "version_code",
+        "80"
+      ],
+      [
+        "apk_certificate_hash",
+        "cd6c07c4efacf52bcccb83009b522c1dcad4a171197505a486f0a58edb6f172e"
+      ]
+    ],
+    "content": "",
+    "sig": "fc6db9e4023cd114802b820b6dbed4e1b36fcd74db0f74bb34426a51e566b353e90ecb056d5d798ede173d0fdf13c37203ec2c84e85b60fb71bb271b7a0ef174"
+  },
+  {
+    "kind": 30063,
+    "id": "834b9d61ac508bb068005b1e7e19c4efbb868113e24115b3588ba28efc831c98",
+    "pubkey": "6d422f13061d8252cddb028c50aa93d347c74775da8e4b724c1d2a2d8f03fac8",
+    "created_at": 1791275028,
+    "tags": [
+      [
+        "i",
+        "com.dash1971.maia_chess"
+      ],
+      [
+        "version",
+        "2.3.0"
+      ],
+      [
+        "d",
+        "com.dash1971.maia_chess@2.3.0"
+      ],
+      [
+        "c",
+        "main"
+      ],
+      [
+        "f",
+        "android-armeabi-v7a"
+      ],
+      [
+        "f",
+        "android-x86_64"
+      ],
+      [
+        "f",
+        "android-arm64-v8a"
+      ],
+      [
+        "e",
+        "24ed6f3ad226c7f9bac84b912869aa88d725e11f08be035e1cba34d6c6ea787d",
+        "wss://relay.zapstore.dev"
+      ]
+    ],
+    "content": "Mobile Maia 2.3 adds ten interface languages and improvements to game history and time controls, while keeping the app free, open-source and offline.\n\n### What's new\n\n- **Ten languages:** English, Japanese, Simplified Chinese, Korean, Spanish, German, French, Russian, Hindi and Brazilian Portuguese. Follow your device language or choose in Settings. Shared chess terminology follows Lichess, with documented adaptations where Mobile Maia's context differs.\n- **Reliable Recent Games dates:** opening or analysing a saved game no longer changes its played date or moves it to the top. Older games without a reliable date remain explicitly unknown.\n- **Subtle result colors:** green for your win, red for your loss, amber for a draw, muted blue for unfinished games. Ambiguous results stay neutral; screen-reader descriptions include your result.\n- **Lichess-style quick time controls:** 1+0, 2+1, 3+0, 3+2, 5+0, 5+3, 10+0, 10+5, 15+10, 30+0 and 30+20, alongside Unlimited and Custom. Available on Home and in Continue from here.\n- **Quicker optional human timing for short games:** 1+0 targets average about one second, capped at three; 2+1, 3+0 and 3+2 average about 1.5 seconds, capped at 4.5. Longer presets retain the existing timing. Engine computation counts toward these targets and can exceed them. Human timing remains optional and off by default.\n\nExisting games and settings are preserved. The Stable package, signing identity, blue icon, Maia-3 79M model and engine versions are unchanged. Temperature and Top-P remain at their existing defaults; move-variety presets are future work.\n\n### Installation\n\nInstall `Mobile-Maia-v2.3.0.apk` over the existing Stable app; do not uninstall first. Preview is a separate app and is not an in-place upgrade to Stable.\n\n### Verification\n\nThe attached evidence records the exact release source, host/native tests, Stable upgrade checks, dependency audit, independent F-Droid recipe build and scans, APK hashes and signing/reproducibility checks. These do not certify physical Chessnut behavior or every device. A known Maia rating-badge truncation at 200% system text remains; it is unchanged from the accepted Preview.\n\nGitHub publication and F-Droid store availability are separate. This release uses the canonical F-Droid build recipe; final update-detection and public-download results are recorded with the release evidence. Store availability depends on F-Droid's processing.\n\nSource: `b03017a1e549992f620a41fdb29a292083e68723` (Stable PR #43, following Preview beta.9).\n",
+    "sig": "d50821a6cb4da674ce550c2709e4dc771f20ad4ba95d793a5a3b7374572215c1418e60a37b53a3f0a962c24cdafef47363398bb6180c93ffc913994f674f9fe7"
+  }
+]
