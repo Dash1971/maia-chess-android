@@ -425,6 +425,7 @@
   "maiaScoreExpectedHelp": "예를 들어 “백 60%”는 이 포지션에서 100판을 두면 백이 약 60점을 얻을 것으로 Maia가 추정한다는 뜻입니다. 승리는 1점, 무승부는 ½점입니다.",
   "maiaScoreInputsHelp": "추정치는 선택한 Maia 분석 레이팅을 양쪽 선수에 적용합니다. Maia 두 개를 활성화하면 각각 자신의 레이팅에 따른 추정치를 표시합니다.",
   "maiaScorePreferenceError": "Maia 점수 설정을 저장하지 못했습니다. 다시 시도해 주세요.",
+  "maiaScoreResearchLink": "Maia 점수는 얼마나 믿을 수 있을까요? (영문)",
   "maiaScoreStockfishHelp": "Stockfish 평가와 비교하면 도움이 될 수 있습니다. Stockfish가 한쪽이 더 낫다고 평가하더라도, 사람이 그 이점을 승리로 연결할 올바른 수를 찾기 쉽다는 뜻은 아닙니다!",
   "editorMoveTool": "기물 이동",
   "editorEraseTool": "기물 지우기",

@@ -2395,9 +2395,7 @@ class _ReviewPageState extends State<ReviewPage>
       builder: (context) => AlertDialog(
         scrollable: true,
         title: Text(strings.maiaScore),
-        content: Text(
-          '${labels.join('\n')}\n\n${strings.maiaScoreHelp}\n\n${strings.maiaScoreExpectedHelp}\n\n${strings.maiaScoreInputsHelp}\n\n${strings.maiaScoreStockfishHelp}',
-        ),
+        content: MaiaScoreHelpContent(scores: labels.join('\n')),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),

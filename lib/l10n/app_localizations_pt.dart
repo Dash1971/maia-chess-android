@@ -1554,6 +1554,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'Não foi possível salvar as configurações da pontuação Maia. Tente novamente.';
 
   @override
+  String get maiaScoreResearchLink =>
+      'Qual é a confiabilidade da pontuação da Maia? (em inglês)';
+
+  @override
   String get maiaScoreStockfishHelp =>
       'Pode ser útil comparar com a avaliação do Stockfish. Só porque o Stockfish considera um lado melhor, isso não significa que seja fácil para uma pessoa encontrar os lances certos para transformar a vantagem em vitória!';
 

@@ -425,6 +425,7 @@
   "maiaScoreExpectedHelp": "Par exemple, Blancs 60% signifie que Maia estime que les Blancs marqueraient environ 60 points sur 100 parties à partir de cette position. Une victoire rapporte 1 point ; une nulle, ½ point.",
   "maiaScoreInputsHelp": "L’estimation utilise le classement d’analyse Maia sélectionné pour les deux joueurs. Si deux Maias sont activées, chacune affiche sa propre estimation à son propre classement.",
   "maiaScorePreferenceError": "Impossible d’enregistrer les réglages du score Maia. Réessayez.",
+  "maiaScoreResearchLink": "Le score de Maia est-il fiable ? (en anglais)",
   "maiaScoreStockfishHelp": "Il peut être utile de comparer cette estimation à l’évaluation de Stockfish. Ce n’est pas parce que Stockfish juge un camp meilleur qu’il est facile pour un humain de trouver les bons coups pour concrétiser cet avantage !",
   "editorMoveTool": "Déplacer les pièces",
   "editorEraseTool": "Effacer les pièces",

@@ -1544,6 +1544,10 @@ class AppLocalizationsHi extends AppLocalizations {
       'Maia स्कोर की सेटिंग सहेजी नहीं जा सकीं। कृपया फिर से प्रयास करें।';
 
   @override
+  String get maiaScoreResearchLink =>
+      'Maia के स्कोर पर कितना भरोसा किया जा सकता है? (अंग्रेज़ी में)';
+
+  @override
   String get maiaScoreStockfishHelp =>
       'इसकी तुलना Stockfish के मूल्यांकन से करना उपयोगी हो सकता है। Stockfish किसी पक्ष को बेहतर मानता है, तो इसका मतलब यह नहीं कि इंसान के लिए उस बढ़त को जीत में बदलने वाली सही चालें खोजना आसान है!';
 

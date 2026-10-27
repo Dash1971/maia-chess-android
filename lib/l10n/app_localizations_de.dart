@@ -1550,6 +1550,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Die Maia-Punktwerteinstellungen konnten nicht gespeichert werden. Bitte erneut versuchen.';
 
   @override
+  String get maiaScoreResearchLink =>
+      'Wie zuverlässig ist Maias Punkteprognose? (auf Englisch)';
+
+  @override
   String get maiaScoreStockfishHelp =>
       'Ein Vergleich mit der Stockfish-Bewertung kann hilfreich sein. Nur weil Stockfish eine Seite im Vorteil sieht, heißt das nicht, dass ein Mensch die richtigen Züge leicht findet, um den Vorteil in einen Sieg umzusetzen!';
 

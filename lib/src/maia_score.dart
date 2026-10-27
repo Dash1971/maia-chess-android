@@ -139,9 +139,7 @@ class MaiaScoreSetting extends StatelessWidget {
             builder: (context) => AlertDialog(
               scrollable: true,
               title: Text(l10n(context).showMaiaScore),
-              content: Text(
-                '${l10n(context).maiaScoreHelp}\n\n${l10n(context).maiaScoreExpectedHelp}\n\n${l10n(context).maiaScoreInputsHelp}\n\n${l10n(context).maiaScoreStockfishHelp}',
-              ),
+              content: const MaiaScoreHelpContent(),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(context),
@@ -159,6 +157,46 @@ class MaiaScoreSetting extends StatelessWidget {
               child: Text(l10n(context).maiaScorePreferenceError),
             ),
           ),
+      ],
+    );
+  }
+}
+
+const maiaScoreResearchUrl =
+    'https://github.com/Dash1971/mobile-maia-research/blob/'
+    'main/studies/score-reliability-2026-10-27/REPORT.md';
+
+/// Shared by Settings and the analysis score details; opens research only on tap.
+class MaiaScoreHelpContent extends StatelessWidget {
+  const MaiaScoreHelpContent({this.scores, super.key});
+
+  final String? scores;
+
+  @override
+  Widget build(BuildContext context) {
+    final strings = l10n(context);
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          [
+            ?scores,
+            strings.maiaScoreHelp,
+            strings.maiaScoreExpectedHelp,
+            strings.maiaScoreInputsHelp,
+            strings.maiaScoreStockfishHelp,
+          ].join('\n\n'),
+        ),
+        const SizedBox(height: 12),
+        TextButton.icon(
+          key: const ValueKey('maia-score-research-link'),
+          onPressed: () => maiaEngineChannel.invokeMethod<void>('openUrl', {
+            'url': maiaScoreResearchUrl,
+          }),
+          icon: const Icon(Icons.open_in_new),
+          label: Text(strings.maiaScoreResearchLink),
+        ),
       ],
     );
   }

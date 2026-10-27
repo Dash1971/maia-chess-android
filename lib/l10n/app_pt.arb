@@ -425,6 +425,7 @@
   "maiaScoreExpectedHelp": "Por exemplo, Brancas 60% significa que a Maia estima que as brancas fariam cerca de 60 pontos em 100 partidas a partir desta posição. Uma vitória vale 1 ponto; um empate, ½.",
   "maiaScoreInputsHelp": "A estimativa usa a classificação de análise selecionada para a Maia nos dois jogadores. Com duas Maias ativadas, cada uma mostra sua própria estimativa na sua própria classificação.",
   "maiaScorePreferenceError": "Não foi possível salvar as configurações da pontuação Maia. Tente novamente.",
+  "maiaScoreResearchLink": "Qual é a confiabilidade da pontuação da Maia? (em inglês)",
   "maiaScoreStockfishHelp": "Pode ser útil comparar com a avaliação do Stockfish. Só porque o Stockfish considera um lado melhor, isso não significa que seja fácil para uma pessoa encontrar os lances certos para transformar a vantagem em vitória!",
   "editorMoveTool": "Mover peças",
   "editorEraseTool": "Apagar peças",

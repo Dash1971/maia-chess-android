@@ -1417,6 +1417,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get maiaScorePreferenceError => '无法保存 Maia 得分设置。请重试。';
 
   @override
+  String get maiaScoreResearchLink => 'Maia的得分预测有多可靠？（英文）';
+
+  @override
   String get maiaScoreStockfishHelp =>
       '与 Stockfish 的评估对照来看可能会很有用。Stockfish 认为某一方更好，并不意味着人类就能轻易找到将优势转化为胜利的正确着法！';
 

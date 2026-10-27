@@ -1438,6 +1438,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get maiaScorePreferenceError => 'Maiaスコアの設定を保存できませんでした。もう一度お試しください。';
 
   @override
+  String get maiaScoreResearchLink => 'Maiaのスコアはどのくらい信頼できる？（英文）';
+
+  @override
   String get maiaScoreStockfishHelp =>
       'Stockfishの評価と比べるのも役立ちます。Stockfishが一方を有利と評価していても、人間がその優位を勝ちに結び付ける正しい手を見つけやすいとは限りません！';
 

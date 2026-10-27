@@ -1442,6 +1442,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get maiaScorePreferenceError => 'Maia 점수 설정을 저장하지 못했습니다. 다시 시도해 주세요.';
 
   @override
+  String get maiaScoreResearchLink => 'Maia 점수는 얼마나 믿을 수 있을까요? (영문)';
+
+  @override
   String get maiaScoreStockfishHelp =>
       'Stockfish 평가와 비교하면 도움이 될 수 있습니다. Stockfish가 한쪽이 더 낫다고 평가하더라도, 사람이 그 이점을 승리로 연결할 올바른 수를 찾기 쉽다는 뜻은 아닙니다!';
 

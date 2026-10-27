@@ -1994,6 +1994,10 @@
   "@maiaScorePreferenceError": {
     "description": "Maia outcome/expected-score feature. The percentage is P(win)+half P(draw), rating-conditioned for both players, not strict P(win). Keep separate from human move-choice probabilities and Stockfish."
   },
+  "maiaScoreResearchLink": "How reliable is Maia’s score?",
+  "@maiaScoreResearchLink": {
+    "description": "Link to the English-language research report on Maia expected-score reliability. Maia-specific, no direct Lichess equivalent. Non-English labels identify the report language."
+  },
   "maiaScoreStockfishHelp": "It can be useful to contrast with Stockfish evaluation. Just because Stockfish thinks one side is better, does not mean that it is easy for a human to find the right moves to convert!",
   "@maiaScoreStockfishHelp": {
     "description": "User-approved Maia win (score) percentage setting/help, 2026-10-26. The model estimates expected game points including half-point draws. Preserve the 60 points in 100 games example, independent rating inputs and human/Stockfish comparison. Maia-specific, not a direct Lichess equivalent."

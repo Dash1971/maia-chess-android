@@ -180,6 +180,49 @@ void main() {
     ),
   );
   testWidgets(
+    'score details opens the research only on tap and keeps selection',
+    (tester) async {
+      final controller = MaiaScoreController();
+      addTearDown(controller.dispose);
+      await controller.select(true);
+      final links = <MethodCall>[];
+      tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        maiaEngineChannel,
+        (call) async {
+          links.add(call);
+          return null;
+        },
+      );
+      addTearDown(
+        () => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+          maiaEngineChannel,
+          null,
+        ),
+      );
+      await tester.pumpWidget(app(controller));
+      await tester.pumpAndSettle();
+      final fen = tester.widget<cg.Chessboard>(find.byType(cg.Chessboard)).controller.pieces;
+      await tester.tap(find.byKey(const ValueKey('maia-score-details')));
+      await tester.pumpAndSettle();
+      expect(links.where((call) => call.method == 'openUrl'), isEmpty);
+      final link = find.byKey(const ValueKey('maia-score-research-link'));
+      await tester.ensureVisible(link);
+      await tester.tap(link);
+      await tester.pumpAndSettle();
+      final opened = links.where((call) => call.method == 'openUrl').single;
+      expect(opened.arguments, {'url': maiaScoreResearchUrl});
+      expect(
+        maiaScoreResearchUrl,
+        'https://github.com/Dash1971/mobile-maia-research/blob/main/studies/score-reliability-2026-10-27/REPORT.md',
+      );
+      await tester.binding.handlePopRoute();
+      await tester.pumpAndSettle();
+      expect(tester.widget<cg.Chessboard>(find.byType(cg.Chessboard)).controller.pieces, fen);
+      expect(controller.enabled, isTrue);
+      expect(tester.takeException(), isNull);
+    },
+  );
+  testWidgets(
     'each engine has its own rating-conditioned score and board size is unchanged',
     (tester) async {
       tester.view.physicalSize = const Size(390, 844);
@@ -503,6 +546,32 @@ void main() {
           await tester.tap(find.byKey(const ValueKey('maia-score-help')));
           await tester.pumpAndSettle();
           expect(find.byType(AlertDialog), findsOneWidget);
+          final links = <MethodCall>[];
+          tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+            maiaEngineChannel,
+            (call) async {
+              links.add(call);
+              return null;
+            },
+          );
+          addTearDown(
+            () => tester.binding.defaultBinaryMessenger
+                .setMockMethodCallHandler(maiaEngineChannel, null),
+          );
+          final link = find.byKey(const ValueKey('maia-score-research-link'));
+          expect(
+            find.text(
+              AppLocalizations.of(tester.element(link))!.maiaScoreResearchLink,
+            ),
+            findsOneWidget,
+          );
+          expect(links, isEmpty);
+          await tester.ensureVisible(link);
+          await tester.tap(link);
+          await tester.pumpAndSettle();
+          expect(links.single.method, 'openUrl');
+          expect(links.single.arguments, {'url': maiaScoreResearchUrl});
+
           if (locale.languageCode == 'es') {
             expect(
               find.textContaining(

@@ -1568,6 +1568,10 @@ class AppLocalizationsRu extends AppLocalizations {
       'Не удалось сохранить настройки оценки Maia. Повторите попытку.';
 
   @override
+  String get maiaScoreResearchLink =>
+      'Насколько надёжна оценка Maia? (на английском)';
+
+  @override
   String get maiaScoreStockfishHelp =>
       'Полезно сравнивать эту оценку с оценкой Stockfish. Даже если Stockfish считает одну сторону сильнее, человеку не обязательно легко найти правильные ходы, чтобы реализовать преимущество!';
 

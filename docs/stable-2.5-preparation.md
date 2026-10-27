@@ -13,7 +13,11 @@ The authoritative procedure remains [RELEASING.md](RELEASING.md).
   Later Preview commits update release documentation. The promoted application
   behavior matches that tested release, with Stable branding/source links
   restored; no new feature or dependency upgrade is
-  introduced during promotion.
+  introduced during the initial promotion. The subsequent owner-requested
+  score-help change adds a localized link to the October 27 score-reliability
+  research; it does not change score calculations or inference. The same change
+  is proposed in [Preview #203](https://github.com/Dash1971/maia-chess-android-preview/pull/203)
+  before either channel publishes.
 - The owner reported that physical Chessnut testing passed. This is owner
   acceptance, not independently reproduced radio/LED hardware evidence.
 - [Release notes](release-notes/v2.5.0.md), README and Fastlane descriptions cover

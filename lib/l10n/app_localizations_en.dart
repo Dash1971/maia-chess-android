@@ -1525,6 +1525,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'Could not save Maia score settings. Please try again.';
 
   @override
+  String get maiaScoreResearchLink => 'How reliable is Maia’s score?';
+
+  @override
   String get maiaScoreStockfishHelp =>
       'It can be useful to contrast with Stockfish evaluation. Just because Stockfish thinks one side is better, does not mean that it is easy for a human to find the right moves to convert!';
 

@@ -1547,6 +1547,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Impossible d’enregistrer les réglages du score Maia. Réessayez.';
 
   @override
+  String get maiaScoreResearchLink =>
+      'Le score de Maia est-il fiable ? (en anglais)';
+
+  @override
   String get maiaScoreStockfishHelp =>
       'Il peut être utile de comparer cette estimation à l’évaluation de Stockfish. Ce n’est pas parce que Stockfish juge un camp meilleur qu’il est facile pour un humain de trouver les bons coups pour concrétiser cet avantage !';
 

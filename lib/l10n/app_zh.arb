@@ -425,6 +425,7 @@
   "maiaScoreExpectedHelp": "例如，“白方 60%”表示 Maia 估计，从此局面开始下100盘棋，白方大约能得到60分。获胜得1分，和棋得½分。",
   "maiaScoreInputsHelp": "该估计将所选的 Maia 分析等级分应用于双方。启用两个 Maia 时，每个 Maia 都会按各自的等级分显示自己的估计。",
   "maiaScorePreferenceError": "无法保存 Maia 得分设置。请重试。",
+  "maiaScoreResearchLink": "Maia的得分预测有多可靠？（英文）",
   "maiaScoreStockfishHelp": "与 Stockfish 的评估对照来看可能会很有用。Stockfish 认为某一方更好，并不意味着人类就能轻易找到将优势转化为胜利的正确着法！",
   "editorMoveTool": "移动棋子",
   "editorEraseTool": "移除棋子",

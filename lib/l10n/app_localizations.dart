@@ -2668,6 +2668,12 @@ abstract class AppLocalizations {
   /// **'Could not save Maia score settings. Please try again.'**
   String get maiaScorePreferenceError;
 
+  /// Link to the English-language research report on Maia expected-score reliability. Maia-specific, no direct Lichess equivalent. Non-English labels identify the report language.
+  ///
+  /// In en, this message translates to:
+  /// **'How reliable is Maia’s score?'**
+  String get maiaScoreResearchLink;
+
   /// User-approved Maia win (score) percentage setting/help, 2026-10-26. The model estimates expected game points including half-point draws. Preserve the 60 points in 100 games example, independent rating inputs and human/Stockfish comparison. Maia-specific, not a direct Lichess equivalent.
   ///
   /// In en, this message translates to:

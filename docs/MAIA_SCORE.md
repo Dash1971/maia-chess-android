@@ -76,3 +76,11 @@ release qualification.
 
 No shared build, CI, verification or cleanup helper changes. This Preview feature
 has no Stable companion tooling port and does not promote or publish a channel.
+
+## Score reliability research
+
+Both the Settings information dialog and the score-details dialog link to
+[How reliable is Maia’s score?](https://github.com/Dash1971/mobile-maia-research/blob/main/studies/score-reliability-2026-10-27/REPORT.md).
+The link opens in the external browser only on tap. All ten interface languages
+have a localized label; non-English labels identify the report as English.
+Existing explanation text and score calculations are unchanged.

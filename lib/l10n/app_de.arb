@@ -425,6 +425,7 @@
   "maiaScoreExpectedHelp": "Zum Beispiel bedeutet Weiß 60%, dass Maia für Weiß etwa 60 Punkte aus 100 Partien ab dieser Stellung erwartet. Ein Sieg bringt 1 Punkt, ein Remis ½ Punkt.",
   "maiaScoreInputsHelp": "Die Einschätzung verwendet die gewählte Maia-Analysewertung für beide Spieler. Sind zwei Maias aktiviert, zeigt jede ihre eigene Einschätzung mit ihrer jeweiligen Wertung.",
   "maiaScorePreferenceError": "Die Maia-Punktwerteinstellungen konnten nicht gespeichert werden. Bitte erneut versuchen.",
+  "maiaScoreResearchLink": "Wie zuverlässig ist Maias Punkteprognose? (auf Englisch)",
   "maiaScoreStockfishHelp": "Ein Vergleich mit der Stockfish-Bewertung kann hilfreich sein. Nur weil Stockfish eine Seite im Vorteil sieht, heißt das nicht, dass ein Mensch die richtigen Züge leicht findet, um den Vorteil in einen Sieg umzusetzen!",
   "editorMoveTool": "Figuren verschieben",
   "editorEraseTool": "Figuren entfernen",
