@@ -1,5 +1,3 @@
 2.5.1
 
 Fixes crashes caused by invalid custom positions and repeated crashes when reopening a saved analysis. Unsafe positions are rejected before engine analysis. Recovery opens Home while preserving recent games and settings.
-
-If the app cannot open, install this update without uninstalling or clearing data. Already-deleted data cannot be recovered.

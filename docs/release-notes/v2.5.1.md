@@ -6,6 +6,4 @@ This hotfix prevents an invalid custom position from crashing the app or trappin
 - If a saved session cannot be restored safely, the app opens Home and keeps your recent games and settings. You can still open an unaffected game.
 - Valid promoted pieces, normal games and analysis remain supported.
 
-**If the previous version crashes on opening, install this update over it. Do not uninstall the app or clear its data.** The update is designed to retain existing games and settings. It cannot recover data that has already been deleted.
-
 No engine-strength, sampling, appearance or electronic-board settings have changed.
