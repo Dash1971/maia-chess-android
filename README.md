@@ -18,6 +18,16 @@ play with Stockfish's best move, or run a complete game review without a daily
 quota. Mobile Maia is an independent community project released under
 AGPL-3.0-only.
 
+## Community
+
+Join the [Mobile Maia community on Flotilla](https://app.flotilla.social/join?r=mobilemaia.spaces.flotilla.social&c=slusagresp6) to ask questions,
+share games, discuss settings, and help test Preview. We’re starting with a
+small pilot, currently limited to 10 members. You’ll need a Flotilla/Nostr
+account to join.
+
+Please keep using the relevant GitHub issue tracker for reproducible bugs
+and feature requests.
+
 ## Download and install
 
 [<img src="https://f-droid.org/badge/get-it-on.svg" alt="Get it on F-Droid" height="80">](https://f-droid.org/packages/com.dash1971.maia_chess/)
@@ -32,6 +42,7 @@ completes.
 
 ## Contents
 
+- [Community](#community)
 - [Download and install](#download-and-install)
 - [Mobile Maia 2.5](#mobile-maia-25)
 - [Feature guide](#feature-guide)
