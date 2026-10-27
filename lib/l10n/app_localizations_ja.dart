@@ -1526,4 +1526,8 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String get continuationBoardUnsupported =>
       '指定した局面からの対局は、現在Chessnutのチェス盤のみ対応しています。';
+
+  @override
+  String get sessionRecovery =>
+      'クラッシュの原因となった可能性があるセッションを再開せず、ホームを開きました。保存済みの対局と設定は保持されています。';
 }

@@ -1645,4 +1645,8 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get continuationBoardUnsupported =>
       'No momento, continuar a partir de uma posição só é compatível com tabuleiros Chessnut.';
+
+  @override
+  String get sessionRecovery =>
+      'O Mobile Maia abriu a tela inicial para evitar reabrir uma sessão que pode ter causado uma falha. Suas partidas salvas e configurações foram mantidas.';
 }

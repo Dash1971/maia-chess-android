@@ -2841,6 +2841,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Continuing from a position currently supports Chessnut boards only.'**
   String get continuationBoardUnsupported;
+
+  /// Home notice after suppressing an unsafe or interrupted automatic session restore. No games or settings are deleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Mobile Maia opened Home to avoid reopening a session that may have caused a crash. Your saved games and settings have been kept.'**
+  String get sessionRecovery;
 }
 
 class _AppLocalizationsDelegate

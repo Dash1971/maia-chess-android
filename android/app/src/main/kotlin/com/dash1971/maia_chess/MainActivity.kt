@@ -275,6 +275,14 @@ class MainActivity : FlutterActivity() {
                         call.argument<String>("shareTitle") ?: "")
                     "dataDirectory" -> result.success(filesDir.absolutePath)
                     "systemDiagnostics" -> result.success(systemDiagnostics())
+                    "previousProcessFailed" -> {
+                        val previous = previousExits(
+                            getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+                        ).maxByOrNull { (it["timestampMs"] as? Long) ?: 0L }
+                        val reason = previous?.get("reason") as? Int
+                        val status = previous?.get("status") as? Int
+                        result.success(SessionRecoveryPolicy.failed(reason, status))
+                    }
                     "getPendingPgn" -> documents.takePending(result)
                     "openPgnFile" -> documents.open(result)
                     "savePgnFile" -> documents.save(call.argument<String>("pgn") ?: "", result)

@@ -1641,4 +1641,8 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get continuationBoardUnsupported =>
       'Das Weiterspielen aus einer Stellung wird derzeit nur mit Chessnut-Brettern unterstützt.';
+
+  @override
+  String get sessionRecovery =>
+      'Mobile Maia hat die Startseite geöffnet, um eine möglicherweise für einen Absturz verantwortliche Sitzung nicht erneut zu öffnen. Deine gespeicherten Partien und Einstellungen bleiben erhalten.';
 }

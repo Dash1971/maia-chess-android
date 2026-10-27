@@ -453,5 +453,6 @@
   "continuationBoardUntimed": "Les parties sur échiquier électronique sont sans limite de temps.",
   "continuationSetUpBoard": "Placer les pièces",
   "continuationSetupHelp": "Reproduisez la position affichée sur votre échiquier. La partie commence lorsque les pièces correspondent.",
-  "continuationBoardUnsupported": "Pour le moment, seuls les échiquiers Chessnut permettent de continuer depuis une position."
+  "continuationBoardUnsupported": "Pour le moment, seuls les échiquiers Chessnut permettent de continuer depuis une position.",
+  "sessionRecovery": "Mobile Maia a ouvert l’accueil pour éviter de rouvrir une session qui a pu provoquer un plantage. Vos parties enregistrées et vos réglages ont été conservés."
 }

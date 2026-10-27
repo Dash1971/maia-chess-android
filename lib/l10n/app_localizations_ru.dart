@@ -1659,4 +1659,8 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get continuationBoardUnsupported =>
       'Продолжение игры из заданной позиции пока поддерживается только на досках Chessnut.';
+
+  @override
+  String get sessionRecovery =>
+      'Mobile Maia открыл главный экран, чтобы не открывать повторно сеанс, который мог вызвать сбой. Сохранённые партии и настройки не удалены.';
 }

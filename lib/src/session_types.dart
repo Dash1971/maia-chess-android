@@ -153,20 +153,22 @@ class RecordedVariation {
     'annotations': annotations,
   };
 
-  factory RecordedVariation.fromJson(Map<String, dynamic> json) =>
-      RecordedVariation(
-        annotations: (json['annotations'] as List? ?? const [])
-            .map((item) => Map<String, dynamic>.from(item as Map))
-            .toList(),
-        basePly: json['basePly'] as int,
-        baseFen: json['baseFen'] as String,
-        sanMoves: (json['sanMoves'] as List).cast<String>(),
-        children: (json['children'] as List? ?? const [])
-            .map(
-              (item) => RecordedVariation.fromJson(
-                Map<String, dynamic>.from(item as Map),
-              ),
-            )
-            .toList(growable: false),
-      );
+  factory RecordedVariation.fromJson(Map<String, dynamic> json) {
+    AnalysisSession.validateFen(json['baseFen'] as String);
+    return RecordedVariation(
+      annotations: (json['annotations'] as List? ?? const [])
+          .map((item) => Map<String, dynamic>.from(item as Map))
+          .toList(),
+      basePly: json['basePly'] as int,
+      baseFen: json['baseFen'] as String,
+      sanMoves: (json['sanMoves'] as List).cast<String>(),
+      children: (json['children'] as List? ?? const [])
+          .map(
+            (item) => RecordedVariation.fromJson(
+              Map<String, dynamic>.from(item as Map),
+            ),
+          )
+          .toList(growable: false),
+    );
+  }
 }

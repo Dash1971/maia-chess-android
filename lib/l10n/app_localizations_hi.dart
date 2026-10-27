@@ -1635,4 +1635,8 @@ class AppLocalizationsHi extends AppLocalizations {
   @override
   String get continuationBoardUnsupported =>
       'किसी स्थिति से आगे खेलने के लिए फ़िलहाल केवल Chessnut बोर्ड समर्थित हैं।';
+
+  @override
+  String get sessionRecovery =>
+      'ऐप क्रैश होने का कारण रहे संभावित सत्र को दोबारा खोलने के बजाय Mobile Maia ने होम स्क्रीन खोली है। आपके सहेजे गए खेल और सेटिंग्स सुरक्षित हैं।';
 }

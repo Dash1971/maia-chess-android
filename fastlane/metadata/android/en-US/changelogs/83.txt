@@ -1,0 +1,3 @@
+2.5.1
+
+Fixed a crash when analyzing certain custom positions.

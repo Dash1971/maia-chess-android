@@ -416,6 +416,14 @@ class _GamePageState extends State<GamePage>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     _feedbackForeground = state == AppLifecycleState.resumed;
+    if (state == AppLifecycleState.paused) {
+      unawaited(
+        ActiveSessionStore.finishAutomaticRestore().catchError(
+          (Object error, StackTrace stack) =>
+              AppDiagnostics.record('session-restore-background', error, stack),
+        ),
+      );
+    }
     if (state == AppLifecycleState.inactive ||
         state == AppLifecycleState.paused ||
         state == AppLifecycleState.detached ||
@@ -436,6 +444,15 @@ class _GamePageState extends State<GamePage>
     _updateScreenWakeLock(state);
   }
 
+  void _showSessionRecovery() {
+    if (!mounted) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(l10n(context).sessionRecovery)));
+    });
+  }
+
   Future<void> _restoreActiveSession([Map<String, dynamic>? selected]) async {
     if (_startingGame) return;
     Map<String, dynamic>? loaded;
@@ -447,8 +464,23 @@ class _GamePageState extends State<GamePage>
     }
     final saved = loaded;
     if (!mounted || saved == null) return;
+    if (selected == null) {
+      try {
+        if (!await ActiveSessionStore.beginAutomaticRestore()) {
+          _showSessionRecovery();
+          return;
+        }
+      } catch (error, stack) {
+        _handleStorageFailure(error, stack);
+        return;
+      }
+      if (!mounted) return;
+    }
     if (saved['type'] == 'analysis') {
       try {
+        if (saved['currentFen'] != null) {
+          AnalysisSession.validateFen(saved['currentFen'] as String);
+        }
         final session = AnalysisSession.fromJson(
           Map<String, dynamic>.from(saved['session'] as Map),
         );
@@ -494,17 +526,17 @@ class _GamePageState extends State<GamePage>
           error,
           stackTrace,
         );
-        await ActiveSessionStore.clear();
+        await ActiveSessionStore.blockAutomaticRestore();
+        _showSessionRecovery();
       }
       return;
     }
     if (saved['type'] == 'review') {
       try {
-        _reviewUseMoveHistory = saved['maiaUseMoveHistory'] == true;
-        if (saved['activeGame'] case final Map game) {
-          _reviewOpen = true;
-          await _restoreGame(Map<String, dynamic>.from(game), paused: true);
+        if (saved['currentFen'] != null) {
+          AnalysisSession.validateFen(saved['currentFen'] as String);
         }
+        _reviewUseMoveHistory = saved['maiaUseMoveHistory'] == true;
         final session = AnalysisSession.fromJson(
           Map<String, dynamic>.from(saved['session'] as Map),
         );
@@ -519,6 +551,16 @@ class _GamePageState extends State<GamePage>
               ),
             )
             .toList(growable: false);
+        if (saved['activeGame'] case final Map game) {
+          _reviewOpen = true;
+          if (!await _restoreGame(
+            Map<String, dynamic>.from(game),
+            paused: true,
+          )) {
+            _reviewOpen = false;
+            return;
+          }
+        }
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (!mounted) return;
           _reviewOpen = true;
@@ -572,14 +614,15 @@ class _GamePageState extends State<GamePage>
           error,
           stackTrace,
         );
-        await ActiveSessionStore.clear();
+        await ActiveSessionStore.blockAutomaticRestore();
+        _showSessionRecovery();
       }
       return;
     }
     if (saved['type'] == 'game') await _restoreGame(saved);
   }
 
-  Future<void> _restoreGame(
+  Future<bool> _restoreGame(
     Map<String, dynamic> saved, {
     bool paused = false,
   }) async {
@@ -805,9 +848,12 @@ class _GamePageState extends State<GamePage>
         }
         _scheduleGameConclusion(playFeedback: false);
       }
+      return true;
     } catch (error, stackTrace) {
       await AppDiagnostics.record('game-session-restore', error, stackTrace);
-      await ActiveSessionStore.clear();
+      await ActiveSessionStore.blockAutomaticRestore();
+      _showSessionRecovery();
+      return false;
     }
   }
 

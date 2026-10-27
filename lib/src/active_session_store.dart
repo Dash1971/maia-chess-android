@@ -2,6 +2,59 @@ part of '../main.dart';
 
 class ActiveSessionStore {
   static const _key = 'activeSessionV1';
+  static const _restorePending = 'sessionRestorePendingV1';
+  static const _restoreBlocked = 'sessionRestoreBlockedV1';
+  static final _restoreProcessToken =
+      '${DateTime.now().microsecondsSinceEpoch}:${Random.secure().nextInt(1 << 32)}';
+
+  /// Keep the checkpoint and archive untouched when a previous process died.
+  /// A pending restore also protects devices without Android exit reports.
+  static Future<bool> beginAutomaticRestore() async {
+    final preferences = await SharedPreferences.getInstance();
+    if (preferences.getBool(_restoreBlocked) == true) return false;
+    final pending = preferences.get(_restorePending);
+    var interrupted = pending != null && pending != _restoreProcessToken;
+    try {
+      if (_usingRepository) {
+        interrupted |=
+            await maiaEngineChannel
+                .invokeMethod<bool>('previousProcessFailed')
+                .timeout(const Duration(seconds: 2)) ==
+            true;
+      }
+    } on MissingPluginException {
+      // Older/non-Android hosts still have the persistent restore marker.
+    } catch (error, stack) {
+      await AppDiagnostics.record('session-exit-report', error, stack);
+    }
+    if (interrupted) {
+      await blockAutomaticRestore();
+      return false;
+    }
+    if (!await preferences.setString(_restorePending, _restoreProcessToken)) {
+      throw const FileSystemException('Could not protect session restoration');
+    }
+    return true;
+  }
+
+  static Future<void> blockAutomaticRestore() async {
+    final preferences = await SharedPreferences.getInstance();
+    if (!await preferences.setBool(_restoreBlocked, true)) {
+      throw const FileSystemException('Could not protect session restoration');
+    }
+  }
+
+  /// A normal trip to the background is not evidence of a failed restore.
+  static Future<void> finishAutomaticRestore() async {
+    await (await SharedPreferences.getInstance()).remove(_restorePending);
+  }
+
+  static Future<void> _allowAutomaticRestore() async {
+    final preferences = await SharedPreferences.getInstance();
+    await preferences.remove(_restorePending);
+    await preferences.remove(_restoreBlocked);
+  }
+
   static Future<SessionRepository>? _repository;
   static SessionRepository? _testRepository;
 
@@ -47,6 +100,7 @@ class ActiveSessionStore {
     } else {
       await (await SharedPreferences.getInstance()).remove(_key);
     }
+    await _allowAutomaticRestore();
   }
 
   static Future<void> discardActive() async {
@@ -56,12 +110,17 @@ class ActiveSessionStore {
     } else {
       await (await SharedPreferences.getInstance()).remove(_key);
     }
+    await _allowAutomaticRestore();
   }
 
   static Future<List<RecentSession>> recent() async =>
       _usingRepository ? (await repository).recent() : [];
-  static Future<Map<String, dynamic>?> open(String id) async =>
-      (await repository).open(id);
+  static Future<Map<String, dynamic>?> open(String id) async {
+    final saved = await (await repository).open(id);
+    await _allowAutomaticRestore();
+    return saved;
+  }
+
   static Future<void> delete(String id) async => (await repository).delete(id);
   static Future<void> deleteMany(Iterable<String> ids) async =>
       (await repository).deleteMany(ids);
@@ -143,8 +202,10 @@ class ActiveSessionStore {
     await _validateLegacyCheckpoint();
     if (_usingRepository) {
       await (await repository).startNew();
+      await _allowAutomaticRestore();
       return;
     }
     await (await SharedPreferences.getInstance()).remove(_key);
+    await _allowAutomaticRestore();
   }
 }

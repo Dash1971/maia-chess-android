@@ -285,7 +285,46 @@ class AnalysisSession {
 
   static void validateFen(String fen) {
     try {
-      dc.Chess.fromSetup(dc.Setup.parseFen(fen.trim()));
+      // Native Stockfish terminates the process on unsupported FENs. Validate
+      // before *any* engine call, including restored/imported positions.
+      final value = fen.trim();
+      final fields = value.split(' ');
+      if (value.length > 200 ||
+          fields.length != 6 ||
+          RegExp(r'[\r\n\t]').hasMatch(value)) {
+        throw const FormatException('Expected a single six-field FEN.');
+      }
+      final halfmoves = int.tryParse(fields[4]);
+      final fullmoves = int.tryParse(fields[5]);
+      if (halfmoves == null ||
+          halfmoves < 0 ||
+          halfmoves > 32767 ||
+          fullmoves == null ||
+          fullmoves < 1 ||
+          fullmoves > 100000) {
+        throw const FormatException('Move counters exceed engine limits.');
+      }
+      final position = dc.Chess.fromSetup(dc.Setup.parseFen(value));
+      for (final side in dc.Side.values) {
+        final pieces = position.board.pieces.where(
+          (entry) => entry.$2.color == side,
+        );
+        final counts = <dc.Role, int>{};
+        for (final entry in pieces) {
+          counts.update(entry.$2.role, (n) => n + 1, ifAbsent: () => 1);
+        }
+        final pawns = counts[dc.Role.pawn] ?? 0;
+        final extra =
+            max(0, (counts[dc.Role.queen] ?? 0) - 1) +
+            max(0, (counts[dc.Role.rook] ?? 0) - 2) +
+            max(0, (counts[dc.Role.bishop] ?? 0) - 2) +
+            max(0, (counts[dc.Role.knight] ?? 0) - 2);
+        if (pieces.length > 16 || pawns > 8 || extra > 8 - pawns) {
+          throw const FormatException(
+            'Impossible material for standard chess.',
+          );
+        }
+      }
       final result = chess.Chess.validate_fen(fen.trim());
       if (result['valid'] != true) {
         throw FormatException(result['error'].toString());

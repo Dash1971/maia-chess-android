@@ -1638,4 +1638,8 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get continuationBoardUnsupported =>
       'Pour le moment, seuls les échiquiers Chessnut permettent de continuer depuis une position.';
+
+  @override
+  String get sessionRecovery =>
+      'Mobile Maia a ouvert l’accueil pour éviter de rouvrir une session qui a pu provoquer un plantage. Vos parties enregistrées et vos réglages ont été conservés.';
 }

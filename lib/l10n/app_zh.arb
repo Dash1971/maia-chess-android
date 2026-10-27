@@ -453,5 +453,6 @@
   "continuationBoardUntimed": "电子棋盘对局不限时。",
   "continuationSetUpBoard": "摆好棋盘",
   "continuationSetupHelp": "请在棋盘上摆出屏幕所示的局面。棋子位置一致后，对局即开始。",
-  "continuationBoardUnsupported": "目前仅支持使用 Chessnut 棋盘从指定局面继续对局。"
+  "continuationBoardUnsupported": "目前仅支持使用 Chessnut 棋盘从指定局面继续对局。",
+  "sessionRecovery": "为避免重新打开可能导致崩溃的会话，Mobile Maia 已返回主页。已保存的对局和设置均已保留。"
 }

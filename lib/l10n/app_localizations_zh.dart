@@ -1503,4 +1503,8 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get continuationBoardUnsupported => '目前仅支持使用 Chessnut 棋盘从指定局面继续对局。';
+
+  @override
+  String get sessionRecovery =>
+      '为避免重新打开可能导致崩溃的会话，Mobile Maia 已返回主页。已保存的对局和设置均已保留。';
 }
