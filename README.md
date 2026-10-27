@@ -40,6 +40,12 @@ and feature requests.
 F-Droid updates become available after its separate reproducible-build process
 completes.
 
+A progressive web app (PWA) version is being developed at
+[mobilemaia.org](https://mobilemaia.org/). You can already
+[try Mobile Maia in your browser](https://mobilemaia.org/play/) using the
+smaller Maia-3 5M model. The current browser edition is not yet an installable
+or offline PWA.
+
 ## Contents
 
 - [Community](#community)
@@ -685,6 +691,12 @@ For context on the Android side, see F-Droid's
 
 Official Android downloads and update options are available through GitHub,
 F-Droid, Obtainium, and Zapstore, as described below.
+
+A progressive web app (PWA) version is being developed at
+[mobilemaia.org](https://mobilemaia.org/), offering a browser-based way to try
+Mobile Maia without an app-store installation. You can already
+[play the browser edition with Maia-3 5M](https://mobilemaia.org/play/);
+it is not yet an installable or offline PWA.
 
 ### What about forks published in app stores?
 
