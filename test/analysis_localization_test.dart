@@ -23,9 +23,12 @@ void main() {
       await tester.pumpAndSettle();
       final context = tester.element(find.byType(BoardEditorPage));
       final strings = AppLocalizations.of(context)!;
-      expect(find.text(strings.editBoard), findsOneWidget);
-      expect(find.text(strings.pieceKing), findsOneWidget);
-      expect(find.text(strings.whitePieces), findsOneWidget);
+      expect(find.text(strings.boardEditor), findsOneWidget);
+      expect(
+        find.byTooltip(strings.editorWhiteKing),
+        findsOneWidget,
+      );
+      expect(find.byKey(const ValueKey('editor-move-white')), findsOneWidget);
       expect(find.text('Edit Board'), findsNothing);
       expect(tester.takeException(), isNull);
     });

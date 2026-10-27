@@ -262,6 +262,27 @@ deleted automatically. The stopped test app and synthetic records remain on
 the emulator for inspection. This checks code/data compatibility; it does not
 validate the production signing key or actual phone/Bluetooth behavior.
 
+## Stable 2.5 feature qualification
+
+After explicit build authorization, run the new integration suites on the
+candidate Stable source/APK as well as `integration_test/review_android_test.dart`:
+
+- `integration_test/board_preferences_android_test.dart`: real preference storage,
+  restart-style reload and touch behavior.
+- `integration_test/board_editor_android_test.dart`: real touch, dragging and FEN
+  clipboard behavior.
+- `integration_test/maia_score_android_test.dart`: the real 79M outcome head,
+  independently conditioned ratings, UI and persistence.
+- `integration_test/continuation_board_android_test.dart`: exact-position setup,
+  ownership handoff and real inference, with a simulated transport. This does
+  not replace physical Chessnut acceptance.
+
+Use the unflavored Stable build (no `--flavor preview`/`dev`), retain the source
+SHA and logs, and separately verify the actual signed Stable APK and upgrade
+from the published 2.4.0 APK. Check appearance/system-color fallback and
+pure-black panels on that APK. Prior Preview tests do not qualify Stable.
+These feature checks supplement the existing release gates above.
+
 ## CI and artifact retention
 
 Every PR runs the host suite, localization checks, verification-tool unit tests

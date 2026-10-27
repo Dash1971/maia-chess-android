@@ -1,5 +1,14 @@
 part of '../main.dart';
 
+// Defaults for new preferences/reset only. Saved game profiles and the legacy
+// MaiaPlaySettings constructor/restore defaults deliberately remain unchanged.
+const defaultMaiaPlayElo = 1500;
+const defaultMaiaAnalysisElo = 1500;
+const defaultSecondMaiaElo = 2600;
+const defaultMaiaTemperature = 1.0;
+const defaultMaiaTopP = 0.95;
+const defaultMaxOpeningVariety = true;
+
 /// Frozen per game. The opening override never writes back to preferences.
 class MaiaPlaySettings {
   const MaiaPlaySettings({

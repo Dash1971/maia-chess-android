@@ -159,7 +159,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get maxOpeningVarietyHelp =>
-      'Inutile si Température et Top-P sont à leurs valeurs par défaut de 1,0 / 1,0. Utilise 1,0 / 1,0 pour les cinq premiers coups de chaque camp, puis rétablit vos réglages à partir du 6e coup.\n\nL’objectif est d’offrir à Maia un maximum de variété dans l’ouverture, tout en permettant un jeu potentiellement plus fort par la suite en réduisant les chances de choisir des coups de faible probabilité grâce à des valeurs plus basses de Température et/ou de Top-P.';
+      'Activée par défaut. Utilise température et Top-P 1,0 / 1,0 pendant les cinq premiers coups de chaque camp, puis vos réglages dès le sixième. Cela préserve un large choix d’ouvertures tout en permettant d’écarter ensuite les coups peu probables. Le numéro de coup de la position est respecté, même lors d’une reprise.\n\nInutile à 1,0 / 1,0 : l’interrupteur est désactivé et non sélectionnable, car ces valeurs offrent déjà toute la variété pendant la partie.';
 
   @override
   String get maiaAnalysisRating => 'Classement de Maia pour l’analyse';
@@ -394,6 +394,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get promoteVariation => 'Promouvoir la variante';
+
+  @override
+  String get mainLine => 'variante principale';
 
   @override
   String get makeMainLine => 'En faire la variante principale';
@@ -725,7 +728,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get recentCancelSelection => 'Annuler la sélection';
 
   @override
-  String get recentClearSelection => 'Effacer la sélection';
+  String get recentClearSelection => 'Tout désélectionner';
 
   @override
   String get recentSelectAll => 'Sélectionner toutes les parties';
@@ -953,7 +956,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get chessnutGameRestriction =>
-      'Sur Chessnut, seules les parties sans limite de temps depuis la position initiale standard sont prises en charge.';
+      'Les parties sur Chessnut sont sans limite de temps.';
 
   @override
   String get samplingTitle => 'Température et Top-P';
@@ -966,8 +969,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get samplingResearch => 'Données de recherche complètes (JSONL)';
 
   @override
-  String get samplingResearchLink =>
-      'Données de recherche complètes (en anglais)';
+  String get samplingResearchLink => 'Guide visuel et recherche (en anglais)';
 
   @override
   String get close => 'Fermer';
@@ -1013,7 +1015,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get samplingRecommendationWarning =>
-      'Baisser la température ou Top-P peut renforcer Maia en milieu de partie, mais réduit la variété des ouvertures. Consultez le bouton d’information pour en savoir plus.';
+      'Le répertoire de Maia peut être plus limité si la variété maximale en ouverture est désactivée.';
 
   @override
   String get couldNotOpenPgn => 'Impossible d’ouvrir le PGN.';
@@ -1146,7 +1148,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get boardGameRestriction =>
-      'Les parties sur échiquier électronique commencent depuis la position de départ standard et sans limite de temps.';
+      'Les parties sur échiquier électronique sont sans limite de temps.';
 
   @override
   String get boardConfirmSetup => 'J’ai placé la position de départ';
@@ -1212,7 +1214,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get maiaHistoryHelp =>
-      'Permet à Maia de prendre en compte jusqu’à sept positions précédentes en plus de la position actuelle. Cela a amélioré la précision des prédictions des coups humains d’environ 2 points de pourcentage dans nos tests avec le modèle 79M, mais a parfois favorisé l’imitation répétée des coups dans les ouvertures à faible classement. Nous n’avons pas pu établir de gain de force de jeu. Pour l’instant, nous recommandons de laisser cette option désactivée.';
+      'Permet à Maia d’utiliser jusqu’à sept positions précédentes pour choisir un coup. Dans nos tests avec le modèle 79M, cela a amélioré la précision des prédictions des coups humains d’environ 2 points de pourcentage, mais a parfois entraîné une imitation répétée des coups dans les ouvertures à faible niveau Elo. Pour l’instant, nous recommandons de laisser cette option désactivée.';
 
   @override
   String get maiaHistoryResearch =>
@@ -1375,7 +1377,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get resetSettingsDefaultsScope =>
-      'Rétablit tous les réglages de cet écran. Les parties et les données d’échantillonnage enregistrées sont conservées.';
+      'Rétablit tous les réglages de cet écran. Les parties et les données de choix de coups enregistrées sont conservées.';
 
   @override
   String get settingsResetError =>
@@ -1387,36 +1389,253 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get resetSettingsKeepData =>
-      'Vos parties et données d’échantillonnage enregistrées seront conservées.';
+      'Vos parties et données de choix de coups enregistrées seront conservées.';
 
   @override
   String get resetSettingsAction => 'Rétablir les réglages';
 
   @override
   String get samplingHelpIntro =>
-      'La Température et Top-P déterminent comment Maia choisit parmi les coups possibles.';
+      'La température et Top-P déterminent ensemble la variété dans le jeu de Maia.\n\nNous recommandons une température de 1,0, Top-P à 0,95 et l’option « Variété maximale dans l’ouverture » activée. Ce sont les réglages par défaut. D’après notre recherche, ils offrent un bon équilibre entre un jeu proche de celui des humains, des ouvertures variées et moins de gaffes inhabituelles.\n\nLa suite explique comment fonctionnent ces réglages.';
 
   @override
   String get samplingHelpVariety =>
-      'Augmenter la Température et Top-P rend Maia plus imprévisible, car elle a davantage de chances de jouer des coups peu probables. Il peut s’agir de gaffes, mais aussi d’excellents coups !';
+      'Température\n\nÀ température 0, Maia joue toujours le coup qu’elle prédit comme le plus probable pour un joueur de l’Elo sélectionné. C’est ce que l’on appelle techniquement argmax.\n\nÀ température 1, Maia envisage tous les coups qu’elle prédit qu’un joueur de l’Elo sélectionné pourrait jouer, et choisit parmi eux selon leurs probabilités.\n\nAvec une température entre 0 et 1, Maia donne davantage de poids aux coups qu’elle estime les plus probables. Plus la température est basse, plus ses choix sont prévisibles.\n\nPar exemple, dans nos tests avec le modèle 79M et une valeur Elo de 1600 en entrée pour les deux joueurs, les probabilités du premier coup de Maia avec les blancs étaient approximativement les suivantes :\n\n• 1. e4 : 64 %\n• 1. d4 : 25 %\n• 1. c4 : 3 %\n• Tous les autres coups réunis : 8 %\n\nÀ température 0, Maia jouait toujours 1. e4.\n\nÀ température 0,5, elle jouait 1. e4 environ 86 % du temps et 1. d4 environ 13 % du temps. Les autres coups restaient possibles, mais représentaient ensemble moins de 1 %.\n\nÀ température 1, Maia suivait les probabilités d’origine indiquées ci-dessus.';
 
   @override
   String get samplingHelpDefaults =>
-      'Si vous souhaitez un maximum de variété et voulez que Maia joue un large éventail d’ouvertures humaines, y compris des variantes secondaires, conservez les valeurs par défaut de 1,0 et 1,0.';
+      'Top-P\n\nTop-P filtre les coups disponibles après que la température a ajusté leurs probabilités.\n\nAvec Top-P à 1, aucun filtrage n’est appliqué. Tous les coups disponibles peuvent être joués selon leurs probabilités ajustées par la température.\n\nAvec Top-P à 0,95, Maia conserve les coups les plus probables jusqu’à ce que leur probabilité cumulée atteigne au moins 95 %, puis choisit parmi eux. Les coups exclus représentent au maximum 5 % de la probabilité.\n\nAvec Top-P à 0, Maia choisit toujours le coup le plus probable. L’effet est le même qu’avec une température de 0 : mettre l’un ou l’autre réglage à 0 suffit pour obtenir argmax.\n\nDans notre exemple d’ouverture, une température de 1 et Top-P à 0,60 feraient toujours jouer 1. e4 à Maia. Ce coup représente à lui seul environ 64 % de la probabilité ; aucun autre coup n’est donc nécessaire pour atteindre le seuil de 60 %.';
 
   @override
   String get samplingHelpStrength =>
-      'Si vous préférez un adversaire plus fort qui commet moins de gaffes, essayez de réduire les valeurs de Température et de Top-P.';
+      'Comment ces réglages influencent-ils le jeu de Maia ?\n\nVous pouvez voir Top-P comme un ange sur l’épaule de Maia. À 0, l’ange dit à Maia d’ignorer les coups moins probables, qui peuvent comprendre des gaffes ou des coups peu solides. À 1,0, l’ange est parti, et Maia pourrait même choisir le coup le plus fou et le plus improbable.\n\nDans nos tests en confrontation directe au réglage 1600, argmax a surpassé température 1,0 / Top-P 1,0 d’un écart équivalant à environ 300 points Elo. Cependant, argmax limitait aussi les choix d’ouverture à un éventail restreint, composé surtout de variantes principales.';
 
   @override
   String get samplingHelpArgmax =>
-      'Lorsque la Température est réglée sur 0, Maia utilise argmax. C’est une façon technique de dire que Maia jouera toujours le coup qu’elle prédit comme le plus probable pour un humain dans une position donnée. Attention ! Dans notre étude avec le niveau réglé sur 1600, Maia avec argmax a surpassé Maia avec 1,0 / 1,0 d’un écart équivalent à environ 300 points Elo lors de confrontations directes.';
+      'Nous avons donc introduit « Variété maximale dans l’ouverture » : un interrupteur qui fait jouer Maia avec une température de 1,0 et Top-P à 1,0 pendant les cinq premiers coups de chaque camp. Vous pourriez voir des choses folles dans l’ouverture ! À partir du sixième coup, Maia revient aux réglages que vous avez configurés.';
 
   @override
   String get samplingHelpTopP =>
-      'Pour un jeu équilibré, vous pouvez conserver la Température à 1,0 et régler Top-P sur 0,95. Cela préserve la variété tout en éliminant des coups peu probables, qui peuvent souvent être des gaffes, mais aussi de bons coups. Top-P écarte essentiellement les coups les moins probables. À 0,95, il conserve des coups dont les probabilités totalisent au moins 95 % après application de la Température. Maia ne pourra pas choisir les coups restants.';
+      'Nous recommandons de garder « Variété maximale dans l’ouverture » activée, avec la température réglée sur 1,0 et Top-P sur 0,95. C’est comme un joueur créatif avec un ange sur l’épaule, qui le dissuade au moins de jouer les coups complètement farfelus : les coups les moins probables dont la probabilité cumulée représente jusqu’à 5 %. Ils pourraient certes être brillants, mais aussi être des gaffes absurdes. Cela devrait offrir un bon équilibre entre variété en ouverture, créativité en milieu de partie et jeu plus fort grâce à l’exclusion de certaines gaffes très peu probables.\n\nPour les plus courageux, la température 0 a produit le jeu le plus fort dans nos tests. Bonne chance !';
 
   @override
   String get samplingHelpResearchIntro =>
-      'Nous avons expérimenté ces réglages à 1600 Elo et publié l’ensemble de nos résultats ici :';
+      'Le guide visuel présente la recherche derrière ces choix et les liens vers les résultats complets.';
+
+  @override
+  String get samplingFullVarietyNotice =>
+      'Maia peut commettre davantage de gaffes inhabituelles avec température et Top-P à 1,0 / 1,0.';
+
+  @override
+  String get samplingArgmaxNotice =>
+      'Maia peut jouer plus fort avec température ou Top-P à 0. Bonne chance !';
+
+  @override
+  String get topPNotUsed => 'Top-P : non utilisé';
+
+  @override
+  String get topPNotUsedTitle => 'Pourquoi Top-P est inutilisé';
+
+  @override
+  String get topPNotUsedHelp =>
+      'À température 0, Maia choisit toujours un coup de probabilité maximale : Top-P est donc sans effet. Sa valeur est conservée et redevient disponible quand vous augmentez la température. Si la variété en ouverture est activée, les cinq premiers coups de chaque camp utilisent toujours 1,0 / 1,0.';
+
+  @override
+  String get samplingLowerNotice =>
+      'Maia peut jouer plus fort avec une température ou un Top-P plus bas.';
+
+  @override
+  String get appearance => 'Apparence';
+
+  @override
+  String get appearanceSystemColors => 'Utiliser les couleurs du système';
+
+  @override
+  String get appearanceSystemColorsHelp =>
+      'Utiliser la palette de couleurs Android';
+
+  @override
+  String get appearanceSystemColorsUnavailable =>
+      'Indisponible sur cet appareil. Nécessite Android 12 ou une version ultérieure.';
+
+  @override
+  String get appearancePureBlack => 'Fond noir pur';
+
+  @override
+  String get appearancePureBlackHelp =>
+      'Utiliser des fonds noirs en mode sombre';
+
+  @override
+  String get appearancePreferenceError =>
+      'L’apparence a changé, mais n’a pas pu être enregistrée. Veuillez réessayer.';
+
+  @override
+  String get appearanceTheme => 'Thème';
+
+  @override
+  String get appearanceLight => 'Clair';
+
+  @override
+  String get appearanceDark => 'Sombre';
+
+  @override
+  String get appearanceSystemDefault => 'Thème de l\'appareil';
+
+  @override
+  String get boardSettings => 'Échiquier';
+
+  @override
+  String get boardCoordinates => 'Coordonnées';
+
+  @override
+  String get boardLegalMoves => 'Destinations des coups légaux';
+
+  @override
+  String get boardLastMove => 'Surbrillance du dernier coup';
+
+  @override
+  String get boardAnimation => 'Animation des pièces';
+
+  @override
+  String get boardMagnify => 'Grossir la pièce déplacée';
+
+  @override
+  String get boardDragTarget => 'Cible de la pièce déplacée';
+
+  @override
+  String get boardTargetCircle => 'Cercle';
+
+  @override
+  String get boardTargetSquare => 'Carré';
+
+  @override
+  String get boardTargetNone => 'Aucune';
+
+  @override
+  String get boardPreferenceError =>
+      'Impossible d’enregistrer les réglages de l’échiquier. Réessayez.';
+
+  @override
+  String get boardDesign => 'Échiquier';
+
+  @override
+  String get boardPieceSet => 'Jeu de pièces';
+
+  @override
+  String get showMaiaScore => 'Afficher les chances de gain (score) Maia en %';
+
+  @override
+  String get maiaScore => 'Score Maia';
+
+  @override
+  String get maiaScoreEqual => 'Équilibré';
+
+  @override
+  String get maiaScoreHelp =>
+      'Affiche en haut de l’écran l’évaluation par Maia des chances de gagner (de marquer des points).\nLe point blanc ou noir indique à quel camp correspond le pourcentage.';
+
+  @override
+  String get maiaScoreExpectedHelp =>
+      'Par exemple, Blancs 60% signifie que Maia estime que les Blancs marqueraient environ 60 points sur 100 parties à partir de cette position. Une victoire rapporte 1 point ; une nulle, ½ point.';
+
+  @override
+  String get maiaScoreInputsHelp =>
+      'L’estimation utilise le classement d’analyse Maia sélectionné pour les deux joueurs. Si deux Maias sont activées, chacune affiche sa propre estimation à son propre classement.';
+
+  @override
+  String get maiaScorePreferenceError =>
+      'Impossible d’enregistrer les réglages du score Maia. Réessayez.';
+
+  @override
+  String get maiaScoreResearchLink =>
+      'Le score de Maia est-il fiable ? (en anglais)';
+
+  @override
+  String get maiaScoreStockfishHelp =>
+      'Il peut être utile de comparer cette estimation à l’évaluation de Stockfish. Ce n’est pas parce que Stockfish juge un camp meilleur qu’il est facile pour un humain de trouver les bons coups pour concrétiser cet avantage !';
+
+  @override
+  String get editorMoveTool => 'Déplacer les pièces';
+
+  @override
+  String get editorEraseTool => 'Effacer les pièces';
+
+  @override
+  String get editorEmptySquare => 'Case vide';
+
+  @override
+  String get editorPositionSettings => 'Réglages de la position';
+
+  @override
+  String get editorImageImportUnavailable =>
+      'Importer une position depuis une image (pas encore disponible)';
+
+  @override
+  String get editorShareFen => 'Partager la FEN';
+
+  @override
+  String get editorFenMetadata => 'Métadonnées FEN';
+
+  @override
+  String get editorHalfmoveClock => 'Compteur de demi-coups';
+
+  @override
+  String get editorFullmoveNumber => 'Numéro du coup';
+
+  @override
+  String get editorWhitePawn => 'Pion blanc';
+
+  @override
+  String get editorWhiteKnight => 'Cavalier blanc';
+
+  @override
+  String get editorWhiteBishop => 'Fou blanc';
+
+  @override
+  String get editorWhiteRook => 'Tour blanche';
+
+  @override
+  String get editorWhiteQueen => 'Dame blanche';
+
+  @override
+  String get editorWhiteKing => 'Roi blanc';
+
+  @override
+  String get editorBlackPawn => 'Pion noir';
+
+  @override
+  String get editorBlackKnight => 'Cavalier noir';
+
+  @override
+  String get editorBlackBishop => 'Fou noir';
+
+  @override
+  String get editorBlackRook => 'Tour noire';
+
+  @override
+  String get editorBlackQueen => 'Dame noire';
+
+  @override
+  String get editorBlackKing => 'Roi noir';
+
+  @override
+  String get continuationUseBoard => 'Utiliser un échiquier électronique';
+
+  @override
+  String get continuationConnectHelp => 'Connectez un échiquier compatible.';
+
+  @override
+  String get continuationBoardUntimed =>
+      'Les parties sur échiquier électronique sont sans limite de temps.';
+
+  @override
+  String get continuationSetUpBoard => 'Placer les pièces';
+
+  @override
+  String get continuationSetupHelp =>
+      'Reproduisez la position affichée sur votre échiquier. La partie commence lorsque les pièces correspondent.';
+
+  @override
+  String get continuationBoardUnsupported =>
+      'Pour le moment, seuls les échiquiers Chessnut permettent de continuer depuis une position.';
 }

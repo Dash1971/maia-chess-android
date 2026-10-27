@@ -158,7 +158,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get maxOpeningVarietyHelp =>
-      'Not needed when Temperature and Top-P are at their default values of 1.0 / 1.0. Uses 1.0 / 1.0 for the first five moves by each side, then returns to your configured settings from move 6.\n\nThe goal is to give Maia maximum opening variety while allowing potentially stronger play later in the game by reducing the chance of low-probability moves through lower Temperature and/or Top-P.';
+      'On by default. Uses Temperature and Top-P 1.0 / 1.0 for the first five moves by each side, then your configured settings from move 6. This keeps broad opening choices while allowing you to trim low-probability moves later. It follows the position’s move number, including when resuming or continuing a game.\n\nNot needed at 1.0 / 1.0: the switch is off and unavailable because those settings already give full variety throughout.';
 
   @override
   String get maiaAnalysisRating => 'Maia analysis rating';
@@ -392,6 +392,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get promoteVariation => 'Promote variation';
+
+  @override
+  String get mainLine => 'main line';
 
   @override
   String get makeMainLine => 'Make main line';
@@ -939,8 +942,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get premoveLimit => 'Up to 64 premoves can be queued.';
 
   @override
-  String get chessnutGameRestriction =>
-      'Chessnut play supports standard-position, unlimited games only.';
+  String get chessnutGameRestriction => 'Chessnut games use unlimited time.';
 
   @override
   String get samplingTitle => 'Temperature and Top-P';
@@ -952,7 +954,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get samplingResearch => 'Full research data (JSONL)';
 
   @override
-  String get samplingResearchLink => 'Full research data';
+  String get samplingResearchLink => 'Visual guide and research';
 
   @override
   String get close => 'Close';
@@ -998,7 +1000,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get samplingRecommendationWarning =>
-      'Lowering Temperature or Top-P may make Maia stronger in the middlegame, but reduce opening variety. See the information button for details.';
+      'Maia may play a more limited opening repertoire with Max variety in opening disabled.';
 
   @override
   String get couldNotOpenPgn => 'Could not open PGN.';
@@ -1130,7 +1132,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get boardGameRestriction =>
-      'Electronic-board games start from the standard position and use unlimited time.';
+      'Electronic-board games use unlimited time.';
 
   @override
   String get boardConfirmSetup => 'I have set up the starting position';
@@ -1195,7 +1197,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get maiaHistoryHelp =>
-      'Let Maia consider up to seven previous positions as well as the current position. This improved prediction of human moves by about 2 percentage points in our tests with the 79M model, but sometimes encouraged repeated copying in low-rated openings. We were not able to establish a strength increase. Off is recommended for now.';
+      'Let Maia use up to seven previous positions when choosing a move. In our tests with the 79M model, this improved prediction of human moves by about 2 percentage points, but sometimes led to repeated copying in lower-rated openings. We recommend leaving this off for now.';
 
   @override
   String get maiaHistoryResearch => 'Read the move-history research';
@@ -1374,29 +1376,242 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get samplingHelpIntro =>
-      'Temperature and Top-P control how Maia chooses between moves.';
+      'Temperature and Top-P combine to set the amount of variety in Maia’s play.\n\nWe recommend Temperature 1.0, Top-P 0.95, and Max variety in opening enabled. These are the default settings. Based on our research, they offer a good balance of human-like play, opening variety and fewer unusual blunders.\n\nRead on to learn how these settings work.';
 
   @override
   String get samplingHelpVariety =>
-      'Increasing Temperature and Top-P is like making Maia a more volatile player, as Maia becomes more likely to play low-probability moves. These may be blunders, but they may also be brilliant moves!';
+      'Temperature\n\nAt Temperature 0, Maia always plays the move it predicts a player at the selected Elo is most likely to play. This is technically called argmax.\n\nAt Temperature 1, Maia considers the full range of moves it predicts a player at the selected Elo might play, choosing among them according to their probabilities.\n\nAt a Temperature between 0 and 1, Maia puts more weight on the moves it considers most likely. Lower Temperature values make Maia\'s choices more predictable.\n\nFor example, in our tests with the 79M model at rating inputs of 1600 for both players, Maia’s opening probabilities as White were approximately:\n\n• 1. e4: 64%\n• 1. d4: 25%\n• 1. c4: 3%\n• All other moves combined: 8%\n\nAt Temperature 0, Maia always played 1. e4\n\nAt Temperature 0.5, it played 1. e4 about 86% of the time and 1. d4 about 13% of the time. Other moves remained possible, but together accounted for less than 1%.\n\nAt Temperature 1, Maia followed the original probabilities listed above.';
 
   @override
   String get samplingHelpDefaults =>
-      'If you value maximum variety, and you also want Maia to play a broad range of human openings, including sidelines, then keep the default values of 1.0 and 1.0.';
+      'Top-P\n\nTop-P filters the available moves after Temperature adjusts their probabilities.\n\nAt Top-P 1, no filtering is applied. All available moves can be played according to their temperature-adjusted probabilities.\n\nAt Top-P 0.95, Maia keeps the most likely moves whose combined probability reaches at least 95%, then chooses among them. The excluded moves account for at most 5% of the probability.\n\nAt Top-P 0, Maia always chooses the most likely move. This has the same effect as Temperature 0: either setting is sufficient to produce argmax.\n\nIn our opening example, Temperature 1 and Top-P 0.60 would make Maia always play 1. e4. That move alone accounts for about 64% of the probability, so no other moves are needed to reach the 60% threshold.';
 
   @override
   String get samplingHelpStrength =>
-      'If you prefer a stronger opponent playing fewer blunders, experiment with moving Temperature and Top-P values down.';
+      'How do these settings affect Maia’s play?\n\nYou can think of Top-P as an angel on Maia’s shoulder. At 0, the angel tells Maia to ignore lower-probability moves, which can include blunders or unsound moves. At 1.0, the angel has gone, and Maia could select even the craziest, most improbable move.\n\nIn our direct-match tests at the 1600 setting, argmax outperformed Temperature 1.0 / Top-P 1.0 by the equivalent of about 300 Elo points. However, argmax also limited opening choices to a narrow range of mainly main lines.';
 
   @override
   String get samplingHelpArgmax =>
-      'Setting Temperature to 0 will cause Maia to use argmax, which is a technical way of saying that Maia will always play what it predicts is the most probable human move in a given position. Careful! In our research at the 1600 setting, argmax Maia outperformed Maia at 1.0 / 1.0 by the equivalent of about 300 Elo points in direct matches.';
+      'So, we introduced Max variety in opening: a toggle which sets Maia to play with Temperature 1.0 and Top-P 1.0 for the first five moves by each side. You might see some crazy things in the opening phase! From move six, Maia switches to your configured settings.';
 
   @override
   String get samplingHelpTopP =>
-      'For balanced play, you may consider keeping Temperature at 1.0 and setting Top-P to 0.95. This maintains variety while eliminating low-probability moves, which can often be blunders—but can also be good moves. Top-P essentially cuts off low-probability moves. Setting it to 0.95 keeps moves accounting for at least 95% of the probability after Temperature is applied. The remaining moves cannot be selected by Maia.';
+      'We recommend keeping max opening variety on and Temperature set to 1.0 and Top-P set to 0.95. This is like having a creative player with an angel on its shoulder that at least talks it out of playing the totally far-out moves—the least likely moves whose combined probability is up to 5%. These might be brilliant, true, but they can also be silly blunders. So this should make for a good balance of variety in the opening, creativity in the middle game, and stronger play through the exclusion of some very low-probability blunders.\n\nFor those feeling brave, Temperature 0 produced the strongest play in our tests. Good luck!';
 
   @override
   String get samplingHelpResearchIntro =>
-      'We experimented with these settings at 1600 Elo and published our full findings here:';
+      'See the visual guide for the research behind these choices, with links to the full results.';
+
+  @override
+  String get samplingFullVarietyNotice =>
+      'Maia may play more unusual blunders with Temperature and Top-P at 1.0 / 1.0.';
+
+  @override
+  String get samplingArgmaxNotice =>
+      'Maia may play stronger with Temperature or Top-P at 0. Good luck!';
+
+  @override
+  String get topPNotUsed => 'Top-P: Not used';
+
+  @override
+  String get topPNotUsedTitle => 'Why Top-P is not used';
+
+  @override
+  String get topPNotUsedHelp =>
+      'At Temperature 0, Maia always chooses a most likely move, so Top-P has no effect. Your Top-P value is kept and becomes available again when you raise Temperature. If Max variety in opening is on, the first five moves by each side still use 1.0 / 1.0.';
+
+  @override
+  String get samplingLowerNotice =>
+      'Maia may play stronger with lower Temperature or Top-P.';
+
+  @override
+  String get appearance => 'Appearance';
+
+  @override
+  String get appearanceSystemColors => 'Use system colors';
+
+  @override
+  String get appearanceSystemColorsHelp => 'Match your Android color palette';
+
+  @override
+  String get appearanceSystemColorsUnavailable =>
+      'Unavailable on this device. Requires Android 12 or later.';
+
+  @override
+  String get appearancePureBlack => 'Pure black background';
+
+  @override
+  String get appearancePureBlackHelp => 'Use black backgrounds in dark mode';
+
+  @override
+  String get appearancePreferenceError =>
+      'Appearance changed, but could not be saved. Please try again.';
+
+  @override
+  String get appearanceTheme => 'Theme';
+
+  @override
+  String get appearanceLight => 'Light';
+
+  @override
+  String get appearanceDark => 'Dark';
+
+  @override
+  String get appearanceSystemDefault => 'System default';
+
+  @override
+  String get boardSettings => 'Board';
+
+  @override
+  String get boardCoordinates => 'Board coordinates';
+
+  @override
+  String get boardLegalMoves => 'Legal-move destinations';
+
+  @override
+  String get boardLastMove => 'Last-move highlight';
+
+  @override
+  String get boardAnimation => 'Piece animation';
+
+  @override
+  String get boardMagnify => 'Magnify dragged piece';
+
+  @override
+  String get boardDragTarget => 'Dragged piece target';
+
+  @override
+  String get boardTargetCircle => 'Circle';
+
+  @override
+  String get boardTargetSquare => 'Square';
+
+  @override
+  String get boardTargetNone => 'None';
+
+  @override
+  String get boardPreferenceError =>
+      'Could not save board settings. Please try again.';
+
+  @override
+  String get boardDesign => 'Board';
+
+  @override
+  String get boardPieceSet => 'Piece set';
+
+  @override
+  String get showMaiaScore => 'Show Maia win (score) %';
+
+  @override
+  String get maiaScore => 'Maia score';
+
+  @override
+  String get maiaScoreEqual => 'Equal';
+
+  @override
+  String get maiaScoreHelp =>
+      'Shows Maia’s assessment of winning (scoring) chances at the top of the screen.\nThe white or black dot tells you which side the percentage describes.';
+
+  @override
+  String get maiaScoreExpectedHelp =>
+      'For example, White 60% means Maia estimates White would score about 60 points across 100 games from this position. A win earns 1 point; a draw earns ½.';
+
+  @override
+  String get maiaScoreInputsHelp =>
+      'The estimate uses the selected Maia analysis rating for both players. With two Maias enabled, each shows its own estimate at its own rating.';
+
+  @override
+  String get maiaScorePreferenceError =>
+      'Could not save Maia score settings. Please try again.';
+
+  @override
+  String get maiaScoreResearchLink => 'How reliable is Maia’s score?';
+
+  @override
+  String get maiaScoreStockfishHelp =>
+      'It can be useful to contrast with Stockfish evaluation. Just because Stockfish thinks one side is better, does not mean that it is easy for a human to find the right moves to convert!';
+
+  @override
+  String get editorMoveTool => 'Move pieces';
+
+  @override
+  String get editorEraseTool => 'Erase pieces';
+
+  @override
+  String get editorEmptySquare => 'Empty square';
+
+  @override
+  String get editorPositionSettings => 'Position settings';
+
+  @override
+  String get editorImageImportUnavailable =>
+      'Import position from image (not yet available)';
+
+  @override
+  String get editorShareFen => 'Share FEN';
+
+  @override
+  String get editorFenMetadata => 'FEN metadata';
+
+  @override
+  String get editorHalfmoveClock => 'Halfmove clock';
+
+  @override
+  String get editorFullmoveNumber => 'Move number';
+
+  @override
+  String get editorWhitePawn => 'White pawn';
+
+  @override
+  String get editorWhiteKnight => 'White knight';
+
+  @override
+  String get editorWhiteBishop => 'White bishop';
+
+  @override
+  String get editorWhiteRook => 'White rook';
+
+  @override
+  String get editorWhiteQueen => 'White queen';
+
+  @override
+  String get editorWhiteKing => 'White king';
+
+  @override
+  String get editorBlackPawn => 'Black pawn';
+
+  @override
+  String get editorBlackKnight => 'Black knight';
+
+  @override
+  String get editorBlackBishop => 'Black bishop';
+
+  @override
+  String get editorBlackRook => 'Black rook';
+
+  @override
+  String get editorBlackQueen => 'Black queen';
+
+  @override
+  String get editorBlackKing => 'Black king';
+
+  @override
+  String get continuationUseBoard => 'Use electronic board';
+
+  @override
+  String get continuationConnectHelp => 'Connect a supported board.';
+
+  @override
+  String get continuationBoardUntimed => 'Electronic-board games are untimed.';
+
+  @override
+  String get continuationSetUpBoard => 'Set up board';
+
+  @override
+  String get continuationSetupHelp =>
+      'Set up the position shown on your board. The game starts when the pieces match.';
+
+  @override
+  String get continuationBoardUnsupported =>
+      'Continuing from a position currently supports Chessnut boards only.';
 }

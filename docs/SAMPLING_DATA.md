@@ -95,14 +95,7 @@ chess-data rewrite requirement.
 
 The trace records requested and effective Temperature/Top-P, selected UCI,
 legal move order, and `mode`. Ratings/history are frozen at inference submission;
-New games freeze their configured Temperature/Top-P and opening-variety choice
-in their saved play settings. With opening variety enabled, effective values are
-1.0/1.0 through full move 5 (for each color), then the configured values from
-move 6, using the current FEN full-move counter. Takebacks and continuations
-therefore use the position’s move number, not a request count. Older saved games
-never silently opt in. The capture records configured and effective settings
-and whether the opening override applied; the selection trace and HTML report
-use the actual effective sampling distribution.
+Temperature/Top-P are the values the sampler actually used when output arrived.
 
 - Temperature <= 0: first highest legal logit in the original legal move order.
   Mode is `argmax`, `random` is null, and no draw occurs.

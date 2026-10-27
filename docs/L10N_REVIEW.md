@@ -1,6 +1,6 @@
 # Localization and translation review
 
-Mobile Maia supplies English, German, French, Russian, Hindi, Brazilian Portuguese, Japanese, Simplified Chinese, Korean and Spanish UI catalogs. The catalogs currently contain **302 messages each** and cover game setup and play, settings and help, Chessnut connection/recovery, saved games, PGN import/export, analysis and move classifications, the board editor, and diagnostic recovery.
+Mobile Maia supplies English, German, French, Russian, Hindi, Brazilian Portuguese, Japanese, Simplified Chinese, Korean and Spanish UI catalogs. The catalogs currently contain **410 messages each** and cover game setup and play, settings and help, Chessnut connection/recovery, saved games, PGN import/export, analysis and move classifications, the board editor, and diagnostic recovery.
 
 The translations have received an editorial and automated review, but **have not been approved by native-speaking chess players**. Catalog completeness is not a claim of linguistic certification. The preferred human-review handoff is the language ARB plus the [short reviewer guide](NATIVE_REVIEW.md). The existing `l10n_review.csv` remains a synchronized maintenance aid. Do not publish reviewer identities or private game/device screenshots without permission.
 
@@ -40,6 +40,9 @@ CI checks catalog parity, nonempty messages, duplicate JSON keys, placeholder pr
 Keep SAN/UCI moves, PGN/FEN data and headers, result tokens (`1-0`, `0-1`, `1/2-1/2`), engine protocols, URLs, product/model names, and diagnostic logs canonical. Opening names currently come from the existing English opening dataset; translating that dataset is separate from UI localization. Original third-party license texts remain intact. Android system permission/file-picker UI follows the system's own localization; the app supplies localized share-sheet titles.
 
 Format displayed numbers and dates for the chosen locale, including German, French, Russian and Spanish decimal commas. Chess ratings and move numbers omit thousands separators. Never send locale-formatted numbers to engines or serialize them into game data.
+
+For the current all-catalog review, Google platform/AI terminology sources, and
+source precedence, see [Translation quality review](TRANSLATION_QUALITY_REVIEW.md).
 
 ## Terminology and review guidance
 

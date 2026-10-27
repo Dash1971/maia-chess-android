@@ -292,23 +292,30 @@ void main() {
       ),
     );
 
-    var board = tester.widget<cg.StaticChessboard>(
-      find.byType(cg.StaticChessboard),
+    var board = tester.widget<cg.ChessboardEditor>(
+      find.byType(cg.ChessboardEditor),
     );
-    expect(board.fen, contains('PPPPPPPP'));
-    board.onTouchedSquare!(dc.Square.e2);
+    await tester.tap(find.byKey(const ValueKey('editor-pawn-white')));
     await tester.pump();
-    board = tester.widget<cg.StaticChessboard>(
-      find.byType(cg.StaticChessboard),
+    expect(cg.writeFen(board.pieces), contains('PPPPPPPP'));
+    await tester.tap(find.byKey(const ValueKey('editor-pawn-white')));
+    await tester.pump();
+    board = tester.widget<cg.ChessboardEditor>(
+      find.byType(cg.ChessboardEditor),
     );
-    expect(cg.readFen(board.fen)[dc.Square.e2], isNull);
+    board.onEditedSquare!(dc.Square.e2);
+    await tester.pump();
+    board = tester.widget<cg.ChessboardEditor>(
+      find.byType(cg.ChessboardEditor),
+    );
+    expect(board.pieces[dc.Square.e2], isNull);
 
-    board.onTouchedSquare!(dc.Square.e4);
+    board.onEditedSquare!(dc.Square.e4);
     await tester.pump();
-    board = tester.widget<cg.StaticChessboard>(
-      find.byType(cg.StaticChessboard),
+    board = tester.widget<cg.ChessboardEditor>(
+      find.byType(cg.ChessboardEditor),
     );
-    expect(cg.readFen(board.fen)[dc.Square.e4], isNotNull);
+    expect(board.pieces[dc.Square.e4], isNotNull);
     expect(find.text('Continue'), findsNothing);
   });
 
@@ -321,34 +328,39 @@ void main() {
       ),
     );
 
-    var board = tester.widget<cg.StaticChessboard>(
-      find.byType(cg.StaticChessboard),
+    var board = tester.widget<cg.ChessboardEditor>(
+      find.byType(cg.ChessboardEditor),
     );
-    final initialFen = board.fen;
+    final initialFen = cg.writeFen(board.pieces);
     expect(board.orientation, dc.Side.white);
 
     await tester.tap(find.byKey(const ValueKey('board-editor-flip')));
     await tester.pump();
-    board = tester.widget<cg.StaticChessboard>(
-      find.byType(cg.StaticChessboard),
+    board = tester.widget<cg.ChessboardEditor>(
+      find.byType(cg.ChessboardEditor),
     );
     expect(board.orientation, dc.Side.black);
-    expect(board.fen, initialFen);
+    expect(cg.writeFen(board.pieces), initialFen);
 
-    board.onTouchedSquare!(dc.Square.e2);
+    await tester.tap(find.byKey(const ValueKey('editor-pawn-white')));
     await tester.pump();
-    board = tester.widget<cg.StaticChessboard>(
-      find.byType(cg.StaticChessboard),
+    board = tester.widget<cg.ChessboardEditor>(
+      find.byType(cg.ChessboardEditor),
     );
-    expect(cg.readFen(board.fen)[dc.Square.e2], isNull);
+    board.onEditedSquare!(dc.Square.e2);
+    await tester.pump();
+    board = tester.widget<cg.ChessboardEditor>(
+      find.byType(cg.ChessboardEditor),
+    );
+    expect(board.pieces[dc.Square.e2], isNull);
 
     await tester.tap(find.byKey(const ValueKey('board-editor-flip')));
     await tester.pump();
-    board = tester.widget<cg.StaticChessboard>(
-      find.byType(cg.StaticChessboard),
+    board = tester.widget<cg.ChessboardEditor>(
+      find.byType(cg.ChessboardEditor),
     );
     expect(board.orientation, dc.Side.white);
-    expect(cg.readFen(board.fen)[dc.Square.e2], isNull);
+    expect(board.pieces[dc.Square.e2], isNull);
     expect(find.byTooltip('Flip board'), findsOneWidget);
   });
 
@@ -569,28 +581,16 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Temperature and Top-P'), findsOneWidget);
-    expect(find.text('Choose how much variety you want'), findsOneWidget);
-    expect(find.textContaining('Setting Temperature to 0'), findsOneWidget);
-    expect(find.textContaining('research at the 1600 setting'), findsOneWidget);
+    expect(find.text('Simple explanation'), findsNothing);
+    expect(find.text('Technical explanation'), findsNothing);
+    expect(find.textContaining('about 300 Elo points'), findsOneWidget);
     expect(
-      find.textContaining('about 300 Elo points in direct matches'),
+      find.textContaining('some very low-probability blunders'),
       findsOneWidget,
     );
-    expect(find.textContaining('brilliant moves!'), findsOneWidget);
-    expect(
-      find.textContaining('default values of 1.0 and 1.0'),
-      findsOneWidget,
-    );
-    expect(find.textContaining('Top-P to 0.95'), findsOneWidget);
-    expect(
-      find.textContaining('at least 95% of the probability'),
-      findsOneWidget,
-    );
-    expect(
-      find.textContaining('It has no effect when Temperature is 0'),
-      findsNothing,
-    );
-    expect(find.textContaining('0.5 / 0.9 — Some variety'), findsNothing);
+    expect(find.byKey(const ValueKey('sampling-help-technical')), findsNothing);
+    expect(find.textContaining('exp((logit'), findsNothing);
+    expect(find.textContaining('Top-P 0.60'), findsOneWidget);
 
     final link = find.byKey(const ValueKey('sampling-research-link'));
     await tester.ensureVisible(link);
@@ -600,7 +600,7 @@ void main() {
     expect(openUrl.arguments, {
       'url':
           'https://github.com/Dash1971/mobile-maia-research/blob/'
-          'main/studies/maia3-sampling/REPORT.md',
+          'main/guides/choosing-maia-settings/README.md',
     });
     await tester.tap(find.text('Close'));
     await tester.pumpAndSettle();
@@ -608,7 +608,7 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('new engine settings default to Temperature and Top-P 1.00', (
+  testWidgets('new settings default to Temperature 1.00 and Top-P 0.95', (
     tester,
   ) async {
     SharedPreferences.setMockInitialValues({});
@@ -618,7 +618,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Temperature: 1.00'), findsOneWidget);
-    expect(find.text('Top-P: 1.00'), findsOneWidget);
+    expect(find.text('Top-P: 0.95'), findsOneWidget);
     expect(
       find.byKey(const ValueKey('sampling-recommendation-warning')),
       findsNothing,
@@ -635,6 +635,7 @@ void main() {
       SharedPreferences.setMockInitialValues({
         'temperatureV2': 1.0,
         'topPV2': 1.0,
+        'maxOpeningVarietyV1': false,
         setting.$1: 0.6,
       });
       await tester.pumpWidget(const MaiaChessApp());
@@ -647,7 +648,7 @@ void main() {
       );
       expect(warning, findsOneWidget);
       final warningText = tester.widget<Text>(warning);
-      expect(warningText.data, contains('reduce opening variety'));
+      expect(warningText.data, contains('more limited opening repertoire'));
       final theme = Theme.of(tester.element(warning));
       expect(warningText.style?.color, theme.colorScheme.onSurfaceVariant);
       expect(warningText.style?.fontSize, theme.textTheme.bodySmall?.fontSize);
@@ -661,7 +662,10 @@ void main() {
       slider.onChanged!(1.0);
       slider.onChangeEnd!(1.0);
       await tester.pumpAndSettle();
-      expect(warning, findsNothing);
+      expect(
+        tester.widget<Text>(warning).data,
+        contains('more unusual blunders'),
+      );
       final preferences = await SharedPreferences.getInstance();
       expect(preferences.getDouble('temperatureV2'), 1.0);
       expect(preferences.getDouble('topPV2'), 1.0);
@@ -681,6 +685,7 @@ void main() {
     SharedPreferences.setMockInitialValues({
       'temperatureV2': 0.5,
       'topPV2': 0.9,
+      'maxOpeningVarietyV1': false,
     });
     await tester.pumpWidget(const MaiaChessApp());
     await tester.pumpAndSettle();
@@ -712,13 +717,13 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Temperature: 1.00'), findsOneWidget);
-    expect(find.text('Top-P: 1.00'), findsOneWidget);
+    expect(find.text('Top-P: 0.95'), findsOneWidget);
     expect(
       find.byKey(const ValueKey('sampling-recommendation-warning')),
       findsNothing,
     );
     expect(preferences.getDouble('temperatureV2'), 1.0);
-    expect(preferences.getDouble('topPV2'), 1.0);
+    expect(preferences.getDouble('topPV2'), 0.95);
   });
 
   testWidgets('Maia play rating persists across app restarts', (tester) async {
@@ -867,7 +872,7 @@ void main() {
     expect(tester.widget<SwitchListTile>(toggle).value, isFalse);
     await tester.tap(toggle);
     await tester.pumpAndSettle();
-    expect(find.text('Second Maia analysis rating: 2400'), findsOneWidget);
+    expect(find.text('Second Maia analysis rating: 2600'), findsOneWidget);
 
     final ratingTile = find.byKey(const ValueKey('second-maia-rating-setting'));
     final rating = tester.widget<Slider>(
@@ -2030,6 +2035,10 @@ void main() {
     board = tester.widget<cg.Chessboard>(find.byType(cg.Chessboard));
     expect(positionCore(board.controller.fen), positionCore(positions.first));
 
+    // Exercise a separate Game Review, as a new route does in the app.
+    // Reusing the previous ReviewPage state would retain its authored tree.
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pumpAndSettle();
     await tester.pumpWidget(
       MaterialApp(
         home: ReviewPage(
@@ -2439,7 +2448,7 @@ void main() {
       await tester.ensureVisible(find.byKey(const ValueKey('maia-other')));
       await tester.tap(find.byKey(const ValueKey('maia-other')));
       await tester.pumpAndSettle();
-      expect(find.text('Maia 1600 move probabilities'), findsOneWidget);
+      expect(find.text('Maia 1500 move probabilities'), findsOneWidget);
       expect(
         find.textContaining('Temperature and Top-P are not applied'),
         findsOneWidget,
@@ -2584,7 +2593,7 @@ void main() {
     expect(find.text('e4 54%'), findsOneWidget);
     expect(find.text('Other 19%'), findsOneWidget);
     final rowCenters = [
-      'M1600',
+      'M1500',
       'e4 54%',
       'Nf3 20%',
       'd4 7%',
@@ -2609,6 +2618,9 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
+          // The shipped default remains dark. Light-mode semantic text has
+          // separate contrast coverage in app_appearance_test.dart.
+          theme: appTheme(const AppAppearance(), Brightness.dark),
           home: ReviewPage(
             positions: const [chess.Chess.DEFAULT_POSITION],
             uciMoves: const [],

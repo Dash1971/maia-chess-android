@@ -44,9 +44,40 @@ class LocalizationContractTest(unittest.TestCase):
         self.change('es', lambda data: data.update(countLabel='{count} en'))
         self.assertTrue(any('untranslated' in error for error in checker.check(self.root)))
 
+    def test_english_sampling_term_inside_translated_prose_fails(self):
+        self.change('en', lambda data: data.update(temperature='Temperature',
+            report='After Temperature and Top-P.',
+            **{'@temperature': {'description': 'Sampling temperature'},
+               '@report': {'description': 'Report explanation'}}))
+        for lang in checker.LOCALES[1:]:
+            self.change(lang, lambda data: data.update(temperature='温度', report='温度とTop-Pを適用'))
+        checker.write_review(self.root)
+        self.assertEqual([], checker.check(self.root))
+        # Japanese characters next to the English word must not hide it from
+        # detection; a Unicode word-boundary regex would miss this case.
+        self.change('ja', lambda data: data.update(report='TemperatureとTop-Pを適用'))
+        checker.write_review(self.root)
+        self.assertIn('ja.report: untranslated Temperature term; use the localized sampling label',
+                      checker.check(self.root))
+        self.change('ja', lambda data: data.update(temperature=7))
+        checker.write_review(self.root)
+        self.assertIn('ja.temperature: empty/non-string message', checker.check(self.root))
+
     def test_duplicate_keys_fail(self):
         (self.root / 'lib/l10n/app_zh.arb').write_text('{"same":"a","same":"b"}')
         self.assertTrue(any('duplicate JSON key' in error for error in checker.check(self.root)))
+
+    def test_license_version_is_not_a_localized_decimal(self):
+        self.change('en', lambda data: data.update(aboutLicence='Licence: AGPL-3.0-only',
+            **{'@aboutLicence': {'description': 'License notice'}}))
+        for lang in checker.LOCALES[1:]:
+            self.change(lang, lambda data: data.update(aboutLicence='AGPL-3.0-only ' + lang))
+        checker.write_review(self.root)
+        self.assertEqual([], checker.check(self.root))
+        self.change('fr', lambda data: data.update(aboutLicence='Licence : AGPL-3,0-only'))
+        checker.write_review(self.root)
+        self.assertIn('fr.aboutLicence: missing canonical identifier AGPL-3.0-only',
+                      checker.check(self.root))
 
     def test_outdated_csv_fails(self):
         self.change('ja', lambda data: data.update(countLabel='{count}変更'))

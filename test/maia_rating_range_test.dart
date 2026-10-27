@@ -180,8 +180,8 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('Play Maia rating: 1500'), findsOneWidget);
       await openSettings(tester);
-      expect(find.text('Maia analysis rating: 1600'), findsOneWidget);
-      expect(find.text('Second Maia analysis rating: 2400'), findsOneWidget);
+      expect(find.text('Maia analysis rating: 1500'), findsOneWidget);
+      expect(find.text('Second Maia analysis rating: 2600'), findsOneWidget);
       final preferences = await SharedPreferences.getInstance();
       for (final key in [
         maiaPlayEloPreferenceKey,
@@ -209,8 +209,8 @@ void main() {
     await tester.pumpAndSettle();
     await openSettings(tester);
     for (final label in [
-      'Maia analysis rating: 1600',
-      'Second Maia analysis rating: 2400',
+      'Maia analysis rating: 1500',
+      'Second Maia analysis rating: 2600',
     ]) {
       final slider = ratingSlider(tester, label);
       slider.onChanged!(2600);
@@ -316,7 +316,10 @@ void main() {
         expect(review.maiaElo, primary);
         expect(review.secondMaiaElo, secondary);
         expect(review.positions, session.positions);
-        expect(AnalysisSession.fromPgn(review.pgn).positions, session.positions);
+        expect(
+          AnalysisSession.fromPgn(review.pgn).positions,
+          session.positions,
+        );
         expect(review.initialTreeIsAuthoritative, isTrue);
         expect(tester.takeException(), isNull);
         await tester.pumpWidget(const SizedBox.shrink());

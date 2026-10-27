@@ -33,7 +33,7 @@ completes.
 ## Contents
 
 - [Download and install](#download-and-install)
-- [What's new in Mobile Maia 2.4](#mobile-maia-24)
+- [Mobile Maia 2.5](#mobile-maia-25)
 - [Feature guide](#feature-guide)
 - [Google Play, iPhone, and forks](#availability-and-forks)
 - [Support and contributing](#support-and-contributing)
@@ -42,15 +42,20 @@ completes.
 - [Credits and attributions](#credits-and-attributions)
 - [Licensing](#licensing)
 
-## Mobile Maia 2.4
+## Mobile Maia 2.5
 
-- **More opening variety when you want it.** Keep Maia's full range of opening choices for the first five moves, then use your configured Temperature and Top-P from move 6.
-- **Explore how Maia chooses.** Optionally save its actual move probabilities and choices, then export a readable HTML report or the full research data.
-- **Clearer engine settings.** Separate game, engine and analysis sections, updated help in all ten languages, optional move-history input, and a confirmed reset of Settings defaults.
-- **Smoother play and review.** Queued premoves stay in their planned positions as the queue advances. Long opening names stay on one line, with details on tap when truncated. Home returns directly from restored post-game analysis.
-- **Improved Chessnut connection and reset.** Choose between detected boards when needed, see which board connected, and reset a game with the physical NEW GAME button while keeping your side.
+Mobile Maia 2.5 brings appearance choices, board designs, clearer Maia help,
+optional score estimates, and more ways to set up and continue positions.
 
-See the [complete 2.4 release notes](docs/release-notes/v2.4.0.md) and
+- **Make the app your own.** Choose Light, Dark or System default, Android system colors and an optional pure-black background. The original green/dark appearance remains the default.
+- **Choose your board.** Pick from 25 boards and 16 approved piece sets, and control coordinates, legal-move dots, highlights, animation and dragging aids.
+- **Balanced new-install defaults.** Play and primary analysis start at Maia 1500; the optional second analysis engine starts at 2600. Temperature 1.0 / Top-P 0.95 with opening variety on keeps the full opening repertoire for five moves. Existing choices and saved-game profiles are preserved.
+- **Understand Maia.** One scrollable engine-help guide explains sampling, examples and research. An optional Maia score in Analysis Board and Game Review estimates expected game points, including half-point draws.
+- **Set up and continue positions.** Use graphical editor palettes, move/erase tools and FEN copy/share. Continue an analysis position on screen or as an untimed Chessnut game with physical-position setup guidance.
+- **Explore variations more easily.** Hold Left to return to a variation's main-line branch point; hold Right to go one main-line move beyond it. Navigation also clears stale selections and drag indicators.
+
+See the [2.5 release notes](docs/release-notes/v2.5.0.md),
+[2.4 release notes](docs/release-notes/v2.4.0.md) and
 [earlier release notes](docs/release-notes).
 
 Active development continues in the separate
@@ -60,17 +65,18 @@ this stable blue-icon app.
 
 ## Feature guide
 
-Home, time controls, About and Settings images are refreshed for 2.4. Home,
-time controls and About were captured from the current Android debug build;
-Settings images are renders of the current Flutter screens. These documentation
-captures do not replace release qualification. Earlier library and board images
-are retained as illustrative game examples. See [capture provenance](docs/release-notes/v2.4.0.md#screenshots).
+The current 2.5 images below are actual Android captures of the Stable 2.5.0
+app on 27 October 2026, visually checked before use. Appearance and optional
+engine examples identify their selected settings. Other dated images remain
+explicitly older illustrative examples. See [capture provenance](docs/screenshots/20261027_v1_stable_2_5_provenance.md).
 
 ### Choose a game or analysis workflow
 
 <p align="center">
-  <img src="docs/screenshots/20261017_v1_stable_2_4_home.png" width="42%" alt="Mobile Maia 2.4 Home screen with rating, side, clock, Electronic board toggle, Analysis Board, Recent games and Settings">
+  <img src="docs/screenshots/20261027_v1_stable_2_5_home.png" width="42%" alt="Stable 2.5 Home with the new Maia 1500 default">
 </p>
+
+*Stable 2.5.0 Home with its new-install defaults.*
 
 The home screen is the starting point for every workflow. Play as White, Black,
 or a random side; choose a preset or custom **Play Maia rating**; then start a game.
@@ -82,8 +88,10 @@ are remembered locally.
 ### Time controls
 
 <p align="center">
-  <img src="docs/screenshots/20261017_v1_stable_2_4_time_controls.png" width="42%" alt="Mobile Maia time-control menu including 10+5, 30+0 and 30+20">
+  <img src="docs/screenshots/20261017_v1_stable_2_4_time_controls.png" width="42%" alt="Older illustrative capture: Mobile Maia time-control menu including 10+5, 30+0 and 30+20">
 </p>
+
+*Older illustrative capture; current labels and defaults are described in the text.*
 
 Games are unlimited by default. The quick controls follow Lichess's order:
 **1+0, 2+1, 3+0, 3+2, 5+0, 5+3, 10+0, 10+5, 15+10, 30+0, 30+20**.
@@ -118,10 +126,6 @@ therefore exceed the target, and timed games can still end on the clock.
 
 ### Interface language
 
-<p align="center">
-  <img src="docs/screenshots/20261017_v1_stable_2_4_settings_top.png" width="42%" alt="Mobile Maia Settings with the Language selector above Game settings">
-</p>
-
 Open **Settings → Language** to follow the system or select English, 日本語,
 简体中文, 한국어, Español, Deutsch, Français, Русский, हिन्दी or Português (Brasil).
 Languages are listed by their native names. Switching updates the interface
@@ -129,56 +133,131 @@ without rewriting PGN notation, historical game data or engine values.
 Unsupported device languages fall back to English; Simplified Chinese is not
 silently substituted for a Traditional Chinese system preference.
 
+### Appearance
+
+<p align="center">
+  <img src="docs/screenshots/20261027_v1_stable_2_5_appearance_settings.png" width="42%" alt="Stable 2.5 Appearance settings with Dark selected and system colors and pure black off">
+</p>
+
+<p align="center">
+  <img src="docs/screenshots/20261027_v1_stable_2_5_appearance_light.png" width="30%" alt="Stable 2.5 Analysis Board in Light mode with Android system colors enabled">
+  <img src="docs/screenshots/20261027_v1_stable_2_5_appearance_dark.png" width="30%" alt="Stable 2.5 Analysis Board in its default green-accented Dark mode">
+  <img src="docs/screenshots/20261027_v1_stable_2_5_appearance_black.png" width="30%" alt="Stable 2.5 Analysis Board with pure-black backgrounds and Android system colors enabled">
+</p>
+
+*Stable 2.5 Analysis Board in Light, default Dark and pure-black Dark modes.
+The Light and pure-black examples use Android system colors. Maia score
+display is off in these examples.*
+
+Open **Settings → Appearance** to choose **Light**, **Dark** or **System
+default**. **Use system colors** follows the Android palette on supported
+Android 12+ devices; it is unavailable on older devices. **Pure black
+background** applies in dark mode and retains its choice when you switch to
+light mode. The original green-accented Dark theme, without system colors or
+pure black, remains the default. Appearance and chessboard designs are separate
+choices.
+
+### Board designs and playing aids
+
+<p align="center">
+  <img src="docs/screenshots/20261027_v1_stable_2_5_board_options.png" width="30%" alt="Stable 2.5 Board settings with coordinates, legal-move destinations, highlight, animation and dragged-piece magnification">
+  <img src="docs/screenshots/20261027_v1_stable_2_5_boards.png" width="30%" alt="Stable 2.5 board selector with visual previews of approved boards">
+  <img src="docs/screenshots/20261027_v1_stable_2_5_pieces.png" width="30%" alt="Stable 2.5 piece-set selector with visual previews of approved artwork">
+</p>
+
+*Stable 2.5 board preferences and artwork selectors. Brown/Cburnett and the
+existing aids remain the defaults.*
+
+Open **Settings → Board** to choose from **25 boards and 16 approved piece
+sets**, with a live preview. Adjust **Board coordinates**, **Legal-move
+destinations**, **Last-move highlight**, **Piece animation** and **Magnify
+dragged piece** independently. **Dragged piece target** offers Circle, Square
+or None. The preferences apply across play, analysis and applicable editor
+views and are remembered locally. Hiding the last-move highlight does not hide
+check, selection, premove or analysis overlays.
+
 ### Advanced play and review settings
 
 <p align="center">
-  <img src="docs/screenshots/20261017_v0_stable_2_4_engine_settings.png" width="42%" alt="Engine settings with optional opening variety, move history and local sampling capture">
+  <img src="docs/screenshots/20261027_v1_stable_2_5_engine.png" width="42%" alt="Stable 2.5 Engine settings showing Temperature 1.00 and Top-P 0.95">
+  <img src="docs/screenshots/20261027_v1_stable_2_5_analysis_settings.png" width="42%" alt="Stable 2.5 Analysis settings showing Maia 1500 and optional Maia 2600, score display and Fast review quality">
 </p>
+
+*Stable 2.5 controls. The analysis example enables the optional second engine
+and score display for demonstration; both options are off by default.*
 
 **Game** groups premoves, the indented 100 ms premove charge and multiple-premove
 options, human move timing, Game sounds and Touch feedback. **Engine** groups
 Temperature, Top-P, opening variety, move history and sampling data. **Analysis**
-controls review ratings and quality, including an optional **second Maia engine**
-at another rating. This example compares Maia 1600 and Maia 2400:
+controls review ratings, the optional second Maia engine, score display and
+review quality. New preferences and a confirmed Settings reset use:
+
+| Setting | Default |
+| --- | --- |
+| Play Maia rating | 1500 |
+| Maia analysis rating | 1500 |
+| Optional second Maia analysis rating | 2600; engine off |
+| Temperature / Top-P | 1.0 / 0.95 |
+| Max variety in opening | On |
+| Game analysis quality | Fast |
+| Move history / sampling capture / Maia score display | Off |
+
+Existing explicit preferences and frozen saved-game sampling settings are
+preserved. **Balanced** and **Thorough** offer deeper Stockfish review searches.
+**Copy diagnostics** creates a privacy-safe local troubleshooting report and
+never uploads it automatically.
+
+### Maia sampling and help
+
+Maia predicts how often human players would choose each legal move.
+**Temperature** changes how strongly it favors the most likely moves;
+**Top-P** retains the highest-probability moves until their cumulative
+probability reaches the selected threshold. It is not a minimum probability
+for every individual move. At Temperature 0, Maia chooses its most likely move
+and Top-P is not used.
+
+Open the information button beside **Engine settings** for one scrollable
+**Temperature and Top-P** guide, with plain-language examples, technical detail
+and a research link, available in all ten languages.
 
 <p align="center">
-  <img src="docs/screenshots/20261017_v0_stable_2_4_analysis_settings.png" width="42%" alt="Analysis settings with Maia 1600 and Maia 2400, review quality, Chessnut sounds and confirmed Settings reset">
+  <img src="docs/screenshots/20261027_v1_stable_2_5_engine_help.png" width="38%" alt="Stable 2.5 consolidated engine help, scrolled to recommendations and its research link">
 </p>
 
-**Fast** is the new-game and reset default; **Balanced** and **Thorough** offer deeper
-Stockfish searches. Existing saved quality choices are preserved. An inline
-reminder appears when either sampling control differs from 1.00; the
-information button explains the tradeoff and links to the research report.
-**Copy diagnostics** creates a privacy-safe local report
-for troubleshooting and never uploads it automatically.
+*Stable 2.5 engine help, scrolled near the end.*
 
-### Maia sampling
+The new default is **Temperature 1.0 / Top-P 0.95 with Max variety in opening
+on**. This keeps unfiltered opening choices, then excludes a small tail of
+unlikely moves from move 6. The selected rating remains a model input, rather
+than a guarantee of measured playing strength.
 
-Maia predicts how often human players would choose each legal move. **Temperature** changes how strongly it favors its most likely moves; **Top-P** cuts off less likely choices.
+Our earlier 79M research at rating inputs of 1600 found approximately **64%
+e4, 25% d4 and 11% other first moves** at 1.0/1.0. In a separate 1,200-game
+comparison, 1.0/0.95 gained about **71 Elo** against 1.0/1.0, with **67 opening
+families rather than 85** in equal 2,000-opening samples. These are historical
+measurements, not a new strength claim for 2.5's combined opening override.
+Version 2.4 chose 1.0/1.0 throughout; 2.5 balances opening variety with later
+play through the override.
 
-We recommend **Temperature 1.0 / Top-P 1.0** for a varied opening repertoire. At the 1600 setting, Maia's first moves were about **64% e4, 25% d4 and 11% other moves**, close to the Lichess blitz sample we compared it with. Lower settings made Maia stronger, but removed some openings and sidelines.
-
-We also tested **1.0 / 0.95**: it gained about **71 Elo** against 1/1 in 1,200 games, while producing **67 opening families rather than 85** in equal samples of 2,000 openings. It is a useful stronger option; we chose 1/1 to keep the wider repertoire.
-
-The previous **0.5 / 0.9** settings came from our [Maia2](https://github.com/Dash1971/maia2-local-stack) and [Maia3](https://github.com/Dash1971/maia3-local-stack) local stacks, which used opening books to supply variety. Mobile Maia has no opening book, so we now favor variety in Maia's own choices, accepting the reduction in playing strength.
-
+The older **0.5 / 0.9** settings came from our
+[Maia2](https://github.com/Dash1971/maia2-local-stack) and
+[Maia3](https://github.com/Dash1971/maia3-local-stack) local stacks, which used
+opening books. Mobile Maia has no opening book.
 [See the visual report, results and reproducible data](https://github.com/Dash1971/mobile-maia-research/blob/main/studies/maia3-sampling/REPORT.md).
 
 ### Max variety in opening
 
-This optional setting uses **Temperature 1.0 / Top-P 1.0 for the first five
-moves by each side**, then your configured values from move 6. For example,
-you can keep Temperature at 1.0 and set Top-P to 0.95 for later play, without
-filtering opening choices during those first five moves. It also works with
-Temperature 0: the opening stays varied, then Maia chooses its most probable
-move from move 6. This does not guarantee a particular strength gain.
+This switch uses **Temperature 1.0 / Top-P 1.0 for the first five moves by each
+side**, then your configured values from move 6. It is on for new preferences
+and Settings reset, alongside the new 1.0/0.95 defaults. It also works with
+Temperature 0: openings stay varied, then Maia chooses its most probable move
+from move 6. This does not guarantee a particular strength gain.
 
-The option is off by default. At 1.0 / 1.0 it is off and grayed out because
-there is nothing to override; its information button remains available.
-Returning both sliders to 1.0 clears the option. New games retain their sampling
-settings when resumed; older saved games do not automatically adopt opening
-variety. Takebacks and **Continue from here** use the position's actual move
-number, rather than restarting the opening allowance.
+At configured 1.0/1.0 it is off and grayed out because there is nothing to
+override; its information button remains available. Returning both sliders to
+1.0 clears the option. Existing preferences and saved-game profiles are not
+silently changed. Takebacks and **Continue from here** use the FEN's actual
+move number, rather than restarting the five-move allowance.
 
 The idea was inspired by [Maia3-tauri](https://github.com/outusuke/maia3-tauri)
 by [outusuke](https://github.com/outusuke). Mobile Maia's implementation and
@@ -188,9 +267,9 @@ five-move cutoff are its own.
 
 **Use move history** lets Maia consider up to seven previous positions alongside
 the current position. It remains off by default and off is recommended for now.
-In our 79M tests it improved human-move prediction by about 2%, but sometimes
-encouraged repeated copying in low-rated openings; no strength increase was
-observed. Saved games retain their recorded history setting.
+In our 79M tests it improved human-move prediction by about 2 percentage points
+(from 57.00% to 59.36%), but sometimes encouraged repeated copying in low-rated
+openings; a playing-strength increase was not established. Saved games retain their recorded history setting.
 [Read the research and limitations](https://github.com/Dash1971/mobile-maia-research/blob/main/studies/move-history-2026-10-09/REPORT.md).
 
 ### Save Maia sampling data
@@ -208,15 +287,17 @@ plain-language odds and move arrows on a board. Captures cover Maia decisions,
 not every move in a complete PGN. Deleting captures asks for confirmation and
 does not delete saved games or previously exported files.
 
-Settings now groups game, engine, analysis and Chessnut options. **Reset settings
-to default**, above Copy diagnostics, asks for confirmation and keeps saved
+Settings groups Language, Appearance, Board, Game, Engine, Analysis and Chessnut
+options. **Reset settings to default**, above Copy diagnostics, asks for confirmation and keeps saved
 games and sampling data.
 
 ### Play against a human-like opponent
 
 <p align="center">
-  <img src="docs/screenshots/20260906_v0_live_game_opening.jpg" width="42%" alt="Offline game against Maia in an opening position">
+  <img src="docs/screenshots/20260906_v0_live_game_opening.jpg" width="42%" alt="Older illustrative capture: Offline game against Maia in an opening position">
 </p>
+
+*Older illustrative capture; current labels and defaults are described in the text.*
 
 Tap or drag pieces on the Lichess Chessground board. Maia-3 runs on-device and
 selects moves for the chosen rating instead of behaving like a deliberately
@@ -227,9 +308,6 @@ recovery after process death, restart, or an app update.
 
 ### Game sounds and touch feedback
 
-<p align="center">
-  <img src="docs/screenshots/20261017_v1_stable_2_4_game.png" width="42%" alt="Mobile Maia 2.4 Game settings with Touch feedback and indented premove options">
-</p>
 
 Optional **Game sounds** distinguish moves, captures, invalid moves,
 and game end. **Touch feedback** adds touch cues for moves, checks, errors,
@@ -240,8 +318,10 @@ feedback is suppressed while a Chessnut board controls the game; the separate
 ### Multiple premoves
 
 <p align="center">
-  <img src="docs/screenshots/20260911_v1_multiple_premoves.png" width="46%" alt="Mobile Maia main app showing a Mona Lisa-inspired 16-move premove plan ending with the white army reset on its back rank">
+  <img src="docs/screenshots/20260911_v1_multiple_premoves.png" width="46%" alt="Older illustrative capture: Mobile Maia main app showing a Mona Lisa-inspired 16-move premove plan ending with the white army reset on its back rank">
 </p>
+
+*Older illustrative capture; current labels and defaults are described in the text.*
 
 Inspired by GM Aman Hambleton's
 [“Mona Lisa” checkmate](https://www.chess.com/article/view/how-to-replicate-the-mona-lisa-checkmate),
@@ -268,8 +348,10 @@ game completion all clear the queue.
 ### Navigation, takebacks, resignation, and draw offers
 
 <p align="center">
-  <img src="docs/screenshots/20260906_v0_live_game_navigation.jpg" width="42%" alt="Live game with menu, resign, previous-position, and next-position controls">
+  <img src="docs/screenshots/20260906_v0_live_game_navigation.jpg" width="42%" alt="Older illustrative capture: Live game with menu, resign, previous-position, and next-position controls">
 </p>
+
+*Older illustrative capture; current labels and defaults are described in the text.*
 
 The bottom toolbar opens game actions, resigns, and moves backward or forward
 through played positions. Hold Back to jump to the starting position and hold
@@ -284,8 +366,10 @@ Maia accepts. Accepted offers are saved as draws by agreement.
 ### Game completion and rematches
 
 <p align="center">
-  <img src="docs/screenshots/20260906_v0_game_result.jpg" width="46%" alt="Mobile Maia game-result dialog with Analysis Board and Rematch actions">
+  <img src="docs/screenshots/20260906_v0_game_result.jpg" width="46%" alt="Older illustrative capture: Mobile Maia game-result dialog with Analysis Board and Rematch actions">
 </p>
+
+*Older illustrative capture; current labels and defaults are described in the text.*
 
 Checkmate, stalemate, timeout, resignation, and agreed draws produce a result
 dialog. Open the finished position in **Analysis Board**, start a **Rematch**,
@@ -312,16 +396,25 @@ DGT Pegasus and Square Off Grand Kingdom remain blocked in Stable pending separa
 Reconnect keeps the game and verifies the physical position before play
 continues. Pending Maia and takeback lights are restored. **Play in app** moves
 the same unfinished game to on-screen input while retaining its moves,
-variations, rating, and orientation. Board play supports untimed games from the
-standard starting position. Other Chessnut models may use the same protocol but
+variations, rating, and orientation. Board play supports untimed games from the standard starting position or a
+valid custom position through **Continue from here**. Set up the physical pieces
+to match the selected position before play begins; LEDs guide mismatched squares.
+The full FEN preserves whose turn it is, castling and en-passant rights. A
+connection can be reused, retried, cancelled or handed back to phone play.
+The requester reports that the Chessnut acceptance tests passed for this
+preparation; this is user-reported hardware acceptance, separate from automated
+emulator and controlled-transport checks. Other Chessnut models may use the same protocol but
 have not yet been confirmed; compatibility reports from their users are
-welcome. Timed board games, USB, and Analysis Board input are not yet supported.
+welcome. Timed board games, USB and direct physical editing/input in Analysis Board are
+not yet supported.
 
 ### Analysis Board
 
 <p align="center">
-  <img src="docs/screenshots/20261003_v1_stable_2_2_analysis_board.png" width="42%" alt="Stable 2.2 Analysis Board showing two Stockfish lines and Maia 1600 and Maia 2400 move probabilities in a real game position">
+  <img src="docs/screenshots/20261027_v1_stable_2_5_analysis_score.png" width="42%" alt="Stable 2.5 Analysis Board with two Stockfish lines, Maia 1500 and 2600 probabilities, and fixed score labels in the title">
 </p>
+
+*Stable 2.5 analysis with optional Maia 1500 and 2600 scores enabled.*
 
 Use **Analysis Board** to explore without starting a game. Stockfish supplies
 two evaluated lines and blue best-move arrows. Maia supplies the move a person
@@ -331,15 +424,45 @@ four lines together. When engines choose the same move, their arrows overlap or
 combine. The board, move tree, selected position, orientation, and engine
 context are restored across restarts.
 
+### Optional Maia score
+
+<p align="center">
+  <img src="docs/screenshots/20261027_v1_stable_2_5_score_help.png" width="42%" alt="Stable 2.5 Maia score help explaining expected points and linking score reliability research">
+</p>
+
+Enable **Settings → Analysis → Show Maia win (score) %** to show a compact
+score beside the Analysis Board or Game Review title. It is off by default.
+Each line keeps its rating, white/black disc and percentage in fixed columns
+while results load or change. The disc identifies the side the number describes;
+flipping the board does not change that meaning. Tap the score for full labels
+and help, particularly on narrow screens where ratings may be hidden.
+
+This is **expected score**, calculated as `P(win) + ½ × P(draw)`, rather than
+literal win probability. White 60% means roughly 60 expected points in 100
+games, counting a win as one and a draw as half. Each engine uses its own
+analysis rating for **both players**: M1500 means 1500 versus 1500, and M2600
+means 2600 versus 2600. It is separate from move-choice percentages and
+Stockfish evaluation. Equal rounded scores show `= 50%`, loading shows an
+ellipsis, unavailable results a dash, and terminal positions the actual result.
+[How reliable is Maia’s score?](https://github.com/Dash1971/mobile-maia-research/blob/main/studies/score-reliability-2026-10-27/REPORT.md)
+explains the research and its limits; the same link appears in score help.
+
 ### Move list, opening names, and engine lines
 
 <p align="center">
-  <img src="docs/screenshots/20260906_v0_analysis_moves.jpg" width="42%" alt="Analysis Board with a clickable move list, opening name, Stockfish lines, and Maia arrow">
+  <img src="docs/screenshots/20260906_v0_analysis_moves.jpg" width="42%" alt="Older illustrative capture: Analysis Board with a clickable move list, opening name, Stockfish lines, and Maia arrow">
 </p>
+
+*Older illustrative capture; current labels and defaults are described in the text.*
 
 The fixed board sits above a scrollable, clickable move list. Select any move
 to inspect that position, use the arrows one ply at a time, or hold them to
-jump to the beginning or end of the main line. The bundled Lichess CC0 opening
+jump to the beginning or end when on the main line. Inside a side variation,
+**hold Left** returns to its outermost main-line branch point; **hold Right**
+selects one main-line move after that point, clamped at the game end. At a
+variation end the dimmed Right control cannot be tapped, but can still be held.
+Navigation clears a stale selected square, legal-move dots, held drag and
+promotion state so a fresh touch works immediately. The bundled Lichess CC0 opening
 dataset supplies offline ECO codes, detailed variation names, and
 transposition-aware matching. Long names remain on one line; an information
 button appears only when the name is truncated, opening the full name without
@@ -363,30 +486,52 @@ file-integrity, privacy, reproducibility, and F-Droid checks
 
 ### Load, edit, continue, and clear positions
 
-<p align="center">
-  <img src="docs/screenshots/20260906_v0_analysis_actions.jpg" width="42%" alt="Analysis Board actions for loading FEN or PGN, opening a file, editing, clearing, and continuing a position">
-</p>
-
-The actions sheet loads FEN or PGN text, opens a PGN file, clears the move tree,
-opens the graphical board editor, or starts a Maia game from the current
-position. **Continue from here** opens a one-game setup dialog for side, Play
-Maia rating, and clock, including custom minutes and increment. It begins with
-your saved Home choices, but changes in the dialog do not overwrite them; the
-dialog also confirms whose turn it is.
+The Analysis Board actions sheet loads FEN or PGN text, opens a PGN file,
+clears the move tree, opens **Board Editor**, or starts a Maia game from the
+selected position.
 
 <p align="center">
-  <img src="docs/screenshots/20261003_v0_stable_2_2_continue_setup.png" width="42%" alt="Stable 2.2 Continue from here dialog with side, Play Maia rating, and time control">
+  <img src="docs/screenshots/20261027_v1_stable_2_5_editor.png" width="42%" alt="Stable 2.5 graphical Board Editor with black and white piece palettes, move and erase tools and bottom actions">
+  <img src="docs/screenshots/20261027_v1_stable_2_5_editor_settings.png" width="42%" alt="Stable 2.5 editor Position settings with side to move, independent castling rights and expandable FEN metadata">
 </p>
 
-In the editor, select a piece and tap a square to add it, or tap the same
-piece on the board to remove it; side to move and
-castling rights are editable too.
+*Stable 2.5 Board Editor and Position settings.*
+
+The editor has graphical piece palettes above and below the board. Select a
+piece to place it repeatedly; tap an identical piece to remove it. Use the hand
+tool to move existing pieces by tap or drag, or the erase tool to remove them.
+Flip changes the view and palette order. **Position settings** controls whose
+turn it is, four castling rights, en-passant target and FEN counters. The menu
+loads FEN, restores the starting position, clears the board or continues play.
+The share button offers **Share FEN** and **Copy FEN**. Analysis and Continue
+validate the position; incomplete drafts remain editable. Image import is
+labelled unavailable and is not a working feature.
+
+<p align="center">
+  <img src="docs/screenshots/20261027_v1_stable_2_5_continue_phone.png" width="42%" alt="Stable 2.5 Continue from here dialog with side, Maia 1500, custom phone clock and Use electronic board off">
+  <img src="docs/screenshots/20261027_v1_stable_2_5_continue_board.png" width="42%" alt="Stable 2.5 Continue from here electronic-board connection failure with Retry and Cancel; board games are untimed">
+</p>
+
+*Stable 2.5 captures: a custom phone clock and the emulator’s actual
+connection-unavailable recovery. The second image does not demonstrate a
+successful physical board connection.*
+
+**Continue from here** opens a one-game setup for your side, Play Maia rating
+and phone clock, including custom minutes and increment. Its choices start
+from Home preferences and do not overwrite them. Enable **Use electronic
+board** to connect to or reuse a Chessnut board; choose **Set up board** after
+connection. Board continuation is untimed and waits for the physical pieces to
+match the full selected position. Turning the option off restores the chosen
+phone clock. Cancel preserves analysis; Retry handles a failed connection.
+DGT Pegasus and Square Off Grand Kingdom are not enabled by this feature.
 
 ### Save and share analysis
 
 <p align="center">
-  <img src="docs/screenshots/20260906_v0_analysis_export.jpg" width="42%" alt="Analysis Board menu for saving, sharing, and copying PGN or FEN">
+  <img src="docs/screenshots/20260906_v0_analysis_export.jpg" width="42%" alt="Older illustrative capture: Analysis Board menu for saving, sharing, and copying PGN or FEN">
 </p>
+
+*Older illustrative capture; current labels and defaults are described in the text.*
 
 The top menu saves or shares the complete annotated PGN, copies it to the
 clipboard, or copies the current FEN. Android's system picker and temporary URI
@@ -395,8 +540,10 @@ grants are used, so storage and Internet permissions are not required.
 ### Build and edit variations
 
 <p align="center">
-  <img src="docs/screenshots/20260906_v0_analysis_variation.jpg" width="42%" alt="Analysis Board preserving an inline variation in the move tree">
+  <img src="docs/screenshots/20260906_v0_analysis_variation.jpg" width="42%" alt="Older illustrative capture: Analysis Board preserving an inline variation in the move tree">
 </p>
+
+*Older illustrative capture; current labels and defaults are described in the text.*
 
 Select an earlier move and play a different continuation to create a clickable
 inline variation without deleting the original line. Long-press a move to
@@ -408,8 +555,10 @@ and takeback lines remain in exported PGN.
 ### Full-game computer analysis
 
 <p align="center">
-  <img src="docs/screenshots/20260906_v0_analysis_progress.jpg" width="42%" alt="Cancellable full-game computer analysis running entirely on the phone">
+  <img src="docs/screenshots/20260906_v0_analysis_progress.jpg" width="42%" alt="Older illustrative capture: Cancellable full-game computer analysis running entirely on the phone">
 </p>
+
+*Older illustrative capture; current labels and defaults are described in the text.*
 
 From a completed or imported game, open **Computer** and run a full review.
 Stockfish analyses every main-line position locally using the selected Fast,
@@ -419,20 +568,24 @@ there is no server-side quota.
 ### Accuracy and game phases
 
 <p align="center">
-  <img src="docs/screenshots/20260906_v0_review_accuracy.jpg" width="42%" alt="Computer review with White and Black accuracy and opening, middlegame, and endgame summaries">
+  <img src="docs/screenshots/20260906_v0_review_accuracy.jpg" width="42%" alt="Older illustrative capture: Computer review with White and Black accuracy and opening, middlegame, and endgame summaries">
 </p>
+
+*Older illustrative capture; current labels and defaults are described in the text.*
 
 The completed review reports separate White and Black accuracy, move totals,
 and opening, middlegame, and endgame sections. Maia's likely human move remains
 available beside Stockfish at every reviewed position, using the configurable
-review rating (1600 by default). Enable the second Maia engine to compare a
-second rating (2400 by default) at the same position.
+review rating (1500 for new preferences). Enable the second Maia engine to compare a
+second rating (2600 for new preferences) at the same position.
 
 ### Evaluation graph and move navigation
 
 <p align="center">
-  <img src="docs/screenshots/20260906_v0_review_graph.jpg" width="46%" alt="Tap-to-navigate evaluation graph with colour-coded move markers">
+  <img src="docs/screenshots/20260906_v0_review_graph.jpg" width="46%" alt="Older illustrative capture: Tap-to-navigate evaluation graph with colour-coded move markers">
 </p>
+
+*Older illustrative capture; current labels and defaults are described in the text.*
 
 The evaluation graph plots the game from White's perspective and marks
 classified moves. Tap anywhere on it to navigate directly to that position;
@@ -443,8 +596,10 @@ board when it is flipped.
 ### Move classifications
 
 <p align="center">
-  <img src="docs/screenshots/20261003_v0_stable_2_2_brilliant_review.png" width="46%" alt="Stable 2.2 review of Byrne–Fischer 1956 showing Fischer's 17...Be6!! classified Brilliant, with the badge on the board and annotation in the move list">
+  <img src="docs/screenshots/20261003_v0_stable_2_2_brilliant_review.png" width="46%" alt="Older illustrative capture: Stable 2.2 review of Byrne–Fischer 1956 showing Fischer's 17...Be6!! classified Brilliant, with the badge on the board and annotation in the move list">
 </p>
+
+*Older illustrative capture; current labels and defaults are described in the text.*
 
 Review classifies moves as **Brilliant**, **Good**, **Interesting**,
 **Dubious**, **Mistake**, or **Blunder**, with separate totals for both players.
@@ -459,8 +614,10 @@ original game.
 ### Recent games and PGN files
 
 <p align="center">
-  <img src="docs/screenshots/20261006_v0_stable_2_3_recent_games.png" width="46%" alt="Recent games with player-relative result colors and original played dates">
+  <img src="docs/screenshots/20261006_v0_stable_2_3_recent_games.png" width="46%" alt="Older illustrative capture: Recent games with player-relative result colors and original played dates">
 </p>
+
+*Older illustrative capture; current labels and defaults are described in the text.*
 
 **Recent games** contains completed games and unfinished games explicitly saved
 with Home. Each entry now identifies the player side and Maia rating (for
@@ -485,7 +642,7 @@ contains several games.
 ### About, privacy, and licences
 
 <p align="center">
-  <img src="docs/screenshots/20261017_v1_stable_2_4_about.png" width="46%" alt="Mobile Maia 2.4 About screen with the current version and upstream credits">
+  <img src="docs/screenshots/20261027_v1_stable_2_5_about.png" width="42%" alt="Stable 2.5.0 About screen with licence, source and upstream credits">
 </p>
 
 The app has no accounts, ads, subscriptions, tracking, or network dependency.

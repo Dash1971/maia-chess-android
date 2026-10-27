@@ -4,6 +4,7 @@ part of '../main.dart';
 ///
 /// The two large controls step through moves. Long-pressing them jumps to the
 /// beginning or end without adding duplicate first/last buttons to the UI.
+/// Analysis can override those destinations and allow holding at a line boundary.
 class MoveHistoryNavigator extends StatelessWidget {
   const MoveHistoryNavigator({
     required this.previousKey,
@@ -14,6 +15,8 @@ class MoveHistoryNavigator extends StatelessWidget {
     required this.onPrevious,
     required this.onNext,
     required this.onLast,
+    this.canHoldPrevious,
+    this.canHoldNext,
     this.headerActions = const [],
     this.headerActionWidth = 48,
     this.previousTooltip,
@@ -27,6 +30,8 @@ class MoveHistoryNavigator extends StatelessWidget {
   final Key nextKey;
   final bool canGoBack;
   final bool canGoForward;
+  final bool? canHoldPrevious;
+  final bool? canHoldNext;
   final VoidCallback onFirst;
   final VoidCallback onPrevious;
   final VoidCallback onNext;
@@ -44,30 +49,32 @@ class MoveHistoryNavigator extends StatelessWidget {
     required String tooltip,
     required IconData icon,
     required bool enabled,
+    required bool holdEnabled,
     required VoidCallback onTap,
     required VoidCallback onLongPress,
     required String longPressDestination,
     required BorderRadius borderRadius,
   }) {
     final colors = Theme.of(context).colorScheme;
+    final holdHint = l10n(context).holdForDestination(longPressDestination);
     return Expanded(
       child: Tooltip(
         enableFeedback: false,
-        message: tooltip,
+        message: !enabled && holdEnabled ? holdHint : tooltip,
         child: Semantics(
           button: true,
-          enabled: enabled,
+          enabled: enabled || holdEnabled,
           label: tooltip,
-          hint: l10n(context).holdForDestination(longPressDestination),
+          hint: holdEnabled ? holdHint : null,
           onTap: enabled ? onTap : null,
-          onLongPress: enabled ? onLongPress : null,
+          onLongPress: holdEnabled ? onLongPress : null,
           child: ExcludeSemantics(
             child: InkWell(
               enableFeedback: false,
               key: key,
               borderRadius: borderRadius,
               onTap: enabled ? onTap : null,
-              onLongPress: enabled ? onLongPress : null,
+              onLongPress: holdEnabled ? onLongPress : null,
               child: SizedBox(
                 height: 56,
                 child: Icon(
@@ -102,6 +109,7 @@ class MoveHistoryNavigator extends StatelessWidget {
               tooltip: previousTooltip ?? l10n(context).previousMove,
               icon: CupertinoIcons.chevron_back,
               enabled: canGoBack,
+              holdEnabled: canHoldPrevious ?? canGoBack,
               onTap: onPrevious,
               onLongPress: onFirst,
               longPressDestination: startTooltip ?? l10n(context).beginning,
@@ -118,6 +126,7 @@ class MoveHistoryNavigator extends StatelessWidget {
               tooltip: nextTooltip ?? l10n(context).nextMove,
               icon: CupertinoIcons.chevron_forward,
               enabled: canGoForward,
+              holdEnabled: canHoldNext ?? canGoForward,
               onTap: onNext,
               onLongPress: onLast,
               longPressDestination: endTooltip ?? l10n(context).latestPosition,

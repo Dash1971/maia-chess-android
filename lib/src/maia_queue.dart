@@ -28,8 +28,36 @@ class MaiaInferenceQueue {
     MaiaInferenceScope? replaceableScope,
     CapturedDecision? capture,
     Duration timeout = const Duration(seconds: 90),
+  }) => _request<Float32List>(
+    () => maiaEngineChannel.invokeMethod<Float32List>('predict', arguments),
+    replaceableScope: replaceableScope,
+    capture: capture,
+    timeout: timeout,
+  );
+
+  static Future<MaiaInferenceResult?> analyze(
+    Map<String, Object> arguments, {
+    MaiaInferenceScope? replaceableScope,
+    Duration timeout = const Duration(seconds: 90),
+  }) async {
+    final response = await _request<Object>(
+      () => maiaEngineChannel.invokeMethod<Object>('predict', {
+        ...arguments,
+        'includeValue': true,
+      }),
+      replaceableScope: replaceableScope,
+      timeout: timeout,
+    );
+    return MaiaInferenceResult.decode(response);
+  }
+
+  static Future<T?> _request<T>(
+    Future<T?> Function() request, {
+    MaiaInferenceScope? replaceableScope,
+    CapturedDecision? capture,
+    required Duration timeout,
   }) {
-    final result = Completer<Float32List?>();
+    final result = Completer<T?>();
     final generation = replaceableScope?.begin();
     _tail = _tail.catchError((_) {}).then((_) async {
       if (generation != null && !replaceableScope!.isCurrent(generation)) {
@@ -45,10 +73,8 @@ class MaiaInferenceQueue {
           await AppDiagnostics.recordEvent('maia-first-inference-start');
         }
         capture?.data['queueOutcome'] = 'inference-started';
-        final response = await maiaEngineChannel
-            .invokeMethod<Float32List>('predict', arguments)
-            .timeout(timeout);
-        capture?.output(response);
+        final response = await request().timeout(timeout);
+        capture?.output(response is Float32List ? response : null);
         capture?.data['queueOutcome'] = 'inference-returned';
         if (firstInference) {
           await AppDiagnostics.recordEvent(

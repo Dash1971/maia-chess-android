@@ -270,7 +270,7 @@ abstract class AppLocalizations {
   /// **'You'**
   String get you;
 
-  /// Settings: System default
+  /// System-default option in the LANGUAGE selector only. Follows the supported device-language preference. Never reuse for theme/brightness; use appearanceSystemDefault there.
   ///
   /// In en, this message translates to:
   /// **'System default'**
@@ -378,13 +378,13 @@ abstract class AppLocalizations {
   /// **'About Temperature and Top-P'**
   String get aboutTemperatureAndTopP;
 
-  /// Settings: Temperature
+  /// AI sampling temperature: rescales legal-move logits before softmax; not physical device temperature. At zero Maia selects an argmax. Use the same localized term in help, value announcements and HTML reports. Official localized AI terminology sources: docs/TRANSLATION_QUALITY_REVIEW.md.
   ///
   /// In en, this message translates to:
   /// **'Temperature'**
   String get temperature;
 
-  /// Settings: Top-P
+  /// Top-P (nucleus sampling): retain the smallest highest-probability candidate set whose cumulative probability reaches P, including the crossing move. Keep the conventional Top-P identifier. Not a per-move percentage cutoff. Official AI terminology sources: docs/TRANSLATION_QUALITY_REVIEW.md.
   ///
   /// In en, this message translates to:
   /// **'Top-P'**
@@ -396,10 +396,10 @@ abstract class AppLocalizations {
   /// **'Max variety in opening'**
   String get maxOpeningVariety;
 
-  /// Settings help: opening sampling override and its purpose
+  /// Maia-specific sampling guidance for the 2.5 default proposal. Preserve probability mass versus individual move probability, the five-full-move boundary and conditional direct-match strength claims. Not a Lichess equivalent. Explanation selector changes prose only.
   ///
   /// In en, this message translates to:
-  /// **'Not needed when Temperature and Top-P are at their default values of 1.0 / 1.0. Uses 1.0 / 1.0 for the first five moves by each side, then returns to your configured settings from move 6.\n\nThe goal is to give Maia maximum opening variety while allowing potentially stronger play later in the game by reducing the chance of low-probability moves through lower Temperature and/or Top-P.'**
+  /// **'On by default. Uses Temperature and Top-P 1.0 / 1.0 for the first five moves by each side, then your configured settings from move 6. This keeps broad opening choices while allowing you to trim low-probability moves later. It follows the position’s move number, including when resuming or continuing a game.\n\nNot needed at 1.0 / 1.0: the switch is off and unavailable because those settings already give full variety throughout.'**
   String get maxOpeningVarietyHelp;
 
   /// Settings: Maia analysis rating
@@ -857,6 +857,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Promote variation'**
   String get promoteVariation;
+
+  /// Destination in the navigation hint Hold for main line. Returns from a variation to its main-line branch point without changing moves.
+  ///
+  /// In en, this message translates to:
+  /// **'main line'**
+  String get mainLine;
 
   /// Review-tree action: promote a variation repeatedly until it becomes the main line. This changes the displayed analysis tree, not the historical moves actually played.
   ///
@@ -1692,10 +1698,10 @@ abstract class AppLocalizations {
   /// **'Up to 64 premoves can be queued.'**
   String get premoveLimit;
 
-  /// Play screen: Chessnut play supports standard-position, unlimited games only.
+  /// Play screen: Chessnut games have no clock.
   ///
   /// In en, this message translates to:
-  /// **'Chessnut play supports standard-position, unlimited games only.'**
+  /// **'Chessnut games use unlimited time.'**
   String get chessnutGameRestriction;
 
   /// Play screen: Temperature and Top-P
@@ -1716,10 +1722,10 @@ abstract class AppLocalizations {
   /// **'Full research data (JSONL)'**
   String get samplingResearch;
 
-  /// Link to the English-language sampling research report, not the JSONL export. Non-English labels identify the document language.
+  /// Maia-specific sampling guidance for the 2.5 default proposal. Preserve probability mass versus individual move probability, the five-full-move boundary and conditional direct-match strength claims. Not a Lichess equivalent. Explanation selector changes prose only.
   ///
   /// In en, this message translates to:
-  /// **'Full research data'**
+  /// **'Visual guide and research'**
   String get samplingResearchLink;
 
   /// Play screen: Close
@@ -1794,10 +1800,10 @@ abstract class AppLocalizations {
   /// **'This independent community app is not an official Maia-3 or University of Toronto, Lichess, or En Croissant application.'**
   String get aboutIndependent;
 
-  /// Maia-specific sampling help: Lowering Temperature or Top-P may make Maia stronger in the middlegame, but reduce opening variety. See the information button for details.
+  /// Maia-specific sampling guidance for the 2.5 default proposal. Preserve probability mass versus individual move probability, the five-full-move boundary and conditional direct-match strength claims. Not a Lichess equivalent. Explanation selector changes prose only.
   ///
   /// In en, this message translates to:
-  /// **'Lowering Temperature or Top-P may make Maia stronger in the middlegame, but reduce opening variety. See the information button for details.'**
+  /// **'Maia may play a more limited opening repertoire with Max variety in opening disabled.'**
   String get samplingRecommendationWarning;
 
   /// Play help, about or error message: Could not open PGN.
@@ -1990,10 +1996,10 @@ abstract class AppLocalizations {
   /// **'New board support is experimental. Please verify moves on both screens and report connection problems.'**
   String get boardExperimentalNotice;
 
-  /// Electronic board Dev support: Physical-board game constraint: standard initial position and no clock.
+  /// Electronic board support: physical-board games have no clock.
   ///
   /// In en, this message translates to:
-  /// **'Electronic-board games start from the standard position and use unlimited time.'**
+  /// **'Electronic-board games use unlimited time.'**
   String get boardGameRestriction;
 
   /// Electronic board Dev support: User confirmation of physical standard initial-position setup.
@@ -2101,7 +2107,7 @@ abstract class AppLocalizations {
   /// Maia-specific move-history help. The prediction gain is about 2 percentage points (57.00% to 59.36%), not a relative 2%. A playing-strength increase was not established; do not imply a full-game strength trial.
   ///
   /// In en, this message translates to:
-  /// **'Let Maia consider up to seven previous positions as well as the current position. This improved prediction of human moves by about 2 percentage points in our tests with the 79M model, but sometimes encouraged repeated copying in low-rated openings. We were not able to establish a strength increase. Off is recommended for now.'**
+  /// **'Let Maia use up to seven previous positions when choosing a move. In our tests with the 79M model, this improved prediction of human moves by about 2 percentage points, but sometimes led to repeated copying in lower-rated openings. We recommend leaving this off for now.'**
   String get maiaHistoryHelp;
 
   /// Maia-specific history setting/help: Read the move-history research
@@ -2206,7 +2212,7 @@ abstract class AppLocalizations {
   /// **'Raw model inputs and outputs for technical analysis.'**
   String get samplingResearchHint;
 
-  /// Offline report of recorded Maia selection probabilities after Temperature and Top-P.
+  /// HTML report introduction. Refer to the same translated Temperature/Top-P names as Settings; these are selection probabilities after sampling settings, not winning chances or objective quality scores.
   ///
   /// In en, this message translates to:
   /// **'Percentages show the chance of each move being selected after your Temperature and Top-P settings were applied. They are not winning chances or move-quality scores.'**
@@ -2398,47 +2404,443 @@ abstract class AppLocalizations {
   /// **'Reset settings'**
   String get resetSettingsAction;
 
-  /// User-approved Maia-specific sampling help, paragraph 1. Preserve the strength/variety distinction, the direct-match result at setting 1600, and probability mass (not number of moves). Use established local chess terminology.
+  /// Engine help: Introduction and recommended defaults. Legacy message ID retained; English revised 2026-10-25. All supported languages translate this approved English explanation. Maia-specific, not a Lichess equivalent.
   ///
   /// In en, this message translates to:
-  /// **'Temperature and Top-P control how Maia chooses between moves.'**
+  /// **'Temperature and Top-P combine to set the amount of variety in Maia’s play.\n\nWe recommend Temperature 1.0, Top-P 0.95, and Max variety in opening enabled. These are the default settings. Based on our research, they offer a good balance of human-like play, opening variety and fewer unusual blunders.\n\nRead on to learn how these settings work.'**
   String get samplingHelpIntro;
 
-  /// User-approved Maia-specific sampling help, paragraph 2. Preserve the strength/variety distinction, the direct-match result at setting 1600, and probability mass (not number of moves). Use established local chess terminology.
+  /// Engine help: Temperature section and opening probability examples. Legacy message ID retained; English revised 2026-10-25. All supported languages translate this approved English explanation. Maia-specific, not a Lichess equivalent.
   ///
   /// In en, this message translates to:
-  /// **'Increasing Temperature and Top-P is like making Maia a more volatile player, as Maia becomes more likely to play low-probability moves. These may be blunders, but they may also be brilliant moves!'**
+  /// **'Temperature\n\nAt Temperature 0, Maia always plays the move it predicts a player at the selected Elo is most likely to play. This is technically called argmax.\n\nAt Temperature 1, Maia considers the full range of moves it predicts a player at the selected Elo might play, choosing among them according to their probabilities.\n\nAt a Temperature between 0 and 1, Maia puts more weight on the moves it considers most likely. Lower Temperature values make Maia\'s choices more predictable.\n\nFor example, in our tests with the 79M model at rating inputs of 1600 for both players, Maia’s opening probabilities as White were approximately:\n\n• 1. e4: 64%\n• 1. d4: 25%\n• 1. c4: 3%\n• All other moves combined: 8%\n\nAt Temperature 0, Maia always played 1. e4\n\nAt Temperature 0.5, it played 1. e4 about 86% of the time and 1. d4 about 13% of the time. Other moves remained possible, but together accounted for less than 1%.\n\nAt Temperature 1, Maia followed the original probabilities listed above.'**
   String get samplingHelpVariety;
 
-  /// User-approved Maia-specific sampling help, paragraph 3. Preserve the strength/variety distinction, the direct-match result at setting 1600, and probability mass (not number of moves). Use established local chess terminology.
+  /// Engine help: Top-P section and filtering example. Legacy message ID retained; English revised 2026-10-25. All supported languages translate this approved English explanation. Maia-specific, not a Lichess equivalent.
   ///
   /// In en, this message translates to:
-  /// **'If you value maximum variety, and you also want Maia to play a broad range of human openings, including sidelines, then keep the default values of 1.0 and 1.0.'**
+  /// **'Top-P\n\nTop-P filters the available moves after Temperature adjusts their probabilities.\n\nAt Top-P 1, no filtering is applied. All available moves can be played according to their temperature-adjusted probabilities.\n\nAt Top-P 0.95, Maia keeps the most likely moves whose combined probability reaches at least 95%, then chooses among them. The excluded moves account for at most 5% of the probability.\n\nAt Top-P 0, Maia always chooses the most likely move. This has the same effect as Temperature 0: either setting is sufficient to produce argmax.\n\nIn our opening example, Temperature 1 and Top-P 0.60 would make Maia always play 1. e4. That move alone accounts for about 64% of the probability, so no other moves are needed to reach the 60% threshold.'**
   String get samplingHelpDefaults;
 
-  /// User-approved Maia-specific sampling help, paragraph 4. Preserve the strength/variety distinction, the direct-match result at setting 1600, and probability mass (not number of moves). Use established local chess terminology.
+  /// Engine help: Effect on play, analogy and direct-match research. Legacy message ID retained; English revised 2026-10-25. All supported languages translate this approved English explanation. Maia-specific, not a Lichess equivalent.
   ///
   /// In en, this message translates to:
-  /// **'If you prefer a stronger opponent playing fewer blunders, experiment with moving Temperature and Top-P values down.'**
+  /// **'How do these settings affect Maia’s play?\n\nYou can think of Top-P as an angel on Maia’s shoulder. At 0, the angel tells Maia to ignore lower-probability moves, which can include blunders or unsound moves. At 1.0, the angel has gone, and Maia could select even the craziest, most improbable move.\n\nIn our direct-match tests at the 1600 setting, argmax outperformed Temperature 1.0 / Top-P 1.0 by the equivalent of about 300 Elo points. However, argmax also limited opening choices to a narrow range of mainly main lines.'**
   String get samplingHelpStrength;
 
-  /// User-approved Maia-specific sampling help, paragraph 5. Preserve the strength/variety distinction, the direct-match result at setting 1600, and probability mass (not number of moves). Use established local chess terminology.
+  /// Engine help: Opening variety override. Legacy message ID retained; English revised 2026-10-25. All supported languages translate this approved English explanation. Maia-specific, not a Lichess equivalent.
   ///
   /// In en, this message translates to:
-  /// **'Setting Temperature to 0 will cause Maia to use argmax, which is a technical way of saying that Maia will always play what it predicts is the most probable human move in a given position. Careful! In our research at the 1600 setting, argmax Maia outperformed Maia at 1.0 / 1.0 by the equivalent of about 300 Elo points in direct matches.'**
+  /// **'So, we introduced Max variety in opening: a toggle which sets Maia to play with Temperature 1.0 and Top-P 1.0 for the first five moves by each side. You might see some crazy things in the opening phase! From move six, Maia switches to your configured settings.'**
   String get samplingHelpArgmax;
 
-  /// User-approved Maia-specific sampling help, paragraph 6. Preserve the strength/variety distinction, the direct-match result at setting 1600, and probability mass (not number of moves). Use established local chess terminology.
+  /// Engine help: Recommended play and strongest tested setting. Legacy message ID retained; English revised 2026-10-25. All supported languages translate this approved English explanation. Maia-specific, not a Lichess equivalent.
   ///
   /// In en, this message translates to:
-  /// **'For balanced play, you may consider keeping Temperature at 1.0 and setting Top-P to 0.95. This maintains variety while eliminating low-probability moves, which can often be blunders—but can also be good moves. Top-P essentially cuts off low-probability moves. Setting it to 0.95 keeps moves accounting for at least 95% of the probability after Temperature is applied. The remaining moves cannot be selected by Maia.'**
+  /// **'We recommend keeping max opening variety on and Temperature set to 1.0 and Top-P set to 0.95. This is like having a creative player with an angel on its shoulder that at least talks it out of playing the totally far-out moves—the least likely moves whose combined probability is up to 5%. These might be brilliant, true, but they can also be silly blunders. So this should make for a good balance of variety in the opening, creativity in the middle game, and stronger play through the exclusion of some very low-probability blunders.\n\nFor those feeling brave, Temperature 0 produced the strongest play in our tests. Good luck!'**
   String get samplingHelpTopP;
 
-  /// User-approved Maia-specific sampling help, paragraph 7. Preserve the strength/variety distinction, the direct-match result at setting 1600, and probability mass (not number of moves). Use established local chess terminology.
+  /// Maia-specific sampling guidance for the 2.5 default proposal. Preserve probability mass versus individual move probability, the five-full-move boundary and conditional direct-match strength claims. Not a Lichess equivalent. Explanation selector changes prose only.
   ///
   /// In en, this message translates to:
-  /// **'We experimented with these settings at 1600 Elo and published our full findings here:'**
+  /// **'See the visual guide for the research behind these choices, with links to the full results.'**
   String get samplingHelpResearchIntro;
+
+  /// Maia-specific sampling guidance for the 2.5 default proposal. Preserve probability mass versus individual move probability, the five-full-move boundary and conditional direct-match strength claims. Not a Lichess equivalent. Explanation selector changes prose only.
+  ///
+  /// In en, this message translates to:
+  /// **'Maia may play more unusual blunders with Temperature and Top-P at 1.0 / 1.0.'**
+  String get samplingFullVarietyNotice;
+
+  /// Strength notice when Temperature or Top-P is zero, with or without opening variety. Includes Good luck. The opening override timing is explained in the help, not this short notice. Maia-specific, no Lichess equivalent.
+  ///
+  /// In en, this message translates to:
+  /// **'Maia may play stronger with Temperature or Top-P at 0. Good luck!'**
+  String get samplingArgmaxNotice;
+
+  /// Maia-specific sampling guidance for the 2.5 default proposal. Preserve probability mass versus individual move probability, the five-full-move boundary and conditional direct-match strength claims. Not a Lichess equivalent. Explanation selector changes prose only.
+  ///
+  /// In en, this message translates to:
+  /// **'Top-P: Not used'**
+  String get topPNotUsed;
+
+  /// Maia-specific sampling guidance for the 2.5 default proposal. Preserve probability mass versus individual move probability, the five-full-move boundary and conditional direct-match strength claims. Not a Lichess equivalent. Explanation selector changes prose only.
+  ///
+  /// In en, this message translates to:
+  /// **'Why Top-P is not used'**
+  String get topPNotUsedTitle;
+
+  /// Maia-specific sampling guidance for the 2.5 default proposal. Preserve probability mass versus individual move probability, the five-full-move boundary and conditional direct-match strength claims. Not a Lichess equivalent. Explanation selector changes prose only.
+  ///
+  /// In en, this message translates to:
+  /// **'At Temperature 0, Maia always chooses a most likely move, so Top-P has no effect. Your Top-P value is kept and becomes available again when you raise Temperature. If Max variety in opening is on, the first five moves by each side still use 1.0 / 1.0.'**
+  String get topPNotUsedHelp;
+
+  /// Neutral strength notice when either positive sampling setting is below its recommended default (Temperature < 1.0 or Top-P < 0.95), with or without opening variety. Also show the limited-opening notice when opening variety is off. No move-number qualifier or Good luck. Zero settings use the separate argmax notice. Maia-specific, no Lichess equivalent.
+  ///
+  /// In en, this message translates to:
+  /// **'Maia may play stronger with lower Temperature or Top-P.'**
+  String get samplingLowerNotice;
+
+  /// Appearance setting: Appearance
+  ///
+  /// In en, this message translates to:
+  /// **'Appearance'**
+  String get appearance;
+
+  /// Appearance setting: Use system colors
+  ///
+  /// In en, this message translates to:
+  /// **'Use system colors'**
+  String get appearanceSystemColors;
+
+  /// Appearance setting: Match your Android color palette
+  ///
+  /// In en, this message translates to:
+  /// **'Match your Android color palette'**
+  String get appearanceSystemColorsHelp;
+
+  /// Appearance setting: Unavailable on this device. Requires Android 12 or later.
+  ///
+  /// In en, this message translates to:
+  /// **'Unavailable on this device. Requires Android 12 or later.'**
+  String get appearanceSystemColorsUnavailable;
+
+  /// Appearance setting: Pure black background
+  ///
+  /// In en, this message translates to:
+  /// **'Pure black background'**
+  String get appearancePureBlack;
+
+  /// Appearance setting: Use black backgrounds in dark mode
+  ///
+  /// In en, this message translates to:
+  /// **'Use black backgrounds in dark mode'**
+  String get appearancePureBlackHelp;
+
+  /// Appearance setting: Appearance changed, but could not be saved. Please try again.
+  ///
+  /// In en, this message translates to:
+  /// **'Appearance changed, but could not be saved. Please try again.'**
+  String get appearancePreferenceError;
+
+  /// Appearance mode label, following Lichess.
+  ///
+  /// In en, this message translates to:
+  /// **'Theme'**
+  String get appearanceTheme;
+
+  /// Light appearance mode, not brightness intensity or piece color. Lichess baseline with documented Google platform-wording adaptations in docs/TRANSLATION_QUALITY_REVIEW.md.
+  ///
+  /// In en, this message translates to:
+  /// **'Light'**
+  String get appearanceLight;
+
+  /// Dark appearance mode, not literal black or piece color. Pure-black backgrounds are a separate setting. Lichess baseline with documented Google platform-wording adaptations in docs/TRANSLATION_QUALITY_REVIEW.md.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark'**
+  String get appearanceDark;
+
+  /// System-default option in the THEME selector only. Follow device light/dark brightness; independent of language, Android accent colors and pure-black backgrounds. Lichess deviceTheme where available; sourced fallback in docs/TRANSLATION_QUALITY_REVIEW.md.
+  ///
+  /// In en, this message translates to:
+  /// **'System default'**
+  String get appearanceSystemDefault;
+
+  /// Compact Board section heading, including board display and touch-drag aids.
+  ///
+  /// In en, this message translates to:
+  /// **'Board'**
+  String get boardSettings;
+
+  /// Board settings control; see the pinned Lichess terminology reference for scope.
+  ///
+  /// In en, this message translates to:
+  /// **'Board coordinates'**
+  String get boardCoordinates;
+
+  /// Switch for legal destination dots. Already committed premove overlays are independent.
+  ///
+  /// In en, this message translates to:
+  /// **'Legal-move destinations'**
+  String get boardLegalMoves;
+
+  /// Switch for last-move highlights only. Check, selection, premoves and arrows stay independent.
+  ///
+  /// In en, this message translates to:
+  /// **'Last-move highlight'**
+  String get boardLastMove;
+
+  /// Board settings control; see the pinned Lichess terminology reference for scope.
+  ///
+  /// In en, this message translates to:
+  /// **'Piece animation'**
+  String get boardAnimation;
+
+  /// Board settings control; see the pinned Lichess terminology reference for scope.
+  ///
+  /// In en, this message translates to:
+  /// **'Magnify dragged piece'**
+  String get boardMagnify;
+
+  /// Board settings control; see the pinned Lichess terminology reference for scope.
+  ///
+  /// In en, this message translates to:
+  /// **'Dragged piece target'**
+  String get boardDragTarget;
+
+  /// Board settings control; see the pinned Lichess terminology reference for scope.
+  ///
+  /// In en, this message translates to:
+  /// **'Circle'**
+  String get boardTargetCircle;
+
+  /// Board settings control; see the pinned Lichess terminology reference for scope.
+  ///
+  /// In en, this message translates to:
+  /// **'Square'**
+  String get boardTargetSquare;
+
+  /// Board settings control; see the pinned Lichess terminology reference for scope.
+  ///
+  /// In en, this message translates to:
+  /// **'None'**
+  String get boardTargetNone;
+
+  /// Board preference persistence failed; the displayed choice can be retried.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save board settings. Please try again.'**
+  String get boardPreferenceError;
+
+  /// Visual board design selector. Style names are upstream artwork names and remain unchanged.
+  ///
+  /// In en, this message translates to:
+  /// **'Board'**
+  String get boardDesign;
+
+  /// Visual piece set selector. Style names are upstream artwork names and remain unchanged.
+  ///
+  /// In en, this message translates to:
+  /// **'Piece set'**
+  String get boardPieceSet;
+
+  /// User-approved Maia win (score) percentage setting/help, 2026-10-26. The model estimates expected game points including half-point draws. Preserve the 60 points in 100 games example, independent rating inputs and human/Stockfish comparison. Maia-specific, not a direct Lichess equivalent.
+  ///
+  /// In en, this message translates to:
+  /// **'Show Maia win (score) %'**
+  String get showMaiaScore;
+
+  /// Maia outcome/expected-score feature. The percentage is P(win)+half P(draw), rating-conditioned for both players, not strict P(win). Keep separate from human move-choice probabilities and Stockfish.
+  ///
+  /// In en, this message translates to:
+  /// **'Maia score'**
+  String get maiaScore;
+
+  /// Maia outcome/expected-score feature. The percentage is P(win)+half P(draw), rating-conditioned for both players, not strict P(win). Keep separate from human move-choice probabilities and Stockfish.
+  ///
+  /// In en, this message translates to:
+  /// **'Equal'**
+  String get maiaScoreEqual;
+
+  /// User-approved Maia win (score) percentage setting/help, 2026-10-26. The model estimates expected game points including half-point draws. Preserve the 60 points in 100 games example, independent rating inputs and human/Stockfish comparison. Maia-specific, not a direct Lichess equivalent.
+  ///
+  /// In en, this message translates to:
+  /// **'Shows Maia’s assessment of winning (scoring) chances at the top of the screen.\nThe white or black dot tells you which side the percentage describes.'**
+  String get maiaScoreHelp;
+
+  /// User-approved Maia win (score) percentage setting/help, 2026-10-26. The model estimates expected game points including half-point draws. Preserve the 60 points in 100 games example, independent rating inputs and human/Stockfish comparison. Maia-specific, not a direct Lichess equivalent.
+  ///
+  /// In en, this message translates to:
+  /// **'For example, White 60% means Maia estimates White would score about 60 points across 100 games from this position. A win earns 1 point; a draw earns ½.'**
+  String get maiaScoreExpectedHelp;
+
+  /// User-approved Maia win (score) percentage setting/help, 2026-10-26. The model estimates expected game points including half-point draws. Preserve the 60 points in 100 games example, independent rating inputs and human/Stockfish comparison. Maia-specific, not a direct Lichess equivalent.
+  ///
+  /// In en, this message translates to:
+  /// **'The estimate uses the selected Maia analysis rating for both players. With two Maias enabled, each shows its own estimate at its own rating.'**
+  String get maiaScoreInputsHelp;
+
+  /// Maia outcome/expected-score feature. The percentage is P(win)+half P(draw), rating-conditioned for both players, not strict P(win). Keep separate from human move-choice probabilities and Stockfish.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save Maia score settings. Please try again.'**
+  String get maiaScorePreferenceError;
+
+  /// Link to the English-language research report on Maia expected-score reliability. Maia-specific, no direct Lichess equivalent. Non-English labels identify the report language.
+  ///
+  /// In en, this message translates to:
+  /// **'How reliable is Maia’s score?'**
+  String get maiaScoreResearchLink;
+
+  /// User-approved Maia win (score) percentage setting/help, 2026-10-26. The model estimates expected game points including half-point draws. Preserve the 60 points in 100 games example, independent rating inputs and human/Stockfish comparison. Maia-specific, not a direct Lichess equivalent.
+  ///
+  /// In en, this message translates to:
+  /// **'It can be useful to contrast with Stockfish evaluation. Just because Stockfish thinks one side is better, does not mean that it is easy for a human to find the right moves to convert!'**
+  String get maiaScoreStockfishHelp;
+
+  /// Standard-chess board editor: Move pieces. Tool labels must distinguish moving existing pieces, repeated placement and erasure. FEN counters are preserved; camera recognition is unavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Move pieces'**
+  String get editorMoveTool;
+
+  /// Standard-chess board editor: Erase pieces. Tool labels must distinguish moving existing pieces, repeated placement and erasure. FEN counters are preserved; camera recognition is unavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Erase pieces'**
+  String get editorEraseTool;
+
+  /// Standard-chess board editor: Empty square. Tool labels must distinguish moving existing pieces, repeated placement and erasure. FEN counters are preserved; camera recognition is unavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Empty square'**
+  String get editorEmptySquare;
+
+  /// Standard-chess board editor: Position settings. Tool labels must distinguish moving existing pieces, repeated placement and erasure. FEN counters are preserved; camera recognition is unavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Position settings'**
+  String get editorPositionSettings;
+
+  /// Standard-chess board editor: Import position from image (not yet available). Tool labels must distinguish moving existing pieces, repeated placement and erasure. FEN counters are preserved; camera recognition is unavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Import position from image (not yet available)'**
+  String get editorImageImportUnavailable;
+
+  /// Standard-chess board editor: Share FEN. Tool labels must distinguish moving existing pieces, repeated placement and erasure. FEN counters are preserved; camera recognition is unavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Share FEN'**
+  String get editorShareFen;
+
+  /// Standard-chess board editor: FEN metadata. Tool labels must distinguish moving existing pieces, repeated placement and erasure. FEN counters are preserved; camera recognition is unavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'FEN metadata'**
+  String get editorFenMetadata;
+
+  /// Standard-chess board editor: Halfmove clock. Tool labels must distinguish moving existing pieces, repeated placement and erasure. FEN counters are preserved; camera recognition is unavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Halfmove clock'**
+  String get editorHalfmoveClock;
+
+  /// Standard-chess board editor: Move number. Tool labels must distinguish moving existing pieces, repeated placement and erasure. FEN counters are preserved; camera recognition is unavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Move number'**
+  String get editorFullmoveNumber;
+
+  /// Complete singular name of a white pawn, used in editor palette tooltips and board-square accessibility labels. Use natural word order and gender agreement; keep the pinned Lichess piece-name terminology.
+  ///
+  /// In en, this message translates to:
+  /// **'White pawn'**
+  String get editorWhitePawn;
+
+  /// Complete singular name of a white knight, used in editor palette tooltips and board-square accessibility labels. Use natural word order and gender agreement; keep the pinned Lichess piece-name terminology.
+  ///
+  /// In en, this message translates to:
+  /// **'White knight'**
+  String get editorWhiteKnight;
+
+  /// Complete singular name of a white bishop, used in editor palette tooltips and board-square accessibility labels. Use natural word order and gender agreement; keep the pinned Lichess piece-name terminology.
+  ///
+  /// In en, this message translates to:
+  /// **'White bishop'**
+  String get editorWhiteBishop;
+
+  /// Complete singular name of a white rook, used in editor palette tooltips and board-square accessibility labels. Use natural word order and gender agreement; keep the pinned Lichess piece-name terminology.
+  ///
+  /// In en, this message translates to:
+  /// **'White rook'**
+  String get editorWhiteRook;
+
+  /// Complete singular name of a white queen, used in editor palette tooltips and board-square accessibility labels. Use natural word order and gender agreement; keep the pinned Lichess piece-name terminology.
+  ///
+  /// In en, this message translates to:
+  /// **'White queen'**
+  String get editorWhiteQueen;
+
+  /// Complete singular name of a white king, used in editor palette tooltips and board-square accessibility labels. Use natural word order and gender agreement; keep the pinned Lichess piece-name terminology.
+  ///
+  /// In en, this message translates to:
+  /// **'White king'**
+  String get editorWhiteKing;
+
+  /// Complete singular name of a black pawn, used in editor palette tooltips and board-square accessibility labels. Use natural word order and gender agreement; keep the pinned Lichess piece-name terminology.
+  ///
+  /// In en, this message translates to:
+  /// **'Black pawn'**
+  String get editorBlackPawn;
+
+  /// Complete singular name of a black knight, used in editor palette tooltips and board-square accessibility labels. Use natural word order and gender agreement; keep the pinned Lichess piece-name terminology.
+  ///
+  /// In en, this message translates to:
+  /// **'Black knight'**
+  String get editorBlackKnight;
+
+  /// Complete singular name of a black bishop, used in editor palette tooltips and board-square accessibility labels. Use natural word order and gender agreement; keep the pinned Lichess piece-name terminology.
+  ///
+  /// In en, this message translates to:
+  /// **'Black bishop'**
+  String get editorBlackBishop;
+
+  /// Complete singular name of a black rook, used in editor palette tooltips and board-square accessibility labels. Use natural word order and gender agreement; keep the pinned Lichess piece-name terminology.
+  ///
+  /// In en, this message translates to:
+  /// **'Black rook'**
+  String get editorBlackRook;
+
+  /// Complete singular name of a black queen, used in editor palette tooltips and board-square accessibility labels. Use natural word order and gender agreement; keep the pinned Lichess piece-name terminology.
+  ///
+  /// In en, this message translates to:
+  /// **'Black queen'**
+  String get editorBlackQueen;
+
+  /// Complete singular name of a black king, used in editor palette tooltips and board-square accessibility labels. Use natural word order and gender agreement; keep the pinned Lichess piece-name terminology.
+  ///
+  /// In en, this message translates to:
+  /// **'Black king'**
+  String get editorBlackKing;
+
+  /// Continue from here dialog: toggle for playing the selected position on a physical electronic chessboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Use electronic board'**
+  String get continuationUseBoard;
+
+  /// Continue from here dialog: instruction shown before a supported physical board is connected.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect a supported board.'**
+  String get continuationConnectHelp;
+
+  /// Continue from here dialog: explains that physical-board games do not use a clock.
+  ///
+  /// In en, this message translates to:
+  /// **'Electronic-board games are untimed.'**
+  String get continuationBoardUntimed;
+
+  /// Continuation game setup: heading while the player arranges physical pieces to match the selected position.
+  ///
+  /// In en, this message translates to:
+  /// **'Set up board'**
+  String get continuationSetUpBoard;
+
+  /// Continuation game setup: arrange the position displayed in the app on the physical board; play begins automatically when the pieces match.
+  ///
+  /// In en, this message translates to:
+  /// **'Set up the position shown on your board. The game starts when the pieces match.'**
+  String get continuationSetupHelp;
+
+  /// Continue from here dialog: explains that custom-position continuation currently supports only Chessnut hardware.
+  ///
+  /// In en, this message translates to:
+  /// **'Continuing from a position currently supports Chessnut boards only.'**
+  String get continuationBoardUnsupported;
 }
 
 class _AppLocalizationsDelegate

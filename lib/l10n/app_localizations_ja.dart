@@ -155,7 +155,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get maxOpeningVarietyHelp =>
-      '温度とTop-Pが初期値の1.0 / 1.0の場合は不要です。双方の最初の5手には1.0 / 1.0を使用し、6手目から設定した値に戻ります。\n\nMaiaの序盤の指し手を最大限に多様にしつつ、その後は温度やTop-Pを下げて低確率の手が選ばれる可能性を減らすことで、より強いプレイを目指す設定です。';
+      '初期設定ではオンです。双方の最初の5手には温度とTop-P 1.0 / 1.0を使い、6手目から設定した値を使います。序盤の幅広い選択肢を保ちつつ、その後は確率の低い手を絞れます。再開や途中局面からの対局でも、その局面の手数に従います。\n\n1.0 / 1.0では最初から最後まで幅広い候補を使うため、このスイッチは不要となり、オフの状態で選択できなくなります。';
 
   @override
   String get maiaAnalysisRating => '解析用Maiaのレーティング';
@@ -386,6 +386,9 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get promoteVariation => '変化を上位の手順にする';
+
+  @override
+  String get mainLine => '主手順';
 
   @override
   String get makeMainLine => '主手順にする';
@@ -874,8 +877,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get premoveLimit => 'プリムーブは64手まで予約できます。';
 
   @override
-  String get chessnutGameRestriction =>
-      'Chessnutでの対局は、標準の初期配置・持ち時間無制限の場合のみ対応しています。';
+  String get chessnutGameRestriction => 'Chessnutでの対局は持ち時間無制限です。';
 
   @override
   String get samplingTitle => '温度とTop-P';
@@ -887,7 +889,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get samplingResearch => '研究用の全データ（JSONL）';
 
   @override
-  String get samplingResearchLink => '研究用の全データ（英文）';
+  String get samplingResearchLink => '図で見るガイドと研究（英文）';
 
   @override
   String get close => '閉じる';
@@ -932,7 +934,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get samplingRecommendationWarning =>
-      '温度やTop-Pを下げると、中盤でMaiaが強くなる可能性がありますが、序盤の多様さは減ります。詳しくは情報ボタンをご覧ください。';
+      '「序盤の多様性を最大にする」をオフにすると、Maiaのオープニングの幅が狭くなる可能性があります。';
 
   @override
   String get couldNotOpenPgn => 'PGNを開けませんでした。';
@@ -1060,7 +1062,7 @@ class AppLocalizationsJa extends AppLocalizations {
       '新しいチェス盤への対応は試験段階です。両方の画面で指し手を確認し、接続の問題をご報告ください。';
 
   @override
-  String get boardGameRestriction => '電子チェス盤での対局は、標準の初期配置・持ち時間無制限で開始します。';
+  String get boardGameRestriction => '電子チェス盤での対局は持ち時間無制限です。';
 
   @override
   String get boardConfirmSetup => '初期配置を並べました';
@@ -1119,7 +1121,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get maiaHistoryHelp =>
-      '現在の局面に加えて、最大7つ前までの局面をMaiaに考慮させます。79Mモデルを使った私たちのテストでは、人間の指し手の予測精度が約2パーセントポイント向上しましたが、低レーティングの序盤で相手の手を繰り返しまねる傾向が強まることもありました。強さの向上は確認できませんでした。当面はオフをおすすめします。';
+      'Maiaが指し手を選ぶ際に、最大7つ前までの局面を使えるようにします。79Mモデルを使った私たちのテストでは、人間の指し手の予測精度が約2パーセントポイント向上しましたが、低レーティングの序盤で相手の手を繰り返しまねることもありました。当面はオフのままにしておくことをおすすめします。';
 
   @override
   String get maiaHistoryResearch => '過去の局面の研究を読む（英文）';
@@ -1181,7 +1183,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get samplingReportExplanation =>
-      'パーセントは、その時点のTemperatureとTop-P設定を適用した後に各指し手が選ばれる確率です。勝率や手の良し悪しを表すものではありません。';
+      'パーセントは、その時点の温度とTop-P設定を適用した後に各指し手が選ばれる確率です。勝率や手の良し悪しを表すものではありません。';
 
   @override
   String get samplingReportPartial =>
@@ -1272,7 +1274,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get analysisSettings => '解析に関する設定';
 
   @override
-  String get samplingData => '選択データ';
+  String get samplingData => '手の選択データ';
 
   @override
   String get resetSettingsDefaultsScope =>
@@ -1291,29 +1293,237 @@ class AppLocalizationsJa extends AppLocalizations {
   String get resetSettingsAction => '設定を初期値に戻す';
 
   @override
-  String get samplingHelpIntro => '温度とTop-Pは、Maiaがどの指し手を選ぶかを調整する設定です。';
+  String get samplingHelpIntro =>
+      '温度とTop-Pを組み合わせることで、Maiaの指し手にどのくらい多様性を持たせるかが決まります。\n\n温度1.0、Top-P 0.95、「序盤の多様性を最大にする」をオンにすることをおすすめします。これらが初期設定です。私たちの研究では、人間らしい指し方、序盤の多様性、意外な大悪手の少なさの、よいバランスが得られました。\n\nそれぞれの設定の仕組みを以下で説明します。';
 
   @override
   String get samplingHelpVariety =>
-      '温度とTop-Pを上げると、Maiaは確率の低い手も選びやすくなり、より予測しにくいプレイヤーのようになります。その手は大悪手かもしれませんが、妙手かもしれません！';
+      '温度\n\n温度0では、選択したEloのプレイヤーが最も指しそうだとMaiaが予測する手を必ず指します。これは技術的にはargmaxと呼ばれます。\n\n温度1では、選択したEloのプレイヤーが指す可能性があるとMaiaが予測するすべての手を候補とし、それぞれの確率に応じて選びます。\n\n温度が0と1の間の場合、Maiaはより指されやすいと判断した手を重視します。温度を下げるほど、Maiaの選ぶ手は予測しやすくなります。\n\n例えば、79Mモデルを使い、両プレイヤーのレーティング入力を1600にした私たちのテストでは、Maiaが白番で最初に指す手の確率はおよそ次のとおりでした。\n\n• 1. e4：64%\n• 1. d4：25%\n• 1. c4：3%\n• その他の手の合計：8%\n\n温度0では、Maiaは必ず1. e4を指しました。\n\n温度0.5では、1. e4を約86%、1. d4を約13%の割合で指しました。その他の手も選ばれる可能性はありましたが、合計で1%未満でした。\n\n温度1では、Maiaは上記の元の確率に従って指しました。';
 
   @override
   String get samplingHelpDefaults =>
-      '指し手の多様さを最大限に楽しみたい方や、あまり指されない変化も含め、人間が指す幅広いオープニングをMaiaに指してほしい方は、初期値の1.0と1.0のままにしてください。';
+      'Top-P\n\nTop-Pは、温度によって確率が調整された後に、候補となる手を絞り込みます。\n\nTop-P 1では、絞り込みは行われません。すべての候補手が、温度適用後の確率に応じて選ばれます。\n\nTop-P 0.95では、確率の高い順に、合計確率が95%以上に達するまでの手を残し、その中から選びます。除かれる手の合計確率は最大5%です。\n\nTop-P 0では、Maiaは必ず最も確率の高い手を選びます。これは温度0と同じ効果です。どちらか一方を0にするだけでargmaxになります。\n\n先ほどの初手の例では、温度1、Top-P 0.60にすると、Maiaは必ず1. e4を指します。この手だけで確率の約64%を占めるため、60%のしきい値に達するのに他の手は必要ありません。';
 
   @override
   String get samplingHelpStrength =>
-      '大悪手が少なく、より強い相手と対局したい方は、温度やTop-Pの値を下げて試してみてください。';
+      'これらの設定はMaiaの指し方にどう影響するのでしょうか？\n\nTop-Pは、Maiaの肩に乗った天使だと考えてください。0では、天使がMaiaに、確率の低い手は無視するよう助言します。そうした手には大悪手や無理のある手も含まれます。1.0では、天使はいなくなり、Maiaは最も奇抜で指されにくい手さえ選ぶことがあります。\n\nレーティング設定1600での直接対戦テストでは、argmaxは温度1.0 / Top-P 1.0を約300 Elo相当上回る成績を収めました。ただし、オープニングの選択肢も、主にメインラインの狭い範囲に限られるようになりました。';
 
   @override
   String get samplingHelpArgmax =>
-      '温度を0にすると、Maiaはargmaxという方法で手を選びます。これは、ある局面で人間が最も指しそうだとMaiaが予測した手を、常に選ぶという意味です。ご注意ください！レーティング設定1600で行った私たちの研究では、argmaxのMaiaは、1.0 / 1.0のMaiaとの直接対局で、約300 Eloポイントの差に相当する好成績を収めました。';
+      'そこで、「序盤の多様性を最大にする」を導入しました。白黒それぞれの最初の5手は、温度1.0、Top-P 1.0でMaiaに指させるスイッチです。序盤には驚くような手が出るかもしれません！ 6手目からは、指定した設定に切り替わります。';
 
   @override
   String get samplingHelpTopP =>
-      '強さと多様さのバランスを取りたい方は、温度を1.0のまま、Top-Pを0.95にしてみてください。多様さを保ちながら、確率の低い手を選択肢から除きます。そうした手は大悪手であることも多いですが、良い手の場合もあります。Top-Pは、簡単に言えば、確率の低い手を候補から外す設定です。0.95にすると、温度を適用した後の確率の合計が少なくとも95％になるまで候補の手を残します。それ以外の手をMaiaが選ぶことはありません。';
+      '「序盤の多様性を最大にする」はオンのまま、温度は1.0、Top-Pは0.95のままにしておくことをおすすめします。創造的なプレイヤーの肩に天使が乗り、少なくとも極端に奇抜な手は思いとどまらせるようなイメージです。除かれるのは、確率の低い手のうち、合計確率が最大5%になる部分です。そうした手には妙手もあるでしょうが、単純な大悪手もあり得ます。序盤の多様性、中盤の創造性、そして非常に確率の低い大悪手の一部を除くことによる強さの、よいバランスが期待できます。\n\n腕に自信のある方は、温度を0にしてみてください。私たちのテストでは、最も強い指し方となりました。健闘を祈ります！';
 
   @override
   String get samplingHelpResearchIntro =>
-      'これらの設定を1600 Eloで実験しました。詳しい結果はこちらで公開しています：';
+      '設定を選んだ理由を図で紹介しています。詳しい研究結果へのリンクもあります。';
+
+  @override
+  String get samplingFullVarietyNotice =>
+      '温度とTop-Pが1.0 / 1.0の場合、Maiaが意外な大悪手を指すことが増える可能性があります。';
+
+  @override
+  String get samplingArgmaxNotice => '温度またはTop-Pが0の場合、Maiaがより強くなる可能性があります。幸運を！';
+
+  @override
+  String get topPNotUsed => 'Top-P：使用しません';
+
+  @override
+  String get topPNotUsedTitle => 'Top-Pを使用しない理由';
+
+  @override
+  String get topPNotUsedHelp =>
+      '温度が0の場合、Maiaは最も確率の高い手を必ず選ぶため、Top-Pは影響しません。Top-Pの値は保存され、温度を上げると再び使えます。序盤の多様性がオンなら、双方の最初の5手には引き続き1.0 / 1.0を使います。';
+
+  @override
+  String get samplingLowerNotice => '温度またはTop-Pを低くすると、Maiaがより強くなる可能性があります。';
+
+  @override
+  String get appearance => '外観';
+
+  @override
+  String get appearanceSystemColors => 'OS と同じ色設定を使う';
+
+  @override
+  String get appearanceSystemColorsHelp => 'Android のカラーパレットに合わせる';
+
+  @override
+  String get appearanceSystemColorsUnavailable =>
+      'この端末では利用できません。Android 12 以降が必要です。';
+
+  @override
+  String get appearancePureBlack => '完全な黒の背景';
+
+  @override
+  String get appearancePureBlackHelp => 'ダークモードで背景を真っ黒にする';
+
+  @override
+  String get appearancePreferenceError => '外観を変更しましたが、保存できませんでした。もう一度お試しください。';
+
+  @override
+  String get appearanceTheme => 'テーマ';
+
+  @override
+  String get appearanceLight => 'ライト';
+
+  @override
+  String get appearanceDark => 'ダーク';
+
+  @override
+  String get appearanceSystemDefault => 'デバイスの設定に従う';
+
+  @override
+  String get boardSettings => '盤';
+
+  @override
+  String get boardCoordinates => 'マスの座標';
+
+  @override
+  String get boardLegalMoves => '合法手の移動先';
+
+  @override
+  String get boardLastMove => '直前の手の強調表示';
+
+  @override
+  String get boardAnimation => '駒のアニメーション';
+
+  @override
+  String get boardMagnify => 'ドラッグ中の駒を拡大';
+
+  @override
+  String get boardDragTarget => 'ドラッグ移動時の駒の照準';
+
+  @override
+  String get boardTargetCircle => '円形';
+
+  @override
+  String get boardTargetSquare => '四角形';
+
+  @override
+  String get boardTargetNone => '無効';
+
+  @override
+  String get boardPreferenceError => '盤の設定を保存できませんでした。もう一度お試しください。';
+
+  @override
+  String get boardDesign => '盤のデザイン';
+
+  @override
+  String get boardPieceSet => '駒のデザイン';
+
+  @override
+  String get showMaiaScore => 'Maiaの勝利（得点）率を表示';
+
+  @override
+  String get maiaScore => 'Maiaスコア';
+
+  @override
+  String get maiaScoreEqual => '互角';
+
+  @override
+  String get maiaScoreHelp =>
+      '画面上部に、Maiaが評価した勝利（得点）の見込みを表示します。\n白または黒の点は、その割合がどちらの側を表しているかを示します。';
+
+  @override
+  String get maiaScoreExpectedHelp =>
+      '例えば「白 60%」は、この局面から100局指した場合に、白が合計約60点を獲得するとMaiaが見積もっていることを意味します。勝ちは1点、引き分けは½点です。';
+
+  @override
+  String get maiaScoreInputsHelp =>
+      'この評価では、選択したMaiaの解析レーティングを両者に適用します。Maiaを2つ有効にすると、それぞれが自身のレーティングでの評価を表示します。';
+
+  @override
+  String get maiaScorePreferenceError => 'Maiaスコアの設定を保存できませんでした。もう一度お試しください。';
+
+  @override
+  String get maiaScoreResearchLink => 'Maiaのスコアはどのくらい信頼できる？（英文）';
+
+  @override
+  String get maiaScoreStockfishHelp =>
+      'Stockfishの評価と比べるのも役立ちます。Stockfishが一方を有利と評価していても、人間がその優位を勝ちに結び付ける正しい手を見つけやすいとは限りません！';
+
+  @override
+  String get editorMoveTool => '駒を移動';
+
+  @override
+  String get editorEraseTool => '駒を削除';
+
+  @override
+  String get editorEmptySquare => '空きマス';
+
+  @override
+  String get editorPositionSettings => '局面の設定';
+
+  @override
+  String get editorImageImportUnavailable => '画像から局面を読み込む（準備中）';
+
+  @override
+  String get editorShareFen => 'FENを共有';
+
+  @override
+  String get editorFenMetadata => 'FENの詳細';
+
+  @override
+  String get editorHalfmoveClock => '半手カウンター';
+
+  @override
+  String get editorFullmoveNumber => '手数';
+
+  @override
+  String get editorWhitePawn => '白のポーン';
+
+  @override
+  String get editorWhiteKnight => '白のナイト';
+
+  @override
+  String get editorWhiteBishop => '白のビショップ';
+
+  @override
+  String get editorWhiteRook => '白のルーク';
+
+  @override
+  String get editorWhiteQueen => '白のクイーン';
+
+  @override
+  String get editorWhiteKing => '白のキング';
+
+  @override
+  String get editorBlackPawn => '黒のポーン';
+
+  @override
+  String get editorBlackKnight => '黒のナイト';
+
+  @override
+  String get editorBlackBishop => '黒のビショップ';
+
+  @override
+  String get editorBlackRook => '黒のルーク';
+
+  @override
+  String get editorBlackQueen => '黒のクイーン';
+
+  @override
+  String get editorBlackKing => '黒のキング';
+
+  @override
+  String get continuationUseBoard => '電子チェス盤を使用';
+
+  @override
+  String get continuationConnectHelp => '対応するチェス盤を接続してください。';
+
+  @override
+  String get continuationBoardUntimed => '電子チェス盤での対局は持ち時間無制限です。';
+
+  @override
+  String get continuationSetUpBoard => '駒を配置';
+
+  @override
+  String get continuationSetupHelp =>
+      '画面に表示された局面をチェス盤に並べてください。駒の配置が一致すると対局が始まります。';
+
+  @override
+  String get continuationBoardUnsupported =>
+      '指定した局面からの対局は、現在Chessnutのチェス盤のみ対応しています。';
 }

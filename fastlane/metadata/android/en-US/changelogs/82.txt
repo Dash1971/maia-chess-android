@@ -1,0 +1,3 @@
+2.5.0
+
+Light/dark themes, system colors and an optional pure-black background. New board colors, piece sets and move aids. Edit positions and share FEN. Optional Maia expected-score display. Updated Maia defaults and clearer engine help. Smoother analysis navigation. Continue from analysis on Chessnut with guided board setup. Existing saved settings are preserved.

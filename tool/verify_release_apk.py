@@ -5,6 +5,7 @@ from pathlib import Path
 import struct
 import zipfile
 
+from check_board_style_assets import check as check_board_style_assets
 from release_common import (apk_identity, digest, file_digest, require, run,
                             sdk_arguments, sdk_tools, write_report)
 from verify_model import MODEL_SHA256, MODEL_SIZE
@@ -78,6 +79,7 @@ def compare_payloads(candidate, baseline, allowed):
 
 
 def verify(args):
+    artwork = check_board_style_assets(args.apk)
     _, tools = sdk_tools(args.sdk_root, args.build_tools_version)
     identity = apk_identity(args.apk, tools)
     require(identity['name'] == args.package, 'Unexpected APK package: ' + identity['name'])
@@ -91,7 +93,7 @@ def verify(args):
     run(tools / 'zipalign', '-c', '-P', '16', '4', args.apk)
     report = {'apk_sha256': file_digest(args.apk), 'bytes': args.apk.stat().st_size,
               'identity': identity, 'no_internet_permission': True, 'zip_alignment': 'passed',
-              'signature': 'not requested'}
+              'signature': 'not requested', 'board_artwork': artwork}
     if args.require_signature:
         report['signature'] = run(tools / 'apksigner', 'verify', '--verbose', '--print-certs', args.apk).decode()
     with zipfile.ZipFile(args.apk) as apk:

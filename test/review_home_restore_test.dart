@@ -13,7 +13,12 @@ void main() {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(maiaEngineChannel, null);
   });
-  for (final mode in ['immediate', 'background-resume', 'restored-session']) {
+  for (final mode in [
+    'immediate',
+    'background-resume',
+    'restored-session',
+    'appearance-change',
+  ]) {
     testWidgets('completed game analysis Home: $mode', (tester) async {
       tester.view.physicalSize = const Size(800, 1000);
       tester.view.devicePixelRatio = 1;
@@ -38,7 +43,21 @@ void main() {
       final checkpoint = (await ActiveSessionStore.load())!;
       expect(checkpoint['type'], 'review');
       expect(checkpoint['activeGame'], isA<Map>());
-      if (mode != 'immediate') {
+      if (mode == 'appearance-change') {
+        final context = tester.element(find.byType(ReviewPage));
+        final state = tester.state(find.byType(ReviewPage));
+        final appearance = AppAppearanceSettings.maybeOf(context)!;
+        for (final theme in [
+          const AppAppearance(mode: ThemeMode.light),
+          const AppAppearance(systemColors: true, pureBlack: true),
+        ]) {
+          await appearance.select(theme);
+          await tester.pumpAndSettle();
+          expect(tester.state(find.byType(ReviewPage)), same(state));
+          expect(await ActiveSessionStore.load(), checkpoint);
+        }
+      }
+      if (mode == 'background-resume' || mode == 'restored-session') {
         tester.binding.handleAppLifecycleStateChanged(
           AppLifecycleState.inactive,
         );

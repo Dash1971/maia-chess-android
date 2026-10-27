@@ -279,6 +279,23 @@ class MainActivity : FlutterActivity() {
                     "openPgnFile" -> documents.open(result)
                     "savePgnFile" -> documents.save(call.argument<String>("pgn") ?: "", result)
                     "sharePgn" -> documents.share(call.argument<String>("pgn") ?: "", result, call.argument<String>("shareTitle") ?: "Share PGN")
+                    "shareFen" -> {
+                        val fen = call.argument<String>("fen")
+                        if (fen.isNullOrBlank() || fen.length > 512) {
+                            result.error("bad_arguments", "Expected a FEN position", null)
+                        } else {
+                            try {
+                                val intent = Intent(Intent.ACTION_SEND).apply {
+                                    type = "text/plain"
+                                    putExtra(Intent.EXTRA_TEXT, fen)
+                                }
+                                startActivity(Intent.createChooser(intent, call.argument<String>("shareTitle") ?: "FEN"))
+                                result.success(null)
+                            } catch (error: Exception) {
+                                result.error("share_failed", error.javaClass.simpleName, null)
+                            }
+                        }
+                    }
                     "openUrl" -> {
                         val uri = call.argument<String>("url")?.let(Uri::parse)
                         if (uri == null || uri.scheme?.lowercase() !in setOf("http", "https")) {
@@ -316,7 +333,7 @@ class MainActivity : FlutterActivity() {
                         result.success(null)
                     }
 
-                    "predict" -> predict(call.argument("tokens"), call.argument("selfElo"), call.argument("opponentElo"), result)
+                    "predict" -> predict(call.argument("tokens"), call.argument("selfElo"), call.argument("opponentElo"), result, call.argument<Boolean>("includeValue") == true)
                     else -> result.notImplemented()
                 }
             }
@@ -379,6 +396,7 @@ class MainActivity : FlutterActivity() {
         selfElo: Int?,
         opponentElo: Int?,
         result: MethodChannel.Result,
+        includeValue: Boolean = false,
     ) {
         if (tokens == null || tokens.size != 64 * 97 || selfElo == null || opponentElo == null) {
             result.error("bad_arguments", "Expected 6208 float tokens and two Elo values", null)
@@ -415,7 +433,16 @@ class MainActivity : FlutterActivity() {
                             ).use { outputs ->
                                 @Suppress("UNCHECKED_CAST")
                                 val logits = outputs.get("move_logits").get().value as Array<FloatArray>
-                                val payload = logits[0].copyOf()
+                                val moves = logits[0].copyOf()
+                                val payload: Any = if (includeValue) {
+                                    @Suppress("UNCHECKED_CAST")
+                                    val values = outputs.get("value_logits").get().value as Array<FloatArray>
+                                    val outcome = values[0].copyOf()
+                                    require(outcome.size == 3 && outcome.all { it.isFinite() }) {
+                                        "Expected finite Loss/Draw/Win logits"
+                                    }
+                                    mapOf("move_logits" to moves, "value_logits" to outcome)
+                                } else moves
                                 setProcessPhase("app-ready")
                                 runOnUiThread {
                                     if (engineAttached) result.success(payload)

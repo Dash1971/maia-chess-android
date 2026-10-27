@@ -35,6 +35,7 @@ void main() {
                   playerIsWhite: true,
                   pgn: '*',
                   onHome: () {},
+                  maiaElo: 1600,
                   secondMaiaElo: secondary ? 2400 : null,
                   evaluator: (_) async => const StockfishReview(0, 'e2e4'),
                   maiaPolicyEvaluator: (_, elo) async {

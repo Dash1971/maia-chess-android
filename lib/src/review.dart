@@ -107,7 +107,7 @@ class ReviewPage extends StatefulWidget {
     required this.pgn,
     this.initialVariations = const [],
     this.initialTreeIsAuthoritative = false,
-    this.maiaElo = 1600,
+    this.maiaElo = defaultMaiaAnalysisElo,
     this.secondMaiaElo,
     this.useMoveHistory = false,
     this.historyPrefix = const [],
@@ -118,6 +118,7 @@ class ReviewPage extends StatefulWidget {
     this.stockfishAnalyzer,
     this.maiaEvaluator,
     this.maiaPolicyEvaluator,
+    this.maiaInferenceEvaluator,
     this.classifier,
     this.title,
     this.onLoadFen,
@@ -156,6 +157,8 @@ class ReviewPage extends StatefulWidget {
   maiaEvaluator;
   final Future<List<double>?> Function(List<String> positions, int elo)?
   maiaPolicyEvaluator;
+  final Future<MaiaInferenceResult?> Function(List<String> positions, int elo)?
+  maiaInferenceEvaluator;
   final MoveClassificationRunner? classifier;
   final String? title;
   final Future<void> Function()? onLoadFen;
@@ -206,6 +209,7 @@ class _ReviewPageState extends State<ReviewPage>
   final Map<int, MaiaPositionAnalysis> _secondMaiaAnalyses = {};
   final Set<int> _secondMaiaLoading = {};
   late final cg.ChessboardController _boardController;
+  int _boardNavigationRevision = 0;
   late dc.Chess _boardPosition;
   late final List<RecordedVariation> _variations;
   RecordedVariation? _openedVariation;
@@ -500,7 +504,8 @@ class _ReviewPageState extends State<ReviewPage>
   @override
   void didUpdateWidget(covariant ReviewPage oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.useMoveHistory != widget.useMoveHistory ||
+    if (oldWidget.maiaInferenceEvaluator != widget.maiaInferenceEvaluator ||
+        oldWidget.useMoveHistory != widget.useMoveHistory ||
         oldWidget.maiaElo != widget.maiaElo ||
         oldWidget.secondMaiaElo != widget.secondMaiaElo ||
         !listEquals(oldWidget.positions, widget.positions) ||
@@ -558,9 +563,9 @@ class _ReviewPageState extends State<ReviewPage>
     super.dispose();
   }
 
-  cg.GameData _boardGameData() => cg.GameData(
+  cg.GameData _boardGameData({bool interactive = true}) => cg.GameData(
     fen: _boardPosition.fen,
-    playerSide: _boardPosition.isGameOver
+    playerSide: !interactive || _boardPosition.isGameOver
         ? cg.PlayerSide.none
         : cg.PlayerSide.both,
     sideToMove: _boardPosition.turn,
@@ -615,14 +620,24 @@ class _ReviewPageState extends State<ReviewPage>
     _boardPosition = dc.Chess.fromSetup(
       dc.Setup.parseFen(widget.positions[_ply]),
     );
-    _boardController.updatePosition(
-      _boardGameData(),
-      animate: false,
-      resetPremove: true,
-    );
+    _syncBoardAfterNavigation();
     unawaited(_analyzePosition(_ply));
     unawaited(_analyzeConfiguredMaiaPosition(_ply));
     _notifySessionChanged();
+  }
+
+  void _syncBoardAfterNavigation() {
+    // Cancel selection, promotion and active gestures synchronously. Chessground
+    // also retains private tap-release flags when interaction is disabled, so
+    // recreate only the board widget's interaction state on the next frame.
+    // Keep the controller and leave ordinary moves/engine updates untouched.
+    _boardNavigationRevision++;
+    _boardController.updatePosition(
+      _boardGameData(interactive: false),
+      animate: false,
+      resetPremove: true,
+    );
+    _boardController.updatePosition(_boardGameData(), animate: false);
   }
 
   void _onAnalysisMove(dc.Move move, {bool? viaDragAndDrop}) {
@@ -831,7 +846,8 @@ class _ReviewPageState extends State<ReviewPage>
     // Maia channel in that case unless a Maia test double was also supplied.
     if (widget.evaluator != null &&
         widget.maiaEvaluator == null &&
-        widget.maiaPolicyEvaluator == null) {
+        widget.maiaPolicyEvaluator == null &&
+        widget.maiaInferenceEvaluator == null) {
       return;
     }
     final analyses = secondary ? _secondMaiaAnalyses : _maiaAnalyses;
@@ -845,6 +861,23 @@ class _ReviewPageState extends State<ReviewPage>
         ...widget.historyPrefix,
         ...widget.positions.take(ply + 1),
       ];
+      final inferenceEvaluator = widget.maiaInferenceEvaluator;
+      if (inferenceEvaluator != null) {
+        final response = await inferenceEvaluator(positions, elo);
+        final analysis = response == null
+            ? null
+            : _maiaAnalysisFromPolicy(
+                positions.last,
+                response.moveLogits,
+                outcome: response.outcome,
+              );
+        if (analysis != null &&
+            mounted &&
+            generation == _maiaContextGeneration) {
+          setState(() => analyses[ply] = analysis);
+        }
+        return;
+      }
       final policyEvaluator = widget.maiaPolicyEvaluator;
       if (policyEvaluator != null) {
         final response = await policyEvaluator(positions, elo);
@@ -866,7 +899,7 @@ class _ReviewPageState extends State<ReviewPage>
         }
         return;
       }
-      final response = await MaiaInferenceQueue.predict({
+      final response = await MaiaInferenceQueue.analyze({
         'tokens': MaiaEncoding.historicalTokens(
           positions,
           useMoveHistory: widget.useMoveHistory,
@@ -875,7 +908,11 @@ class _ReviewPageState extends State<ReviewPage>
         'opponentElo': elo,
       }, replaceableScope: scope);
       if (response == null) return;
-      final analysis = _maiaAnalysisFromPolicy(positions.last, response);
+      final analysis = _maiaAnalysisFromPolicy(
+        positions.last,
+        response.moveLogits,
+        outcome: response.outcome,
+      );
       if (analysis != null && mounted && generation == _maiaContextGeneration) {
         setState(() => analyses[ply] = analysis);
       }
@@ -896,13 +933,14 @@ class _ReviewPageState extends State<ReviewPage>
 
   MaiaPositionAnalysis? _maiaAnalysisFromPolicy(
     String fen,
-    List<double> response,
-  ) {
+    List<double> response, {
+    MaiaOutcome? outcome,
+  }) {
     if (response.length != 4352) return null;
     final game = chess.Chess.fromFEN(fen);
     if (game.game_over) return null;
     final moves = MaiaEncoding.legalMoveProbabilities(game, response);
-    return moves.isEmpty ? null : MaiaPositionAnalysis(moves);
+    return moves.isEmpty ? null : MaiaPositionAnalysis(moves, outcome: outcome);
   }
 
   Future<StockfishReview> _stockfishForVariation(String fen) {
@@ -1017,6 +1055,17 @@ class _ReviewPageState extends State<ReviewPage>
     required bool secondary,
   }) async {
     if (chess.Chess.fromFEN(fen).game_over) return null;
+    final inferenceEvaluator = widget.maiaInferenceEvaluator;
+    if (inferenceEvaluator != null) {
+      final response = await inferenceEvaluator(positions, elo);
+      return response == null
+          ? null
+          : _maiaAnalysisFromPolicy(
+              fen,
+              response.moveLogits,
+              outcome: response.outcome,
+            );
+    }
     final policyEvaluator = widget.maiaPolicyEvaluator;
     if (policyEvaluator != null) {
       final response = await policyEvaluator(positions, elo);
@@ -1028,7 +1077,7 @@ class _ReviewPageState extends State<ReviewPage>
       return move == null ? null : MaiaPositionAnalysis.single(move);
     }
     if (widget.evaluator != null) return null;
-    final response = await MaiaInferenceQueue.predict(
+    final response = await MaiaInferenceQueue.analyze(
       {
         'tokens': MaiaEncoding.historicalTokens(
           positions,
@@ -1041,7 +1090,13 @@ class _ReviewPageState extends State<ReviewPage>
           ? _secondMaiaInferenceScope
           : _maiaInferenceScope,
     );
-    return response == null ? null : _maiaAnalysisFromPolicy(fen, response);
+    return response == null
+        ? null
+        : _maiaAnalysisFromPolicy(
+            fen,
+            response.moveLogits,
+            outcome: response.outcome,
+          );
   }
 
   Future<void> _analyzeVariationMaia(
@@ -1488,11 +1543,7 @@ class _ReviewPageState extends State<ReviewPage>
       _variationReview = null;
       _variationMaiaAnalysis = null;
       _secondVariationMaiaAnalysis = null;
-      _boardController.updatePosition(
-        _boardGameData(),
-        animate: false,
-        resetPremove: true,
-      );
+      _syncBoardAfterNavigation();
     });
     unawaited(_analyzeVariation());
     _notifySessionChanged();
@@ -2235,7 +2286,7 @@ class _ReviewPageState extends State<ReviewPage>
               label: index < stockfishLines.length
                   ? _formatLineEvaluation(stockfishLines[index])
                   : 'SF${index + 1}',
-              color: const Color(0xff72b7ee),
+              color: chessTextColor(context, const Color(0xff72b7ee)),
               text:
                   (error == null ? null : l10n(context).analysisFailed) ??
                   (index < stockfishLines.length
@@ -2249,7 +2300,7 @@ class _ReviewPageState extends State<ReviewPage>
             move: maiaMove,
             loading: maiaLoading,
             elo: widget.maiaElo,
-            color: primaryMaiaAnalysisColor,
+            color: chessTextColor(context, primaryMaiaAnalysisColor),
             lineKey: const ValueKey('maia-engine-line'),
             otherKey: const ValueKey('maia-other'),
           ),
@@ -2259,12 +2310,254 @@ class _ReviewPageState extends State<ReviewPage>
               move: secondMaiaMove,
               loading: secondMaiaLoading,
               elo: elo,
-              color: secondaryMaiaAnalysisColor,
+              color: chessTextColor(context, secondaryMaiaAnalysisColor),
               lineKey: const ValueKey('second-maia-engine-line'),
               otherKey: const ValueKey('second-maia-other'),
             ),
         ],
       ),
+    );
+  }
+
+  /// Reuses the existing toolbar; score visibility never changes body geometry.
+  Widget _analysisTitle() {
+    final title = widget.title ?? l10n(context).gameReview;
+    if (MaiaScoreScope.maybeOf(context)?.enabled != true) return Text(title);
+    final game = chess.Chess.fromFEN(_currentFen);
+    final strings = l10n(context);
+    ({String label, String value, bool? white}) score(
+      MaiaPositionAnalysis? analysis,
+      bool loading,
+    ) {
+      if (game.game_over) {
+        if (game.in_checkmate) {
+          final white = game.turn == chess.Color.BLACK;
+          return (
+            label: white
+                ? strings.whiteIsVictorious
+                : strings.blackIsVictorious,
+            value: white ? '1–0' : '0–1',
+            white: null,
+          );
+        }
+        return (label: strings.theGameIsADraw, value: '½–½', white: null);
+      }
+      if (loading) return (label: strings.analyzing, value: '…', white: null);
+      final outcome = analysis?.outcome;
+      if (outcome == null) {
+        return (label: strings.unavailable, value: '—', white: null);
+      }
+      final white = outcome.whiteScore(_currentFen);
+      final value = _formatMaiaProbability(max(white, 1 - white));
+      final equal = (max(white, 1 - white) * 100).round() == 50;
+      return (
+        label:
+            '${equal
+                ? strings.maiaScoreEqual
+                : white >= .5
+                ? strings.white
+                : strings.black} $value',
+        value: equal ? '= $value' : value,
+        white: equal ? null : white >= .5,
+      );
+    }
+
+    final primary = score(
+      _selectedMaiaAnalysis,
+      _inVariation ? _variationMaiaLoading : _maiaLoading.contains(_ply),
+    );
+    final secondary = score(
+      _selectedSecondMaiaAnalysis,
+      _inVariation
+          ? _secondVariationMaiaLoading
+          : _secondMaiaLoading.contains(_ply),
+    );
+    final rows = [
+      (
+        elo: widget.maiaElo,
+        score: primary,
+        color: primaryMaiaAnalysisColor,
+        key: 'maia-score-primary',
+      ),
+      if (widget.secondMaiaElo case final elo?)
+        (
+          elo: elo,
+          score: secondary,
+          color: secondaryMaiaAnalysisColor,
+          key: 'maia-score-secondary',
+        ),
+    ];
+    final labels = rows
+        .map((row) => 'M${displayNumber(context, row.elo)} ${row.score.label}')
+        .toList();
+    void details() => showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        scrollable: true,
+        title: Text(strings.maiaScore),
+        content: MaiaScoreHelpContent(scores: labels.join('\n')),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(strings.close),
+          ),
+        ],
+      ),
+    );
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final scaler = MediaQuery.textScalerOf(context);
+        final scoreStyle = DefaultTextStyle.of(context).style.copyWith(
+          fontSize: 12,
+          height: 1,
+          fontFeatures: const [ui.FontFeature.tabularFigures()],
+        );
+        double width(String text, TextStyle style) {
+          final painter = TextPainter(
+            text: TextSpan(text: text, style: style),
+            textDirection: Directionality.of(context),
+            textScaler: scaler,
+            locale: Localizations.maybeLocaleOf(context),
+          )..layout();
+          final value = painter.width;
+          painter.dispose();
+          return value;
+        }
+
+        // Keep the full page title whenever its ordinary size and the ratings fit.
+        // Narrow screens/large text omit ratings visually; the tappable details and
+        // accessibility labels always retain each engine's complete identity.
+        final titleWidth = width(title, DefaultTextStyle.of(context).style);
+        // Reserve the same columns during loading, errors, draws and results.
+        // Fit decisions must not depend on the current inference result either:
+        // otherwise the rating itself can appear/disappear near the breakpoint.
+        final ratingWidth = rows
+            .map(
+              (row) =>
+                  width('M${displayNumber(context, row.elo)}', scoreStyle),
+            )
+            .reduce(max)
+            .ceilToDouble();
+        final valueWidth = [
+          _formatMaiaProbability(1),
+          '= ${_formatMaiaProbability(.5)}',
+          '1–0',
+          '0–1',
+          '½–½',
+          '…',
+          '—',
+        ].map((value) => width(value, scoreStyle)).reduce(max).ceilToDouble();
+        const ratingGap = 8.0;
+        const markerWidth = 13.0; // 9 dp disc followed by a 4 dp gap.
+        final scoreWidth = ratingWidth + ratingGap + markerWidth + valueWidth;
+        final ratingsFit = titleWidth + scoreWidth + 8 <= constraints.maxWidth;
+        return Row(
+          children: [
+            Expanded(
+              child: Tooltip(
+                message: title,
+                child: Text(
+                  title,
+                  maxLines: scaler.scale(12) <= 15 ? 2 : 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Semantics(
+              button: true,
+              label: strings.maiaScore,
+              child: InkWell(
+                key: const ValueKey('maia-score-details'),
+                onTap: details,
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(
+                    minHeight: 48,
+                    minWidth: 48,
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      for (var i = 0; i < rows.length; i++)
+                        Semantics(
+                          key: ValueKey(rows[i].key),
+                          container: true,
+                          label: labels[i],
+                          liveRegion: true,
+                          child: ExcludeSemantics(
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 1),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  if (ratingsFit)
+                                    SizedBox(
+                                      width: ratingWidth,
+                                      child: Text(
+                                        'M${displayNumber(context, rows[i].elo)}',
+                                        style: scoreStyle.copyWith(
+                                          color: chessTextColor(
+                                            context,
+                                            rows[i].color,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  if (ratingsFit) const SizedBox(width: ratingGap),
+                                  SizedBox(
+                                    key: ValueKey('${rows[i].key}-marker-slot'),
+                                    width: markerWidth,
+                                    height: 9,
+                                    child: Align(
+                                      alignment:
+                                          AlignmentDirectional.centerStart,
+                                      child: rows[i].score.white == null
+                                          ? null
+                                          : Container(
+                                              key: ValueKey('${rows[i].key}-disc'),
+                                              width: 9,
+                                              height: 9,
+                                              decoration: BoxDecoration(
+                                                shape: BoxShape.circle,
+                                                color: rows[i].score.white!
+                                                    ? Colors.white
+                                                    : Colors.black,
+                                                border: Border.all(
+                                                  color: Colors.grey,
+                                                ),
+                                              ),
+                                            ),
+                                    ),
+                                  ),
+                                  SizedBox(
+                                    width: valueWidth,
+                                    child: Text(
+                                      rows[i].score.value,
+                                      key: ValueKey('${rows[i].key}-value'),
+                                      textAlign: TextAlign.start,
+                                      style: scoreStyle.copyWith(
+                                        color: chessTextColor(
+                                          context,
+                                          rows[i].color,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -2309,7 +2602,9 @@ class _ReviewPageState extends State<ReviewPage>
                   fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
                   color: selected
                       ? colors.onPrimaryContainer
-                      : classification?.color,
+                      : classification == null
+                      ? null
+                      : chessTextColor(context, classification.color),
                 ),
               ),
             ),
@@ -2565,7 +2860,28 @@ class _ReviewPageState extends State<ReviewPage>
         : null,
   );
 
+  bool get _inSideVariation =>
+      _inVariation &&
+      (_rootMainline == null || !identical(_openedVariation, _rootMainline));
+
+  void _returnToMainline({bool advance = false}) {
+    if (!_inSideVariation) return;
+    final opened = _openedVariation;
+    final path = opened == null ? null : _pathToVariation(opened);
+    // A nested variation shares its immediate branch point only with its
+    // parent. Return to the first divergence from the actual main line.
+    final root = _rootMainline;
+    final branch = path?.where((line) => !identical(line, root)).firstOrNull;
+    final ply = branch?.basePly ?? _variationBasePly!;
+    // Right advances one main-line ply from the branch point, never from the
+    // variation's current position or end. _showMainPly clamps at the game end.
+    setState(() => _showMainPly(ply + (advance ? 1 : 0)));
+  }
+
   void _step(int delta) {
+    // A stale button callback at a boundary must not cancel/restart engines or
+    // recreate the board without moving to another node.
+    if (delta > 0 && _atAnalysisEnd || delta < 0 && _atAnalysisStart) return;
     _cancelSelectedWork();
     if (_inVariation) {
       final root = _rootMainline;
@@ -2602,11 +2918,7 @@ class _ReviewPageState extends State<ReviewPage>
         _variationReview = null;
         _variationMaiaAnalysis = null;
         _secondVariationMaiaAnalysis = null;
-        _boardController.updatePosition(
-          _boardGameData(),
-          animate: false,
-          resetPremove: true,
-        );
+        _syncBoardAfterNavigation();
       });
       unawaited(_analyzeVariation());
       _notifySessionChanged();
@@ -2641,13 +2953,9 @@ class _ReviewPageState extends State<ReviewPage>
         _variationIndex == 0;
   }
 
-  bool get _atAnalysisEnd {
-    final root = _rootMainline;
-    return root != null
-        ? identical(_openedVariation, root) &&
-              _variationIndex == root.sanMoves.length
-        : !_inVariation && _ply == _maximumPly;
-  }
+  bool get _atAnalysisEnd => _inVariation
+      ? _variationIndex == _variationSan.length
+      : _ply == _maximumPly;
 
   String _exportReviewPgn() => PgnVariationExporter.export(
     widget.pgn,
@@ -2811,11 +3119,18 @@ class _ReviewPageState extends State<ReviewPage>
       nextKey: const ValueKey('next-move-button'),
       canGoBack: !_atAnalysisStart,
       canGoForward: !_atAnalysisEnd,
-      onFirst: _jumpToStart,
+      canHoldPrevious: _inSideVariation || !_atAnalysisStart,
+      canHoldNext: _inSideVariation || !_atAnalysisEnd,
+      onFirst: _inSideVariation ? _returnToMainline : _jumpToStart,
       onPrevious: () => _step(-1),
       onNext: () => _step(1),
-      onLast: _jumpToEnd,
-      endTooltip: l10n(context).endPosition,
+      onLast: _inSideVariation
+          ? () => _returnToMainline(advance: true)
+          : _jumpToEnd,
+      startTooltip: _inSideVariation ? l10n(context).mainLine : null,
+      endTooltip: _inSideVariation
+          ? l10n(context).mainLine
+          : l10n(context).endPosition,
       headerActionWidth: MediaQuery.textScalerOf(context).scale(1) > 1.3
           ? 84
           : 56,
@@ -3095,7 +3410,7 @@ class _ReviewPageState extends State<ReviewPage>
               ? l10n(context).backToGame
               : l10n(context).home),
         ),
-        title: Text(widget.title ?? l10n(context).gameReview),
+        title: _analysisTitle(),
         actions: [
           PopupMenuButton<String>(
             key: const ValueKey('analysis-share-menu'),
@@ -3177,6 +3492,9 @@ class _ReviewPageState extends State<ReviewPage>
                     width: size,
                     height: size,
                     child: Stack(
+                      // Key the single-child surface so the old board detaches
+                      // before its replacement attaches to the same controller.
+                      key: ValueKey(_boardNavigationRevision),
                       children: [
                         cg.Chessboard(
                           controller: _boardController,
@@ -3184,7 +3502,8 @@ class _ReviewPageState extends State<ReviewPage>
                           orientation: boardOrientation,
                           onMove: _onAnalysisMove,
                           shapes: _arrows,
-                          settings: mobileMaiaInteractiveBoardSettings,
+                          settings: boardPreferencesOf(context)
+                              .interactiveSettings,
                         ),
                         if (agreements.isNotEmpty || boardAnnotation != null)
                           Positioned.fill(

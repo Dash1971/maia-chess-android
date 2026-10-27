@@ -159,7 +159,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get maxOpeningVarietyHelp =>
-      'Não é necessário quando Temperatura e Top-P estão nos valores padrão de 1,0 / 1,0. Usa 1,0 / 1,0 nos cinco primeiros lances de cada lado e volta aos valores configurados a partir do 6º lance.\n\nO objetivo é dar à Maia a máxima variedade na abertura e permitir um jogo potencialmente mais forte nas fases seguintes, reduzindo a chance de escolher lances de baixa probabilidade por meio de valores menores de Temperatura e/ou Top-P.';
+      'Ativada por padrão. Usa temperatura e Top-P 1,0 / 1,0 nos primeiros cinco lances de cada lado e suas configurações a partir do sexto. Preserva opções amplas na abertura e permite excluir lances pouco prováveis depois. Respeita o número do lance da posição, inclusive ao retomar ou continuar uma partida.\n\nDesnecessária em 1,0 / 1,0: a opção fica desligada e indisponível, pois esses valores já oferecem toda a variedade durante a partida.';
 
   @override
   String get maiaAnalysisRating => 'Rating do Maia na análise';
@@ -393,6 +393,9 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get promoteVariation => 'Promover variante';
+
+  @override
+  String get mainLine => 'linha principal';
 
   @override
   String get makeMainLine => 'Transformar em linha principal';
@@ -965,7 +968,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get chessnutGameRestriction =>
-      'No Chessnut, só é possível jogar partidas sem limite de tempo a partir da posição inicial padrão.';
+      'As partidas com Chessnut não têm limite de tempo.';
 
   @override
   String get samplingTitle => 'Temperatura e Top-P';
@@ -977,7 +980,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get samplingResearch => 'Dados completos de pesquisa (JSONL)';
 
   @override
-  String get samplingResearchLink => 'Dados completos de pesquisa (em inglês)';
+  String get samplingResearchLink => 'Guia visual e pesquisa (em inglês)';
 
   @override
   String get close => 'Fechar';
@@ -1023,7 +1026,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get samplingRecommendationWarning =>
-      'Reduzir a temperatura ou o Top-P pode tornar Maia mais forte no meio-jogo, mas diminui a variedade nas aberturas. Veja o botão de informação para saber mais.';
+      'O repertório de aberturas de Maia pode ficar mais limitado com a variedade máxima na abertura desativada.';
 
   @override
   String get couldNotOpenPgn => 'Não foi possível abrir o PGN.';
@@ -1156,7 +1159,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get boardGameRestriction =>
-      'As partidas com tabuleiro eletrônico começam na posição inicial padrão e sem limite de tempo.';
+      'As partidas com tabuleiro eletrônico não têm limite de tempo.';
 
   @override
   String get boardConfirmSetup => 'Montei a posição inicial';
@@ -1221,7 +1224,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get maiaHistoryHelp =>
-      'Permita que a Maia considere até sete posições anteriores, além da posição atual. Isso melhorou a precisão das previsões de lances humanos em cerca de 2 pontos percentuais nos nossos testes com o modelo 79M, mas às vezes incentivou a imitação repetida de lances em aberturas de rating baixo. Não conseguimos confirmar um aumento na força de jogo. Por enquanto, recomendamos deixar esta opção desativada.';
+      'Permita que o Maia use até sete posições anteriores ao escolher um lance. Nos nossos testes com o modelo 79M, isso melhorou a precisão das previsões de lances humanos em cerca de 2 pontos percentuais, mas às vezes levou à imitação repetida de lances em aberturas de jogadores com rating mais baixo. Por enquanto, recomendamos deixar esta opção desativada.';
 
   @override
   String get maiaHistoryResearch =>
@@ -1251,7 +1254,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get samplingDataHelp =>
-      'Salve as probabilidades dos lances da Maia, as configurações e os lances escolhidos neste dispositivo para explorar como ela joga.\n\nOs arquivos exportados contêm posições do tabuleiro, o histórico de lances e as entradas e decisões do modelo.\n\nAs últimas 10 partidas com dados registrados são salvas e apresentadas da mais recente para a mais antiga. Partidas anteriores podem ser removidas antes se o limite de armazenamento for atingido. Esses dados são separados das partidas recentes.\n\nUse este recurso se você tiver interesse em estudar os detalhes técnicos de como a Maia funciona. Os dados não podem ser visualizados no aplicativo. Eles são exportados para um arquivo HTML fácil de visualizar com parte dos dados, ou para um arquivo JSONL com todos os dados registrados.\n\nO recurso fica desativado por padrão, e recomendamos mantê-lo assim, a menos que você tenha interesse em pesquisar como a Maia funciona.';
+      'Salve as probabilidades dos lances do Maia, as configurações e os lances escolhidos neste dispositivo para explorar como ele joga.\n\nOs arquivos exportados contêm posições do tabuleiro, o histórico de lances e as entradas e decisões do modelo.\n\nAs últimas 10 partidas com dados registrados são salvas e apresentadas da mais recente para a mais antiga. Partidas anteriores podem ser removidas antes se o limite de armazenamento for atingido. Esses dados são separados das partidas recentes.\n\nUse este recurso se você tiver interesse em estudar os detalhes técnicos de como o Maia funciona. Os dados não podem ser visualizados no aplicativo. Eles são exportados para um arquivo HTML fácil de visualizar com parte dos dados, ou para um arquivo JSONL com todos os dados registrados.\n\nO recurso fica desativado por padrão, e recomendamos mantê-lo assim, a menos que você tenha interesse em pesquisar como o Maia funciona.';
 
   @override
   String get clearSamplingData => 'Apagar dados de seleção';
@@ -1272,7 +1275,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get samplingShare => 'Compartilhar…';
 
   @override
-  String get samplingSummary => 'As escolhas da Maia';
+  String get samplingSummary => 'As escolhas do Maia';
 
   @override
   String get samplingReadable => 'Relatório legível (HTML)';
@@ -1291,7 +1294,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get samplingReportPartial =>
-      'Apenas as decisões registradas da Maia são mostradas, não uma partida completa. Voltar lances ou tentar novamente pode repetir um número de lance.';
+      'Apenas as decisões registradas do Maia são mostradas, não uma partida completa. Voltar lances ou tentar novamente pode repetir um número de lance.';
 
   @override
   String get samplingReportMissing =>
@@ -1383,7 +1386,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get resetSettingsDefaultsScope =>
-      'Restaura todas as configurações desta tela. As partidas salvas e os dados de amostragem são mantidos.';
+      'Restaura todas as configurações desta tela. As partidas salvas e os dados de seleção de jogadas são mantidos.';
 
   @override
   String get settingsResetError =>
@@ -1395,36 +1398,251 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get resetSettingsKeepData =>
-      'Suas partidas salvas e os dados de amostragem serão mantidos.';
+      'Suas partidas salvas e os dados de seleção de jogadas serão mantidos.';
 
   @override
   String get resetSettingsAction => 'Restaurar configurações';
 
   @override
   String get samplingHelpIntro =>
-      'A Temperatura e o Top-P controlam como a Maia escolhe entre os lances.';
+      'A temperatura e o Top-P se combinam para definir a variedade no jogo do Maia.\n\nRecomendamos temperatura 1,0, Top-P 0,95 e Máxima variedade na abertura ativada. Essas são as configurações padrão. Segundo nossa pesquisa, elas oferecem um bom equilíbrio entre um jogo parecido com o humano, variedade na abertura e menos erros graves incomuns.\n\nContinue lendo para entender como essas configurações funcionam.';
 
   @override
   String get samplingHelpVariety =>
-      'Aumentar a Temperatura e o Top-P é como tornar a Maia uma jogadora mais imprevisível, pois ela passa a ter mais chances de escolher lances pouco prováveis. Eles podem ser erros graves, mas também jogadas excelentes!';
+      'Temperatura\n\nCom temperatura 0, o Maia sempre joga o lance que prevê ser o mais provável para um jogador com o Elo selecionado. Isso é chamado tecnicamente de argmax.\n\nCom temperatura 1, o Maia considera todos os lances que prevê que um jogador com o Elo selecionado poderia jogar, escolhendo entre eles de acordo com suas probabilidades.\n\nCom uma temperatura entre 0 e 1, o Maia dá mais peso aos lances que considera mais prováveis. Quanto menor a temperatura, mais previsíveis ficam suas escolhas.\n\nPor exemplo, nos nossos testes com o modelo 79M e entradas de rating de 1600 para ambos os jogadores, as probabilidades do primeiro lance do Maia com as brancas foram aproximadamente:\n\n• 1. e4: 64%\n• 1. d4: 25%\n• 1. c4: 3%\n• Todos os outros lances juntos: 8%\n\nCom temperatura 0, o Maia sempre jogou 1. e4.\n\nCom temperatura 0,5, jogou 1. e4 em cerca de 86% das vezes e 1. d4 em cerca de 13%. Outros lances continuaram possíveis, mas juntos representaram menos de 1%.\n\nCom temperatura 1, o Maia seguiu as probabilidades originais listadas acima.';
 
   @override
   String get samplingHelpDefaults =>
-      'Se você quer o máximo de variedade e também quer que a Maia jogue uma ampla gama de aberturas humanas, incluindo variantes secundárias, mantenha os valores padrão de 1,0 e 1,0.';
+      'Top-P\n\nO Top-P filtra os lances disponíveis depois que a temperatura ajusta suas probabilidades.\n\nCom Top-P 1, não há filtragem. Todos os lances disponíveis podem ser jogados de acordo com suas probabilidades ajustadas pela temperatura.\n\nCom Top-P 0,95, o Maia mantém os lances mais prováveis até que sua probabilidade somada atinja pelo menos 95%, e então escolhe entre eles. Os lances excluídos representam no máximo 5% da probabilidade.\n\nCom Top-P 0, o Maia sempre escolhe o lance mais provável. O efeito é o mesmo que o da temperatura 0: basta definir qualquer um dos dois como 0 para obter argmax.\n\nNo nosso exemplo de abertura, temperatura 1 e Top-P 0,60 fariam o Maia sempre jogar 1. e4. Esse lance sozinho representa cerca de 64% da probabilidade, então não são necessários outros lances para atingir o limite de 60%.';
 
   @override
   String get samplingHelpStrength =>
-      'Se você prefere uma adversária mais forte que cometa menos erros graves, experimente diminuir os valores de Temperatura e Top-P.';
+      'Como essas configurações afetam o jogo do Maia?\n\nVocê pode imaginar o Top-P como um anjo no ombro do Maia. Em 0, o anjo diz ao Maia para ignorar os lances menos prováveis, que podem incluir erros graves ou lances pouco sólidos. Em 1,0, o anjo foi embora, e o Maia pode escolher até o lance mais maluco e improvável.\n\nNos nossos testes de confronto direto com a configuração de 1600, argmax superou temperatura 1,0 / Top-P 1,0 pelo equivalente a cerca de 300 pontos Elo. No entanto, argmax também limitou as opções de abertura a um repertório restrito, composto principalmente por linhas principais.';
 
   @override
   String get samplingHelpArgmax =>
-      'Definir a Temperatura como 0 faz a Maia usar argmax, que é uma forma técnica de dizer que ela sempre jogará o lance que prevê ser o mais provável para um humano em determinada posição. Atenção! Em nossa pesquisa com o nível definido como 1600, a Maia com argmax superou a Maia com 1,0 / 1,0 pelo equivalente a cerca de 300 pontos Elo em confrontos diretos.';
+      'Por isso, introduzimos Máxima variedade na abertura: uma opção que faz o Maia jogar com temperatura 1,0 e Top-P 1,0 nos primeiros cinco lances de cada lado. Você pode ver algumas loucuras na abertura! A partir do sexto lance, o Maia volta às configurações que você definiu.';
 
   @override
   String get samplingHelpTopP =>
-      'Para equilibrar força e variedade, você pode manter a Temperatura em 1,0 e definir o Top-P como 0,95. Isso mantém a variedade e elimina lances pouco prováveis, que muitas vezes podem ser erros graves, mas também podem ser bons lances. Basicamente, o Top-P exclui os lances menos prováveis. Ao defini-lo como 0,95, ele mantém lances que somam pelo menos 95% da probabilidade após a aplicação da Temperatura. A Maia não poderá escolher os lances restantes.';
+      'Recomendamos manter Máxima variedade na abertura ativada, com a temperatura em 1,0 e o Top-P em 0,95. É como ter um jogador criativo com um anjo no ombro, que pelo menos o convence a não jogar os lances totalmente descabidos: os menos prováveis, cuja probabilidade somada chega a até 5%. Eles podem ser brilhantes, é verdade, mas também podem ser erros graves e bobos. Assim, deve haver um bom equilíbrio entre variedade na abertura, criatividade no meio-jogo e um jogo mais forte ao excluir alguns erros graves de probabilidade muito baixa.\n\nPara quem tem coragem, a temperatura 0 produziu o jogo mais forte nos nossos testes. Boa sorte!';
 
   @override
   String get samplingHelpResearchIntro =>
-      'Experimentamos essas configurações em 1600 Elo e publicamos todos os resultados aqui:';
+      'O guia visual explica a pesquisa por trás dessas escolhas e traz links para os resultados completos.';
+
+  @override
+  String get samplingFullVarietyNotice =>
+      'Maia pode cometer mais erros graves incomuns com temperatura e Top-P em 1,0 / 1,0.';
+
+  @override
+  String get samplingArgmaxNotice =>
+      'Maia pode jogar mais forte com temperatura ou Top-P em 0. Boa sorte!';
+
+  @override
+  String get topPNotUsed => 'Top-P: Não utilizado';
+
+  @override
+  String get topPNotUsedTitle => 'Por que Top-P não é utilizado';
+
+  @override
+  String get topPNotUsedHelp =>
+      'Com temperatura 0, Maia sempre escolhe um dos lances mais prováveis, então Top-P não tem efeito. Seu valor é mantido e volta a ficar disponível ao aumentar a temperatura. Se a variedade na abertura estiver ativada, os primeiros cinco lances de cada lado continuam usando 1,0 / 1,0.';
+
+  @override
+  String get samplingLowerNotice =>
+      'Maia pode jogar mais forte com uma temperatura ou um Top-P mais baixos.';
+
+  @override
+  String get appearance => 'Aparência';
+
+  @override
+  String get appearanceSystemColors => 'Usar cores do sistema';
+
+  @override
+  String get appearanceSystemColorsHelp => 'Usar a paleta de cores do Android';
+
+  @override
+  String get appearanceSystemColorsUnavailable =>
+      'Indisponível neste dispositivo. Requer Android 12 ou posterior.';
+
+  @override
+  String get appearancePureBlack => 'Fundo preto puro';
+
+  @override
+  String get appearancePureBlackHelp => 'Usar fundos pretos no modo escuro';
+
+  @override
+  String get appearancePreferenceError =>
+      'A aparência foi alterada, mas não foi possível salvá-la. Tente novamente.';
+
+  @override
+  String get appearanceTheme => 'Tema';
+
+  @override
+  String get appearanceLight => 'Claro';
+
+  @override
+  String get appearanceDark => 'Escuro';
+
+  @override
+  String get appearanceSystemDefault => 'Tema do dispositivo';
+
+  @override
+  String get boardSettings => 'Tabuleiro';
+
+  @override
+  String get boardCoordinates => 'Coordenadas do tabuleiro';
+
+  @override
+  String get boardLegalMoves => 'Destinos de lances legais';
+
+  @override
+  String get boardLastMove => 'Destacar o último lance';
+
+  @override
+  String get boardAnimation => 'Animação das peças';
+
+  @override
+  String get boardMagnify => 'Ampliar peça segurada';
+
+  @override
+  String get boardDragTarget => 'Alvo da peça arrastada';
+
+  @override
+  String get boardTargetCircle => 'Círculo';
+
+  @override
+  String get boardTargetSquare => 'Casa';
+
+  @override
+  String get boardTargetNone => 'Nenhum';
+
+  @override
+  String get boardPreferenceError =>
+      'Não foi possível salvar as configurações do tabuleiro. Tente novamente.';
+
+  @override
+  String get boardDesign => 'Tabuleiro';
+
+  @override
+  String get boardPieceSet => 'Estilo das peças';
+
+  @override
+  String get showMaiaScore => 'Mostrar vitória (pontuação) da Maia em %';
+
+  @override
+  String get maiaScore => 'Pontuação Maia';
+
+  @override
+  String get maiaScoreEqual => 'Equilibrado';
+
+  @override
+  String get maiaScoreHelp =>
+      'Mostra no topo da tela a avaliação da Maia sobre as chances de vencer (pontuar).\nO ponto branco ou preto indica a qual lado a porcentagem se refere.';
+
+  @override
+  String get maiaScoreExpectedHelp =>
+      'Por exemplo, Brancas 60% significa que a Maia estima que as brancas fariam cerca de 60 pontos em 100 partidas a partir desta posição. Uma vitória vale 1 ponto; um empate, ½.';
+
+  @override
+  String get maiaScoreInputsHelp =>
+      'A estimativa usa a classificação de análise selecionada para a Maia nos dois jogadores. Com duas Maias ativadas, cada uma mostra sua própria estimativa na sua própria classificação.';
+
+  @override
+  String get maiaScorePreferenceError =>
+      'Não foi possível salvar as configurações da pontuação Maia. Tente novamente.';
+
+  @override
+  String get maiaScoreResearchLink =>
+      'Qual é a confiabilidade da pontuação da Maia? (em inglês)';
+
+  @override
+  String get maiaScoreStockfishHelp =>
+      'Pode ser útil comparar com a avaliação do Stockfish. Só porque o Stockfish considera um lado melhor, isso não significa que seja fácil para uma pessoa encontrar os lances certos para transformar a vantagem em vitória!';
+
+  @override
+  String get editorMoveTool => 'Mover peças';
+
+  @override
+  String get editorEraseTool => 'Apagar peças';
+
+  @override
+  String get editorEmptySquare => 'Casa vazia';
+
+  @override
+  String get editorPositionSettings => 'Configurações da posição';
+
+  @override
+  String get editorImageImportUnavailable =>
+      'Importar posição de imagem (ainda indisponível)';
+
+  @override
+  String get editorShareFen => 'Compartilhar FEN';
+
+  @override
+  String get editorFenMetadata => 'Metadados FEN';
+
+  @override
+  String get editorHalfmoveClock => 'Contador de meios-lances';
+
+  @override
+  String get editorFullmoveNumber => 'Número do lance';
+
+  @override
+  String get editorWhitePawn => 'Peão branco';
+
+  @override
+  String get editorWhiteKnight => 'Cavalo branco';
+
+  @override
+  String get editorWhiteBishop => 'Bispo branco';
+
+  @override
+  String get editorWhiteRook => 'Torre branca';
+
+  @override
+  String get editorWhiteQueen => 'Dama branca';
+
+  @override
+  String get editorWhiteKing => 'Rei branco';
+
+  @override
+  String get editorBlackPawn => 'Peão preto';
+
+  @override
+  String get editorBlackKnight => 'Cavalo preto';
+
+  @override
+  String get editorBlackBishop => 'Bispo preto';
+
+  @override
+  String get editorBlackRook => 'Torre preta';
+
+  @override
+  String get editorBlackQueen => 'Dama preta';
+
+  @override
+  String get editorBlackKing => 'Rei preto';
+
+  @override
+  String get continuationUseBoard => 'Usar tabuleiro eletrônico';
+
+  @override
+  String get continuationConnectHelp => 'Conecte um tabuleiro compatível.';
+
+  @override
+  String get continuationBoardUntimed =>
+      'As partidas com tabuleiro eletrônico não têm limite de tempo.';
+
+  @override
+  String get continuationSetUpBoard => 'Preparar tabuleiro';
+
+  @override
+  String get continuationSetupHelp =>
+      'Monte no seu tabuleiro a posição mostrada na tela. A partida começa quando a posição das peças coincidir.';
+
+  @override
+  String get continuationBoardUnsupported =>
+      'No momento, continuar a partir de uma posição só é compatível com tabuleiros Chessnut.';
 }

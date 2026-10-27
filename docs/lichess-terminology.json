@@ -1799,6 +1799,757 @@
           "reason": "No translation for this key in the pinned upstream catalog; use native Hindi wording."
         }
       }
+    },
+    "appearanceTheme": {
+      "upstream_key": "mobileTheme",
+      "upstream": {
+        "en": "Theme",
+        "ja": "テーマ",
+        "zh": "主题",
+        "ko": "테마",
+        "es": "Tema",
+        "de": "Erscheinungsbild",
+        "fr": "Thème",
+        "ru": "Оформление",
+        "hi": "थीम",
+        "pt": "Tema"
+      },
+      "adaptations": {}
+    },
+    "appearanceLight": {
+      "upstream_key": "light",
+      "upstream": {
+        "en": "Light",
+        "ja": "明るい",
+        "zh": "浅色",
+        "ko": "밝게",
+        "es": "Claro",
+        "de": "Hell",
+        "fr": "Lumineux",
+        "ru": "Светлая",
+        "hi": "हल्का",
+        "pt": "Claro"
+      },
+      "adaptations": {
+        "ja": {
+          "value": "ライト",
+          "reason": "Use the established platform theme-selector wording in Google Chrome’s localized documentation: https://support.google.com/chrome/answer/9275525?hl=ja&co=GENIE.Platform%3DAndroid . These are appearance modes: Japanese uses katakana, French uses Clair rather than Lumineux, and Hindi distinguishes a dark theme from literal black (the separate pure-black switch). See TRANSLATION_QUALITY_REVIEW.md."
+        },
+        "fr": {
+          "value": "Clair",
+          "reason": "Use the established platform theme-selector wording in Google Chrome’s localized documentation: https://support.google.com/chrome/answer/9275525?hl=fr&co=GENIE.Platform%3DAndroid . These are appearance modes: Japanese uses katakana, French uses Clair rather than Lumineux, and Hindi distinguishes a dark theme from literal black (the separate pure-black switch). See TRANSLATION_QUALITY_REVIEW.md."
+        },
+        "hi": {
+          "value": "हल्के रंग वाली थीम",
+          "reason": "Use the established platform theme-selector wording in Google Chrome’s localized documentation: https://support.google.com/chrome/answer/9275525?hl=hi&co=GENIE.Platform%3DAndroid . These are appearance modes: Japanese uses katakana, French uses Clair rather than Lumineux, and Hindi distinguishes a dark theme from literal black (the separate pure-black switch). See TRANSLATION_QUALITY_REVIEW.md."
+        }
+      }
+    },
+    "appearanceDark": {
+      "upstream_key": "dark",
+      "upstream": {
+        "en": "Dark",
+        "ja": "暗い",
+        "zh": "深色",
+        "ko": "어둡게",
+        "es": "Oscuro",
+        "de": "Dunkel",
+        "fr": "Sombre",
+        "ru": "Тёмная",
+        "hi": "काला",
+        "pt": "Escuro"
+      },
+      "adaptations": {
+        "ja": {
+          "value": "ダーク",
+          "reason": "Use the established platform theme-selector wording in Google Chrome’s localized documentation: https://support.google.com/chrome/answer/9275525?hl=ja&co=GENIE.Platform%3DAndroid . These are appearance modes: Japanese uses katakana, French uses Clair rather than Lumineux, and Hindi distinguishes a dark theme from literal black (the separate pure-black switch). See TRANSLATION_QUALITY_REVIEW.md."
+        },
+        "hi": {
+          "value": "गहरे रंग वाली थीम",
+          "reason": "Use the established platform theme-selector wording in Google Chrome’s localized documentation: https://support.google.com/chrome/answer/9275525?hl=hi&co=GENIE.Platform%3DAndroid . These are appearance modes: Japanese uses katakana, French uses Clair rather than Lumineux, and Hindi distinguishes a dark theme from literal black (the separate pure-black switch). See TRANSLATION_QUALITY_REVIEW.md."
+        }
+      }
+    },
+    "appearanceSystemColors": {
+      "upstream_key": "mobileSystemColors",
+      "upstream": {
+        "en": "System colors",
+        "ja": "OS と同じ色設定",
+        "zh": "跟随系统",
+        "ko": "시스템 색상",
+        "es": "Colores del sistema",
+        "de": "Systemfarben",
+        "fr": "Couleurs du système",
+        "ru": "Системные цвета",
+        "hi": "सिस्टम कलर्स",
+        "pt": "Cores do sistema"
+      },
+      "adaptations": {
+        "en": {
+          "value": "Use system colors",
+          "reason": "Use an explicit action label for an independent switch; this does not select device brightness. Chinese makes colors explicit to distinguish this from System default brightness."
+        },
+        "ja": {
+          "value": "OS と同じ色設定を使う",
+          "reason": "Use an explicit action label for an independent switch; this does not select device brightness. Chinese makes colors explicit to distinguish this from System default brightness."
+        },
+        "zh": {
+          "value": "使用系统颜色",
+          "reason": "Use an explicit action label for an independent switch; this does not select device brightness. Chinese makes colors explicit to distinguish this from System default brightness."
+        },
+        "ko": {
+          "value": "시스템 색상 사용",
+          "reason": "Use an explicit action label for an independent switch; this does not select device brightness. Chinese makes colors explicit to distinguish this from System default brightness."
+        },
+        "es": {
+          "value": "Usar colores del sistema",
+          "reason": "Use an explicit action label for an independent switch; this does not select device brightness. Chinese makes colors explicit to distinguish this from System default brightness."
+        },
+        "de": {
+          "value": "Systemfarben verwenden",
+          "reason": "Use an explicit action label for an independent switch; this does not select device brightness. Chinese makes colors explicit to distinguish this from System default brightness."
+        },
+        "fr": {
+          "value": "Utiliser les couleurs du système",
+          "reason": "Use an explicit action label for an independent switch; this does not select device brightness. Chinese makes colors explicit to distinguish this from System default brightness."
+        },
+        "ru": {
+          "value": "Использовать системные цвета",
+          "reason": "Use an explicit action label for an independent switch; this does not select device brightness. Chinese makes colors explicit to distinguish this from System default brightness."
+        },
+        "hi": {
+          "value": "सिस्टम कलर्स का उपयोग करें",
+          "reason": "Use an explicit action label for an independent switch; this does not select device brightness. Chinese makes colors explicit to distinguish this from System default brightness."
+        },
+        "pt": {
+          "value": "Usar cores do sistema",
+          "reason": "Use an explicit action label for an independent switch; this does not select device brightness. Chinese makes colors explicit to distinguish this from System default brightness."
+        }
+      }
+    },
+    "appearanceSystemDefault": {
+      "upstream_key": "deviceTheme",
+      "upstream": {
+        "en": "Device theme",
+        "ja": "デバイスの設定に従う",
+        "zh": "跟随系统",
+        "ko": "기기 테마",
+        "es": "Tema del dispositivo",
+        "de": "Mit Gerät synchronisieren",
+        "fr": "Thème de l'appareil",
+        "ru": "Системная",
+        "hi": null,
+        "pt": "Tema do dispositivo"
+      },
+      "adaptations": {
+        "en": {
+          "value": "System default",
+          "reason": "Device-theme option within the Theme selector; retain the existing English label. This follows system brightness, independently of system colors and language."
+        },
+        "hi": {
+          "value": "सिस्टम डिफ़ॉल्ट",
+          "reason": "No Hindi deviceTheme translation at the pinned Lichess revision. Use Google Chrome’s Hindi theme-selector label: https://support.google.com/chrome/answer/9275525?hl=hi&co=GENIE.Platform%3DAndroid . This follows system brightness, not system language."
+        }
+      }
+    },
+    "mainLine": {
+      "upstream_key": "makeMainLine",
+      "upstream": {
+        "en": "Make main line",
+        "ja": "主手順にする",
+        "zh": "设为主线",
+        "ko": "주 라인으로 하기",
+        "es": "Convertir en línea principal",
+        "de": "Zur Hauptvariante machen",
+        "fr": "En faire la variante principale",
+        "ru": "Сделать этот вариант главным",
+        "hi": "मुख्य लाइन बनाएं",
+        "pt": "Transformar em linha principal"
+      },
+      "adaptations": {
+        "en": {
+          "value": "main line",
+          "reason": "Use the main-line noun as a navigation destination, not the upstream action that promotes a variation. Include any article required by the existing localized Hold for destination phrase."
+        },
+        "ja": {
+          "value": "主手順",
+          "reason": "Use the main-line noun as a navigation destination, not the upstream action that promotes a variation. Include any article required by the existing localized Hold for destination phrase."
+        },
+        "zh": {
+          "value": "主线",
+          "reason": "Use the main-line noun as a navigation destination, not the upstream action that promotes a variation. Include any article required by the existing localized Hold for destination phrase."
+        },
+        "ko": {
+          "value": "주 라인",
+          "reason": "Use the main-line noun as a navigation destination, not the upstream action that promotes a variation. Include any article required by the existing localized Hold for destination phrase."
+        },
+        "es": {
+          "value": "la línea principal",
+          "reason": "Use the main-line noun as a navigation destination, not the upstream action that promotes a variation. Include any article required by the existing localized Hold for destination phrase."
+        },
+        "de": {
+          "value": "Hauptvariante",
+          "reason": "Use the main-line noun as a navigation destination, not the upstream action that promotes a variation. Include any article required by the existing localized Hold for destination phrase."
+        },
+        "fr": {
+          "value": "variante principale",
+          "reason": "Use the main-line noun as a navigation destination, not the upstream action that promotes a variation. Include any article required by the existing localized Hold for destination phrase."
+        },
+        "ru": {
+          "value": "главный вариант",
+          "reason": "Use the main-line noun as a navigation destination, not the upstream action that promotes a variation. Include any article required by the existing localized Hold for destination phrase."
+        },
+        "hi": {
+          "value": "मुख्य लाइन",
+          "reason": "Use the main-line noun as a navigation destination, not the upstream action that promotes a variation. Include any article required by the existing localized Hold for destination phrase."
+        },
+        "pt": {
+          "value": "linha principal",
+          "reason": "Use the main-line noun as a navigation destination, not the upstream action that promotes a variation. Include any article required by the existing localized Hold for destination phrase."
+        }
+      }
+    },
+    "boardSettings": {
+      "upstream_key": "mobileBoardSettings",
+      "upstream": {
+        "en": "Board settings",
+        "ja": "盤面の設定",
+        "zh": "棋盘设置",
+        "ko": "체스판 설정",
+        "es": "Configuración del tablero",
+        "de": "Bretteinstellungen",
+        "fr": "Paramètres de l'échiquier",
+        "ru": "Настройки доски",
+        "hi": "बोर्ड सेटिंग्स",
+        "pt": "Configurações do tabuleiro"
+      },
+      "adaptations": {
+        "en": {
+          "value": "Board",
+          "reason": "Compact section heading; covers appearance and board aids, not only board artwork."
+        },
+        "ja": {
+          "value": "盤",
+          "reason": "Compact section heading; covers appearance and board aids, not only board artwork."
+        },
+        "zh": {
+          "value": "棋盘",
+          "reason": "Compact section heading; covers appearance and board aids, not only board artwork."
+        },
+        "ko": {
+          "value": "보드",
+          "reason": "Compact section heading; covers appearance and board aids, not only board artwork."
+        },
+        "es": {
+          "value": "Tablero",
+          "reason": "Compact section heading; covers appearance and board aids, not only board artwork."
+        },
+        "de": {
+          "value": "Brett",
+          "reason": "Compact section heading; covers appearance and board aids, not only board artwork."
+        },
+        "fr": {
+          "value": "Échiquier",
+          "reason": "Compact section heading; covers appearance and board aids, not only board artwork."
+        },
+        "ru": {
+          "value": "Доска",
+          "reason": "Compact section heading; covers appearance and board aids, not only board artwork."
+        },
+        "hi": {
+          "value": "बोर्ड",
+          "reason": "Compact section heading; covers appearance and board aids, not only board artwork."
+        },
+        "pt": {
+          "value": "Tabuleiro",
+          "reason": "Compact section heading; covers appearance and board aids, not only board artwork."
+        }
+      }
+    },
+    "boardCoordinates": {
+      "upstream_key": "preferencesBoardCoordinates",
+      "upstream": {
+        "en": "Board coordinates (A-H, 1-8)",
+        "ja": "マスの座標（A-H, 1-8）",
+        "zh": "棋盘坐标 (A-H, 1-8)",
+        "ko": "보드 좌표 (A-H, 1-8)",
+        "es": "Coordenadas del tablero (A-H, 1-8)",
+        "de": "Brettkoordinaten (A-H, 1-8)",
+        "fr": "Coordonnées (a-h, 1-8)",
+        "ru": "Координаты доски (A–H, 1–8)",
+        "hi": "बोर्ड का निर्देशांक (A-H, 1-8)",
+        "pt": "Coordenadas do tabuleiro (A-H, 1-8)"
+      },
+      "adaptations": {
+        "en": {
+          "value": "Board coordinates",
+          "reason": "Omit the explanatory coordinate range in this compact switch label."
+        },
+        "ja": {
+          "value": "マスの座標",
+          "reason": "Omit the explanatory coordinate range in this compact switch label."
+        },
+        "zh": {
+          "value": "棋盘坐标",
+          "reason": "Omit the explanatory coordinate range in this compact switch label."
+        },
+        "ko": {
+          "value": "보드 좌표",
+          "reason": "Omit the explanatory coordinate range in this compact switch label."
+        },
+        "es": {
+          "value": "Coordenadas del tablero",
+          "reason": "Omit the explanatory coordinate range in this compact switch label."
+        },
+        "de": {
+          "value": "Brettkoordinaten",
+          "reason": "Omit the explanatory coordinate range in this compact switch label."
+        },
+        "fr": {
+          "value": "Coordonnées",
+          "reason": "Omit the explanatory coordinate range in this compact switch label."
+        },
+        "ru": {
+          "value": "Координаты доски",
+          "reason": "Omit the explanatory coordinate range in this compact switch label."
+        },
+        "hi": {
+          "value": "बोर्ड के निर्देशांक",
+          "reason": "Omit the explanatory coordinate range in this compact switch label."
+        },
+        "pt": {
+          "value": "Coordenadas do tabuleiro",
+          "reason": "Omit the explanatory coordinate range in this compact switch label."
+        }
+      }
+    },
+    "boardLegalMoves": {
+      "upstream_key": "preferencesPieceDestinations",
+      "upstream": {
+        "en": "Piece destinations (valid moves and premoves)",
+        "ja": "駒の行き先（ルール上動けるマス、プリムーブ）",
+        "zh": "棋子落点（有效着法及预走棋）",
+        "ko": "기물 착지점 표시 (유효한 움직임 및 미리두기)",
+        "es": "Destino de las piezas (movimientos válidos y anticipados)",
+        "de": "Zielfelder markieren (gültige Züge und Vorauszüge)",
+        "fr": "Cases de destination (coups et pré-coups légaux)",
+        "ru": "Показывать допустимые ходы",
+        "hi": "मोहरों का गंतव्य (मान्य चालें और पहले से चुनी आई चालें)",
+        "pt": "Destino das peças (movimentos válidos e pré-movimentos)"
+      },
+      "adaptations": {
+        "en": {
+          "value": "Legal-move destinations",
+          "reason": "Name legal destination marks explicitly; committed premove overlays remain separate. Available premove destination dots follow the Chessground destination switch."
+        },
+        "ja": {
+          "value": "合法手の移動先",
+          "reason": "Name legal destination marks explicitly; committed premove overlays remain separate. Available premove destination dots follow the Chessground destination switch."
+        },
+        "zh": {
+          "value": "合法走法落点",
+          "reason": "Name legal destination marks explicitly; committed premove overlays remain separate. Available premove destination dots follow the Chessground destination switch."
+        },
+        "ko": {
+          "value": "합법적인 이동 칸",
+          "reason": "Name legal destination marks explicitly; committed premove overlays remain separate. Available premove destination dots follow the Chessground destination switch."
+        },
+        "es": {
+          "value": "Destinos de movimientos legales",
+          "reason": "Name legal destination marks explicitly; committed premove overlays remain separate. Available premove destination dots follow the Chessground destination switch."
+        },
+        "de": {
+          "value": "Legale Zielfelder",
+          "reason": "Name legal destination marks explicitly; committed premove overlays remain separate. Available premove destination dots follow the Chessground destination switch."
+        },
+        "fr": {
+          "value": "Destinations des coups légaux",
+          "reason": "Name legal destination marks explicitly; committed premove overlays remain separate. Available premove destination dots follow the Chessground destination switch."
+        },
+        "ru": {
+          "value": "Поля допустимых ходов",
+          "reason": "Name legal destination marks explicitly; committed premove overlays remain separate. Available premove destination dots follow the Chessground destination switch."
+        },
+        "hi": {
+          "value": "वैध चालों के गंतव्य",
+          "reason": "Name legal destination marks explicitly; committed premove overlays remain separate. Available premove destination dots follow the Chessground destination switch."
+        },
+        "pt": {
+          "value": "Destinos de lances legais",
+          "reason": "Name legal destination marks explicitly; committed premove overlays remain separate. Available premove destination dots follow the Chessground destination switch."
+        }
+      }
+    },
+    "boardLastMove": {
+      "upstream_key": "preferencesBoardHighlights",
+      "upstream": {
+        "en": "Board highlights (last move and check)",
+        "ja": "盤上のハイライト表示（最後の手、チェック）",
+        "zh": "棋盘高亮（最后一步与将军）",
+        "ko": "보드 하이라이트 (마지막 수 및 체크)",
+        "es": "Destacar casillas del tablero (último movimiento y jaque)",
+        "de": "Markierungen auf dem Brett (letzter Zug und Schach)",
+        "fr": "Mettre en évidence les cases (dernier coup et échec)",
+        "ru": "Подсвечивать последний ход и шах",
+        "hi": "बोर्ड का हाइलाइट (आख़िरी चाल और शह)",
+        "pt": "Destacar casas do tabuleiro (último movimento e xeque)"
+      },
+      "adaptations": {
+        "en": {
+          "value": "Last-move highlight",
+          "reason": "This switch affects only the last move, never check or selected-square highlights."
+        },
+        "ja": {
+          "value": "直前の手の強調表示",
+          "reason": "This switch affects only the last move, never check or selected-square highlights."
+        },
+        "zh": {
+          "value": "上一步高亮",
+          "reason": "This switch affects only the last move, never check or selected-square highlights."
+        },
+        "ko": {
+          "value": "마지막 수 강조",
+          "reason": "This switch affects only the last move, never check or selected-square highlights."
+        },
+        "es": {
+          "value": "Resaltar el último movimiento",
+          "reason": "This switch affects only the last move, never check or selected-square highlights."
+        },
+        "de": {
+          "value": "Letzten Zug hervorheben",
+          "reason": "This switch affects only the last move, never check or selected-square highlights."
+        },
+        "fr": {
+          "value": "Surbrillance du dernier coup",
+          "reason": "This switch affects only the last move, never check or selected-square highlights."
+        },
+        "ru": {
+          "value": "Подсветка последнего хода",
+          "reason": "This switch affects only the last move, never check or selected-square highlights."
+        },
+        "hi": {
+          "value": "पिछली चाल को उभारें",
+          "reason": "This switch affects only the last move, never check or selected-square highlights."
+        },
+        "pt": {
+          "value": "Destacar o último lance",
+          "reason": "This switch affects only the last move, never check or selected-square highlights."
+        }
+      }
+    },
+    "boardAnimation": {
+      "upstream_key": "preferencesPieceAnimation",
+      "upstream": {
+        "en": "Piece animation",
+        "ja": "駒のアニメーション速度",
+        "zh": "棋子动画",
+        "ko": "기물 움직임 애니메이션",
+        "es": "Animación de las piezas",
+        "de": "Figurenanimation",
+        "fr": "Animation des pièces",
+        "ru": "Анимация фигур",
+        "hi": "मोहरों का एनीमेशन",
+        "pt": "Animação das peças"
+      },
+      "adaptations": {
+        "ja": {
+          "value": "駒のアニメーション",
+          "reason": "Boolean animation control, not a speed selector."
+        }
+      }
+    },
+    "boardMagnify": {
+      "upstream_key": "mobilePrefMagnifyDraggedPiece",
+      "upstream": {
+        "en": "Magnify dragged piece",
+        "ja": "ドラッグ中の駒を拡大",
+        "zh": "放大拖动的棋子",
+        "ko": "드래그 중 기물 확대",
+        "es": "Aumentar la pieza arrastrada",
+        "de": "Vergrößern der gezogenen Figur",
+        "fr": "Grossir la pièce déplacée",
+        "ru": "Увеличивать перетаскиваемую фигуру",
+        "hi": "घसीटते वक्त पीस बड़ा दिखाएं",
+        "pt": "Ampliar peça segurada"
+      },
+      "adaptations": {}
+    },
+    "boardDragTarget": {
+      "upstream_key": "mobileSettingsDraggedPieceTarget",
+      "upstream": {
+        "en": "Dragged piece target",
+        "ja": "ドラッグ移動時の駒の照準",
+        "zh": "拖动棋子落点标记",
+        "ko": "드래그 중 착지점 강조",
+        "es": "Marcador de destino de la pieza arrastrada",
+        "de": "Ziel der gezogenen Figur",
+        "fr": "Cible de la pièce déplacée",
+        "ru": "Цель передвинутой фигуры",
+        "hi": "खींचा गया टुकड़े का लक्ष्य",
+        "pt": "Alvo da peça arrastada"
+      },
+      "adaptations": {
+        "hi": {
+          "value": "खींचे जा रहे मोहरे का लक्ष्य",
+          "reason": "Correct Hindi agreement for the piece being dragged and use the chess term मोहरा rather than the literal fragment टुकड़ा; preserve the upstream target concept."
+        }
+      }
+    },
+    "boardTargetCircle": {
+      "upstream_key": "mobileSettingsDraggedTargetCircle",
+      "upstream": {
+        "en": "Circle",
+        "ja": "円形",
+        "zh": "圆形",
+        "ko": "원",
+        "es": "Círculo",
+        "de": "Kreis",
+        "fr": "Cercle",
+        "ru": "Круглая",
+        "hi": "घेरा",
+        "pt": "Círculo"
+      },
+      "adaptations": {}
+    },
+    "boardTargetSquare": {
+      "upstream_key": "mobileSettingsDraggedTargetSquare",
+      "upstream": {
+        "en": "Square",
+        "ja": "四角形",
+        "zh": "方形",
+        "ko": "칸",
+        "es": "Cuadrado",
+        "de": "Quadrat",
+        "fr": "Carré",
+        "ru": "Квадратная",
+        "hi": "वर्ग",
+        "pt": "Casa"
+      },
+      "adaptations": {}
+    },
+    "boardTargetNone": {
+      "upstream_key": "none",
+      "upstream": {
+        "en": "None",
+        "ja": "無効",
+        "zh": "无",
+        "ko": "없음",
+        "es": "Ninguna",
+        "de": "Keine",
+        "fr": "Aucune",
+        "ru": "Нет",
+        "hi": "कोई नहीं",
+        "pt": "Nenhum"
+      },
+      "adaptations": {}
+    },
+    "boardDesign": {
+      "upstream_key": "board",
+      "upstream": {
+        "en": "Board",
+        "ja": "盤のデザイン",
+        "zh": "棋盘",
+        "ko": "보드",
+        "es": "Tablero",
+        "de": "Brett",
+        "fr": "Échiquier",
+        "ru": "Доска",
+        "hi": null,
+        "pt": "Tabuleiro"
+      },
+      "adaptations": {
+        "hi": {
+          "value": "बोर्ड की डिज़ाइन",
+          "reason": "Pinned upstream catalog has no value; use a native Hindi label for this visual selector."
+        }
+      }
+    },
+    "boardPieceSet": {
+      "upstream_key": "pieceSet",
+      "upstream": {
+        "en": "Piece set",
+        "ja": "駒のデザイン",
+        "zh": "棋子样式",
+        "ko": "기물 세트",
+        "es": "Estilo de piezas",
+        "de": "Figurenstil",
+        "fr": "Jeu de pièces",
+        "ru": "Оформление фигур",
+        "hi": "मोहरे",
+        "pt": "Estilo das peças"
+      },
+      "adaptations": {}
+    },
+    "editorMoveTool": {
+      "upstream_key": "move",
+      "upstream": {
+        "en": "Move",
+        "ja": "手",
+        "zh": "着法",
+        "ko": "수",
+        "es": "Movimiento",
+        "de": "Zug",
+        "fr": "Coup",
+        "ru": "Ход",
+        "hi": "चाल",
+        "pt": "Movimentos"
+      },
+      "adaptations": {
+        "en": {
+          "value": "Move pieces",
+          "reason": "Name the editor piece tool explicitly."
+        },
+        "ja": {
+          "value": "駒を移動",
+          "reason": "Name the editor piece tool explicitly."
+        },
+        "zh": {
+          "value": "移动棋子",
+          "reason": "Name the editor piece tool explicitly."
+        },
+        "ko": {
+          "value": "기물 이동",
+          "reason": "Name the editor piece tool explicitly."
+        },
+        "es": {
+          "value": "Mover piezas",
+          "reason": "Name the editor piece tool explicitly."
+        },
+        "de": {
+          "value": "Figuren verschieben",
+          "reason": "Name the editor piece tool explicitly."
+        },
+        "fr": {
+          "value": "Déplacer les pièces",
+          "reason": "Name the editor piece tool explicitly."
+        },
+        "ru": {
+          "value": "Перемещать фигуры",
+          "reason": "Name the editor piece tool explicitly."
+        },
+        "hi": {
+          "value": "मोहरे चलाएँ",
+          "reason": "Name the editor piece tool explicitly."
+        },
+        "pt": {
+          "value": "Mover peças",
+          "reason": "Name the editor piece tool explicitly."
+        }
+      }
+    },
+    "editorEraseTool": {
+      "upstream_key": "delete",
+      "upstream": {
+        "en": "Delete",
+        "ja": "削除",
+        "zh": "删除",
+        "ko": "삭제",
+        "es": "Borrar",
+        "de": "Löschen",
+        "fr": "Effacer",
+        "ru": "Удалить",
+        "hi": "हटाएँ",
+        "pt": "Excluir"
+      },
+      "adaptations": {
+        "en": {
+          "value": "Erase pieces",
+          "reason": "Name the editor piece tool explicitly."
+        },
+        "ja": {
+          "value": "駒を削除",
+          "reason": "Name the editor piece tool explicitly."
+        },
+        "zh": {
+          "value": "移除棋子",
+          "reason": "Name the editor piece tool explicitly."
+        },
+        "ko": {
+          "value": "기물 지우기",
+          "reason": "Name the editor piece tool explicitly."
+        },
+        "es": {
+          "value": "Borrar piezas",
+          "reason": "Name the editor piece tool explicitly."
+        },
+        "de": {
+          "value": "Figuren entfernen",
+          "reason": "Name the editor piece tool explicitly."
+        },
+        "fr": {
+          "value": "Effacer les pièces",
+          "reason": "Name the editor piece tool explicitly."
+        },
+        "ru": {
+          "value": "Удалять фигуры",
+          "reason": "Name the editor piece tool explicitly."
+        },
+        "hi": {
+          "value": "मोहरे हटाएँ",
+          "reason": "Name the editor piece tool explicitly."
+        },
+        "pt": {
+          "value": "Apagar peças",
+          "reason": "Name the editor piece tool explicitly."
+        }
+      }
+    },
+    "editorShareFen": {
+      "upstream_key": "mobileShareGamePGN",
+      "upstream": {
+        "en": "Share PGN",
+        "ja": "PGN を共有",
+        "zh": "分享 PGN",
+        "ko": "PGN 공유",
+        "es": "Compartir PGN",
+        "de": "PGN teilen",
+        "fr": "Partager le PGN",
+        "ru": "Поделиться PGN",
+        "hi": "पीजीएन शेयर करें",
+        "pt": "Compartilhar PGN"
+      },
+      "adaptations": {
+        "en": {
+          "value": "Share FEN",
+          "reason": "Share a FEN position rather than a PGN game; preserve the format name."
+        },
+        "ja": {
+          "value": "FENを共有",
+          "reason": "Share a FEN position rather than a PGN game; preserve the format name."
+        },
+        "zh": {
+          "value": "分享 FEN",
+          "reason": "Share a FEN position rather than a PGN game; preserve the format name."
+        },
+        "ko": {
+          "value": "FEN 공유",
+          "reason": "Share a FEN position rather than a PGN game; preserve the format name."
+        },
+        "es": {
+          "value": "Compartir FEN",
+          "reason": "Share a FEN position rather than a PGN game; preserve the format name."
+        },
+        "de": {
+          "value": "FEN teilen",
+          "reason": "Share a FEN position rather than a PGN game; preserve the format name."
+        },
+        "fr": {
+          "value": "Partager la FEN",
+          "reason": "Share a FEN position rather than a PGN game; preserve the format name."
+        },
+        "ru": {
+          "value": "Поделиться FEN",
+          "reason": "Share a FEN position rather than a PGN game; preserve the format name."
+        },
+        "hi": {
+          "value": "FEN साझा करें",
+          "reason": "Share a FEN position rather than a PGN game; preserve the format name."
+        },
+        "pt": {
+          "value": "Compartilhar FEN",
+          "reason": "Share a FEN position rather than a PGN game; preserve the format name."
+        }
+      }
     }
   }
 }
