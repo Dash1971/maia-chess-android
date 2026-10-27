@@ -40,8 +40,11 @@ procedure; follow its gates even for metadata-only releases.
 - Retain sanitized evidence on GitHub and clean up only this task's temporary
   builds/containers. Preserve shared SDKs, caches, keys, and unrelated services.
 
-For the incident behind these rules, see
-[`docs/incidents/2026-10-03-fdroid-release.md`](docs/incidents/2026-10-03-fdroid-release.md).
+For historical context behind these rules, see the
+[F-Droid incident](docs/incidents/2026-10-03-fdroid-release.md) and
+[Zapstore delivery incident](docs/incidents/2026-10-27-zapstore-delivery.md).
+The current workflow is self-contained in `docs/RELEASING.md`; historical
+release investigation is not a routine publication prerequisite.
 Ordinary app changes still use the tests documented in `tool/hardening/README.md`.
 
 ## Translation terminology
