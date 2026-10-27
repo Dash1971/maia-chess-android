@@ -109,3 +109,89 @@ verified downloads without waiting for this documentation PR to merge.
 
 This documentation changes no application code, committed store config, version,
 release tag, signed artifact, signing identity or release qualification result.
+
+## Live screenshot regression and immediate recovery
+
+At 06:02:05 UTC (15:02:05 JST), app event
+`d459ad781bd140fd77f8572c0e1ca02d13f062c9105f7b99393532f3907fa8df`
+replaced all eight screenshot references during the 2.5.0 attempt. All eight
+URLs subsequently returned HTTP 404; the website displayed eight persistent
+placeholders while its icon loaded. The current website URLs matched that
+partial app event exactly. The 2.5.1 submission remained pending and did not
+repair this app metadata. The evidence establishes unavailable referenced media;
+it does not establish whether Zapstore discarded uploads or failed to serve them.
+
+The release record already noted failed media verification. Recording that
+failure without immediately repairing the existing listing was an operational
+failure. A successful or pending release submission cannot justify degraded
+metadata on an already public listing.
+
+The previous eight screenshot URLs from the 2.4.0 metadata correction still
+served valid PNGs. Recovery restores those eight verified references only,
+preserving the current Markdown description, other tags and release/asset
+references. These are temporarily older screenshots, not the refreshed 2.5
+screenshots. New media must pass the mandatory gate before replacing them.
+Compact signed before/after events, sixteen original/thumbnail GET and decode
+checks, rendered verification and cleanup evidence accompany this repair PR.
+
+The canonical release procedure now requires a saved recovery event, verified
+public uploads before metadata replacement, immediate verification of every
+actual image and rendered screenshot, and immediate metadata-only recovery on
+failure. A combined publisher that cannot enforce that ordering must retain
+working image URLs until verified replacements are ready. This rule also applies
+when release publication is pending.
+
+Counterpart review: Preview/Dev publish GitHub prereleases and do not publish
+Zapstore app metadata or maintain store screenshots. Its current release guide
+explicitly excludes Zapstore qualification. This Stable store-media gate has no
+Preview port; no shared build, CI, verification helper or cleanup tool changed.
+
+Recovery event `b55e139941db2a09520bc757a3a05c50b23a83e888df29a597bb8c192a7ba3bb`
+was initially answered `OK true` with `pending: the listing will be saved once
+its checks pass`; immediate readback still returned the broken app. The current
+relay's v2 listing admission couples app promotion to a release. Replaying the
+exact already stored, signed 2.4.0 release event
+`36ef543171da50a9d80d839aef76a9b90906ba79bddb1aa0a13f23b4ed9b972b`
+triggered promotion of the recovery app. No release event was changed or newly
+signed. Subsequent signature-verified readback returned the recovery event,
+with an identical release/asset event set, and all eight website screenshots
+loaded with nonzero natural dimensions. Sixteen full original/thumbnail GET
+and decode checks passed. Android store-client rendering was not tested.
+The website still listed 2.4.0: screenshot recovery does not establish 2.5.x
+store publication.
+
+[Recovery verification and signed-event evidence](evidence/2026-10-27-zapstore-screenshot-repair/verification.json)
+and [rendered listing](evidence/2026-10-27-zapstore-screenshot-repair/restored-listing.png)
+are retained alongside full media checks and the before/after public event set.
+[Cleanup](evidence/2026-10-27-zapstore-screenshot-repair/cleanup.json) removed the
+repair binaries and temporary Go module on the signing host immediately after
+verification, recovering about 23 MB; shared tools/caches and signing keys were
+preserved. No APK, model or emulator output was created. The compact documentation
+checkout is retained for this PR; no bulk retention is needed.
+
+## Current screenshots restored without waiting for APK indexing
+
+The older screenshots were an immediate recovery step, not the final result.
+All eight approved current screenshots were then verified against their source
+hashes at immutable raw.githubusercontent.com URLs pinned to the qualified
+2.5.1 source commit `7af804d1006db12973d745c3d836e364f4810693`.
+Sixteen original/thumbnail URL GET/decode/hash checks passed on both the primary
+and signing hosts before changing the app metadata. This delivery path uses
+already public repository images and requires no new CDN media upload.
+
+App event `a1c9f9261d8e92d36df3a9d1abbb5e6ce34b0ce87259fb274697b0b317d33370`
+now references those current screenshots. The exact existing 2.4.0 signed
+release was replayed again to trigger metadata promotion. Signed readback
+confirmed the intended event, unchanged description/non-image tags and an
+identical release/asset event set. The website renders all eight current images
+at 900 × 1920 natural dimensions. The 2.4 screenshot fallback is superseded.
+See [current-media verification](evidence/2026-10-27-zapstore-screenshot-repair/latest/verification.json)
+and [current rendered listing](evidence/2026-10-27-zapstore-screenshot-repair/latest/latest-listing.png).
+Android store-client rendering was not tested.
+
+The visible store release remains 2.4.0; 2.5.1 delivery is still pending. When
+2.5.1 is served, the release operator must verify the visible version, actual
+qualified APK download/hash/signer and this current screenshot set together
+before recording store publication. No further screenshot replacement is needed
+merely because APK indexing finishes. Preserve the newest verified app metadata;
+do not republish the earlier failed CDN image references.

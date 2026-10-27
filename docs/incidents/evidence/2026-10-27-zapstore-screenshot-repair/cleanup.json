@@ -1,0 +1,20 @@
+{
+  "checked_at": "2026-10-27T12:21:11.351892+00:00",
+  "owner": "Zapstore screenshot repair chat 2026-10-27",
+  "removed_paths": [
+    "/Users/openclaw/.cache/codex-zapstore-screenshot-repair-20261027/bulk/go.mod",
+    "/Users/openclaw/.cache/codex-zapstore-screenshot-repair-20261027/bulk/go.sum",
+    "/Users/openclaw/.cache/codex-zapstore-screenshot-repair-20261027/bulk/repair",
+    "/Users/openclaw/.cache/codex-zapstore-screenshot-repair-20261027/bulk/probe",
+    "/Users/openclaw/.cache/codex-zapstore-screenshot-repair-20261027/bulk"
+  ],
+  "free_bytes_before_cleanup": 45083160576,
+  "free_bytes_after_cleanup": 45106536448,
+  "free_at_prebuild_kib": 44042512,
+  "expected_growth_budget_bytes": 536870912,
+  "reserve_bytes": 10737418240,
+  "retained": "compact sanitized Go sources, signed public events and verification JSON only; source checkout on primary Mac retained for documentation PR",
+  "shared_go_toolchain_modules_and_build_cache_preserved": true,
+  "signing_secrets_preserved_on_signing_host": true,
+  "task_processes": "all repair/probe commands exited; no background processes"
+}

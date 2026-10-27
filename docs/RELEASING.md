@@ -347,6 +347,70 @@ comparison; keep the original repository screenshot and APK unchanged. Use
 raster images. A generic upload error is not enough to choose a file to alter;
 identify the failed media's hash, size and MIME type first.
 
+#### Mandatory media gate and failure recovery
+
+App metadata is independently replaceable: publishing it can break the existing
+listing even when the new release fails or remains pending. A release failure
+must never leave the current listing pointing at unavailable screenshots.
+
+Before any command that can replace app metadata:
+
+1. Save the current signed app event, its ordered icon/image URLs, and the
+   current release/asset IDs. Prepare a reviewed metadata-only recovery event
+   preserving the description and all unrelated tags. Keep this compact
+   recovery evidence outside disposable bulk.
+2. Upload new media before publishing references to it. GET **every exact public
+   icon/screenshot URL**, follow redirects, require HTTP 200 and successfully
+   decode the complete image with nonzero dimensions. Verify served image
+   hashes against the reviewed delivery files. Check website thumbnail URLs
+   separately (currently `?class=thumbsm`). An upload receipt, HEAD, hash in a
+   URL, publisher exit status or `pending` result cannot pass this gate.
+3. If the publisher cannot expose and verify uploaded URLs before replacing
+   metadata, do not use that combined path with unverified new images. Retain
+   the previous verified image URLs until a separate verified upload is ready.
+   Preserve the approved current description. Do not repeatedly publish a full
+   release to repair media.
+4. Immediately read back the accepted signed app event and repeat GET/decode
+   checks for **all actual icon/image references**. Inspect the rendered website
+   and confirm every screenshot displays; placeholders are a failure. Save URL,
+   status, decoded dimensions, bytes/hash, event IDs and a rendered capture.
+5. On any media failure, restore the previously verified image references
+   immediately with a newer app-metadata-only event under the established
+   identity. Re-read current state before signing; abort on an unexpected
+   concurrent edit. Preserve current description, unrelated tags and existing
+   release/asset events. Verify the restoration by signed relay readback,
+   complete image GET/decode checks and the rendered listing. Do not leave a
+   broken live listing while awaiting release indexing or a documentation PR.
+
+Read the relay's full `OK` response text. An `OK` boolean of true with a
+`pending:` message means buffered, not publicly stored. A metadata-only recovery
+can also be buffered behind pending releases. If signed readback still returns
+the broken app, investigate the relay's listing admission rules. In the October
+27 recovery, replaying the **exact existing signed and stored release event**
+(same event ID and bytes, no new signature or modified fields) allowed the
+recovery app event to be promoted against that admitted release. Verify the
+stored release/asset set remains identical afterward. This is a targeted
+recovery trigger, not permission to create duplicate release events, delete
+pending releases or overwrite a published release.
+
+Verified immutable public image URLs are also supported. If the CDN upload or
+promotion path is unavailable, use the approved screenshots at URLs pinned to
+the exact qualified source commit (for example raw.githubusercontent.com with
+a full commit SHA), provided all original and website image requests pass the
+same GET/decode/hash gate. Do not use a moving branch URL. Record the hosting
+choice and source commit; switch to those verified current images without
+waiting for APK indexing. Screenshot metadata and release indexing are separate.
+A temporary fallback to older screenshots is not completion of current-release
+media maintenance: replace it promptly with verified current screenshots and
+include them in the intended version's final rendered store check.
+
+Recover the listing before reporting a pending store handoff. Report temporary
+use of older screenshots explicitly and replace them only after the new media
+passes this same gate. Pending release events and listing health are separate
+checks. Never mark media verified because the version, icon or description alone
+loads. No APK rebuild, tag replacement or full release qualification is needed
+for this scoped listing repair.
+
 #### Check, publish and verify
 
 Set `version`, `version_code`, `release_sha` and `apk_sha256` from the completed
