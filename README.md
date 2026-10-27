@@ -65,7 +65,7 @@ optional score estimates, and more ways to set up and continue positions.
 - **Set up and continue positions.** Use graphical editor palettes, move/erase tools and FEN copy/share. Continue an analysis position on screen or as an untimed Chessnut game with physical-position setup guidance.
 - **Explore variations more easily.** Hold Left to return to a variation's main-line branch point; hold Right to go one main-line move beyond it. Navigation also clears stale selections and drag indicators.
 
-Version **2.5.1** fixes invalid-position crashes and startup recovery. See the [hotfix notes](docs/release-notes/v2.5.1.md).
+[2.5.1](docs/release-notes/v2.5.1.md) fixes a crash when analyzing certain custom positions.
 
 See the [2.5 release notes](docs/release-notes/v2.5.0.md),
 [2.4 release notes](docs/release-notes/v2.4.0.md) and
