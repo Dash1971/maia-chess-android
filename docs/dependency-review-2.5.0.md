@@ -102,3 +102,18 @@ recipe review and independent Linux reproduction, and the remaining gates in
 the authoritative release guide. Prior Preview APK or advisory evidence cannot
 qualify the new Stable source. This review created no bulk toolchains, build
 intermediates, model copies or emulator data requiring cleanup.
+
+
+## Prepublication refresh — 2026-10-27
+
+Fresh checks completed for 60 hosted Pub package metadata entries, 65 exact-pin
+OSV queries (including vendored Chessground, Gradle and Android plugins/runtime)
+and public upstream advisory feeds. No new applicable security blocker was found.
+`shared_preferences_foundation` 2.6.1 was published after the initial review; its
+changelog fixes web compilation for apps importing the Apple backend. Retain the
+Android release pins. The final-source CI dependency job remains required.
+Canonical F-Droid metadata at `06e1c87cd8ce671815c8fbbb40ee5498a66481d9`
+contains successful 2.4.0/code81 as the last build. Request !53062 and pipeline
+2959726434 passed; no open82 request or retained failed77/78 block was observed.
+The public catalog still suggests81. These are prepublication observations;
+publication/detection/build/catalog status will be recorded separately.

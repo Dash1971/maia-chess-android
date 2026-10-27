@@ -33,7 +33,7 @@ completes.
 ## Contents
 
 - [Download and install](#download-and-install)
-- [Proposed Mobile Maia 2.5](#mobile-maia-25-preparation)
+- [Mobile Maia 2.5](#mobile-maia-25)
 - [Feature guide](#feature-guide)
 - [Google Play, iPhone, and forks](#availability-and-forks)
 - [Support and contributing](#support-and-contributing)
@@ -42,10 +42,10 @@ completes.
 - [Credits and attributions](#credits-and-attributions)
 - [Licensing](#licensing)
 
-## Mobile Maia 2.5 preparation
+## Mobile Maia 2.5
 
-**Stable 2.5.0 is being prepared. It has not been published by this PR.** The
-existing download links above continue to serve published releases.
+Mobile Maia 2.5 brings appearance choices, board designs, clearer Maia help,
+optional score estimates, and more ways to set up and continue positions.
 
 - **Make the app your own.** Choose Light, Dark or System default, Android system colors and an optional pure-black background. The original green/dark appearance remains the default.
 - **Choose your board.** Pick from 25 boards and 16 approved piece sets, and control coordinates, legal-move dots, highlights, animation and dragging aids.
@@ -54,7 +54,7 @@ existing download links above continue to serve published releases.
 - **Set up and continue positions.** Use graphical editor palettes, move/erase tools and FEN copy/share. Continue an analysis position on screen or as an untimed Chessnut game with physical-position setup guidance.
 - **Explore variations more easily.** Hold Left to return to a variation's main-line branch point; hold Right to go one main-line move beyond it. Navigation also clears stale selections and drag indicators.
 
-See the [proposed 2.5 release notes](docs/release-notes/v2.5.0.md),
+See the [2.5 release notes](docs/release-notes/v2.5.0.md),
 [2.4 release notes](docs/release-notes/v2.4.0.md) and
 [earlier release notes](docs/release-notes).
 
@@ -65,21 +65,18 @@ this stable blue-icon app.
 
 ## Feature guide
 
-The 2.5 feature images below reuse real Preview Android captures of the shared
-UI, selected and visually checked for this preparation on 27 October 2026.
-They are identified as Preview examples; the Home image retains its actual
-Preview branding. Appearance examples show the shared Analysis Board in light
-and pure-black modes. These are not captures of a Stable 2.5 APK. Other dated
-images are explicitly older illustrative examples, rather than current Settings
-or default-value references. See [image provenance and remaining capture work](docs/release-notes/v2.5.0.md#screenshots).
+The current 2.5 images below are actual Android captures of the Stable 2.5.0
+app on 27 October 2026, visually checked before use. Appearance and optional
+engine examples identify their selected settings. Other dated images remain
+explicitly older illustrative examples. See [capture provenance](docs/screenshots/20261027_v1_stable_2_5_provenance.md).
 
 ### Choose a game or analysis workflow
 
 <p align="center">
-  <img src="docs/screenshots/20261027_v0_preview_source_home.png" width="42%" alt="Preview 2.5 Home example, visibly branded Mobile Maia Preview, with the new Maia 1500 default">
+  <img src="docs/screenshots/20261027_v1_stable_2_5_home.png" width="42%" alt="Stable 2.5 Home with the new Maia 1500 default">
 </p>
 
-*Preview beta.2 capture; shared Home controls, with Preview branding.*
+*Stable 2.5.0 Home with its new-install defaults.*
 
 The home screen is the starting point for every workflow. Play as White, Black,
 or a random side; choose a preset or custom **Play Maia rating**; then start a game.
@@ -139,12 +136,18 @@ silently substituted for a Traditional Chinese system preference.
 ### Appearance
 
 <p align="center">
-  <img src="docs/screenshots/20261027_v0_preview_source_appearance_light.png" width="42%" alt="Preview Analysis Board in Light mode with Android system colors enabled">
-  <img src="docs/screenshots/20261027_v0_preview_source_appearance_black.png" width="42%" alt="Preview Analysis Board with pure-black backgrounds and Android system colors enabled">
+  <img src="docs/screenshots/20261027_v1_stable_2_5_appearance_settings.png" width="42%" alt="Stable 2.5 Appearance settings with Dark selected and system colors and pure black off">
 </p>
 
-*Preview beta.2 Analysis Board examples of Light and pure-black Dark modes,
-using Android system colors. Maia score display is off in these examples.*
+<p align="center">
+  <img src="docs/screenshots/20261027_v1_stable_2_5_appearance_light.png" width="30%" alt="Stable 2.5 Analysis Board in Light mode with Android system colors enabled">
+  <img src="docs/screenshots/20261027_v1_stable_2_5_appearance_dark.png" width="30%" alt="Stable 2.5 Analysis Board in its default green-accented Dark mode">
+  <img src="docs/screenshots/20261027_v1_stable_2_5_appearance_black.png" width="30%" alt="Stable 2.5 Analysis Board with pure-black backgrounds and Android system colors enabled">
+</p>
+
+*Stable 2.5 Analysis Board in Light, default Dark and pure-black Dark modes.
+The Light and pure-black examples use Android system colors. Maia score
+display is off in these examples.*
 
 Open **Settings → Appearance** to choose **Light**, **Dark** or **System
 default**. **Use system colors** follows the Android palette on supported
@@ -157,13 +160,13 @@ choices.
 ### Board designs and playing aids
 
 <p align="center">
-  <img src="docs/screenshots/20261027_v0_preview_source_board_options.png" width="30%" alt="Preview Board settings with coordinates, legal-move destinations, highlight, animation and dragged-piece magnification">
-  <img src="docs/screenshots/20261027_v0_preview_source_boards.png" width="30%" alt="Preview board selector with visual previews of approved boards">
-  <img src="docs/screenshots/20261027_v0_preview_source_pieces.png" width="30%" alt="Preview piece-set selector with visual previews of approved artwork">
+  <img src="docs/screenshots/20261027_v1_stable_2_5_board_options.png" width="30%" alt="Stable 2.5 Board settings with coordinates, legal-move destinations, highlight, animation and dragged-piece magnification">
+  <img src="docs/screenshots/20261027_v1_stable_2_5_boards.png" width="30%" alt="Stable 2.5 board selector with visual previews of approved boards">
+  <img src="docs/screenshots/20261027_v1_stable_2_5_pieces.png" width="30%" alt="Stable 2.5 piece-set selector with visual previews of approved artwork">
 </p>
 
-*Real Preview UI examples; Blue/Merida and coordinates off illustrate saved
-choices. Brown/Cburnett and the existing aids remain the defaults.*
+*Stable 2.5 board preferences and artwork selectors. Brown/Cburnett and the
+existing aids remain the defaults.*
 
 Open **Settings → Board** to choose from **25 boards and 16 approved piece
 sets**, with a live preview. Adjust **Board coordinates**, **Legal-move
@@ -176,13 +179,12 @@ check, selection, premove or analysis overlays.
 ### Advanced play and review settings
 
 <p align="center">
-  <img src="docs/screenshots/20261027_v0_preview_source_engine.png" width="42%" alt="Preview Engine settings showing Temperature 1.00 and Top-P 0.95">
-  <img src="docs/screenshots/20261027_v0_preview_source_analysis_settings.png" width="42%" alt="Preview Analysis settings showing Maia 1500 and optional Maia 2600, score display and Fast review quality">
+  <img src="docs/screenshots/20261027_v1_stable_2_5_engine.png" width="42%" alt="Stable 2.5 Engine settings showing Temperature 1.00 and Top-P 0.95">
+  <img src="docs/screenshots/20261027_v1_stable_2_5_analysis_settings.png" width="42%" alt="Stable 2.5 Analysis settings showing Maia 1500 and optional Maia 2600, score display and Fast review quality">
 </p>
 
-*Preview captures of the shared controls. The analysis example enables the
-optional second engine, score display and sampling capture for demonstration;
-those three options are off by default.*
+*Stable 2.5 controls. The analysis example enables the optional second engine
+and score display for demonstration; both options are off by default.*
 
 **Game** groups premoves, the indented 100 ms premove charge and multiple-premove
 options, human move timing, Game sounds and Touch feedback. **Engine** groups
@@ -219,10 +221,10 @@ Open the information button beside **Engine settings** for one scrollable
 and a research link, available in all ten languages.
 
 <p align="center">
-  <img src="docs/screenshots/20261027_v0_preview_source_engine_help.png" width="38%" alt="Current consolidated engine help, scrolled to recommendations and its research link at large text size in Preview beta.7">
+  <img src="docs/screenshots/20261027_v1_stable_2_5_engine_help.png" width="38%" alt="Stable 2.5 consolidated engine help, scrolled to recommendations and its research link">
 </p>
 
-*Preview beta.7 signed-APK example, scrolled near the end at 200% text size.*
+*Stable 2.5 engine help, scrolled near the end.*
 
 The new default is **Temperature 1.0 / Top-P 0.95 with Max variety in opening
 on**. This keeps unfiltered opening choices, then excludes a small tail of
@@ -409,10 +411,10 @@ not yet supported.
 ### Analysis Board
 
 <p align="center">
-  <img src="docs/screenshots/20261027_v0_preview_source_analysis_score.png" width="42%" alt="Preview beta.10 Analysis Board with two Stockfish lines, Maia 1500 and 2600 probabilities, and fixed score labels in the title">
+  <img src="docs/screenshots/20261027_v1_stable_2_5_analysis_score.png" width="42%" alt="Stable 2.5 Analysis Board with two Stockfish lines, Maia 1500 and 2600 probabilities, and fixed score labels in the title">
 </p>
 
-*Preview beta.10 capture of the shared analysis UI, with the board flipped.*
+*Stable 2.5 analysis with optional Maia 1500 and 2600 scores enabled.*
 
 Use **Analysis Board** to explore without starting a game. Stockfish supplies
 two evaluated lines and blue best-move arrows. Maia supplies the move a person
@@ -423,6 +425,10 @@ combine. The board, move tree, selected position, orientation, and engine
 context are restored across restarts.
 
 ### Optional Maia score
+
+<p align="center">
+  <img src="docs/screenshots/20261027_v1_stable_2_5_score_help.png" width="42%" alt="Stable 2.5 Maia score help explaining expected points and linking score reliability research">
+</p>
 
 Enable **Settings → Analysis → Show Maia win (score) %** to show a compact
 score beside the Analysis Board or Game Review title. It is off by default.
@@ -438,6 +444,8 @@ analysis rating for **both players**: M1500 means 1500 versus 1500, and M2600
 means 2600 versus 2600. It is separate from move-choice percentages and
 Stockfish evaluation. Equal rounded scores show `= 50%`, loading shows an
 ellipsis, unavailable results a dash, and terminal positions the actual result.
+[How reliable is Maia’s score?](https://github.com/Dash1971/mobile-maia-research/blob/main/studies/score-reliability-2026-10-27/REPORT.md)
+explains the research and its limits; the same link appears in score help.
 
 ### Move list, opening names, and engine lines
 
@@ -483,11 +491,11 @@ clears the move tree, opens **Board Editor**, or starts a Maia game from the
 selected position.
 
 <p align="center">
-  <img src="docs/screenshots/20261027_v0_preview_source_editor.png" width="42%" alt="Preview graphical Board Editor with black and white piece palettes, move and erase tools and bottom actions">
-  <img src="docs/screenshots/20261027_v0_preview_source_editor_settings.png" width="42%" alt="Preview editor Position settings with side to move, independent castling rights and expandable FEN metadata">
+  <img src="docs/screenshots/20261027_v1_stable_2_5_editor.png" width="42%" alt="Stable 2.5 graphical Board Editor with black and white piece palettes, move and erase tools and bottom actions">
+  <img src="docs/screenshots/20261027_v1_stable_2_5_editor_settings.png" width="42%" alt="Stable 2.5 editor Position settings with side to move, independent castling rights and expandable FEN metadata">
 </p>
 
-*Preview beta.8 captures of the shared editor UI, using Blue/Merida.*
+*Stable 2.5 Board Editor and Position settings.*
 
 The editor has graphical piece palettes above and below the board. Select a
 piece to place it repeatedly; tap an identical piece to remove it. Use the hand
@@ -500,11 +508,11 @@ validate the position; incomplete drafts remain editable. Image import is
 labelled unavailable and is not a working feature.
 
 <p align="center">
-  <img src="docs/screenshots/20261027_v0_preview_source_continue_phone.png" width="42%" alt="Preview Continue from here dialog with side, Maia 1500, custom phone clock and Use electronic board off">
-  <img src="docs/screenshots/20261027_v0_preview_source_continue_board.png" width="42%" alt="Preview Continue from here electronic-board connection failure with Retry and Cancel; board games are untimed">
+  <img src="docs/screenshots/20261027_v1_stable_2_5_continue_phone.png" width="42%" alt="Stable 2.5 Continue from here dialog with side, Maia 1500, custom phone clock and Use electronic board off">
+  <img src="docs/screenshots/20261027_v1_stable_2_5_continue_board.png" width="42%" alt="Stable 2.5 Continue from here electronic-board connection failure with Retry and Cancel; board games are untimed">
 </p>
 
-*Preview beta.10 captures: a custom phone clock, and the real emulator's
+*Stable 2.5 captures: a custom phone clock and the emulator’s actual
 connection-unavailable recovery. The second image does not demonstrate a
 successful physical board connection.*
 
@@ -633,6 +641,9 @@ contains several games.
 
 ### About, privacy, and licences
 
+<p align="center">
+  <img src="docs/screenshots/20261027_v1_stable_2_5_about.png" width="42%" alt="Stable 2.5.0 About screen with licence, source and upstream credits">
+</p>
 
 The app has no accounts, ads, subscriptions, tracking, or network dependency.
 The download is several hundred megabytes because it bundles the

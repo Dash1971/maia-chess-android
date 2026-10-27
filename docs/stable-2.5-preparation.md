@@ -1,7 +1,7 @@
 # Stable 2.5.0 promotion preparation
 
-Prepared 2026-10-27. This is a **PR-only preparation**, not release qualification.
-Do not merge, build, tag, sign or publish without the owner's next instruction.
+Prepared 2026-10-27. The owner has authorized merge, release qualification and
+publication. Preparation evidence alone is not release qualification.
 The authoritative procedure remains [RELEASING.md](RELEASING.md).
 
 ## Source and acceptance
@@ -16,13 +16,13 @@ The authoritative procedure remains [RELEASING.md](RELEASING.md).
   introduced during the initial promotion. The subsequent owner-requested
   score-help change adds a localized link to the October 27 score-reliability
   research; it does not change score calculations or inference. The same change
-  is proposed in [Preview #203](https://github.com/Dash1971/maia-chess-android-preview/pull/203)
-  before either channel publishes.
+  was merged in [Preview #203](https://github.com/Dash1971/maia-chess-android-preview/pull/203)
+  without publishing Preview again.
 - The owner reported that physical Chessnut testing passed. This is owner
   acceptance, not independently reproduced radio/LED hardware evidence.
 - [Release notes](release-notes/v2.5.0.md), README and Fastlane descriptions cover
-  the promoted features. README captures identify Preview provenance; they are
-  not presented as screenshots of a newly built Stable APK.
+  the promoted features. README and Fastlane captures are refreshed from the Stable Android UI;
+  capture provenance is recorded with the release notes.
 
 ## Preserved Stable boundaries
 
@@ -75,14 +75,14 @@ version is inherited. Re-read canonical metadata before freezing/building source
 
 Fastlane has an 82 changelog, updated feature descriptions and screenshots.
 Zapstore uses the same reviewed wording converted to explicit Markdown, preserving
-its established npub, stable-tag filter and APK filename match. No store update
-has been submitted and no 2.5 APK exists from this task.
+its established npub, stable-tag filter and APK filename match. Store publication remains gated on final-source qualification. Screenshot/debug
+builds are not the publishable Linux APK.
 
 ## Checks before publication (not waived by this PR)
 
 1. Finish final-source CI, including the resolved release dependency graph and
    advisory audit. Ordinary PR CI does not run the manual Android job.
-2. After merge and explicit build authorization, freeze one full source commit;
+2. After merge, freeze one full source commit;
    run the GitHub Linux release build and independent Linux reproduction using
    the current canonical F-Droid recipe. Run source/binary scans and require
    identical unsigned APKs.
@@ -94,7 +94,8 @@ has been submitted and no 2.5 APK exists from this task.
    detection, build and catalog publication separately.
 5. Clean task-owned output on every host and retain compact verification evidence.
 
-Preparation uses shared Flutter/Pub tools and a disposable Python test environment.
-No model binaries, APKs or emulator data are downloaded/created. Test scratch is
-removed before handoff; the unmerged PR source checkout and compact logs are
-retained for review. Detailed preparation results are recorded in the PR.
+The initial PR preparation used shared tools and retained compact logs. The owner
+subsequently authorized release qualification and publication. Task-owned builds,
+emulator data and temporary release tools are cleaned after verification; source,
+release tags, shared tools and compact evidence are preserved. Exact results and
+per-channel distribution status are recorded on the release PR and release assets.
