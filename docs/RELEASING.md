@@ -269,38 +269,153 @@ accepted content and unchanged APK references afterward. Do not overwrite a
 release, rebuild, move its tag, or rerun the full APK-release process just to
 repair listing text. Record the correction and evidence on GitHub.
 
-After the public GitHub APK passes the checks above, verify that the selected
-tag, version name/code, APK SHA-256 and Android signing certificate match the
-qualified release. Stop on any mismatch. On the local signing host, run
-`zsp publish --check zapstore.yaml`, then publish the same release with
-`zsp publish zapstore.yaml` using the established Mobile Maia Nostr identity.
-`--check` confirms APK discovery and compatibility, not equality to the qualified
-release. Before confirming publication, compare the APK actually selected by
-the publishing command with the qualified version, hash and certificate again;
-the latest GitHub release may have changed between commands.
-The second command signs and sends public events. Authorization to publish this
-Stable release covers this step; do not ask for separate Zapstore approval
-unless the user excluded it or a new decision outside that scope is needed.
-Keep the Nostr private key and Android
-keystore on the local host; never place either in this repository, GitHub
-Actions secrets, command arguments or logs. The existing certificate-to-Nostr
-identity proof need not be repeated for every APK signed with the same key,
-but check its validity and renew it before expiry or key rotation.
+#### Publisher, identity and qualified input
 
-Verify the Zapstore relay accepted the project-signed app, release and asset
-events for the intended package/version; confirm the asset hash and signer
-match the verified GitHub APK, the CDN serves that APK, and the
-[Mobile Maia listing](https://zapstore.dev/apps/com.dash1971.maia_chess)
-shows the new version. The site loads releases client-side, so raw page HTML
-alone is not a publication check. Record `ZAPSTORE PUBLISHED` separately from
-GitHub and F-Droid. If publication or verification fails, report the exact
-stage; do not alter the GitHub release or blindly republish it.
+Use the qualified public GitHub APK as the release source. A second APK upload
+to Zapstore's CDN is **not** a publication requirement. Keep the same immutable
+GitHub release, tag and APK throughout this step; a store-delivery failure does
+not justify rebuilding or replacing them.
+
+The reviewed publisher is **zsp 2.0.0**, source commit
+`28bc992f0663d6bae6c40dfd1eb462c56f45cb7b`. Pin and record the executable's hash,
+architecture and version; verify `--version` and command help before use.
+Review a later publisher before changing this pin. The v2 release provides a
+Mac ARM64 binary but no Intel Mac binary; an Intel signing host can compile the
+pinned source with Go 1.27.3 (declared by that source) and Clang. Reuse shared
+tools and caches, prevent an unbudgeted toolchain download, keep tool
+source/output under task ownership, and obey the disk budget.
+This tool preparation never rebuilds the application APK. Pinned references:
+[zsp release](https://github.com/zapstore/zsp/releases/tag/v2.0.0),
+[configuration and CLI specification](https://github.com/zapstore/zsp/blob/28bc992f0663d6bae6c40dfd1eb462c56f45cb7b/SPEC.md),
+[public-source APK upload guard](https://github.com/zapstore/zsp/blob/28bc992f0663d6bae6c40dfd1eb462c56f45cb7b/internal/release/publish.go#L301).
+
+Check these established Stable identities directly; do not infer the actual
+signer from a YAML field or a previous command's exit status:
+
+| Identity | Required value |
+| --- | --- |
+| Android package | `com.dash1971.maia_chess` |
+| Nostr public key, hex | `6d422f13061d8252cddb028c50aa93d347c74775da8e4b724c1d2a2d8f03fac8` |
+| Nostr public key, npub | `npub1d4pz7ycxrkp99nwmq2x9p25n6druw3m4m28ykujvr54zmrcrltyqwnjah2` |
+| Android certificate SHA-256 | `cd6c07c4efacf52bcccb83009b522c1dcad4a171197505a486f0a58edb6f172e` |
+
+On the existing signing host, derive only the public key from the configured
+signer and compare it with this table. Keep the Nostr private key, Android
+keystore and passwords on that host, outside disposable bulk. Supply signing
+through the established local runner or remote signer; never put secrets in
+source, GitHub Actions secrets, command arguments, logs or release evidence.
+In v2, YAML `pubkey` is accepted but ignored; `SIGN_WITH` and the active NIP-C1
+proof determine authorization. Query the live kind-30509 proof for the APK
+certificate: verify its event signature, Android-key proof signature, owner or
+authorized delegate, expiry and non-revoked state. Reuse a valid proof; ordinary
+publication does not require creating or renewing it. Do not rotate identities
+or introduce a delegate to work around a failed check.
+
+#### Task config, notes and media
+
+Copy the qualified source's `zapstore.yaml` into the task's owned bulk directory.
+Preserve its approved Markdown and app metadata. Set the exact already-verified
+public APK URL with this **mapping**, substituting the qualified version:
+
+```yaml
+release_source:
+  asset_url: https://github.com/Dash1971/maia-chess-android/releases/download/v<VERSION>/Mobile-Maia-v<VERSION>.apk
+release_notes: ./release-notes.md
+icon: ./media/icon.png
+images:
+  - ./media/1.png
+  - ./media/2.png
+  # Continue with the actual approved images, in display order.
+```
+
+The `asset_url` mapping selects a static public download. A bare GitHub APK URL
+can instead be detected as a forge repository URL. Remove redundant
+`release_filter` and `match` entries from this task copy: the exact URL and
+`--apk-hash` bind the candidate. Keep the approved release notes and all named
+media inside the task config's directory, using fixed copies from the qualified
+source. Do not leave screenshots to a later `main` checkout or Fastlane lookup.
+This task copy does not change the committed config, frozen source or APK.
+
+Use a conservative **500 KiB (512,000-byte) per-image delivery budget** for the
+current service. This is our working budget, not a permanent server guarantee:
+record an actual rejection and current policy rather than guessing from a
+large APK's size. Optimize losslessly first. If needed, prepare a listing-only
+lossless WebP derivative and verify identical decoded RGBA pixels and dimensions
+against the qualified PNG. Retain source/output hashes, byte counts and that
+comparison; keep the original repository screenshot and APK unchanged. Use
+`--no-compress` when publishing these reviewed files: v2 otherwise re-encodes
+raster images. A generic upload error is not enough to choose a file to alter;
+identify the failed media's hash, size and MIME type first.
+
+#### Check, publish and verify
+
+Set `version`, `version_code`, `release_sha` and `apk_sha256` from the completed
+qualification and public GitHub download checks. `release_sha` must be the full
+frozen commit, and `apk_sha256` the **signed** APK hash. Record its size and
+approved certificate too. On the signing host, set the public infrastructure
+variables `RELAYS=wss://relay.zapstore.dev` and
+`BLOSSOM_URL=https://cdn.zapstore.dev`. Set `TMPDIR` to an existing directory
+inside owned bulk so temporary APK downloads remain covered by cleanup.
+With `zsp` resolving to the pinned executable and `config` to the task copy:
+
+```sh
+zsp check --json --apk-hash "$apk_sha256" "$config"
+zsp publish --json -q --no-compress --apk-hash "$apk_sha256" \
+  --commit "$release_sha" "$config"
+```
+
+The first command is read-only preflight; inspect the actual package, version,
+code, signed hash, certificate, live proof, authorized public key and existing
+published version before proceeding. Stop on a mismatch. The second command
+signs and sends public events. Stable publication authorization covers it;
+do not ask again unless the user excluded Zapstore or a new decision falls
+outside that scope. Do not add `--overwrite-release` merely to get past a
+version guard. Omit `--app-created-at-release` so a corrected app-metadata event
+receives a fresh timestamp. Check the final selected APK again if the source
+or publishing invocation changes.
+
+The public-source path publishes the verified GitHub URL without uploading a
+duplicate APK. A publisher may still upload icons/screenshots. Treat JSON
+`pending` as pending and preserve its event ID/status. Perform a bounded
+read-only relay/listing check, then record the owner, next action and follow-up
+time if it remains pending. Do not publish a duplicate or retry indefinitely
+while waiting for indexing. Pending alone does not require retaining bulk;
+retain compact evidence and clean after the applicable public-download checks.
+Exit 0, a local cache marker or relay acceptance alone is not store publication.
+Legacy zsp 0.4.17 committed
+its source cache before blob uploads; after a failed upload it could silently
+skip a retry with exit 0. If investigating that failure, back up and invalidate
+only the confirmed false repository cache entry after checking actual upstream
+state; never delete unrelated caches or overwrite a release blindly. Record
+partial app-metadata publication separately from release/asset publication.
+
+Before recording `ZAPSTORE PUBLISHED`, retain all of the following:
+
+- The actual relay, publishing public key and app/release/asset event IDs;
+  valid signatures, package/version/code, full source commit, signed APK hash,
+  size and certificate, and the release's references to its app and asset.
+- The asset's **actual advertised download URL** and any redirects. Download it
+  and verify the qualified hash, size and Android signer. The public GitHub URL
+  is a supported delivery path; no duplicate CDN copy is required. If a CDN URL
+  is advertised or used by the client, check its actual GET behavior separately
+  and distinguish a cached copy from a redirect to GitHub. Do not claim automatic
+  CDN caching. HEAD can differ from the service's GET redirect fallback.
+- The client-rendered [Mobile Maia listing](https://zapstore.dev/apps/com.dash1971.maia_chess)
+  showing the intended release and working media/download; inspect the published
+  Markdown content too. Raw page HTML does not establish this client-side state.
+  Record whether an Android store client was tested or only the website.
+
+Keep GitHub, Zapstore and F-Droid outcomes separate. On failure, retain the exact
+stage, safe diagnostic context and next action; keep the immutable GitHub release
+intact. The [2026-10-27 incident](incidents/2026-10-27-zapstore-delivery.md) explains
+the older assumptions and cache failure; the workflow above is self-contained
+and does not require researching historical releases.
 
 No Zapstore auto-publisher is currently deployed. A future local post-release
 job must run only after the qualified GitHub release and its public APK have
 passed the checks above, use the existing local Nostr signing boundary, avoid
-duplicate version publication, verify the relay/CDN result, and alert on
-failure. Do not make a GitHub tag or `zapstore.yaml` change alone a trigger
+duplicate version publication, verify relay, listing and actual download
+results, and alert on failure. Do not make a GitHub tag or `zapstore.yaml` change alone a trigger
 that can publish an unqualified APK.
 
 ## 5. Leave a reproducible record and clean up
@@ -309,8 +424,9 @@ Follow [build storage and cleanup](BUILD_WORKSPACE.md) on every build, test and
 signing host. Clean disposable bulk output promptly after the public-download
 checks and retention of the required qualification evidence; do not wait for
 a follow-up documentation PR or pending F-Droid catalog publication. Keep
-artifacts still needed by an active channel step until that step has completed,
-and record the owner, reason and expiry for anything retained. Record the cleanup
+artifacts still needed by an active operation, with an owner, concrete reason
+and expiry. Pending store publication alone does not justify retaining bulk.
+Record the cleanup
 report with the distribution evidence. Shared tooling changes follow
 [the counterpart-review rule](SHARED_BUILD_PROCESS.md).
 
@@ -322,7 +438,7 @@ channels progress; a successful GitHub upload is not the end of distribution.
 | Channel/check | Required evidence and status |
 | --- | --- |
 | GitHub | Public tag/source, APK hash/signer and post-publication verification. |
-| Zapstore | App/release/asset event IDs, publishing identity, APK hash/signer, verified CDN download and visible listing version; `PUBLISHED` only after verification. |
+| Zapstore | App/release/asset event IDs, publishing identity/proof, APK hash/signer, verified advertised download URL/redirects and visible listing version; `PUBLISHED` only after verification. |
 | F-Droid detection | Detected version/code/source and inherited recipe. This is not store publication. |
 | F-Droid request/build | Current request/pipeline links and state, or explicitly not yet observed. |
 | F-Droid catalog | Actual public catalog version/code; `PENDING` until this release is available. |
