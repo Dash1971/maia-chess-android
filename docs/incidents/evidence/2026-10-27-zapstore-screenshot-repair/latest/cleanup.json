@@ -1,0 +1,16 @@
+{
+  "checked_at": "2026-10-27T12:24:20.345230+00:00",
+  "removed_paths": [
+    "/Users/openclaw/.cache/codex-zapstore-screenshot-repair-20261027/bulk/go.mod",
+    "/Users/openclaw/.cache/codex-zapstore-screenshot-repair-20261027/bulk/go.sum",
+    "/Users/openclaw/.cache/codex-zapstore-screenshot-repair-20261027/bulk/repair",
+    "/Users/openclaw/.cache/codex-zapstore-screenshot-repair-20261027/bulk/probe",
+    "/Users/openclaw/.cache/codex-zapstore-screenshot-repair-20261027/bulk"
+  ],
+  "free_bytes_before": 45077041152,
+  "free_bytes_after": 45100400640,
+  "free_before_compilation_kib": 44049484,
+  "task_processes": "all commands exited; none left running",
+  "retained": "compact public evidence and source only; no APK/model/emulator output created",
+  "shared_tools_caches_and_signing_keys_preserved": true
+}

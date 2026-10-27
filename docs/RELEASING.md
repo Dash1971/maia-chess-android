@@ -393,6 +393,17 @@ stored release/asset set remains identical afterward. This is a targeted
 recovery trigger, not permission to create duplicate release events, delete
 pending releases or overwrite a published release.
 
+Verified immutable public image URLs are also supported. If the CDN upload or
+promotion path is unavailable, use the approved screenshots at URLs pinned to
+the exact qualified source commit (for example raw.githubusercontent.com with
+a full commit SHA), provided all original and website image requests pass the
+same GET/decode/hash gate. Do not use a moving branch URL. Record the hosting
+choice and source commit; switch to those verified current images without
+waiting for APK indexing. Screenshot metadata and release indexing are separate.
+A temporary fallback to older screenshots is not completion of current-release
+media maintenance: replace it promptly with verified current screenshots and
+include them in the intended version's final rendered store check.
+
 Recover the listing before reporting a pending store handoff. Report temporary
 use of older screenshots explicitly and replace them only after the new media
 passes this same gate. Pending release events and listing health are separate

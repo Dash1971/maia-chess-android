@@ -168,3 +168,30 @@ repair binaries and temporary Go module on the signing host immediately after
 verification, recovering about 23 MB; shared tools/caches and signing keys were
 preserved. No APK, model or emulator output was created. The compact documentation
 checkout is retained for this PR; no bulk retention is needed.
+
+## Current screenshots restored without waiting for APK indexing
+
+The older screenshots were an immediate recovery step, not the final result.
+All eight approved current screenshots were then verified against their source
+hashes at immutable raw.githubusercontent.com URLs pinned to the qualified
+2.5.1 source commit `7af804d1006db12973d745c3d836e364f4810693`.
+Sixteen original/thumbnail URL GET/decode/hash checks passed on both the primary
+and signing hosts before changing the app metadata. This delivery path uses
+already public repository images and requires no new CDN media upload.
+
+App event `a1c9f9261d8e92d36df3a9d1abbb5e6ce34b0ce87259fb274697b0b317d33370`
+now references those current screenshots. The exact existing 2.4.0 signed
+release was replayed again to trigger metadata promotion. Signed readback
+confirmed the intended event, unchanged description/non-image tags and an
+identical release/asset event set. The website renders all eight current images
+at 900 × 1920 natural dimensions. The 2.4 screenshot fallback is superseded.
+See [current-media verification](evidence/2026-10-27-zapstore-screenshot-repair/latest/verification.json)
+and [current rendered listing](evidence/2026-10-27-zapstore-screenshot-repair/latest/latest-listing.png).
+Android store-client rendering was not tested.
+
+The visible store release remains 2.4.0; 2.5.1 delivery is still pending. When
+2.5.1 is served, the release operator must verify the visible version, actual
+qualified APK download/hash/signer and this current screenshot set together
+before recording store publication. No further screenshot replacement is needed
+merely because APK indexing finishes. Preserve the newest verified app metadata;
+do not republish the earlier failed CDN image references.

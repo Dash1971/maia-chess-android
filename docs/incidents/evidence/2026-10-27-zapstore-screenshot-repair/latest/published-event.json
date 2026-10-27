@@ -1,0 +1,78 @@
+{
+  "kind": 32267,
+  "id": "a1c9f9261d8e92d36df3a9d1abbb5e6ce34b0ce87259fb274697b0b317d33370",
+  "pubkey": "6d422f13061d8252cddb028c50aa93d347c74775da8e4b724c1d2a2d8f03fac8",
+  "created_at": 1793103808,
+  "tags": [
+    [
+      "d",
+      "com.dash1971.maia_chess"
+    ],
+    [
+      "name",
+      "Mobile Maia"
+    ],
+    [
+      "summary",
+      "Play human-like chess offline and review your games with Maia and Stockfish"
+    ],
+    [
+      "icon",
+      "https://cdn.zapstore.dev/29a005ab19b127c989b4dddf1a7b4e95e7659b343f58a8b6f7eafe6bff7a9b1f"
+    ],
+    [
+      "image",
+      "https://raw.githubusercontent.com/Dash1971/maia-chess-android/7af804d1006db12973d745c3d836e364f4810693/fastlane/metadata/android/en-US/images/phoneScreenshots/1.png"
+    ],
+    [
+      "image",
+      "https://raw.githubusercontent.com/Dash1971/maia-chess-android/7af804d1006db12973d745c3d836e364f4810693/fastlane/metadata/android/en-US/images/phoneScreenshots/2.png"
+    ],
+    [
+      "image",
+      "https://raw.githubusercontent.com/Dash1971/maia-chess-android/7af804d1006db12973d745c3d836e364f4810693/fastlane/metadata/android/en-US/images/phoneScreenshots/3.png"
+    ],
+    [
+      "image",
+      "https://raw.githubusercontent.com/Dash1971/maia-chess-android/7af804d1006db12973d745c3d836e364f4810693/fastlane/metadata/android/en-US/images/phoneScreenshots/4.png"
+    ],
+    [
+      "image",
+      "https://raw.githubusercontent.com/Dash1971/maia-chess-android/7af804d1006db12973d745c3d836e364f4810693/fastlane/metadata/android/en-US/images/phoneScreenshots/5.png"
+    ],
+    [
+      "image",
+      "https://raw.githubusercontent.com/Dash1971/maia-chess-android/7af804d1006db12973d745c3d836e364f4810693/fastlane/metadata/android/en-US/images/phoneScreenshots/6.png"
+    ],
+    [
+      "image",
+      "https://raw.githubusercontent.com/Dash1971/maia-chess-android/7af804d1006db12973d745c3d836e364f4810693/fastlane/metadata/android/en-US/images/phoneScreenshots/7.png"
+    ],
+    [
+      "image",
+      "https://raw.githubusercontent.com/Dash1971/maia-chess-android/7af804d1006db12973d745c3d836e364f4810693/fastlane/metadata/android/en-US/images/phoneScreenshots/8.png"
+    ],
+    [
+      "repository",
+      "https://github.com/Dash1971/maia-chess-android"
+    ],
+    [
+      "f",
+      "android-arm64-v8a"
+    ],
+    [
+      "f",
+      "android-armeabi-v7a"
+    ],
+    [
+      "f",
+      "android-x86_64"
+    ],
+    [
+      "h",
+      "acfeaea6e51420e8068fac446ca9d17d7a9ef6a5d20d93894e50fee3d4902a84"
+    ]
+  ],
+  "content": "**By Maia fans, for Maia fans.** Mobile Maia is a community project for playing and studying chess with Maia on Android. It will always be free, never show ads, and always remain open source.\n\nThe app uses the human-like Maia-3 79M model from the University of Toronto’s Computational Social Science Lab for play and analysis, alongside Stockfish for comparison and game review. Everything runs locally on your phone, without an account or Internet connection.\n\nPick a Maia rating from 600 to 2600, then review your game with Maia and Stockfish to explore what you could have played. There are no subscriptions or daily analysis limits.\n\n**Play at your own pace**\n\n- Choose your side and play with a clock or without a time limit.\n- Adjust Maia's move variety and optional human-like pauses. Keep varied openings before switching to your chosen settings.\n- Take back moves, play rematches and return to saved unfinished games.\n\n**Understand your games**\n\n- Compare the moves Maia thinks people would play with Stockfish's suggestions. You can compare two Maia ratings side by side.\n- Review a whole game with an evaluation graph, accuracy scores and move annotations.\n- Explore variations, edit board positions and continue playing from a position you choose.\n- Optionally show Maia’s expected score alongside its move probabilities.\n\n**Keep your chess on your phone**\n\n- Open PGN games or FEN positions, and save or share PGN files with comments and variations.\n- Browse recent games and look up opening names offline.\n- Choose from ten interface languages, light or dark themes, system colors and an optional pure-black background.\n- Customize board colors, piece sets and move aids.\n- Optionally export Maia’s actual move probabilities and choices in a readable offline report.\n\n**Experimental Chessnut support**\n\nChessnut Air and Go boards can connect over Bluetooth for untimed games, including continuing from an analysis position. Lights guide piece setup and show Maia's moves. Other Chessnut models have not been confirmed.\n\nOn Android 11 and older, connecting a Chessnut board requires location permission to scan for Bluetooth devices. Mobile Maia does not use it to determine your location. Android 12 and newer use Nearby devices permissions instead. On-screen chess does not need location permission.\n\nMobile Maia works entirely offline, with zero telemetry: no analytics, tracking, or data sent to servers. Your games and analysis stay on your device unless you choose to export or share them.\n\n**Before you download**\n\nThe download is several hundred megabytes because the Maia-3 79M model is included for offline use. Maia's rating setting guides the human moves it predicts; it is not a guaranteed playing strength.\n\nMobile Maia is an independent community project, licensed under AGPL-3.0-only. It uses the Maia-3 79M model from the University of Toronto’s Computational Social Science Lab and Stockfish. Its chess interface and app development philosophy are informed by Lichess. Game Review’s move-classification and sacrifice-detection logic is adapted from En Croissant. It is not an official Maia Chess, University of Toronto CSSLab, Lichess, Stockfish, En Croissant or Chessnut app.\n",
+  "sig": "127ddf2065961950597b1f3bda9419a0ef6e569e34fed6fd2afad663cc3127998016a90d575fc86409a7e401782d4738bd7418057e4603b6b800b9e7d1d42e32"
+}

@@ -1,0 +1,22 @@
+{
+  "checked_at": "2026-10-27T12:24:19.954527+00:00",
+  "status": "passed",
+  "previous_app_event": "b55e139941db2a09520bc757a3a05c50b23a83e888df29a597bb8c192a7ba3bb",
+  "new_app_event": "a1c9f9261d8e92d36df3a9d1abbb5e6ce34b0ce87259fb274697b0b317d33370",
+  "source_commit": "7af804d1006db12973d745c3d836e364f4810693",
+  "image_host": "raw.githubusercontent.com; immutable exact qualified 2.5.1 commit",
+  "description_and_non_image_tags_preserved": true,
+  "release_and_asset_events_unchanged": [
+    "24ed6f3ad226c7f9bac84b912869aa88d725e11f08be035e1cba34d6c6ea787d",
+    "36ef543171da50a9d80d839aef76a9b90906ba79bddb1aa0a13f23b4ed9b972b",
+    "834b9d61ac508bb068005b1e7e19c4efbb868113e24115b3588ba28efc831c98",
+    "a10a6bfe234f3820a664ed1149a82bc665c4ff99d6d24a1be5da4c9c019c1005"
+  ],
+  "media_checks": "16 full GET/decode/hash comparisons passed from both primary and signing hosts",
+  "rendered_website": "all eight current images loaded; 900 x 1920 natural dimensions; no screenshot placeholders",
+  "android_store_client_tested": false,
+  "visible_store_version": "2.4.0; 2.5.1 delivery still pending",
+  "next_store_completion_check": "Confirm visible 2.5.1, qualified download hash/signer and current screenshot set together; do not resubmit a release merely to repair media",
+  "recovery_trigger": "exact same previously stored 2.4.0 signed release event replayed; no release changed or new release signed",
+  "apk_rebuilt": false
+}
