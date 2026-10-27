@@ -453,5 +453,6 @@
   "continuationBoardUntimed": "Partien mit elektronischem Brett haben keine Zeitbegrenzung.",
   "continuationSetUpBoard": "Stellung aufbauen",
   "continuationSetupHelp": "Baue die angezeigte Stellung auf deinem Brett auf. Die Partie beginnt, sobald die Figurenpositionen übereinstimmen.",
-  "continuationBoardUnsupported": "Das Weiterspielen aus einer Stellung wird derzeit nur mit Chessnut-Brettern unterstützt."
+  "continuationBoardUnsupported": "Das Weiterspielen aus einer Stellung wird derzeit nur mit Chessnut-Brettern unterstützt.",
+  "sessionRecovery": "Mobile Maia hat die Startseite geöffnet, um eine möglicherweise für einen Absturz verantwortliche Sitzung nicht erneut zu öffnen. Deine gespeicherten Partien und Einstellungen bleiben erhalten."
 }

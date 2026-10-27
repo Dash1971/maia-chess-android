@@ -1530,4 +1530,8 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String get continuationBoardUnsupported =>
       '현재 특정 포지션에서 이어서 두는 기능은 Chessnut 체스보드만 지원합니다.';
+
+  @override
+  String get sessionRecovery =>
+      '충돌을 일으켰을 수 있는 세션을 다시 열지 않고 홈 화면을 열었습니다. 저장된 대국과 설정은 유지됩니다.';
 }

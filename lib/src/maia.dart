@@ -120,6 +120,8 @@ class MaiaEncoding {
   }
 
   static List<double> tokenizeFen(String fen) {
+    fen = fen.trim();
+    AnalysisSession.validateFen(fen);
     final parts = fen.split(' ');
     final blackToMove = parts[1] == 'b';
     final result = List<double>.filled(64 * 12, 0);

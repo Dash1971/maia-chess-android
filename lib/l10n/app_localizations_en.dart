@@ -1614,4 +1614,8 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get continuationBoardUnsupported =>
       'Continuing from a position currently supports Chessnut boards only.';
+
+  @override
+  String get sessionRecovery =>
+      'Mobile Maia opened Home to avoid reopening a session that may have caused a crash. Your saved games and settings have been kept.';
 }

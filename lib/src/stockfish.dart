@@ -256,6 +256,8 @@ class StockfishAnalyzer {
     bool background = false,
     _StockfishRequest? request,
   }) async {
+    fen = fen.trim();
+    AnalysisSession.validateFen(fen);
     final position = chess.Chess.fromFEN(fen);
     if (position.in_checkmate) {
       final whiteToMove = fen.split(' ')[1] == 'w';

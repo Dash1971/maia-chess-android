@@ -453,5 +453,6 @@
   "continuationBoardUntimed": "電子チェス盤での対局は持ち時間無制限です。",
   "continuationSetUpBoard": "駒を配置",
   "continuationSetupHelp": "画面に表示された局面をチェス盤に並べてください。駒の配置が一致すると対局が始まります。",
-  "continuationBoardUnsupported": "指定した局面からの対局は、現在Chessnutのチェス盤のみ対応しています。"
+  "continuationBoardUnsupported": "指定した局面からの対局は、現在Chessnutのチェス盤のみ対応しています。",
+  "sessionRecovery": "クラッシュの原因となった可能性があるセッションを再開せず、ホームを開きました。保存済みの対局と設定は保持されています。"
 }

@@ -2109,5 +2109,9 @@
   "continuationBoardUnsupported": "Continuing from a position currently supports Chessnut boards only.",
   "@continuationBoardUnsupported": {
     "description": "Continue from here dialog: explains that custom-position continuation currently supports only Chessnut hardware."
+  },
+  "sessionRecovery": "Mobile Maia opened Home to avoid reopening a session that may have caused a crash. Your saved games and settings have been kept.",
+  "@sessionRecovery": {
+    "description": "Home notice after suppressing an unsafe or interrupted automatic session restore. No games or settings are deleted."
   }
 }

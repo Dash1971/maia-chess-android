@@ -453,5 +453,6 @@
   "continuationBoardUntimed": "Las partidas con tablero electrónico no tienen límite de tiempo.",
   "continuationSetUpBoard": "Preparar el tablero",
   "continuationSetupHelp": "Coloca en tu tablero la posición que aparece en pantalla. La partida empieza cuando las piezas coinciden.",
-  "continuationBoardUnsupported": "Por ahora, continuar desde una posición solo es compatible con los tableros Chessnut."
+  "continuationBoardUnsupported": "Por ahora, continuar desde una posición solo es compatible con los tableros Chessnut.",
+  "sessionRecovery": "Mobile Maia ha abierto la pantalla de inicio para evitar reabrir una sesión que podría haber causado un fallo. Tus partidas guardadas y ajustes se han conservado."
 }
