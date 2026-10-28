@@ -1,0 +1,8 @@
+{
+  "source_commit": "0f1ae2eabb9ed4b94bb2f42ed26799c7c0d42180",
+  "function_copied_verbatim": true,
+  "upstream_apkread_sha256": "fe041bda146084d34c4918916872a66b02c4b6a5c13b94f641172e29a38183da",
+  "upstream_apk_go_sha256": "64c436c8e0ea32f9afe97ed868bdc0b604572569d61fde41680386d95a0a5269",
+  "function_sha256": "884e934f86bceaebd6331561f03225d89cfe38423c949de53e7a6e6729d213cf",
+  "upstream_issue_update": "https://github.com/zapstore/relay/issues/11#issuecomment-6473829144"
+}

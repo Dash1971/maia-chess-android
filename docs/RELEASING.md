@@ -311,6 +311,41 @@ authorized delegate, expiry and non-revoked state. Reuse a valid proof; ordinary
 publication does not require creating or renewing it. Do not rotate identities
 or introduce a delegate to work around a failed check.
 
+#### Check service admission limits before submission
+
+A public GitHub URL avoids a duplicate APK upload; it does **not** avoid the
+relay downloading and checking the APK. Compare the qualified APK's exact byte
+size with the current receiver's admission limits, independently of local zsp
+preflight and successful GitHub download checks. Record dated source/operator
+evidence and distinguish public source behavior from confirmed deployed policy.
+
+As investigated on October 29, 2026 JST, relay v2 commit
+`0f1ae2eabb9ed4b94bb2f42ed26799c7c0d42180` has a hardcoded
+**300,000,000-byte** APK-reader limit and the same direct-upload limit. Stable
+2.5.1 is **455,440,608 bytes**. An isolated reproduction using that source's
+unmodified download function and the real GitHub URL fails at 300,000,001 bytes
+with `apk exceeds the size limit`. The reader retries that permanent error, so
+an accepted/pending response can conceal an admission failure. The deployed
+revision and actual server error still require operator confirmation. See
+[the precise diagnostics](https://github.com/zapstore/relay/issues/11#issuecomment-6473829144).
+
+If the qualified APK exceeds a known admission limit, treat Zapstore delivery as
+unresolved before sending new events. Obtain a supported server-side resolution;
+do not assume URL delivery, retries, or a previous larger published APK bypass
+the current limit. Preserve the qualified source, APK, models, hash and identity.
+Do not rebuild, reduce the model, switch delivery methods blindly or generate
+new release events merely to work around an unconfirmed service limit.
+After a service correction, check whether the original events remain queued
+or have expired before deciding whether exact-event retransmission is needed.
+
+`pending` is the response at a particular time, not a durable status dashboard.
+A later public-query absence proves only that the release is not served. Do not
+claim it remains queued without current evidence. Retain the full response and
+exact event IDs; use the existing upstream issue for concrete backend findings.
+For general publishing questions, maintainers direct users to the
+[Zapstore forum](https://zapstore.dev/community/forum); inspect current routing
+guidance before creating another report. Do not duplicate an existing issue.
+
 #### Task config, notes and media
 
 Copy the qualified source's `zapstore.yaml` into the task's owned bulk directory.
@@ -336,8 +371,9 @@ media inside the task config's directory, using fixed copies from the qualified
 source. Do not leave screenshots to a later `main` checkout or Fastlane lookup.
 This task copy does not change the committed config, frozen source or APK.
 
-Use a conservative **500 KiB (512,000-byte) per-image delivery budget** for the
-current service. This is our working budget, not a permanent server guarantee:
+Keep uploaded images **below 500,000 bytes each** for the current service.
+The investigated v2 source uses 500,000 bytes, not 500 KiB (512,000 bytes).
+This dated source limit is not proof of permanently deployed policy:
 record an actual rejection and current policy rather than guessing from a
 large APK's size. Optimize losslessly first. If needed, prepare a listing-only
 lossless WebP derivative and verify identical decoded RGBA pixels and dimensions

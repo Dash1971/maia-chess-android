@@ -1,0 +1,14 @@
+{
+  "bytes_read_before_rejection": 300000001,
+  "checked_at": "2026-10-28T15:54:19Z",
+  "declared_content_length": 455440608,
+  "download_host": "release-assets.githubusercontent.com",
+  "error": "apk exceeds the size limit",
+  "expected_apk_bytes": 455440608,
+  "http_status": 200,
+  "partial_file_removed": true,
+  "reader_limit_bytes": 300000000,
+  "scope": "isolated unmodified keepAPK function and maxAPK constant copied from pinned public relay source; not a reproduction on the production server",
+  "seconds": 10.274592491,
+  "source_commit": "0f1ae2eabb9ed4b94bb2f42ed26799c7c0d42180"
+}
