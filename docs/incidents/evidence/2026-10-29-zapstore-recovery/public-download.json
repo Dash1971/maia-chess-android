@@ -1,0 +1,13 @@
+{
+  "status": "passed",
+  "checked_at": "2026-10-28T22:37:30.478666+00:00",
+  "url": "https://github.com/Dash1971/maia-chess-android/releases/download/v2.5.1/Mobile-Maia-v2.5.1.apk",
+  "http_status": 200,
+  "redirect_host": "release-assets.githubusercontent.com",
+  "content_length": "455440608",
+  "bytes": 455440608,
+  "sha256": "59f730e806b6ead163714c46bf93f163309f8e6fb50295fe943112367be25f80",
+  "elapsed_seconds": 9.93,
+  "user_agent": "Go-http-client/1.1",
+  "saved_apk": false
+}

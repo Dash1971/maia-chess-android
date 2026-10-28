@@ -1,0 +1,129 @@
+{
+  "checked_at": "2026-10-28T22:38:15.746Z",
+  "reason": "Both original events now publicly served",
+  "elapsed_seconds": 1.175,
+  "events": [
+    {
+      "kind": 3063,
+      "id": "032ed462cfb15128d6c06852ea9218959ee2277c40e81ad7629dd1b607eea433",
+      "pubkey": "6d422f13061d8252cddb028c50aa93d347c74775da8e4b724c1d2a2d8f03fac8",
+      "created_at": 1793093129,
+      "tags": [
+        [
+          "i",
+          "com.dash1971.maia_chess"
+        ],
+        [
+          "x",
+          "59f730e806b6ead163714c46bf93f163309f8e6fb50295fe943112367be25f80"
+        ],
+        [
+          "version",
+          "2.5.1"
+        ],
+        [
+          "url",
+          "https://github.com/Dash1971/maia-chess-android/releases/download/v2.5.1/Mobile-Maia-v2.5.1.apk"
+        ],
+        [
+          "m",
+          "application/vnd.android.package-archive"
+        ],
+        [
+          "size",
+          "455440608"
+        ],
+        [
+          "f",
+          "android-arm64-v8a"
+        ],
+        [
+          "f",
+          "android-armeabi-v7a"
+        ],
+        [
+          "f",
+          "android-x86_64"
+        ],
+        [
+          "min_platform_version",
+          "24"
+        ],
+        [
+          "target_platform_version",
+          "36"
+        ],
+        [
+          "filename",
+          "a71d84de-7a72-4065-b8b5-bea079cd5406.apk"
+        ],
+        [
+          "commit",
+          "7af804d1006db12973d745c3d836e364f4810693"
+        ],
+        [
+          "version_code",
+          "83"
+        ],
+        [
+          "apk_certificate_hash",
+          "cd6c07c4efacf52bcccb83009b522c1dcad4a171197505a486f0a58edb6f172e"
+        ]
+      ],
+      "content": "",
+      "sig": "81a8543a390cbb862035d2e804a04309816b3862c62949b97a401b7b4ea238f8d4d7769c6924147fdff61cee9043c5f28a23cb6fe18a4176f3693bcea83f9eb9"
+    },
+    {
+      "kind": 30063,
+      "id": "8a8fdafccc32d51748ade1d062bc4c6b5b5963178155664d76a919a28cfc9ede",
+      "pubkey": "6d422f13061d8252cddb028c50aa93d347c74775da8e4b724c1d2a2d8f03fac8",
+      "created_at": 1793093129,
+      "tags": [
+        [
+          "a",
+          "32267:6d422f13061d8252cddb028c50aa93d347c74775da8e4b724c1d2a2d8f03fac8:com.dash1971.maia_chess",
+          "wss://relay.zapstore.dev"
+        ],
+        [
+          "i",
+          "com.dash1971.maia_chess"
+        ],
+        [
+          "version",
+          "2.5.1"
+        ],
+        [
+          "version_code",
+          "83"
+        ],
+        [
+          "d",
+          "com.dash1971.maia_chess@2.5.1"
+        ],
+        [
+          "c",
+          "main"
+        ],
+        [
+          "f",
+          "android-arm64-v8a"
+        ],
+        [
+          "f",
+          "android-armeabi-v7a"
+        ],
+        [
+          "f",
+          "android-x86_64"
+        ],
+        [
+          "e",
+          "032ed462cfb15128d6c06852ea9218959ee2277c40e81ad7629dd1b607eea433",
+          "wss://relay.zapstore.dev"
+        ]
+      ],
+      "content": "Fixed a crash when analyzing certain custom positions.\n",
+      "sig": "8853e1ab3fd71168d902ad0316397d2af7e4dcec7b303c2de89b9cacc044449a8b0348a309c9ff6e1a51504e7143f0efbe960c1b6a8a9d3002bc8651366bb3df"
+    }
+  ]
+}

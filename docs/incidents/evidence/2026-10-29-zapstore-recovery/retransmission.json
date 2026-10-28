@@ -1,0 +1,24 @@
+{
+  "checked_at": "2026-10-28T22:37:20.187Z",
+  "reason": "Maintainer confirms raised 500MB limit; original events not publicly served",
+  "unchanged_original_signed_event_ids": [
+    "032ed462cfb15128d6c06852ea9218959ee2277c40e81ad7629dd1b607eea433",
+    "8a8fdafccc32d51748ade1d062bc4c6b5b5963178155664d76a919a28cfc9ede"
+  ],
+  "no_signing_key_access": true,
+  "no_app_metadata_event_sent": true,
+  "replies": [
+    [
+      "OK",
+      "032ed462cfb15128d6c06852ea9218959ee2277c40e81ad7629dd1b607eea433",
+      true,
+      "pending: the listing will be saved once its checks pass"
+    ],
+    [
+      "OK",
+      "8a8fdafccc32d51748ade1d062bc4c6b5b5963178155664d76a919a28cfc9ede",
+      true,
+      "pending: the listing will be saved once its checks pass"
+    ]
+  ]
+}
