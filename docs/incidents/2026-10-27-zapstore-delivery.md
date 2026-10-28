@@ -236,3 +236,50 @@ the previous 512,000-byte image budget to below the source's 500,000-byte limit.
 Preview counterpart inspected at current main: it publishes GitHub prereleases
 and explicitly excludes Zapstore qualification. This service-admission guidance
 has no Preview port. Shared helpers, build, CI and cleanup tooling are unchanged.
+
+## October 29 JST: operator raises limit; original 2.5.1 events become public
+
+At October 28 17:55 UTC (October 29 02:55 JST), the operator
+[confirmed that the service now allows up to 500 MB](https://github.com/zapstore/relay/issues/11#issuecomment-6476547913)
+and closed the upstream issue. The public v2 branch still showed the earlier
+300,000,000-byte constant at our subsequent check. Operator policy and actual
+admission therefore take precedence over treating that stale branch as the
+production configuration. The isolated source reproduction did not prove the
+production server's previous error or deployed revision.
+
+A read-only check at October 28 22:36 UTC still served 2.4.0. After confirming
+the qualified GitHub APK's unchanged size/hash and absence of the original
+2.5.1 events, we retransmitted only the exact previously signed asset and
+release events. No signer was accessed, no new event body/signature was created,
+and no app-metadata event was sent. Both responses initially said pending.
+By 22:38:15 UTC (October 29 07:38:15 JST), a live subscription received both
+original events from the public relay:
+
+- Asset: `032ed462cfb15128d6c06852ea9218959ee2277c40e81ad7629dd1b607eea433`.
+- Release: `8a8fdafccc32d51748ade1d062bc4c6b5b5963178155664d76a919a28cfc9ede`.
+
+BIP340 signatures and event IDs verified, and the served events matched the
+original signed submission exactly. The app event remained
+`a1c9f9261d8e92d36df3a9d1abbb5e6ce34b0ce87259fb274697b0b317d33370`.
+The website showed 2.5.1; all eight current screenshots loaded and passed fresh
+GET/decode/source-hash checks. Android store-client rendering was not tested.
+
+A fresh full download of the asset's actual advertised GitHub URL returned
+455,440,608 bytes with SHA-256
+`59f730e806b6ead163714c46bf93f163309f8e6fb50295fe943112367be25f80`.
+Those exact signed bytes were previously qualified with the established Android
+certificate and v2/v3 signature verification. The download was streamed through
+a hash without saving an APK. The subscription exited after observing both
+original events; no build, model, APK or emulator output needed cleanup. Source,
+tags, artifacts, signing identity and current screenshots were preserved.
+
+**ZAPSTORE PUBLISHED** is now supported by signed relay readback, the exact public
+download and the rendered listing. This changes only the Zapstore status; it
+does not establish a new F-Droid catalog outcome.
+
+[Recovery verification](evidence/2026-10-29-zapstore-recovery/verification.json),
+[relay replies](evidence/2026-10-29-zapstore-recovery/retransmission.json),
+[served original events](evidence/2026-10-29-zapstore-recovery/watched-readback.json)
+and [rendered proof](evidence/2026-10-29-zapstore-recovery/published-listing.png)
+are retained. Preview remains outside this Stable-only store workflow; no
+companion port or merge applies, and shared tooling is unchanged.

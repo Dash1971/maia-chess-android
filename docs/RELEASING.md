@@ -319,15 +319,20 @@ size with the current receiver's admission limits, independently of local zsp
 preflight and successful GitHub download checks. Record dated source/operator
 evidence and distinguish public source behavior from confirmed deployed policy.
 
-As investigated on October 29, 2026 JST, relay v2 commit
-`0f1ae2eabb9ed4b94bb2f42ed26799c7c0d42180` has a hardcoded
-**300,000,000-byte** APK-reader limit and the same direct-upload limit. Stable
-2.5.1 is **455,440,608 bytes**. An isolated reproduction using that source's
-unmodified download function and the real GitHub URL fails at 300,000,001 bytes
-with `apk exceeds the size limit`. The reader retries that permanent error, so
-an accepted/pending response can conceal an admission failure. The deployed
-revision and actual server error still require operator confirmation. See
-[the precise diagnostics](https://github.com/zapstore/relay/issues/11#issuecomment-6473829144).
+The operator [raised the service limit to 500 MB on October 28, 2026 UTC](https://github.com/zapstore/relay/issues/11#issuecomment-6476547913).
+Stable 2.5.1 is **455,440,608 bytes** and was subsequently admitted after one
+retransmission of its exact original signed asset and release events. The
+unchanged events became publicly served, and the rendered listing showed 2.5.1.
+This is dated operator/admission evidence, not a permanent guarantee.
+
+Earlier public v2 commit `0f1ae2eabb9ed4b94bb2f42ed26799c7c0d42180`
+has a 300,000,000-byte reader/upload limit. Its unmodified download function
+reproduced a size rejection for our actual GitHub APK. That isolated result
+identified a receiver-side compatibility risk but did not establish the running
+server's revision or logs. Do not use a stale source constant to contradict
+newer confirmed operator policy and actual admission. See the
+[diagnostics](https://github.com/zapstore/relay/issues/11#issuecomment-6473829144)
+and [verified recovery record](incidents/2026-10-27-zapstore-delivery.md).
 
 If the qualified APK exceeds a known admission limit, treat Zapstore delivery as
 unresolved before sending new events. Obtain a supported server-side resolution;
