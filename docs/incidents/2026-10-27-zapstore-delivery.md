@@ -195,3 +195,44 @@ qualified APK download/hash/signer and this current screenshot set together
 before recording store publication. No further screenshot replacement is needed
 merely because APK indexing finishes. Preserve the newest verified app metadata;
 do not republish the earlier failed CDN image references.
+
+## October 29 JST: reproduce the APK-reader admission limit
+
+The earlier investigation established a correct public URL, exact signed hash,
+certificate and event references, but missed the receiver's explicit size guard.
+A successful complete GitHub download does not establish that the receiving
+relay will accept an APK of that size. The earlier general backlog explanation
+was insufficient; no queue-stage visibility or timing measurement supported it.
+
+Pinned public relay source `0f1ae2eabb9ed4b94bb2f42ed26799c7c0d42180`
+defines `maxAPK = 300_000_000`. `keepAPK`, `tempAPK` and cached-APK checking
+apply that bound. Our 2.5.1 APK is 455,440,608 bytes. We copied the unmodified
+`keepAPK` function and constant into an isolated harness, fetched the actual
+public GitHub URL, and reproduced `apk exceeds the size limit` after exactly
+300,000,001 bytes. HTTP status was 200; the function removed its partial file.
+This is a source-level reproduction, not access to the production server.
+
+In that source, the download error propagates through `readAPKJob` to
+`runAPKReader`, which schedules another fetch rather than making the size
+failure an explicit permanent rejection. Direct Blossom upload separately
+caps APKs at 300,000,000 bytes. Switching delivery methods does not solve
+that source-level size restriction. Previously accepted 2.4.0's larger APK
+is not evidence that the newer admission path accepts it.
+
+[Upstream issue #11 now contains the reproduction and pinned source links](https://github.com/zapstore/relay/issues/11#issuecomment-6473829144),
+asking the operator to confirm the deployed revision, exact error for our hash,
+size support and pending-event retention. Production attribution remains
+unconfirmed. No new release event or APK was submitted in response. The latest
+read-only check at October 28 15:51 UTC (October 29 00:51 JST) still served 2.4.0.
+
+[Reproduction result](evidence/2026-10-29-zapstore-size-limit/reproduction.json),
+[isolated harness](evidence/2026-10-29-zapstore-size-limit/reproduce-size-limit.go)
+and [cleanup](evidence/2026-10-29-zapstore-size-limit/cleanup.json) are retained.
+The task-owned binary and partial download were removed immediately after
+verification; no signing key was accessed. Shared Go tools and caches remain.
+The canonical procedure now checks receiver limits before submission and fixes
+the previous 512,000-byte image budget to below the source's 500,000-byte limit.
+
+Preview counterpart inspected at current main: it publishes GitHub prereleases
+and explicitly excludes Zapstore qualification. This service-admission guidance
+has no Preview port. Shared helpers, build, CI and cleanup tooling are unchanged.

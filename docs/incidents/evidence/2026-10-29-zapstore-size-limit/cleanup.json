@@ -1,0 +1,18 @@
+{
+  "checked_at": "2026-10-28T15:54:57.846083+00:00",
+  "owner": "Mobile Maia 2.5.1 exact size-limit investigation",
+  "prebuild_free_kib": 41844556,
+  "expected_peak_growth_bytes": 536870912,
+  "reserve_bytes": 10737418240,
+  "removed_paths": [
+    "/Users/openclaw/.cache/codex-zapstore-251-size-audit/bulk/reproduce-size-limit",
+    "/Users/openclaw/.cache/codex-zapstore-251-size-audit/bulk"
+  ],
+  "partial_download": "keepAPK removed its 300000001-byte temporary file on error; harness removed empty download directory",
+  "free_bytes_before_cleanup": 42845048832,
+  "free_bytes_after_cleanup": 42855124992,
+  "retention": "compact source, reproduction JSON and cleanup evidence only",
+  "task_processes": "all commands exited; none left running",
+  "shared_tools_caches_signing_keys_preserved": true,
+  "signing_key_used": false
+}
