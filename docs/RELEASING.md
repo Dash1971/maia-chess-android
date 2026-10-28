@@ -319,7 +319,12 @@ size with the current receiver's admission limits, independently of local zsp
 preflight and successful GitHub download checks. Record dated source/operator
 evidence and distinguish public source behavior from confirmed deployed policy.
 
-The operator [raised the service limit to 500 MB on October 28, 2026 UTC](https://github.com/zapstore/relay/issues/11#issuecomment-6476547913).
+**Current announced APK limit: 500 MB.** The operator
+[confirmed this limit on October 28, 2026 UTC](https://github.com/zapstore/relay/issues/11#issuecomment-6476547913).
+Use **500,000,000 bytes (decimal 500 MB)** as our conservative publishing budget;
+the announcement did not specify a byte-level configuration, so confirm current
+service policy for a file near that boundary. GitHub-hosted APKs still pass the
+receiver's download/verification path; a public URL does not waive its limits.
 Stable 2.5.1 is **455,440,608 bytes** and was subsequently admitted after one
 retransmission of its exact original signed asset and release events. The
 unchanged events became publicly served, and the rendered listing showed 2.5.1.
@@ -493,6 +498,61 @@ skip a retry with exit 0. If investigating that failure, back up and invalidate
 only the confirmed false repository cache entry after checking actual upstream
 state; never delete unrelated caches or overwrite a release blindly. Record
 partial app-metadata publication separately from release/asset publication.
+
+#### Recover a pending submission
+
+Retain the original **complete signed public event JSON**, not only the event
+IDs or a publisher success summary, with compact release evidence outside bulk.
+Use a reviewed publisher capture/export path; do not assume the CLI summary
+contains the signed objects. Never include private keys in this evidence.
+
+1. Query the original asset/release IDs and current app event read-only. Record
+   the time and verify any returned event IDs/signatures. If the intended
+   release is already served, continue with publication verification below;
+   do not submit it again. Public absence does not establish that it remains
+   queued: a prior `pending` reply can outlive failure or expiry.
+2. Inspect the full relay reply and identify the unresolved check. Compare the
+   exact qualified APK's size, URL, hash, certificate and active C1 proof with
+   current service requirements. Preserve the working app metadata. If a
+   service change is needed, obtain the operator's correction before retrying;
+   repeated submissions do not repair a receiver rejection.
+3. After the correction, recheck that the intended release is still absent and
+   that the qualified GitHub APK and publisher identity are unchanged. Using
+   the original complete signed objects, retransmit the **asset first, then
+   the release**, once, to the established relay. The Nostr messages are:
+
+   ```text
+   ["EVENT", <original signed kind-3063 asset object>]
+   ["EVENT", <original signed kind-30063 release object>]
+   ```
+
+   Preserve their IDs, signatures, timestamps, tags and content exactly. Do not
+   send the older app event: it can replace repaired text or screenshot URLs.
+   This targeted retransmission needs no APK rebuild, signing-key access,
+   new signature, version bump or `--overwrite-release`. If the original signed
+   objects are unavailable, stop this exact-event recovery path and review the
+   publisher's supported recovery procedure; do not invent replacement events.
+4. Save both complete acknowledgements, including error or `pending:` text.
+   After acceptance, subscribe/query read-only for up to five minutes; record
+   the observation window. This is our bounded follow-up window, not a service
+   guarantee. If still absent, record the exact replies, owner and next check
+   time, and request the operator's processing/error status through the existing
+   issue when authorized. Do not loop over publication or report success.
+5. Once publicly served, verify the original signed asset/release objects,
+   their relationship to the intended app/version and the preserved current
+   app metadata. Complete **all publication checks below**: full GET of the
+   actual advertised APK URL, qualified hash/size/signer, rendered intended
+   version and every current screenshot. State whether Android or only the
+   website was tested. Update the existing release distribution record; keep
+   F-Droid's independently dated status separate. Clean task-owned bulk after
+   retaining compact evidence, without waiting for documentation to merge.
+
+For 2.5.1, retransmitting its original signed asset/release after the operator's
+500 MB correction succeeded with the **same event IDs**. It is a recovery of the
+same submission, not permission to create a duplicate release or blindly rerun
+the full publisher with an old media configuration.
+
+#### Required publication evidence
 
 Before recording `ZAPSTORE PUBLISHED`, retain all of the following:
 
