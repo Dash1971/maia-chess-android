@@ -180,4 +180,4 @@ jobs:
         with:
           name: unsigned-android-release-${{ github.sha }}
           path: build/app/outputs/flutter-apk/app-release.apk
-          retention-days: 90
+          retention-days: 30
