@@ -18,6 +18,20 @@ play with Stockfish's best move, or run a complete game review without a daily
 quota. Mobile Maia is an independent community project released under
 AGPL-3.0-only.
 
+## Why the 79M model?
+
+We love Maia and want to offer the most faithful Maia experience we can on
+Android. That is why the app bundles the 79-million-parameter (79M) model.
+
+The University of Toronto team's [Chessformer research (Table 1)](https://arxiv.org/html/2605.19091v1#S4.T1)
+reports the highest human-move prediction accuracy for **Maia-3 79M: 57.1%**,
+compared with **56.6% for 23M** and **55.4% for 5M**. These tests used move
+history and measured how often each model predicted the move a person actually
+played.
+
+The lead is small, especially over 23M. For an app built by Maia fans, we are
+happy to accept a larger download for that extra accuracy.
+
 ## Community
 
 Join the [Mobile Maia community on Flotilla](https://app.flotilla.social/join?r=mobilemaia.spaces.flotilla.social&c=slusagresp6) to ask questions,
@@ -48,6 +62,7 @@ or offline PWA.
 
 ## Contents
 
+- [Why the 79M model?](#why-the-79m-model)
 - [Community](#community)
 - [Download and install](#download-and-install)
 - [Mobile Maia 2.5](#mobile-maia-25)
