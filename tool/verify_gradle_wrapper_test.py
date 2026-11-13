@@ -1,7 +1,7 @@
 import unittest
 from pathlib import Path
 
-from verify_gradle_wrapper import SHA256, URL, verify
+from verify_gradle_wrapper import SHA256, URL, VERSION, verify
 
 
 class GradleWrapperTest(unittest.TestCase):
@@ -15,9 +15,9 @@ class GradleWrapperTest(unittest.TestCase):
         verify(self.valid().replace('https:', 'https\\:'))
 
     def test_rejects_known_vulnerable_and_unreviewed_distributions(self):
-        for version in ['9.3.1', '9.8.0', '8.14.5', '9.8.1-rc-1', '10.0.0']:
+        for version in ['9.3.1', '9.8.0', '8.14.5', '9.8.1', '9.9.0', '9.9.1-rc-1', '10.0.0']:
             with self.subTest(version=version), self.assertRaises(ValueError):
-                verify(self.valid().replace('9.8.1', version))
+                verify(self.valid().replace(VERSION, version))
 
     def test_rejects_untrusted_or_changed_download(self):
         for url in [URL.replace('https:', 'http:'), URL.replace('services.gradle.org', 'example.org'), URL + '?other=1', URL.replace('-all.zip', '-bin.zip')]:
