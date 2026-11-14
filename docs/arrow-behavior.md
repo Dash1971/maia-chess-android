@@ -50,7 +50,7 @@ preferences; Mobile uses its circle/text and classified-square tint. The shared
 contract is source meaning, agreement order, geometry alignment and badges above
 arrows, not identical fonts, board colors or badge shapes.
 
-The [complete evidence and feature page](https://github.com/Dash1971/mute-chess/blob/586aaafc8ba29ccbe3796c355eced8950d796302/docs/arrow-behavior.md) contains all 96
+The [complete evidence and feature page](https://github.com/Dash1971/mute-chess/blob/7805874cbda9c7e7d589ac55d2308ae06396f36a/docs/arrow-behavior.md) contains all 96
 Flutter board captures beside the 288 actual Mute puzzle-review, standalone and
 post-game surface-path captures. It covers all 32 canonical source-presence/
 agreement partitions, both orientations, all six badges, crossings, opposite
@@ -67,6 +67,21 @@ The Mute fixture invokes its real three surface selection/annotation paths with
 stub controller inputs, actual Chessground, production CSS and native badge SVGs.
 
 ![Actual renderer comparison: Mobile Maia and three Mute surfaces](arrow-behavior/comparison.png)
+
+## Fixture QC
+
+The [complete QC report](https://github.com/Dash1971/mute-chess/blob/7805874cbda9c7e7d589ac55d2308ae06396f36a/docs/arrow-behavior/qc-review.md)
+replaces the initial misleading geometry examples. Every candidate is now legal
+for its shown position and side. Knights, bishops, rooks, kings and promotion
+pawns are explicitly present on their expected squares. Both chess.dart and
+chessops independently validate the full fixture set. Every badge has a legal
+previous position/move producing the displayed board; its label is deliberately
+injected to test all six colors/layers, not to claim that move deserves that label.
+
+All twelve cross-app contact sheets were visually inspected. Mute additionally
+checks visible piece roles and mirrored coordinates; all 96 case/orientation
+sets are pixel-identical across its three surface paths. This correction changes
+only fixture inputs, validation and documentation, not app arrow behavior.
 
 ## Reproduce the Flutter checks and captures
 
@@ -98,7 +113,7 @@ flutter test test/arrow_behavior_test.dart --reporter expanded
 Flutter normally renders unspecified test fonts as Ahem rectangles. The temporary
 patch only supplies `fontFamily: 'Roboto'` to the existing badge TextStyle; no
 geometry, colors, source selection or paint order changes. It is **not applied in
-the PR** and must never be included in an app release. The final 96 assertions were
+the PR** and must never be included in an app release. The final 97 tests were
 also run against the original, unmodified production painter. Async image decoding
 is allowed to settle before snapshots so pieces are actually visible.
 

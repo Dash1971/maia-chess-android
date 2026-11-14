@@ -8,8 +8,9 @@
       "sf": [],
       "maia": null,
       "second": null,
-      "badgeSquare": "d5",
-      "selection": true
+      "expectedPieces": {
+        "d4": "white rook"
+      }
     },
     {
       "id": "agreement-01",
@@ -17,8 +18,9 @@
       "sf": [],
       "maia": null,
       "second": "d4d5",
-      "badgeSquare": "d5",
-      "selection": true
+      "expectedPieces": {
+        "d4": "white rook"
+      }
     },
     {
       "id": "agreement-02",
@@ -26,8 +28,9 @@
       "sf": [],
       "maia": "d4d5",
       "second": null,
-      "badgeSquare": "d5",
-      "selection": true
+      "expectedPieces": {
+        "d4": "white rook"
+      }
     },
     {
       "id": "agreement-03",
@@ -35,8 +38,9 @@
       "sf": [],
       "maia": "d4d5",
       "second": "d4d5",
-      "badgeSquare": "d5",
-      "selection": true
+      "expectedPieces": {
+        "d4": "white rook"
+      }
     },
     {
       "id": "agreement-04",
@@ -44,8 +48,9 @@
       "sf": [],
       "maia": "d4d5",
       "second": "d4d6",
-      "badgeSquare": "d5",
-      "selection": true
+      "expectedPieces": {
+        "d4": "white rook"
+      }
     },
     {
       "id": "agreement-05",
@@ -55,8 +60,9 @@
       ],
       "maia": null,
       "second": null,
-      "badgeSquare": "d5",
-      "selection": true
+      "expectedPieces": {
+        "d4": "white rook"
+      }
     },
     {
       "id": "agreement-06",
@@ -66,8 +72,9 @@
       ],
       "maia": null,
       "second": "d4d5",
-      "badgeSquare": "d5",
-      "selection": true
+      "expectedPieces": {
+        "d4": "white rook"
+      }
     },
     {
       "id": "agreement-07",
@@ -77,8 +84,9 @@
       ],
       "maia": null,
       "second": "d4d6",
-      "badgeSquare": "d5",
-      "selection": true
+      "expectedPieces": {
+        "d4": "white rook"
+      }
     },
     {
       "id": "agreement-08",
@@ -88,8 +96,9 @@
       ],
       "maia": "d4d5",
       "second": null,
-      "badgeSquare": "d5",
-      "selection": true
+      "expectedPieces": {
+        "d4": "white rook"
+      }
     },
     {
       "id": "agreement-09",
@@ -99,8 +108,9 @@
       ],
       "maia": "d4d6",
       "second": null,
-      "badgeSquare": "d5",
-      "selection": true
+      "expectedPieces": {
+        "d4": "white rook"
+      }
     },
     {
       "id": "agreement-10",
@@ -110,8 +120,9 @@
       ],
       "maia": "d4d5",
       "second": "d4d5",
-      "badgeSquare": "d5",
-      "selection": true
+      "expectedPieces": {
+        "d4": "white rook"
+      }
     },
     {
       "id": "agreement-11",
@@ -121,8 +132,9 @@
       ],
       "maia": "d4d5",
       "second": "d4d6",
-      "badgeSquare": "d5",
-      "selection": true
+      "expectedPieces": {
+        "d4": "white rook"
+      }
     },
     {
       "id": "agreement-12",
@@ -132,8 +144,9 @@
       ],
       "maia": "d4d6",
       "second": "d4d5",
-      "badgeSquare": "d5",
-      "selection": true
+      "expectedPieces": {
+        "d4": "white rook"
+      }
     },
     {
       "id": "agreement-13",
@@ -143,8 +156,9 @@
       ],
       "maia": "d4d6",
       "second": "d4d6",
-      "badgeSquare": "d5",
-      "selection": true
+      "expectedPieces": {
+        "d4": "white rook"
+      }
     },
     {
       "id": "agreement-14",
@@ -154,8 +168,9 @@
       ],
       "maia": "d4d6",
       "second": "d4d7",
-      "badgeSquare": "d5",
-      "selection": true
+      "expectedPieces": {
+        "d4": "white rook"
+      }
     },
     {
       "id": "agreement-15",
@@ -166,8 +181,9 @@
       ],
       "maia": null,
       "second": null,
-      "badgeSquare": "d5",
-      "selection": true
+      "expectedPieces": {
+        "d4": "white rook"
+      }
     },
     {
       "id": "agreement-16",
@@ -178,8 +194,9 @@
       ],
       "maia": null,
       "second": "d4d5",
-      "badgeSquare": "d5",
-      "selection": true
+      "expectedPieces": {
+        "d4": "white rook"
+      }
     },
     {
       "id": "agreement-17",
@@ -190,8 +207,9 @@
       ],
       "maia": null,
       "second": "d4d6",
-      "badgeSquare": "d5",
-      "selection": true
+      "expectedPieces": {
+        "d4": "white rook"
+      }
     },
     {
       "id": "agreement-18",
@@ -202,8 +220,9 @@
       ],
       "maia": null,
       "second": "d4d7",
-      "badgeSquare": "d5",
-      "selection": true
+      "expectedPieces": {
+        "d4": "white rook"
+      }
     },
     {
       "id": "agreement-19",
@@ -214,8 +233,9 @@
       ],
       "maia": "d4d5",
       "second": null,
-      "badgeSquare": "d5",
-      "selection": true
+      "expectedPieces": {
+        "d4": "white rook"
+      }
     },
     {
       "id": "agreement-20",
@@ -226,8 +246,9 @@
       ],
       "maia": "d4d6",
       "second": null,
-      "badgeSquare": "d5",
-      "selection": true
+      "expectedPieces": {
+        "d4": "white rook"
+      }
     },
     {
       "id": "agreement-21",
@@ -238,8 +259,9 @@
       ],
       "maia": "d4d7",
       "second": null,
-      "badgeSquare": "d5",
-      "selection": true
+      "expectedPieces": {
+        "d4": "white rook"
+      }
     },
     {
       "id": "agreement-22",
@@ -250,8 +272,9 @@
       ],
       "maia": "d4d5",
       "second": "d4d5",
-      "badgeSquare": "d5",
-      "selection": true
+      "expectedPieces": {
+        "d4": "white rook"
+      }
     },
     {
       "id": "agreement-23",
@@ -262,8 +285,9 @@
       ],
       "maia": "d4d5",
       "second": "d4d6",
-      "badgeSquare": "d5",
-      "selection": true
+      "expectedPieces": {
+        "d4": "white rook"
+      }
     },
     {
       "id": "agreement-24",
@@ -274,8 +298,9 @@
       ],
       "maia": "d4d5",
       "second": "d4d7",
-      "badgeSquare": "d5",
-      "selection": true
+      "expectedPieces": {
+        "d4": "white rook"
+      }
     },
     {
       "id": "agreement-25",
@@ -286,8 +311,9 @@
       ],
       "maia": "d4d6",
       "second": "d4d5",
-      "badgeSquare": "d5",
-      "selection": true
+      "expectedPieces": {
+        "d4": "white rook"
+      }
     },
     {
       "id": "agreement-26",
@@ -298,8 +324,9 @@
       ],
       "maia": "d4d6",
       "second": "d4d6",
-      "badgeSquare": "d5",
-      "selection": true
+      "expectedPieces": {
+        "d4": "white rook"
+      }
     },
     {
       "id": "agreement-27",
@@ -310,8 +337,9 @@
       ],
       "maia": "d4d6",
       "second": "d4d7",
-      "badgeSquare": "d5",
-      "selection": true
+      "expectedPieces": {
+        "d4": "white rook"
+      }
     },
     {
       "id": "agreement-28",
@@ -322,8 +350,9 @@
       ],
       "maia": "d4d7",
       "second": "d4d5",
-      "badgeSquare": "d5",
-      "selection": true
+      "expectedPieces": {
+        "d4": "white rook"
+      }
     },
     {
       "id": "agreement-29",
@@ -334,8 +363,9 @@
       ],
       "maia": "d4d7",
       "second": "d4d6",
-      "badgeSquare": "d5",
-      "selection": true
+      "expectedPieces": {
+        "d4": "white rook"
+      }
     },
     {
       "id": "agreement-30",
@@ -346,8 +376,9 @@
       ],
       "maia": "d4d7",
       "second": "d4d7",
-      "badgeSquare": "d5",
-      "selection": true
+      "expectedPieces": {
+        "d4": "white rook"
+      }
     },
     {
       "id": "agreement-31",
@@ -358,8 +389,9 @@
       ],
       "maia": "d4d7",
       "second": "d4d8",
-      "badgeSquare": "d5",
-      "selection": true
+      "expectedPieces": {
+        "d4": "white rook"
+      }
     },
     {
       "id": "reported-J2VCe",
@@ -370,177 +402,221 @@
       ],
       "maia": "h1h7",
       "second": "h1h6",
-      "badgeSquare": "h6",
-      "selection": true
+      "expectedPieces": {
+        "h1": "black queen",
+        "c8": "black rook"
+      }
     },
     {
       "id": "badge-brilliant",
-      "fen": "2r3k1/6p1/4pPQ1/pp1p4/3P4/P7/KR6/7q b - - 0 29",
+      "fen": "k6b/8/8/8/3P4/8/8/K7 b - - 0 1",
       "sf": [
-        "h1h6",
-        "c8c7"
+        "h8d4",
+        "h8f6"
       ],
-      "maia": "h1h7",
-      "second": "h1h6",
-      "badgeSquare": "h7",
-      "selection": true,
-      "badge": "brilliant"
+      "maia": "h8e5",
+      "second": "h8d4",
+      "badgeSquare": "d4",
+      "badge": "brilliant",
+      "previousFen": "k6b/8/8/8/8/3P4/8/K7 w - - 0 1",
+      "lastMove": "d3d4",
+      "lastMoveSan": "d4",
+      "expectedPieces": {
+        "h8": "black bishop",
+        "d4": "white pawn"
+      }
     },
     {
       "id": "badge-good",
-      "fen": "2r3k1/6p1/4pPQ1/pp1p4/3P4/P7/KR6/7q b - - 0 29",
+      "fen": "k6b/8/8/8/3P4/8/8/K7 b - - 0 1",
       "sf": [
-        "h1h6",
-        "c8c7"
+        "h8d4",
+        "h8f6"
       ],
-      "maia": "h1h7",
-      "second": "h1h6",
-      "badgeSquare": "h7",
-      "selection": true,
-      "badge": "good"
+      "maia": "h8e5",
+      "second": "h8d4",
+      "badgeSquare": "d4",
+      "badge": "good",
+      "previousFen": "k6b/8/8/8/8/3P4/8/K7 w - - 0 1",
+      "lastMove": "d3d4",
+      "lastMoveSan": "d4",
+      "expectedPieces": {
+        "h8": "black bishop",
+        "d4": "white pawn"
+      }
     },
     {
       "id": "badge-interesting",
-      "fen": "2r3k1/6p1/4pPQ1/pp1p4/3P4/P7/KR6/7q b - - 0 29",
+      "fen": "k6b/8/8/8/3P4/8/8/K7 b - - 0 1",
       "sf": [
-        "h1h6",
-        "c8c7"
+        "h8d4",
+        "h8f6"
       ],
-      "maia": "h1h7",
-      "second": "h1h6",
-      "badgeSquare": "h7",
-      "selection": true,
-      "badge": "interesting"
+      "maia": "h8e5",
+      "second": "h8d4",
+      "badgeSquare": "d4",
+      "badge": "interesting",
+      "previousFen": "k6b/8/8/8/8/3P4/8/K7 w - - 0 1",
+      "lastMove": "d3d4",
+      "lastMoveSan": "d4",
+      "expectedPieces": {
+        "h8": "black bishop",
+        "d4": "white pawn"
+      }
     },
     {
       "id": "badge-dubious",
-      "fen": "2r3k1/6p1/4pPQ1/pp1p4/3P4/P7/KR6/7q b - - 0 29",
+      "fen": "k6b/8/8/8/3P4/8/8/K7 b - - 0 1",
       "sf": [
-        "h1h6",
-        "c8c7"
+        "h8d4",
+        "h8f6"
       ],
-      "maia": "h1h7",
-      "second": "h1h6",
-      "badgeSquare": "h7",
-      "selection": true,
-      "badge": "dubious"
+      "maia": "h8e5",
+      "second": "h8d4",
+      "badgeSquare": "d4",
+      "badge": "dubious",
+      "previousFen": "k6b/8/8/8/8/3P4/8/K7 w - - 0 1",
+      "lastMove": "d3d4",
+      "lastMoveSan": "d4",
+      "expectedPieces": {
+        "h8": "black bishop",
+        "d4": "white pawn"
+      }
     },
     {
       "id": "badge-mistake",
-      "fen": "2r3k1/6p1/4pPQ1/pp1p4/3P4/P7/KR6/7q b - - 0 29",
+      "fen": "k6b/8/8/8/3P4/8/8/K7 b - - 0 1",
       "sf": [
-        "h1h6",
-        "c8c7"
+        "h8d4",
+        "h8f6"
       ],
-      "maia": "h1h7",
-      "second": "h1h6",
-      "badgeSquare": "h7",
-      "selection": true,
-      "badge": "mistake"
+      "maia": "h8e5",
+      "second": "h8d4",
+      "badgeSquare": "d4",
+      "badge": "mistake",
+      "previousFen": "k6b/8/8/8/8/3P4/8/K7 w - - 0 1",
+      "lastMove": "d3d4",
+      "lastMoveSan": "d4",
+      "expectedPieces": {
+        "h8": "black bishop",
+        "d4": "white pawn"
+      }
     },
     {
       "id": "badge-blunder",
-      "fen": "2r3k1/6p1/4pPQ1/pp1p4/3P4/P7/KR6/7q b - - 0 29",
+      "fen": "k6b/8/8/8/3P4/8/8/K7 b - - 0 1",
       "sf": [
-        "h1h6",
-        "c8c7"
+        "h8d4",
+        "h8f6"
       ],
-      "maia": "h1h7",
-      "second": "h1h6",
-      "badgeSquare": "h7",
-      "selection": true,
-      "badge": "blunder"
+      "maia": "h8e5",
+      "second": "h8d4",
+      "badgeSquare": "d4",
+      "badge": "blunder",
+      "previousFen": "k6b/8/8/8/8/3P4/8/K7 w - - 0 1",
+      "lastMove": "d3d4",
+      "lastMoveSan": "d4",
+      "expectedPieces": {
+        "h8": "black bishop",
+        "d4": "white pawn"
+      }
     },
     {
       "id": "diagonal",
-      "fen": "2r3k1/6p1/4pPQ1/pp1p4/3P4/P7/KR6/7q b - - 0 29",
+      "fen": "4k3/8/8/8/8/8/8/B3K2B w - - 0 1",
       "sf": [
         "a1h8",
         "h1a8"
       ],
       "maia": "a1g7",
       "second": "h1b7",
-      "badgeSquare": "h8",
-      "selection": false,
-      "badge": "interesting"
+      "expectedPieces": {
+        "a1": "white bishop",
+        "h1": "white bishop"
+      }
     },
     {
       "id": "knight",
-      "fen": "2r3k1/6p1/4pPQ1/pp1p4/3P4/P7/KR6/7q b - - 0 29",
+      "fen": "4k3/8/8/8/8/8/8/1N2K1N1 w - - 0 1",
       "sf": [
         "g1f3",
         "b1c3"
       ],
       "maia": "g1f3",
       "second": "b1c3",
-      "badgeSquare": "f3",
-      "selection": false,
-      "badge": "interesting"
+      "expectedPieces": {
+        "b1": "white knight",
+        "g1": "white knight"
+      }
     },
     {
       "id": "opposite",
-      "fen": "2r3k1/6p1/4pPQ1/pp1p4/3P4/P7/KR6/7q b - - 0 29",
+      "fen": "7k/8/8/8/3R4/8/8/K7 w - - 0 1",
       "sf": [
-        "a1h1",
-        "h1a1"
+        "d4a4",
+        "d4h4"
       ],
-      "maia": "a1g1",
-      "second": "h1a1",
-      "badgeSquare": "h1",
-      "selection": false,
-      "badge": "interesting"
+      "maia": "d4b4",
+      "second": "d4h4",
+      "expectedPieces": {
+        "d4": "white rook"
+      }
     },
     {
       "id": "promotion",
-      "fen": "2r3k1/6p1/4pPQ1/pp1p4/3P4/P7/KR6/7q b - - 0 29",
+      "fen": "7k/4P3/8/8/8/8/8/K7 w - - 0 1",
       "sf": [
         "e7e8q",
         "e7e8n"
       ],
       "maia": "e7e8q",
       "second": "e7e8q",
-      "badgeSquare": "e8",
-      "selection": false,
-      "badge": "interesting"
+      "expectedPieces": {
+        "e7": "white pawn"
+      }
     },
     {
       "id": "castling",
-      "fen": "2r3k1/6p1/4pPQ1/pp1p4/3P4/P7/KR6/7q b - - 0 29",
+      "fen": "4k3/8/8/8/8/8/8/R3K2R w KQ - 0 1",
       "sf": [
         "e1g1",
         "e1c1"
       ],
       "maia": "e1g1",
       "second": "e1c1",
-      "badgeSquare": "g1",
-      "selection": false,
-      "badge": "interesting"
+      "expectedPieces": {
+        "a1": "white rook",
+        "e1": "white king",
+        "h1": "white rook"
+      }
     },
     {
       "id": "same-destination",
-      "fen": "2r3k1/6p1/4pPQ1/pp1p4/3P4/P7/KR6/7q b - - 0 29",
+      "fen": "7k/8/8/4R3/3R4/5B2/8/K7 w - - 0 1",
       "sf": [
         "d4e4",
         "e5e4"
       ],
       "maia": "d4e4",
       "second": "f3e4",
-      "badgeSquare": "e4",
-      "selection": false,
-      "badge": "interesting"
+      "expectedPieces": {
+        "d4": "white rook",
+        "e5": "white rook",
+        "f3": "white bishop"
+      }
     },
     {
       "id": "short-long",
-      "fen": "2r3k1/6p1/4pPQ1/pp1p4/3P4/P7/KR6/7q b - - 0 29",
+      "fen": "7k/8/8/8/8/8/8/RK6 w - - 0 1",
       "sf": [
         "a1a2",
         "a1a8"
       ],
       "maia": "a1a2",
       "second": "a1a8",
-      "badgeSquare": "a2",
-      "selection": false,
-      "badge": "interesting"
+      "expectedPieces": {
+        "a1": "white rook"
+      }
     },
     {
       "id": "sf-taper",
@@ -549,28 +625,36 @@
         "h1h6",
         "c8c7"
       ],
-      "maia": "g6e4",
+      "maia": "h1h5",
       "second": null,
-      "badgeSquare": "h6",
-      "selection": true,
       "sfCp": [
         0,
         1000
-      ]
+      ],
+      "expectedPieces": {
+        "h1": "black queen",
+        "c8": "black rook"
+      }
     },
     {
       "id": "small-board",
-      "fen": "2r3k1/6p1/4pPQ1/pp1p4/3P4/P7/KR6/7q b - - 0 29",
+      "fen": "k6b/8/8/8/3P4/8/8/K7 b - - 0 1",
       "sf": [
-        "h1h6",
-        "c8c7"
+        "h8d4",
+        "h8f6"
       ],
-      "maia": "h1h7",
-      "second": "h1h6",
-      "badgeSquare": "h6",
-      "selection": true,
+      "maia": "h8e5",
+      "second": "h8d4",
+      "badgeSquare": "d4",
       "size": 256,
-      "badge": "brilliant"
+      "badge": "brilliant",
+      "previousFen": "k6b/8/8/8/8/3P4/8/K7 w - - 0 1",
+      "lastMove": "d3d4",
+      "lastMoveSan": "d4",
+      "expectedPieces": {
+        "h8": "black bishop",
+        "d4": "white pawn"
+      }
     }
   ]
 }

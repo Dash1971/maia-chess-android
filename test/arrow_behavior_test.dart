@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:ui' as ui;
 
+import 'package:chess/chess.dart' as chess;
 import 'package:chessground/chessground.dart' as cg;
 import 'package:dartchess/dartchess.dart' as dc;
 import 'package:flutter/material.dart';
@@ -39,6 +40,65 @@ void main() {
       ).writeAsStringSync(const JsonEncoder.withIndent('  ').convert(results));
     }
   });
+  test(
+    'all fixture roots, named pieces and selected badge moves are legal',
+    () {
+      for (final c in fixtures['cases'] as List) {
+        final fen = c['fen'] as String;
+        final game = chess.Chess.fromFEN(fen);
+        final roots = <String>{
+          ...List<String>.from(c['sf'] as List),
+          if (c['maia'] != null) c['maia'] as String,
+          if (c['second'] != null) c['second'] as String,
+        };
+        for (final uci in roots) {
+          final replay = chess.Chess.fromFEN(fen);
+          expect(
+            replay.move({
+              'from': uci.substring(0, 2),
+              'to': uci.substring(2, 4),
+              if (uci.length > 4) 'promotion': uci[4],
+            }),
+            isTrue,
+            reason: '${c['id']}: $uci',
+          );
+        }
+        const roles = {
+          'p': 'pawn',
+          'n': 'knight',
+          'b': 'bishop',
+          'r': 'rook',
+          'q': 'queen',
+          'k': 'king',
+        };
+        for (final entry in (c['expectedPieces'] as Map).entries) {
+          final piece = game.get(entry.key as String);
+          expect(piece, isNotNull, reason: '${c['id']}: ${entry.key}');
+          expect(
+            '${piece!.color.name.toLowerCase()} ${roles[piece.type.name]}',
+            entry.value,
+          );
+        }
+        if (c['badge'] != null) {
+          final last = c['lastMove'] as String;
+          final replay = chess.Chess.fromFEN(c['previousFen'] as String);
+          expect(
+            replay.move({
+              'from': last.substring(0, 2),
+              'to': last.substring(2, 4),
+            }),
+            isTrue,
+          );
+          expect(
+            replay.fen.split(' ').take(4).join(' '),
+            fen.split(' ').take(4).join(' '),
+          );
+          expect(last.substring(2, 4), c['badgeSquare']);
+          expect(game.get(c['badgeSquare'] as String)!.color, isNot(game.turn));
+        }
+      }
+    },
+  );
   for (final c in fixtures['cases'] as List) {
     for (final orientation in dc.Side.values) {
       testWidgets(
@@ -131,6 +191,9 @@ void main() {
                   ? dc.Side.white
                   : dc.Side.black,
               validMoves: const {},
+              lastMove: c['lastMove'] == null
+                  ? null
+                  : dc.NormalMove.fromUci(c['lastMove'] as String),
             ),
           );
           await tester.pumpWidget(
