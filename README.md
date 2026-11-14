@@ -32,6 +32,9 @@ played.
 The lead is small, especially over 23M. For an app built by Maia fans, we are
 happy to accept a larger download for that extra accuracy.
 
+See [arrow behavior and classification badges](docs/arrow-behavior.md) for engine
+agreement colors, overlap rules and the Mute Chess screenshot comparisons.
+
 ## Community
 
 Join the [Mobile Maia community on Flotilla](https://app.flotilla.social/join?r=mobilemaia.spaces.flotilla.social&c=slusagresp6) to ask questions,
