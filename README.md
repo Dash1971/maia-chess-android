@@ -37,10 +37,9 @@ agreement colors, overlap rules and the Mute Chess screenshot comparisons.
 
 ## Community
 
-Join the [Mobile Maia community on Flotilla](https://app.flotilla.social/join?r=mobilemaia.spaces.flotilla.social&c=slusagresp6) to ask questions,
-share games, discuss settings, and help test Preview. We’re starting with a
-small pilot, currently limited to 10 members. You’ll need a Flotilla/Nostr
-account to join.
+Join the [Mobile Maia forum on Mute Chess](https://mutechess.org/forum/mobile-maia) to ask
+questions, share games, discuss settings, and help test Preview. Discussions
+are publicly readable; posting uses a Nostr identity on Mute Chess.
 
 Please keep using the relevant GitHub issue tracker for reproducible bugs
 and feature requests.
