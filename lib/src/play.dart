@@ -4589,10 +4589,13 @@ class _GamePageState extends State<GamePage>
           : null,
     );
     return PopScope<void>(
-      canPop: !showingSettings,
-      onPopInvokedWithResult: (didPop, _) {
-        if (!didPop && showingSettings) {
+      canPop: !showingSettings && !_started,
+      onPopInvokedWithResult: (didPop, _) async {
+        if (didPop) return;
+        if (showingSettings) {
           setState(() => _settingsOpen = false);
+        } else if (_started) {
+          await _requestHome();
         }
       },
       child: page,
