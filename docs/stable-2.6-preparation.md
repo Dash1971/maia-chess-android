@@ -81,6 +81,14 @@ The [Preview companion #261](https://github.com/Dash1971/maia-chess-android-prev
 release approval remains pending that testing and its own exact-source release
 qualification. This task performs no Android build, Actions run or LFS download.
 
-## Host verification of the review follow-up
+## Initial review follow-up host verification
 
 Stable: 1,507 host tests passed, one skipped; the additional Dev board-policy suite passed 41 tests. Flutter analyze reports no issues. Localization/terminology, source gates, metadata consistency and unchanged workflow structure checks pass. Native policy regressions are updated but not compiled: the current Mac host has no JDK. These checks do not qualify an Android release.
+
+## Duplicate/progress follow-up
+
+Collection import now skips identical PGNs already saved or repeated in the file, keeps different annotations/metadata, and reports both counts. Progress feedback covers the operation. Startup cleanup removes only abandoned import staging and preserves live imports and normal checkpoints. The complete Recent games read/decode operation runs in a worker. See the [10,000-game host measurements](verification/pgn-collection-import-2026-11-22.md). Fastlane and matching Zapstore text now say Chessnut Pro is not fully tested. Preview has no store listing to port; both app sources, regressions, README/PGN guide and mandatory shared helpers stay aligned through Preview #261.
+
+## Final collection hardening host checks
+
+The updated full host suite passed **1,526 tests, one skipped**, in each repository. New regressions cover exact-content duplicates, metadata/annotation differences, readable backups, all-duplicate retry without writes, abandoned/live staging, progress transitions and ten-language compact/large-text feedback. The 10,000-game near-5-MiB fixture and repeat import pass in both repositories. Final localized checks also run under the official Preview flavor. The [measurement report](verification/pgn-collection-import-2026-11-22.md) records fixture scope, timings and pending device checks. No Android builds, Actions or LFS downloads.

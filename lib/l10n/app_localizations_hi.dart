@@ -1691,4 +1691,24 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get settingsDiagnostics => 'निदान';
+
+  @override
+  String get pgnImportProgress => 'बाज़ियाँ आयात हो रही हैं…';
+
+  @override
+  String pgnCollectionImportSummary(int imported, int duplicates) {
+    String _temp0 = intl.Intl.pluralLogic(
+      imported,
+      locale: localeName,
+      other: '$imported बाज़ियाँ आयात हुईं',
+      one: '$imported बाज़ी आयात हुई',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      duplicates,
+      locale: localeName,
+      other: '$duplicates डुप्लिकेट छोड़े गए',
+      one: '$duplicates डुप्लिकेट छोड़ा गया',
+    );
+    return '$_temp0 · $_temp1';
+  }
 }

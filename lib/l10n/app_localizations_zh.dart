@@ -1555,4 +1555,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settingsDiagnostics => '诊断';
+
+  @override
+  String get pgnImportProgress => '正在导入棋谱…';
+
+  @override
+  String pgnCollectionImportSummary(int imported, int duplicates) {
+    return '已导入 $imported 局 · 跳过 $duplicates 个重复项';
+  }
 }

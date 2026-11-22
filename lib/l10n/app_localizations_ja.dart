@@ -1576,4 +1576,12 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get settingsDiagnostics => '診断';
+
+  @override
+  String get pgnImportProgress => '棋譜をインポート中…';
+
+  @override
+  String pgnCollectionImportSummary(int imported, int duplicates) {
+    return '$imported件の棋譜をインポート · 重複$duplicates件をスキップ';
+  }
 }

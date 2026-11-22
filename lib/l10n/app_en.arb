@@ -2175,5 +2175,21 @@
   "settingsDiagnostics": "Diagnostics",
   "@settingsDiagnostics": {
     "description": "Adaptive layout: settings category for existing reset and diagnostic actions"
+  },
+  "pgnImportProgress": "Importing games…",
+  "pgnCollectionImportSummary": "{imported, plural, one{{imported} game imported} other{{imported} games imported}} · {duplicates, plural, one{{duplicates} duplicate skipped} other{{duplicates} duplicates skipped}}",
+  "@pgnImportProgress": {
+    "description": "PGN collection import progress dialog; validation, duplicate checking and atomic writes. App-specific, with no direct pinned Lichess equivalent."
+  },
+  "@pgnCollectionImportSummary": {
+    "description": "Collection import completion: new records imported and identical PGNs skipped; games with different annotations or metadata remain separate. App-specific with no direct pinned Lichess equivalent.",
+    "placeholders": {
+      "imported": {
+        "type": "int"
+      },
+      "duplicates": {
+        "type": "int"
+      }
+    }
   }
 }

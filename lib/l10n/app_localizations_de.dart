@@ -1703,4 +1703,24 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settingsDiagnostics => 'Diagnose';
+
+  @override
+  String get pgnImportProgress => 'Partien werden importiert…';
+
+  @override
+  String pgnCollectionImportSummary(int imported, int duplicates) {
+    String _temp0 = intl.Intl.pluralLogic(
+      imported,
+      locale: localeName,
+      other: '$imported Partien importiert',
+      one: '$imported Partie importiert',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      duplicates,
+      locale: localeName,
+      other: '$duplicates Duplikate übersprungen',
+      one: '$duplicates Duplikat übersprungen',
+    );
+    return '$_temp0 · $_temp1';
+  }
 }

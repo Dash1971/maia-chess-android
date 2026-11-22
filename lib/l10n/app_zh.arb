@@ -468,5 +468,7 @@
   "recentDateColumn": "日期",
   "recentGameColumn": "对局",
   "recentResultColumn": "结果",
-  "settingsDiagnostics": "诊断"
+  "settingsDiagnostics": "诊断",
+  "pgnImportProgress": "正在导入棋谱…",
+  "pgnCollectionImportSummary": "已导入 {imported} 局 · 跳过 {duplicates} 个重复项"
 }

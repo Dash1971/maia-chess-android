@@ -100,10 +100,11 @@ void main() {
       'a',
       'b',
       'c',
-    ], (_) async => game);
+    ], (id) async => game.replaceFirst('Large', 'Large $id'));
     expect(utf8.encode(exported).length, greaterThan(2 * 1024 * 1024));
     expect(
-      await store.importCollection(await PgnCollection.parse(exported)),
+      (await store.importCollection(await PgnCollection.parse(exported)))
+          .imported,
       3,
     );
     final recent = await SessionRepository(dir).recent();
@@ -117,14 +118,14 @@ void main() {
   test('import retains current checkpoints, dates, names and every game; open/delete work after restart', () async {
     await store.save({
       'type': 'game',
-      'pgn': incomplete,
+      'pgn': '[Event "Current"]\n\n$incomplete',
       'recentState': 'active',
     });
     final before = await files();
     final collection = await PgnCollection.parse(
       '$annotated\n$incomplete\n$setup',
     );
-    expect(await store.importCollection(collection), 3);
+    expect((await store.importCollection(collection)).imported, 3);
     final after = await files();
     for (final entry in before.entries) {
       expect(after[entry.key], entry.value);
@@ -149,7 +150,7 @@ void main() {
   test('failed publication exposes no partial import and leaves the active game untouched', () async {
     await store.save({
       'type': 'game',
-      'pgn': incomplete,
+      'pgn': '[Event "Current"]\n\n$incomplete',
       'recentState': 'active',
     });
     await File('${dir.path}/games').writeAsString('obstruction');
@@ -341,7 +342,7 @@ void main() {
       await tester.runAsync(() async {
         await store.save({
           'type': 'game',
-          'pgn': incomplete,
+          'pgn': '[Event "Current"]\n\n$incomplete',
           'recentState': 'active',
         });
       });

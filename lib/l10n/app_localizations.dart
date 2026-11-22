@@ -2931,6 +2931,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Diagnostics'**
   String get settingsDiagnostics;
+
+  /// PGN collection import progress dialog; validation, duplicate checking and atomic writes. App-specific, with no direct pinned Lichess equivalent.
+  ///
+  /// In en, this message translates to:
+  /// **'Importing games…'**
+  String get pgnImportProgress;
+
+  /// Collection import completion: new records imported and identical PGNs skipped; games with different annotations or metadata remain separate. App-specific with no direct pinned Lichess equivalent.
+  ///
+  /// In en, this message translates to:
+  /// **'{imported, plural, one{{imported} game imported} other{{imported} games imported}} · {duplicates, plural, one{{duplicates} duplicate skipped} other{{duplicates} duplicates skipped}}'**
+  String pgnCollectionImportSummary(int imported, int duplicates);
 }
 
 class _AppLocalizationsDelegate

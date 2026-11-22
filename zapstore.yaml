@@ -34,7 +34,7 @@ description: |
 
   **Electronic-board play**
 
-  Chessnut Air, Go and Pro connect over Bluetooth for untimed games; lights guide setup and Maia's moves. You can also continue from an analysis position on Chessnut.
+  Chessnut Air, Go and Pro connect over Bluetooth for untimed games; lights guide setup and Maia's moves. Air and Go are fully tested; Pro is not fully tested. You can also continue from an analysis position on Chessnut.
 
   Experimental Square Off Grand Kingdom support allows untimed games from the standard position. Maia promotions require physical piece replacement and confirmation. Interrupted motor movement and takebacks use phone continuation. DGT Pegasus is not supported because initialization licensing is unresolved.
 

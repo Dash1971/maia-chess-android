@@ -472,3 +472,7 @@ all ten languages. Translations remain provisional pending native-speaker review
 The dedicated Pegasus lock message was removed from every catalog with the
 adapter. Generic board recovery wording remains available for Chessnut and
 Grand Kingdom. No new chess terminology or upstream translation is introduced.
+
+## PGN import progress and duplicate counts — 22 November 2026
+
+The two messages `pgnImportProgress` and `pgnCollectionImportSummary` describe Mobile Maia’s collection transaction and exact-content duplicate policy. The pinned Lichess baseline has no direct equivalent for this combined workflow. All ten catalogs use context-specific native wording, existing PGN/game terminology and explicit counts. The progress label is also its accessibility label. These provisional translations require native review; no shared chess term is changed.

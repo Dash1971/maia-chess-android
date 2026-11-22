@@ -468,5 +468,7 @@
   "recentDateColumn": "날짜",
   "recentGameColumn": "대국",
   "recentResultColumn": "결과",
-  "settingsDiagnostics": "진단"
+  "settingsDiagnostics": "진단",
+  "pgnImportProgress": "기보를 가져오는 중…",
+  "pgnCollectionImportSummary": "기보 {imported}개 가져옴 · 중복 {duplicates}개 건너뜀"
 }

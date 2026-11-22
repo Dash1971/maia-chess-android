@@ -1,4 +1,4 @@
-# Selected Recent Games → one PGN
+# PGN import and export
 
 Stable 2.6 draft: this behavior is promoted from Preview. The recorded tests,
 renders and APK qualification below describe Preview, not a newly qualified
@@ -10,6 +10,30 @@ published in [Preview 2.6.0-beta.3](https://github.com/Dash1971/maia-chess-andro
 Long-press a game, or choose Select games from the Recent Games menu. Select one
 or more games, or use Select all. **Export games** opens the existing **Save PGN
 file** and **Share PGN** choices. Each produces a single multi-game `.pgn` file.
+
+## Import or transfer games
+
+In the Analysis Board menu, use **Open PGN file** to choose a `.pgn` document,
+or **Load PGN** to paste its text. Android **Open with** and sharing a PGN
+attachment to Mobile Maia use the same importer. To transfer a collection to
+another installation, export selected games from Recent games, move/share the
+file yourself, and open it in the receiving installation.
+
+- A single-game document opens in Analysis Board, as before.
+- A collection adds new games to Recent games. The current game and recovery
+  settings remain intact; imported unfinished games open paused.
+- Identical saved PGNs and repeats within the incoming file are skipped. Only
+  line endings and outer whitespace are ignored. Different metadata,
+  comments, clocks or variations produce separate records.
+- A progress bar accompanies the operation. Completion reports new games and
+  duplicates skipped; an entirely duplicate collection adds zero records.
+- The complete collection must validate and save successfully. An invalid game,
+  oversized file or storage failure does not expose a partial import.
+
+Both import and export allow **5 MiB / 5,242,880 UTF-8 bytes**. The app labels
+this as **5 MB**. The count that fits depends on game length and annotations.
+PGN transfers games and annotations, not app settings or live clock/motor
+checkpoints. Everything stays offline, with no automatic upload.
 
 ## Ordering and content
 
@@ -38,12 +62,12 @@ unfinished `*` games and supported custom starting positions use the same path.
   operation; no selected game is silently omitted.
 - Assembly reads/validates one game at a time, with parsing in a background
   isolate. Only the combined bounded PGN is retained by the export builder.
-  Recent Games' existing list-loading behavior is unchanged.
+  Recent games retains its file format and sorting; reading/decoding now runs in a background worker.
 - Save/share exports allow **5 MiB (5,242,880 UTF-8 bytes)**, including inter-game
   separators. This is a byte limit, not a game-count limit. The UI calls it
   **5 MB**. Imports, including Open with/shared attachments, and the individual
-  game parser now use the same **5 MiB** limit. Importing a collection adds every
-  game to Recent games, so exports can transfer games between installations.
+  game parser now use the same **5 MiB** limit. Importing a collection adds each new
+  game to Recent games and skips identical PGNs, so exports can transfer games between installations.
   Importing a single game keeps the existing open-in-analysis behavior.
 - A selected game over the individual 5 MiB parser limit fails with its own
   localized message, distinct from the combined 5 MiB collection error. Save and
@@ -102,14 +126,14 @@ validated collection parser. It recognizes game boundaries outside comments,
 headers and variations, validates every game off the UI thread, and rejects
 invalid later games instead of silently importing only the first one.
 
-All records are staged privately, then published by one directory rename into
+New records are staged privately, then published by one directory rename into
 Recent games. A failed write does not expose a partial collection. Existing
 records, the active checkpoint and crash-recovery preferences stay unchanged.
 Imported records retain PGN names, dates, results, comments, clocks, variations
 and starting positions. Equal-date imported records retain their source order.
-The completion message reports the number of games added to Recent games.
+A progress bar covers validation (indeterminate), duplicate scanning and staged writes (determinate). The completion message reports imported and skipped counts. Work runs off the UI isolate. Back cannot dismiss an in-progress import; success or failure closes the progress dialog.
 
-Import adds records; it does not merge or deduplicate them with earlier imports.
+Import skips identical PGN content already present in saved games or earlier in the same collection. Only line endings and surrounding whitespace are normalized for comparison. Headers, comments, variations and clocks remain part of the comparison: differently annotated or identified copies are kept. Re-importing the same collection adds no extra copies. Completion reports imported and skipped counts. Single-game opening is unchanged.
 PGN transfers games and annotations, not app settings or live clock/motor session
 checkpoints. This is not a complete app-data backup. Imported unfinished games
 open paused; no physical board connection or movement is restored from PGN.
@@ -124,3 +148,11 @@ Host regression coverage includes a collection over 2 MiB, the 5 MiB boundary,
 UTF-8, fake boundaries inside comments/variations, invalid later games, atomic
 failure, active-game preservation and imported-record open/delete after restart.
 Android document-provider checks remain pending the beta.11 build phase.
+
+## Interrupted imports and large collections
+
+On first repository access after startup, abandoned `.import-<timestamp>-<random>.pending` directories are removed. Cleanup ignores links, unrelated directories and normal save checkpoints. The coordinating UI isolate tracks live imports, protecting them from cleanup by another repository instance there. Committed imports remain untouched.
+
+Import file work and Recent games reading/decoding run in background workers. Recent games still uses the existing files and sort order; this change adds no database, persistent index or cache. The collection scale regression exercises 10,000 distinct games near 5 MiB, a repeat import, progress updates, Recent games and event-loop responsiveness. Host measurements are recorded separately from required installed Android checks.
+
+See the [10,000-game host measurements and device-test limits](verification/pgn-collection-import-2026-11-22.md).

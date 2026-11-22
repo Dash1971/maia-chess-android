@@ -134,8 +134,11 @@ class ActiveSessionStore {
   static Future<String?> readPgnForExport(String id) async =>
       (await repository).readPgnForExport(id);
 
-  static Future<int> importCollection(PgnCollection collection) async =>
-      (await repository).importCollection(collection);
+  static Future<PgnImportResult> importCollection(
+    PgnCollection collection, {
+    void Function(PgnImportProgress)? onProgress,
+  }) async =>
+      (await repository).importCollection(collection, onProgress: onProgress);
 
   static Future<Map<String, dynamic>?> load() async {
     if (_usingRepository) {

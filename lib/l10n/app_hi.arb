@@ -468,5 +468,7 @@
   "recentDateColumn": "तारीख",
   "recentGameColumn": "बाज़ी",
   "recentResultColumn": "परिणाम",
-  "settingsDiagnostics": "निदान"
+  "settingsDiagnostics": "निदान",
+  "pgnImportProgress": "बाज़ियाँ आयात हो रही हैं…",
+  "pgnCollectionImportSummary": "{imported, plural, one{{imported} बाज़ी आयात हुई} other{{imported} बाज़ियाँ आयात हुईं}} · {duplicates, plural, one{{duplicates} डुप्लिकेट छोड़ा गया} other{{duplicates} डुप्लिकेट छोड़े गए}}"
 }

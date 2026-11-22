@@ -468,5 +468,7 @@
   "recentDateColumn": "日付",
   "recentGameColumn": "対局",
   "recentResultColumn": "結果",
-  "settingsDiagnostics": "診断"
+  "settingsDiagnostics": "診断",
+  "pgnImportProgress": "棋譜をインポート中…",
+  "pgnCollectionImportSummary": "{imported}件の棋譜をインポート · 重複{duplicates}件をスキップ"
 }

@@ -1699,4 +1699,24 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settingsDiagnostics => 'Diagnostic';
+
+  @override
+  String get pgnImportProgress => 'Importation des parties…';
+
+  @override
+  String pgnCollectionImportSummary(int imported, int duplicates) {
+    String _temp0 = intl.Intl.pluralLogic(
+      imported,
+      locale: localeName,
+      other: '$imported parties importées',
+      one: '$imported partie importée',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      duplicates,
+      locale: localeName,
+      other: '$duplicates doublons ignorés',
+      one: '$duplicates doublon ignoré',
+    );
+    return '$_temp0 · $_temp1';
+  }
 }

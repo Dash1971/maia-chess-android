@@ -1581,4 +1581,12 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get settingsDiagnostics => '진단';
+
+  @override
+  String get pgnImportProgress => '기보를 가져오는 중…';
+
+  @override
+  String pgnCollectionImportSummary(int imported, int duplicates) {
+    return '기보 $imported개 가져옴 · 중복 $duplicates개 건너뜀';
+  }
 }

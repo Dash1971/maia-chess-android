@@ -468,5 +468,7 @@
   "recentDateColumn": "Datum",
   "recentGameColumn": "Partie",
   "recentResultColumn": "Ergebnis",
-  "settingsDiagnostics": "Diagnose"
+  "settingsDiagnostics": "Diagnose",
+  "pgnImportProgress": "Partien werden importiert…",
+  "pgnCollectionImportSummary": "{imported, plural, one{{imported} Partie importiert} other{{imported} Partien importiert}} · {duplicates, plural, one{{duplicates} Duplikat übersprungen} other{{duplicates} Duplikate übersprungen}}"
 }

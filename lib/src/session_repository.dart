@@ -182,7 +182,11 @@ String _recentGameDate(BuildContext context, DateTime? date) => date == null
 /// App-private, transactional files. Each successful write retains the previous
 /// readable checkpoint. Archived games are separate files, not rewritten per move.
 class SessionRepository {
-  SessionRepository(this.directory);
+  SessionRepository(this.directory) : _inWorker = false;
+  SessionRepository._worker(this.directory) : _inWorker = true;
+  final bool _inWorker;
+  bool _cleanedImports = false;
+  static final _activeImports = <String>{};
   final Directory directory;
   Future<void> _tail = Future.value();
   String? _activeId;
@@ -225,6 +229,10 @@ class SessionRepository {
     final result = Completer<T>();
     _tail = _tail.then((_) async {
       try {
+        if (!_cleanedImports) {
+          await _cleanupAbandonedImports();
+          _cleanedImports = true;
+        }
         result.complete(await action());
       } catch (error, stack) {
         result.completeError(error, stack);
@@ -240,7 +248,9 @@ class SessionRepository {
       final source = file.path.endsWith('.pending')
           ? utf8.decode(await file.readAsBytes())
           : await file.readAsString();
-      final decoded = await Isolate.run(() => jsonDecode(source));
+      final decoded = _inWorker
+          ? jsonDecode(source)
+          : await Isolate.run(() => jsonDecode(source));
       if (decoded is Map &&
           decoded.containsKey('version') &&
           decoded['version'] != 1) {
@@ -289,7 +299,9 @@ class SessionRepository {
     await _readFile(File('${file.path}.pending'));
     await file.parent.create(recursive: true);
     final payload = envelope;
-    final encoded = await Isolate.run(() => jsonEncode(payload));
+    final encoded = _inWorker
+        ? jsonEncode(payload)
+        : await Isolate.run(() => jsonEncode(payload));
     final temporary = File('${file.path}.pending');
     await temporary.writeAsString(encoded, flush: true);
     if (primary != null) {
@@ -306,20 +318,133 @@ class SessionRepository {
       throw const FormatException('Invalid session identifier');
     }
     final batch = _importId.firstMatch(id)?.group(1);
-    return File('${directory.path}/games/${batch == null ? '' : '$batch/'}$id.json');
+    return File(
+      '${directory.path}/games/${batch == null ? '' : '$batch/'}$id.json',
+    );
   }
 
-  /// Publish the whole validated collection with one directory rename. A failed
-  /// or interrupted preparation cannot expose a partly imported collection.
-  /// The active game and automatic-restore preferences are never replaced.
-  Future<int> importCollection(PgnCollection collection) => _serial(() async {
+  /// Only abandoned import directories are disposable, never save checkpoints.
+  /// Repositories in the coordinating isolate share the active set, so another
+  /// instance there cannot clean a collection being prepared by the worker.
+  Future<void> _cleanupAbandonedImports() async {
+    if (!await directory.exists()) return;
+    await for (final entry in directory.list(followLinks: false)) {
+      if (entry is Directory &&
+          RegExp(r'^\.import-[0-9]+-[0-9]+\.pending$')
+              .hasMatch(entry.path.split('/').last) &&
+          !_activeImports.contains(entry.path)) {
+        await entry.delete(recursive: true);
+      }
+    }
+  }
+
+  static String? _storedPgn(Map<String, dynamic>? envelope) {
+    final data = envelope == null
+        ? null
+        : _recentGameData(envelope['data'], includeLive: true);
+    final session = data?['session'];
+    final pgn = data?['pgn'] ?? (session is Map ? session['pgn'] : null);
+    return pgn is String ? pgn : null;
+  }
+
+  /// Exact content only: line endings and surrounding whitespace are immaterial.
+  /// Never discard an annotated or differently identified version of a game.
+  static String _pgnFingerprint(String pgn) => crypto.sha256
+      .convert(
+        utf8.encode(pgn.replaceAll('\r\n', '\n').replaceAll('\r', '\n').trim()),
+      )
+      .toString();
+
+  /// Publish all new games with one directory rename. Validation, duplicate
+  /// checks and file writes run off the UI isolate, under this repository queue.
+  Future<PgnImportResult> importCollection(
+    PgnCollection collection, {
+    void Function(PgnImportProgress)? onProgress,
+  }) => _serial(() async {
     final now = DateTime.now().toUtc();
-    final batch = 'import-${now.microsecondsSinceEpoch}-${Random.secure().nextInt(1 << 30)}';
+    final batch =
+        'import-${now.microsecondsSinceEpoch}-${Random.secure().nextInt(1 << 30)}';
+    final root = directory.path;
+    final staging = '$root/.$batch.pending';
+    final port = ReceivePort();
+    final updates = port.listen((message) {
+      if (message is List<int>) {
+        onProgress?.call(PgnImportProgress(message[0], message[1]));
+      }
+    });
+    final sender = port.sendPort;
+    _activeImports.add(staging);
+    try {
+      final result = await _runImportWorker(
+        root,
+        collection,
+        batch,
+        now,
+        sender,
+      );
+      onProgress?.call(const PgnImportProgress(1, 1));
+      return result;
+    } finally {
+      port.close();
+      await updates.cancel();
+      _activeImports.remove(staging);
+    }
+  });
+
+  static Future<PgnImportResult> _runImportWorker(
+    String root,
+    PgnCollection collection,
+    String batch,
+    DateTime now,
+    SendPort sender,
+  ) => Isolate.run(
+    () =>
+        SessionRepository._worker(Directory(root))
+            ._importCollection(collection, batch, now, sender),
+  );
+
+  Future<PgnImportResult> _importCollection(
+    PgnCollection collection,
+    String batch,
+    DateTime now,
+    SendPort progress,
+  ) async {
     final staging = Directory('${directory.path}/.$batch.pending');
     final destination = Directory('${directory.path}/games/$batch');
+    final existing = [...await _archiveNames(), _active.path];
+    final total = existing.length + 2 * collection.games.length;
+    var completed = 0;
+    final timer = Stopwatch()..start();
+    void report({bool force = false}) {
+      if (force || timer.elapsedMilliseconds >= 40) {
+        progress.send(<int>[completed, total]);
+        timer.reset();
+      }
+    }
+
+    report(force: true);
+    final seen = <String>{};
+    for (final file in existing) {
+      final pgn = _storedPgn(await _read(File(file)));
+      if (pgn != null) seen.add(_pgnFingerprint(pgn));
+      completed++;
+      report();
+    }
+    final selected = <int>[];
+    for (var i = 0; i < collection.games.length; i++) {
+      if (seen.add(_pgnFingerprint(collection.games[i]))) selected.add(i);
+      completed++;
+      report();
+    }
+    final duplicates = collection.games.length - selected.length;
+    completed += duplicates;
+    if (selected.isEmpty) {
+      progress.send(<int>[total, total]);
+      return PgnImportResult(0, duplicates);
+    }
     try {
       await staging.create(recursive: true);
-      for (var i = 0; i < collection.games.length; i++) {
+      for (final i in selected) {
         final pgn = collection.games[i];
         final headers = collection.headers[i];
         final result = headers['Result'] ?? '*';
@@ -327,7 +452,9 @@ class SessionRepository {
         final whiteMaia = maiaName.firstMatch(headers['White'] ?? '');
         final blackMaia = maiaName.firstMatch(headers['Black'] ?? '');
         final maia = whiteMaia ?? blackMaia;
-        final maiaRating = maia == null ? null : _decodeMaiaRating(int.tryParse(maia[1]!));
+        final maiaRating = maia == null
+            ? null
+            : _decodeMaiaRating(int.tryParse(maia[1]!));
         final data = <String, Object?>{
           'schema': 1,
           'type': 'game',
@@ -337,27 +464,34 @@ class SessionRepository {
           'importedPgn': true,
           'importedWhite': ?headers['White'],
           'importedBlack': ?headers['Black'],
-          if (maiaRating != null && (whiteMaia == null || blackMaia == null)) ...{
+          if (maiaRating != null &&
+              (whiteMaia == null || blackMaia == null)) ...{
             'playerIsWhite': blackMaia != null,
             'elo': maiaRating,
           },
         };
-        // Reverse the ordinal so equal-date records keep the source order.
-        final id = '$batch-${(collection.games.length - i).toString().padLeft(8, '0')}';
-        await _write(File('${staging.path}/$id.json'), _withHistory({
-          'version': 1,
-          'id': id,
-          'updatedAt': now.toIso8601String(),
-          'data': data,
-        }));
+        final id =
+            '$batch-${(collection.games.length - i).toString().padLeft(8, '0')}';
+        await _write(
+          File('${staging.path}/$id.json'),
+          _withHistory({
+            'version': 1,
+            'id': id,
+            'updatedAt': now.toIso8601String(),
+            'data': data,
+          }),
+        );
+        completed++;
+        report();
       }
       await destination.parent.create(recursive: true);
       await staging.rename(destination.path);
-      return collection.games.length;
+      progress.send(<int>[total, total]);
+      return PgnImportResult(selected.length, duplicates);
     } finally {
       if (await staging.exists()) await staging.delete(recursive: true);
     }
-  });
+  }
 
   Future<bool> hasCheckpoint() =>
       _serial(() async => await _read(_active) != null);
@@ -462,7 +596,45 @@ class SessionRepository {
     await _deleteArchiveFiles(id);
   });
 
-  Future<List<RecentSession>> recent({bool restoreBlocked = false}) => _serial(() async {
+  Future<Set<String>> _archiveNames() async {
+    final names = <String>{};
+    final archive = Directory('${directory.path}/games');
+    if (await archive.exists()) {
+      await for (final entity in archive.list()) {
+        if (entity is Directory &&
+            RegExp(r'^import-[0-9]+-[0-9]+$')
+                .hasMatch(entity.path.split('/').last)) {
+          await for (final file in entity.list(followLinks: false)) {
+            if (file is File &&
+                (file.path.endsWith('.json') ||
+                    file.path.endsWith('.json.previous'))) {
+              names.add(file.path.replaceFirst(RegExp(r'\.previous$'), ''));
+            }
+          }
+        }
+        if (entity is File &&
+            (entity.path.endsWith('.json') ||
+                entity.path.endsWith('.json.previous'))) {
+          names.add(entity.path.replaceFirst(RegExp(r'\.previous$'), ''));
+        }
+      }
+    }
+    return names;
+  }
+
+  Future<List<RecentSession>> recent({bool restoreBlocked = false}) =>
+      _serial(() => _runRecentWorker(directory.path, restoreBlocked));
+
+  static Future<List<RecentSession>> _runRecentWorker(
+    String root,
+    bool restoreBlocked,
+  ) => Isolate.run(
+    () =>
+        SessionRepository._worker(Directory(root))
+            ._recent(restoreBlocked: restoreBlocked),
+  );
+
+  Future<List<RecentSession>> _recent({required bool restoreBlocked}) async {
     final entries = <String, RecentSession>{};
     void add(Map<String, dynamic>? envelope, {bool includeLive = false}) {
       if (envelope == null) return;
@@ -480,28 +652,8 @@ class SessionRepository {
       );
     }
 
-    final archive = Directory('${directory.path}/games');
-    if (await archive.exists()) {
-      final names = <String>{};
-      await for (final entity in archive.list()) {
-        if (entity is Directory &&
-            RegExp(r'^import-[0-9]+-[0-9]+$').hasMatch(entity.path.split('/').last)) {
-          await for (final file in entity.list(followLinks: false)) {
-            if (file is File &&
-                (file.path.endsWith('.json') || file.path.endsWith('.json.previous'))) {
-              names.add(file.path.replaceFirst(RegExp(r'\.previous$'), ''));
-            }
-          }
-        }
-        if (entity is File &&
-            (entity.path.endsWith('.json') ||
-                entity.path.endsWith('.json.previous'))) {
-          names.add(entity.path.replaceFirst(RegExp(r'\.previous$'), ''));
-        }
-      }
-      for (final name in names) {
-        add(await _read(File(name)));
-      }
+    for (final name in await _archiveNames()) {
+      add(await _read(File(name)));
     }
     add(await _read(_active), includeLive: restoreBlocked);
     return entries.values.toList()..sort((a, b) {
@@ -516,7 +668,7 @@ class SessionRepository {
       final time = aStart == null ? 0 : bStart!.compareTo(aStart);
       return time != 0 ? time : b.id.compareTo(a.id);
     });
-  });
+  }
 
   Future<Map<String, dynamic>?> open(String id) => _serial(() async {
     final archive = _archiveFile(id); // Validate the id before any writes.

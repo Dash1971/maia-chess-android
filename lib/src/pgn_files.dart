@@ -32,17 +32,57 @@ class PgnFiles {
     BuildContext context,
     String text,
   ) async {
-    final collection = await PgnCollection.parse(text);
-    if (collection.games.length == 1) {
-      return AnalysisSession.fromPgnAsync(collection.games.single);
-    }
     if (!context.mounted) return null;
-    final count = await ActiveSessionStore.importCollection(collection);
+    final progress = ValueNotifier<PgnImportProgress?>(null);
+    final navigator = Navigator.of(context, rootNavigator: true);
+    final route = DialogRoute<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialog) => PopScope(
+        canPop: false,
+        child: AlertDialog(
+          title: Text(l10n(dialog).pgnImportProgress),
+          content: ValueListenableBuilder<PgnImportProgress?>(
+            valueListenable: progress,
+            builder: (context, update, _) => LinearProgressIndicator(
+              key: const ValueKey('pgn-import-progress'),
+              value: update?.fraction,
+              semanticsLabel: l10n(context).pgnImportProgress,
+            ),
+          ),
+        ),
+      ),
+    );
+    unawaited(navigator.push(route));
+    PgnImportResult? result;
+    try {
+      final collection = await PgnCollection.parse(text);
+      if (collection.games.length == 1) {
+        return await AnalysisSession.fromPgnAsync(collection.games.single);
+      }
+      if (!context.mounted) return null;
+      result = await ActiveSessionStore.importCollection(
+        collection,
+        onProgress: (update) => progress.value = update,
+      );
+    } finally {
+      if (navigator.mounted && route.isActive) navigator.removeRoute(route);
+      progress.dispose();
+    }
     if (context.mounted) {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(
-          SnackBar(content: Text(l10n(context).pgnCollectionImported(count))),
+          SnackBar(
+            content: Text(
+              result.duplicates == 0
+                  ? l10n(context).pgnCollectionImported(result.imported)
+                  : l10n(context).pgnCollectionImportSummary(
+                      result.imported,
+                      result.duplicates,
+                    ),
+            ),
+          ),
         );
     }
     return null;
@@ -52,6 +92,19 @@ class PgnFiles {
     final text = await maiaEngineChannel.invokeMethod<String>('openPgnFile');
     return text == null || !context.mounted ? null : importText(context, text);
   }
+}
+
+class PgnImportResult {
+  const PgnImportResult(this.imported, this.duplicates);
+  final int imported;
+  final int duplicates;
+}
+
+class PgnImportProgress {
+  const PgnImportProgress(this.completed, this.total);
+  final int completed;
+  final int total;
+  double get fraction => total == 0 ? 0 : (completed / total).clamp(0, 1);
 }
 
 class PgnExportTooLarge implements Exception {

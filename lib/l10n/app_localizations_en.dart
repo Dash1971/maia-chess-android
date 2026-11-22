@@ -1675,4 +1675,24 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsDiagnostics => 'Diagnostics';
+
+  @override
+  String get pgnImportProgress => 'Importing games…';
+
+  @override
+  String pgnCollectionImportSummary(int imported, int duplicates) {
+    String _temp0 = intl.Intl.pluralLogic(
+      imported,
+      locale: localeName,
+      other: '$imported games imported',
+      one: '$imported game imported',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      duplicates,
+      locale: localeName,
+      other: '$duplicates duplicates skipped',
+      one: '$duplicates duplicate skipped',
+    );
+    return '$_temp0 · $_temp1';
+  }
 }

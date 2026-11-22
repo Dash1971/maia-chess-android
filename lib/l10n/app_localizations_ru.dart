@@ -1723,4 +1723,28 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get settingsDiagnostics => 'Диагностика';
+
+  @override
+  String get pgnImportProgress => 'Импорт партий…';
+
+  @override
+  String pgnCollectionImportSummary(int imported, int duplicates) {
+    String _temp0 = intl.Intl.pluralLogic(
+      imported,
+      locale: localeName,
+      other: 'Импортировано $imported партии',
+      many: 'Импортировано $imported партий',
+      few: 'Импортированы $imported партии',
+      one: 'Импортирована $imported партия',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      duplicates,
+      locale: localeName,
+      other: 'пропущено $duplicates дубликата',
+      many: 'пропущено $duplicates дубликатов',
+      few: 'пропущено $duplicates дубликата',
+      one: 'пропущен $duplicates дубликат',
+    );
+    return '$_temp0 · $_temp1';
+  }
 }
