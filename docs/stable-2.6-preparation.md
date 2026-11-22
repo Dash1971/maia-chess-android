@@ -4,7 +4,7 @@ Prepared 22 November 2026. This draft proposes **2.6.0 / version code 84**. It d
 
 ## Source and scope
 
-- Stable base: `eac2e512e9a10cebc26f3c2f72675fae598a4908`.
+- Original Stable base: `eac2e512e9a10cebc26f3c2f72675fae598a4908`. Updated against main at `af21c730f2b029b8068a1dc41c035ac9a4977207` after #81 merged on 22 November. The main merge changed no files in the promotion tree because its security changes were already included.
 - Current Preview source: `e162a61e995452b748e5f85d710c6f7dab2ab24a`, the beta.10 publication/documentation head. Preview's exact APK source is `89097ac739fb83f08b14cc9c119d27c538870257`; its release evidence is not qualification of this Stable draft.
 - Promote the current app, localization, Android transport/document handling, and regression changes: adaptive layouts; independent engine/move panes; first/last holds; Recent games and Back behavior; 5 MiB bulk PGN export / 2 MiB import; timing defaults; score visibility; interrupted-game/save recovery; same-open-Review analysis resume; Grand Kingdom assisted promotion and session-safe motor handling.
 - Enable Grand Kingdom in Dart and native Stable/unflavored policies. Keep unknown channels closed and DGT Pegasus Dev-only. Preserve explicit setup, session guards, promotion confirmation and phone fallback.
@@ -17,7 +17,7 @@ Preserve the unflavored `com.dash1971.maia_chess` package, Mobile Maia name, blu
 
 Keep Stable's release wrapper, source gate, dependency/audit job, canonical F-Droid reproduction/scans, combined qualification gate, legacy upgrade checks, explicit Zapstore Markdown, store publication procedure and store identities. Official Stable and Preview both use 79M. Stable Android qualification continues to require the full 79M numerical references.
 
-The four mandatory workspace/cleanup helpers remain byte-identical to Preview. The Gradle 9.9.2 pin/checksum and verifier match current Preview and include the scope of [Stable #81](https://github.com/Dash1971/maia-chess-android/pull/81), which remains a separate open PR. [#73](https://github.com/Dash1971/maia-chess-android/pull/73) is the older 9.9.1 pin. This promotion includes the later navigation behavior rather than independently applying the earlier, partial [#78](https://github.com/Dash1971/maia-chess-android/pull/78). No companion app promotion or publication is implied.
+The four mandatory workspace/cleanup helpers remain byte-identical to Preview. The Gradle 9.9.2 pin/checksum and verifier match current Preview and [Stable #81](https://github.com/Dash1971/maia-chess-android/pull/81), now merged into main. Those security files are no longer part of this promotion's diff against main. [#73](https://github.com/Dash1971/maia-chess-android/pull/73) is the older 9.9.1 pin. This promotion includes the later navigation behavior rather than independently applying the earlier, partial [#78](https://github.com/Dash1971/maia-chess-android/pull/78). No companion app promotion or publication is implied.
 
 ## Pre-build source review — 22 November 2026
 
@@ -34,12 +34,13 @@ capture reports as a current release blocker, or described the manual editor as
 Preview-only. Historical dated release records remain intact. No app code or
 shared tooling changed during this review.
 
-All four files in #81 match this draft byte for byte. Merge that focused security
-PR before merging this promotion, then verify the updated promotion diff. Its
-existing test and dependency jobs passed; Android was skipped. Neither PR has
-been merged as part of this review. Fresh Stable screenshots and exact-source
-runtime/release qualification remain pending; this source review does not replace
-them. No builds, Actions or LFS downloads were run.
+All four files in #81 match this draft byte for byte. That focused security PR
+has now merged before this promotion; the updated promotion diff excludes its
+files. Its existing test and dependency jobs passed; Android was skipped. This
+promotion remains a draft and has not merged. Fresh Stable screenshots and
+exact-source runtime/release qualification remain pending; this source review
+does not replace them. Both the #81 merge and promotion update use CI-skip commit
+messages. No builds, Actions or LFS downloads were run.
 
 ## Prepared metadata and screenshots
 
