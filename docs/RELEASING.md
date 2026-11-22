@@ -644,3 +644,9 @@ never moves the published tag, changes the published APK, or retroactively alter
 metadata inside that tag. Documentation-only follow-up commits do not require
 rebuilding the unchanged published release. Keep the release's exact source SHA
 clear, and never defer bulk cleanup until this documentation work merges.
+
+## Operator test environment
+
+Before expensive qualification, follow [Release test setup](RELEASE_TEST_SETUP.md)
+for complete dependencies, host/device/focus diagnostics and safe scheduling.
+It supplements this channel procedure and does not waive or replace its gates.
