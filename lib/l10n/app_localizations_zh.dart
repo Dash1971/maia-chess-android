@@ -25,7 +25,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get cancelPremoves => '取消预走棋';
 
   @override
-  String get chessnutExperimental => 'Chessnut（实验性）';
+  String get chessnutBoard => 'Chessnut';
 
   @override
   String get connectChessnut => '连接 Chessnut';
@@ -1016,7 +1016,7 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get electronicBoardExperimental => '电子棋盘（实验性功能）';
+  String get electronicBoard => '电子棋盘';
 
   @override
   String get connectBoard => '连接棋盘';
@@ -1044,9 +1044,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get boardReady => '棋盘已就绪';
-
-  @override
-  String get boardExperimentalNotice => '新棋盘支持仍处于实验阶段。请核对两个屏幕上的走法，并报告连接问题。';
 
   @override
   String get boardGameRestriction => '电子棋盘对局不限时。';
@@ -1089,7 +1086,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get boardReconnect => '重新连接棋盘';
 
   @override
-  String get boardMotorRecovery => '请在手机上继续。此实验性连接功能无法安全恢复棋盘的电机状态。';
+  String get boardMotorRecovery => '请在手机上继续。无法安全恢复棋盘的电机状态。';
 
   @override
   String get boardConfirmPosition => '确认实体棋盘局面';

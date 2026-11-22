@@ -131,3 +131,10 @@ APKs, test virtual environments and emulator test data after retaining compact
 verification evidence and checking the published download. Stop task-owned
 emulators. Preserve shared SDK/Gradle caches, signing keys and other people's
 work. Record cleanup in the release PR, including anything intentionally retained.
+
+## Supported electronic boards
+
+Grand Kingdom is supported across Stable, Preview and Dev. Do not reintroduce
+a Preview/Dev-only support gate or experimental board labels. Hardware testing
+coverage is recorded separately. Preserve standard setup, assisted promotion,
+current-session motor guards and phone recovery. Pegasus remains withdrawn.

@@ -25,7 +25,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get cancelPremoves => 'Cancelar pré-movimentos';
 
   @override
-  String get chessnutExperimental => 'Chessnut (experimental)';
+  String get chessnutBoard => 'Chessnut';
 
   @override
   String get connectChessnut => 'Conectar Chessnut';
@@ -1121,8 +1121,7 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String get electronicBoardExperimental =>
-      'Tabuleiro eletrônico (experimental)';
+  String get electronicBoard => 'Tabuleiro eletrônico';
 
   @override
   String get connectBoard => 'Conectar tabuleiro';
@@ -1152,10 +1151,6 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get boardReady => 'Tabuleiro pronto';
-
-  @override
-  String get boardExperimentalNotice =>
-      'O suporte a novos tabuleiros é experimental. Confira os lances nas duas telas e relate problemas de conexão.';
 
   @override
   String get boardGameRestriction =>
@@ -1206,7 +1201,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get boardMotorRecovery =>
-      'Continue no celular. Este adaptador experimental não consegue restaurar com segurança o estado do motor do tabuleiro.';
+      'Continue no telefone. Não é possível restaurar com segurança o estado do motor do tabuleiro.';
 
   @override
   String get boardConfirmPosition => 'Confirmar a posição do tabuleiro físico';

@@ -144,11 +144,11 @@ abstract class AppLocalizations {
   /// **'Cancel premoves'**
   String get cancelPremoves;
 
-  /// Home / game setup: Chessnut (experimental)
+  /// Home / game setup: Chessnut supported-board label
   ///
   /// In en, this message translates to:
-  /// **'Chessnut (experimental)'**
-  String get chessnutExperimental;
+  /// **'Chessnut'**
+  String get chessnutBoard;
 
   /// Home / game setup: Connect Chessnut
   ///
@@ -1930,71 +1930,65 @@ abstract class AppLocalizations {
   /// **'Draw ({result})'**
   String recentDrawResult(String result);
 
-  /// Electronic board Dev support: Experimental electronic-board settings section title; includes occupancy-only and motorized boards.
+  /// Supported electronic-board settings section title; Chessnut and Grand Kingdom.
   ///
   /// In en, this message translates to:
-  /// **'Electronic board (experimental)'**
-  String get electronicBoardExperimental;
+  /// **'Electronic board'**
+  String get electronicBoard;
 
-  /// Electronic board Dev support: Button that opens electronic-board scan and connection flow.
+  /// Electronic board support: Button that opens electronic-board scan and connection flow.
   ///
   /// In en, this message translates to:
   /// **'Connect board'**
   String get connectBoard;
 
-  /// Electronic board Dev support: Discovered-board picker title.
+  /// Electronic board support: Discovered-board picker title.
   ///
   /// In en, this message translates to:
   /// **'Choose a board'**
   String get chooseBoard;
 
-  /// Electronic board Dev support: Button to rescan and select a different board.
+  /// Electronic board support: Button to rescan and select a different board.
   ///
   /// In en, this message translates to:
   /// **'Choose another board'**
   String get chooseAnotherBoard;
 
-  /// Electronic board Dev support: Bluetooth board scan in progress.
+  /// Electronic board support: Bluetooth board scan in progress.
   ///
   /// In en, this message translates to:
   /// **'Searching for boards…'**
   String get boardSearching;
 
-  /// Electronic board Dev support: Bluetooth board connection in progress.
+  /// Electronic board support: Bluetooth board connection in progress.
   ///
   /// In en, this message translates to:
   /// **'Connecting to board…'**
   String get boardConnecting;
 
-  /// Electronic board Dev support: Board connection lost status.
+  /// Electronic board support: Board connection lost status.
   ///
   /// In en, this message translates to:
   /// **'Board disconnected'**
   String get boardDisconnected;
 
-  /// Electronic board Dev support: Connection failure recovery instruction; Bluetooth is a product/protocol name.
+  /// Electronic board support: Connection failure recovery instruction; Bluetooth is a product/protocol name.
   ///
   /// In en, this message translates to:
   /// **'Could not connect. Check Bluetooth and the board, then retry.'**
   String get boardConnectionError;
 
-  /// Electronic board Dev support: Physical standard initial-position setup instruction.
+  /// Electronic board support: Physical standard initial-position setup instruction.
   ///
   /// In en, this message translates to:
   /// **'Set up the standard starting position on your board.'**
   String get boardStartingPosition;
 
-  /// Electronic board Dev support: Physical board synchronization complete status.
+  /// Electronic board support: Physical board synchronization complete status.
   ///
   /// In en, this message translates to:
   /// **'Board ready'**
   String get boardReady;
-
-  /// Electronic board Dev support: Experimental support notice; compare the app screens and report connection issues.
-  ///
-  /// In en, this message translates to:
-  /// **'New board support is experimental. Please verify moves on both screens and report connection problems.'**
-  String get boardExperimentalNotice;
 
   /// Electronic board support: physical-board games have no clock.
   ///
@@ -2002,91 +1996,91 @@ abstract class AppLocalizations {
   /// **'Electronic-board games use unlimited time.'**
   String get boardGameRestriction;
 
-  /// Electronic board Dev support: User confirmation of physical standard initial-position setup.
+  /// Electronic board support: User confirmation of physical standard initial-position setup.
   ///
   /// In en, this message translates to:
   /// **'I have set up the starting position'**
   String get boardConfirmSetup;
 
-  /// Electronic board Dev support: Occupancy-only board limitation: it senses presence, not piece identity.
+  /// Electronic board support: Occupancy-only board limitation: it senses presence, not piece identity.
   ///
   /// In en, this message translates to:
   /// **'Check every piece before starting. This board cannot verify piece identity.'**
   String get boardConfirmSetupHelp;
 
-  /// Electronic board Dev support: Title of legal-move ambiguity picker.
+  /// Electronic board support: Title of legal-move ambiguity picker.
   ///
   /// In en, this message translates to:
   /// **'Confirm your board move'**
   String get boardChooseMove;
 
-  /// Electronic board Dev support: Occupancy-only ambiguity explanation; player chooses the move actually made.
+  /// Electronic board support: Occupancy-only ambiguity explanation; player chooses the move actually made.
   ///
   /// In en, this message translates to:
   /// **'The board cannot distinguish these moves. Choose the move you played.'**
   String get boardAmbiguousMove;
 
-  /// Electronic board Dev support: Board unavailable recovery: reconnect or continue with phone input.
+  /// Electronic board support: Board unavailable recovery: reconnect or continue with phone input.
   ///
   /// In en, this message translates to:
   /// **'This board is not ready. Reconnect, or continue on your phone.'**
   String get boardUnavailable;
 
-  /// Electronic board Dev support: Physical NEW GAME button second-press confirmation within 2.5 seconds; retain NEW GAME hardware marking.
+  /// Electronic board support: Physical NEW GAME button second-press confirmation within 2.5 seconds; retain NEW GAME hardware marking.
   ///
   /// In en, this message translates to:
   /// **'Press NEW GAME again within 2.5 seconds to confirm, or use the buttons below.'**
   String get boardNewGameConfirmInstruction;
 
-  /// Electronic board Dev support: Expired physical NEW GAME confirmation instruction; retain NEW GAME hardware marking.
+  /// Electronic board support: Expired physical NEW GAME confirmation instruction; retain NEW GAME hardware marking.
   ///
   /// In en, this message translates to:
   /// **'To confirm on the board, press NEW GAME twice within 2.5 seconds.'**
   String get boardNewGameConfirmationExpired;
 
-  /// Electronic board Dev support: Instruction to finish a physical move before proceeding.
+  /// Electronic board support: Instruction to finish a physical move before proceeding.
   ///
   /// In en, this message translates to:
   /// **'Complete the move on your board.'**
   String get boardPhysicalMove;
 
-  /// Electronic board Dev support: Instruction to restore physical board to the app position before proceeding.
+  /// Electronic board support: Instruction to restore physical board to the app position before proceeding.
   ///
   /// In en, this message translates to:
   /// **'Restore the position shown on screen before continuing.'**
   String get boardResetPhysical;
 
-  /// Electronic board Dev support: Empty supported Bluetooth board scan result and recovery instruction.
+  /// Electronic board support: Empty supported Bluetooth board scan result and recovery instruction.
   ///
   /// In en, this message translates to:
   /// **'No supported board found. Wake your board and try again.'**
   String get boardNoResults;
 
-  /// Electronic board Dev support: Disconnected status while waiting for player to select a board.
+  /// Electronic board support: Disconnected status while waiting for player to select a board.
   ///
   /// In en, this message translates to:
   /// **'Choose a board to connect.'**
   String get boardWaitingForSelection;
 
-  /// Electronic board Dev support: Button to reconnect selected physical board.
+  /// Electronic board support: Button to reconnect selected physical board.
   ///
   /// In en, this message translates to:
   /// **'Reconnect board'**
   String get boardReconnect;
 
-  /// Electronic board Dev support: Motorized-board safety recovery instruction; continue with phone input because firmware motor state cannot be restored.
+  /// Electronic board support: Motorized-board safety recovery instruction; continue with phone input because firmware motor state cannot be restored.
   ///
   /// In en, this message translates to:
-  /// **'Continue on your phone. This experimental adapter cannot safely restore the board’s motor state.'**
+  /// **'Continue on your phone. The board’s motor state cannot be safely restored.'**
   String get boardMotorRecovery;
 
-  /// Electronic board Dev support: Button to explicitly confirm physical-board setup matches the current logical position.
+  /// Electronic board support: Button to explicitly confirm physical-board setup matches the current logical position.
   ///
   /// In en, this message translates to:
   /// **'Confirm the physical position'**
   String get boardConfirmPosition;
 
-  /// Electronic board Dev support: Help for explicit physical-position confirmation, including piece identities.
+  /// Electronic board support: Help for explicit physical-position confirmation, including piece identities.
   ///
   /// In en, this message translates to:
   /// **'Check that every piece matches the position on screen.'**
@@ -2854,25 +2848,25 @@ abstract class AppLocalizations {
   /// **'Could not save Dev diagnostics.'**
   String get devDiagnosticsExportFailed;
 
-  /// Experimental Grand Kingdom assisted Maia promotion. The user, not a BLE write/OK, confirms stopped motors and physical piece replacement. Reuse existing localized piece names; no automatic replacement is implied.
+  /// Grand Kingdom assisted Maia promotion. The user, not a BLE write/OK, confirms stopped motors and physical piece replacement. Reuse existing localized piece names; no automatic replacement is implied.
   ///
   /// In en, this message translates to:
   /// **'Confirm Maia promotion'**
   String get boardPromotionTitle;
 
-  /// Experimental Grand Kingdom assisted Maia promotion. The user, not a BLE write/OK, confirms stopped motors and physical piece replacement. Reuse existing localized piece names; no automatic replacement is implied.
+  /// Grand Kingdom assisted Maia promotion. The user, not a BLE write/OK, confirms stopped motors and physical piece replacement. Reuse existing localized piece names; no automatic replacement is implied.
   ///
   /// In en, this message translates to:
   /// **'{square}: {piece}. Replace the pawn.'**
   String boardPromotionMove(String square, String piece);
 
-  /// Experimental Grand Kingdom assisted Maia promotion. The user, not a BLE write/OK, confirms stopped motors and physical piece replacement. Reuse existing localized piece names; no automatic replacement is implied.
+  /// Grand Kingdom assisted Maia promotion. The user, not a BLE write/OK, confirms stopped motors and physical piece replacement. Reuse existing localized piece names; no automatic replacement is implied.
   ///
   /// In en, this message translates to:
   /// **'Wait until the motors have stopped. Replace the pawn with the indicated piece and check the entire physical position against the screen. If the move is incomplete or uncertain, continue in the app instead.'**
   String get boardPromotionHelp;
 
-  /// Experimental Grand Kingdom assisted Maia promotion. The user, not a BLE write/OK, confirms stopped motors and physical piece replacement. Reuse existing localized piece names; no automatic replacement is implied.
+  /// Grand Kingdom assisted Maia promotion. The user, not a BLE write/OK, confirms stopped motors and physical piece replacement. Reuse existing localized piece names; no automatic replacement is implied.
   ///
   /// In en, this message translates to:
   /// **'The motors are stopped, I replaced the pawn, and every piece matches.'**

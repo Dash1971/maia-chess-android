@@ -16,8 +16,7 @@ extension _ElectronicBoardFlow on _GamePageState {
     });
   }
 
-  // The tested connection flow is shared by every channel. BoardChannelPolicy
-  // independently enforces the Preview/Dev board-family boundary.
+  // The tested connection flow and supported-board policy are shared by all channels.
   bool get _genericBoards => _chessnut is DiscoverableBoardTransport;
   bool get _legacyChessnutSelection =>
       _chessnutGameActive &&

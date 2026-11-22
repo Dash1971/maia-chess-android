@@ -25,7 +25,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get cancelPremoves => '미리두기 취소';
 
   @override
-  String get chessnutExperimental => 'Chessnut(실험 기능)';
+  String get chessnutBoard => 'Chessnut';
 
   @override
   String get connectChessnut => 'Chessnut 연결';
@@ -1027,7 +1027,7 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
-  String get electronicBoardExperimental => '전자 체스보드(실험 기능)';
+  String get electronicBoard => '전자 체스보드';
 
   @override
   String get connectBoard => '체스보드 연결';
@@ -1055,10 +1055,6 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get boardReady => '체스보드가 준비되었습니다';
-
-  @override
-  String get boardExperimentalNotice =>
-      '새 체스보드 지원은 실험 단계입니다. 두 화면에서 수를 확인하고 연결 문제를 알려 주세요.';
 
   @override
   String get boardGameRestriction => '전자 체스보드 대국에는 시간 제한이 없습니다.';
@@ -1104,7 +1100,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get boardMotorRecovery =>
-      '휴대전화에서 계속하세요. 이 실험용 연결 기능은 체스보드의 모터 상태를 안전하게 복원할 수 없습니다.';
+      '휴대전화에서 계속하세요. 체스보드의 모터 상태를 안전하게 복원할 수 없습니다.';
 
   @override
   String get boardConfirmPosition => '실제 체스보드 포지션 확인';

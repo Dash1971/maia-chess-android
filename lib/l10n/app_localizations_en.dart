@@ -25,7 +25,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get cancelPremoves => 'Cancel premoves';
 
   @override
-  String get chessnutExperimental => 'Chessnut (experimental)';
+  String get chessnutBoard => 'Chessnut';
 
   @override
   String get connectChessnut => 'Connect Chessnut';
@@ -1096,7 +1096,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get electronicBoardExperimental => 'Electronic board (experimental)';
+  String get electronicBoard => 'Electronic board';
 
   @override
   String get connectBoard => 'Connect board';
@@ -1126,10 +1126,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get boardReady => 'Board ready';
-
-  @override
-  String get boardExperimentalNotice =>
-      'New board support is experimental. Please verify moves on both screens and report connection problems.';
 
   @override
   String get boardGameRestriction =>
@@ -1180,7 +1176,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get boardMotorRecovery =>
-      'Continue on your phone. This experimental adapter cannot safely restore the board’s motor state.';
+      'Continue on your phone. The board’s motor state cannot be safely restored.';
 
   @override
   String get boardConfirmPosition => 'Confirm the physical position';

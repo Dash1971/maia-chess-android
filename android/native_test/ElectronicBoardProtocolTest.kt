@@ -16,7 +16,7 @@ fun main() {
         check(BoardChannelPolicy.discover(flavor, "Chessnut Go") == "chessnut")
         check(BoardChannelPolicy.discover(flavor, "Smart Chess") == "chessnut")
     }
-    for (flavor in listOf("", "stable", "preview")) {
+    for (flavor in listOf("", "stable", "preview", "dev")) {
         check(BoardChannelPolicy.supports(flavor, "chessnut"))
         check(BoardChannelPolicy.supports(flavor, "squareOff"))
         check(!BoardChannelPolicy.supports(flavor, "pegasus"))

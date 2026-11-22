@@ -2496,7 +2496,7 @@ class _GamePageState extends State<GamePage>
                 title: Text(
                   _chessnutDeviceName ??
                       (_genericBoards
-                          ? l10n(context).electronicBoardExperimental
+                          ? l10n(context).electronicBoard
                           : 'Chessnut'),
                 ),
                 subtitle: Text(_boardText(_chessnutMessage)),
@@ -4941,8 +4941,8 @@ class _GamePageState extends State<GamePage>
               value: _useChessnutGo,
               title: Text(
                 _genericBoards
-                    ? l10n(context).electronicBoardExperimental
-                    : l10n(context).chessnutExperimental,
+                    ? l10n(context).electronicBoard
+                    : l10n(context).chessnutBoard,
               ),
               onChanged: (value) => unawaited(_setUseChessnutGo(value)),
             ),
@@ -5021,11 +5021,6 @@ class _GamePageState extends State<GamePage>
                         );
                       }
                     }),
-                  ),
-                if (_boardKind != BoardKind.chessnut)
-                  Text(
-                    l10n(context).boardExperimentalNotice,
-                    style: Theme.of(context).textTheme.bodySmall,
                   ),
               ],
               Padding(

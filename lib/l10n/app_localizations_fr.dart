@@ -25,7 +25,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get cancelPremoves => 'Annuler les pré-coups';
 
   @override
-  String get chessnutExperimental => 'Chessnut (expérimental)';
+  String get chessnutBoard => 'Chessnut';
 
   @override
   String get connectChessnut => 'Connecter Chessnut';
@@ -1110,8 +1110,7 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get electronicBoardExperimental =>
-      'Échiquier électronique (expérimental)';
+  String get electronicBoard => 'Échiquier électronique';
 
   @override
   String get connectBoard => 'Connecter l’échiquier';
@@ -1141,10 +1140,6 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get boardReady => 'Échiquier prêt';
-
-  @override
-  String get boardExperimentalNotice =>
-      'La prise en charge de nouveaux échiquiers est expérimentale. Vérifiez les coups sur les deux écrans et signalez les problèmes de connexion.';
 
   @override
   String get boardGameRestriction =>
@@ -1195,7 +1190,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get boardMotorRecovery =>
-      'Continuez sur votre téléphone. Cet adaptateur expérimental ne peut pas rétablir en toute sécurité l’état du moteur de l’échiquier.';
+      'Continuez sur votre téléphone. L’état du moteur de l’échiquier ne peut pas être rétabli en toute sécurité.';
 
   @override
   String get boardConfirmPosition =>

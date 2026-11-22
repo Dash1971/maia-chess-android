@@ -1,6 +1,6 @@
 2.6.0
 
-- Experimental Grand Kingdom support with assisted Maia promotion.
+- Grand Kingdom support with assisted Maia promotion.
 - Larger landscape boards and independent analysis/move panes.
 - Clearer Recent games; Back preserves your browsing position.
 - Import/export PGN collections (5 MiB each).

@@ -20,7 +20,7 @@ untimed games, takebacks and position continuation. Press NEW GAME twice within
 for the pieces to match the starting position before play resumes. Cancel,
 backgrounding, disconnection and game changes disarm the confirmation.
 
-Grand Kingdom support is experimental and partially tested. Confirm standard
+Grand Kingdom is supported. Hardware coverage is recorded as partially tested. Confirm standard
 setup before play. Maia's motor move is sent once, without automatic retries.
 A generic OK is not physical-move confirmation. Assisted promotion requires
 stopped motors, replacement with the indicated piece and position confirmation.

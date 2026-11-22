@@ -1,6 +1,8 @@
-# Grand Kingdom: Stable 2.6 promotion
+# Grand Kingdom support and testing
 
-Current policy: Pegasus has been withdrawn from all channels; see the
+Current policy: Grand Kingdom is supported in Stable 2.6, Preview and Dev,
+with identical Dart/native support policy in both source repositories. Hardware
+coverage is recorded separately; it does not make support experimental. Pegasus has been withdrawn from all channels; see the
 [support decision](decisions/2026-11-22-electronic-board-support.md). Dated
 historical channel descriptions below do not override that decision.
 
@@ -47,8 +49,8 @@ The requester authorized experimental Preview publication while the capture
 reports were still unexplained. The 14 November hardware attribution above
 supersedes that problem status. Full automated Preview release gates still
 apply. Stable/Dev APKs are unchanged; DGT remains Dev-only. Preview 2.5 artifacts
-exclude Grand Kingdom. Current support remains experimental while the separate
-physical acceptance scenarios are completed.
+exclude Grand Kingdom. That historical designation is superseded by the supported-device decision
+above. Additional physical scenarios track coverage, not a channel restriction.
 
 ## Historical physical evidence — 28 October 2026
 
@@ -140,7 +142,7 @@ If a mismatch recurs on a level, calibrated board:
 | Board | Preview 2.6 | Dev | Stable / unflavored / unknown |
 | --- | --- | --- | --- |
 | Chessnut | Allowed | Allowed | Allowed |
-| Grand Kingdom | Experimental | Experimental | Supported in Stable 2.6; unknown channels blocked |
+| Grand Kingdom | Supported | Supported | Supported in Stable 2.6; unknown packaging channels blocked |
 | DGT Pegasus | Blocked | Prototype, locked firmware unsupported | Blocked |
 
 Dart event/candidate handling and native discovery, remembered-device connection,

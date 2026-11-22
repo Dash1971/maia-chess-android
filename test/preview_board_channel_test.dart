@@ -72,8 +72,8 @@ void main() {
         tester.view.devicePixelRatio = 1;
         addTearDown(tester.view.resetPhysicalSize);
         addTearDown(tester.view.resetDevicePixelRatio);
-        // Use the actual platform transport, not the discoverable test double:
-        // its previous flavor check incorrectly excluded unflavored Stable.
+        // Exercise native-event decoding before the chooser; retired kinds
+        // must never become selectable supported boards.
         await tester.pumpWidget(
           MaterialApp(
             home: GamePage(
@@ -243,7 +243,7 @@ void main() {
   );
 
   testWidgets(
-    'Stable Grand Kingdom requires setup and never replays a pending motor move',
+    'Grand Kingdom requires setup and never replays a pending motor move',
     (tester) async {
       setImmediateMaiaPreferences({});
       final board = DiscoveryBoard();

@@ -25,7 +25,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get cancelPremoves => 'Отменить предварительные ходы';
 
   @override
-  String get chessnutExperimental => 'Chessnut (экспериментально)';
+  String get chessnutBoard => 'Chessnut';
 
   @override
   String get connectChessnut => 'Подключить Chessnut';
@@ -1133,8 +1133,7 @@ class AppLocalizationsRu extends AppLocalizations {
   }
 
   @override
-  String get electronicBoardExperimental =>
-      'Электронная доска (экспериментально)';
+  String get electronicBoard => 'Электронная доска';
 
   @override
   String get connectBoard => 'Подключить доску';
@@ -1164,10 +1163,6 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get boardReady => 'Доска готова';
-
-  @override
-  String get boardExperimentalNotice =>
-      'Поддержка новых досок экспериментальная. Проверяйте ходы на обоих экранах и сообщайте о проблемах с подключением.';
 
   @override
   String get boardGameRestriction =>
@@ -1218,7 +1213,7 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get boardMotorRecovery =>
-      'Продолжите на телефоне. Этот экспериментальный адаптер не может безопасно восстановить состояние мотора доски.';
+      'Продолжите на телефоне. Состояние мотора доски нельзя безопасно восстановить.';
 
   @override
   String get boardConfirmPosition => 'Подтвердить позицию на физической доске';

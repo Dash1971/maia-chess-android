@@ -25,7 +25,7 @@ class AppLocalizationsHi extends AppLocalizations {
   String get cancelPremoves => 'पहले से चुनी गयी चालें रद्द करें';
 
   @override
-  String get chessnutExperimental => 'Chessnut (प्रायोगिक)';
+  String get chessnutBoard => 'Chessnut';
 
   @override
   String get connectChessnut => 'Chessnut जोड़ें';
@@ -1111,8 +1111,7 @@ class AppLocalizationsHi extends AppLocalizations {
   }
 
   @override
-  String get electronicBoardExperimental =>
-      'इलेक्ट्रॉनिक शतरंज बोर्ड (प्रायोगिक)';
+  String get electronicBoard => 'इलेक्ट्रॉनिक शतरंज बोर्ड';
 
   @override
   String get connectBoard => 'बोर्ड कनेक्ट करें';
@@ -1142,10 +1141,6 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get boardReady => 'बोर्ड तैयार है';
-
-  @override
-  String get boardExperimentalNotice =>
-      'नए बोर्ड का समर्थन प्रायोगिक है। दोनों स्क्रीन पर चालों की जाँच करें और कनेक्शन की समस्याएँ बताएँ।';
 
   @override
   String get boardGameRestriction =>
@@ -1196,7 +1191,7 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get boardMotorRecovery =>
-      'फ़ोन पर खेल जारी रखें। यह प्रायोगिक अडैप्टर बोर्ड की मोटर की स्थिति सुरक्षित रूप से बहाल नहीं कर सकता।';
+      'फ़ोन पर खेल जारी रखें। बोर्ड की मोटर की स्थिति सुरक्षित रूप से बहाल नहीं की जा सकती।';
 
   @override
   String get boardConfirmPosition => 'वास्तविक बोर्ड की स्थिति की पुष्टि करें';

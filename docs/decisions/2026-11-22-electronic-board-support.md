@@ -7,8 +7,8 @@ from the Stable 2.6 promotion and every Preview/Dev build flavor. Do not keep a
 Dev-only switch, initialization path, occupancy decoder or LED-command adapter.
 
 Chessnut Air, Go and Pro remain supported. Air and Go are fully tested; Pro is
-not fully tested. Grand Kingdom remains supported experimentally and partially
-tested, with the standard-position/untimed and assisted-promotion limitations
+not fully tested. Grand Kingdom is supported across Stable, Preview and Dev, with partial
+hardware test coverage, with the standard-position/untimed and assisted-promotion limitations
 recorded in its acceptance notes. The README support table is the user-facing
 summary. Board owners and manufacturers are welcome to help expand coverage.
 

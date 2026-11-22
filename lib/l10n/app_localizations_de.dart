@@ -25,7 +25,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get cancelPremoves => 'Vorauszüge abbrechen';
 
   @override
-  String get chessnutExperimental => 'Chessnut (experimentell)';
+  String get chessnutBoard => 'Chessnut';
 
   @override
   String get connectChessnut => 'Chessnut verbinden';
@@ -1116,8 +1116,7 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String get electronicBoardExperimental =>
-      'Elektronisches Schachbrett (experimentell)';
+  String get electronicBoard => 'Elektronisches Schachbrett';
 
   @override
   String get connectBoard => 'Brett verbinden';
@@ -1147,10 +1146,6 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get boardReady => 'Brett bereit';
-
-  @override
-  String get boardExperimentalNotice =>
-      'Die Unterstützung neuer Bretter ist experimentell. Prüfe die Züge auf beiden Bildschirmen und melde Verbindungsprobleme.';
 
   @override
   String get boardGameRestriction =>
@@ -1202,7 +1197,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get boardMotorRecovery =>
-      'Spiele auf deinem Smartphone weiter. Dieser experimentelle Adapter kann den Motorzustand des Bretts nicht sicher wiederherstellen.';
+      'Spiele auf deinem Smartphone weiter. Der Motorzustand des Bretts kann nicht sicher wiederhergestellt werden.';
 
   @override
   String get boardConfirmPosition => 'Stellung auf dem Brett bestätigen';

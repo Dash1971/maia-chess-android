@@ -25,7 +25,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get cancelPremoves => 'プリムーブを取り消す';
 
   @override
-  String get chessnutExperimental => 'Chessnut（試験的機能）';
+  String get chessnutBoard => 'Chessnut';
 
   @override
   String get connectChessnut => 'Chessnutに接続';
@@ -1025,7 +1025,7 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get electronicBoardExperimental => '電子チェス盤（試験的機能）';
+  String get electronicBoard => '電子チェス盤';
 
   @override
   String get connectBoard => 'チェス盤に接続';
@@ -1054,10 +1054,6 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get boardReady => 'チェス盤の準備ができました';
-
-  @override
-  String get boardExperimentalNotice =>
-      '新しいチェス盤への対応は試験段階です。両方の画面で指し手を確認し、接続の問題をご報告ください。';
 
   @override
   String get boardGameRestriction => '電子チェス盤での対局は持ち時間無制限です。';
@@ -1101,8 +1097,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get boardReconnect => 'チェス盤に再接続';
 
   @override
-  String get boardMotorRecovery =>
-      'スマートフォンで続けてください。この試験的な接続機能では、チェス盤のモーターの状態を安全に復元できません。';
+  String get boardMotorRecovery => 'スマートフォンで続けてください。チェス盤のモーターの状態を安全に復元できません。';
 
   @override
   String get boardConfirmPosition => 'チェス盤の局面を確認';

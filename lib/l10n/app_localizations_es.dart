@@ -25,7 +25,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get cancelPremoves => 'Cancelar movimientos anticipados';
 
   @override
-  String get chessnutExperimental => 'Chessnut (experimental)';
+  String get chessnutBoard => 'Chessnut';
 
   @override
   String get connectChessnut => 'Conectar Chessnut';
@@ -1113,8 +1113,7 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get electronicBoardExperimental =>
-      'Tablero electrónico (experimental)';
+  String get electronicBoard => 'Tablero electrónico';
 
   @override
   String get connectBoard => 'Conectar tablero';
@@ -1144,10 +1143,6 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get boardReady => 'Tablero listo';
-
-  @override
-  String get boardExperimentalNotice =>
-      'La compatibilidad con nuevos tableros es experimental. Verifica las jugadas en ambas pantallas e informa de los problemas de conexión.';
 
   @override
   String get boardGameRestriction =>
@@ -1198,7 +1193,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get boardMotorRecovery =>
-      'Continúa en tu teléfono. Este adaptador experimental no puede restablecer con seguridad el estado del motor del tablero.';
+      'Continúa en tu teléfono. No se puede restablecer con seguridad el estado del motor del tablero.';
 
   @override
   String get boardConfirmPosition => 'Confirmar la posición del tablero físico';

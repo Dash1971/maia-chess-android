@@ -476,3 +476,9 @@ Grand Kingdom. No new chess terminology or upstream translation is introduced.
 ## PGN import progress and duplicate counts — 22 November 2026
 
 The two messages `pgnImportProgress` and `pgnCollectionImportSummary` describe Mobile Maia’s collection transaction and exact-content duplicate policy. The pinned Lichess baseline has no direct equivalent for this combined workflow. All ten catalogs use context-specific native wording, existing PGN/game terminology and explicit counts. The progress label is also its accessibility label. These provisional translations require native review; no shared chess term is changed.
+
+## Supported electronic boards — 22 November 2026
+
+The supported-device decision applies equally to Stable, Preview and Dev. The Home/panel labels now use `electronicBoard` and `chessnutBoard`, without experimental qualifiers, in all ten catalogs. The obsolete experimental-support notice is removed. Motor recovery still explains the actual limitation and phone continuation without describing a supported adapter as experimental. Product names and existing board/motor vocabulary are retained; these app-specific hardware messages have no direct pinned Lichess equivalent. Hardware test coverage remains separate in the README table.
+
+The catalog checker’s former experimental-label exception is replaced with a product-name exception for `chessnutBoard`; the canonical brand token is enforced. A shared checker regression verifies both the allowed unchanged name and rejection of a renamed product. The same checker/test changes are ported to both repositories; mandatory workspace helpers are unchanged.

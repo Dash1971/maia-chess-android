@@ -84,7 +84,7 @@ The [Stable 2.6 promotion draft](docs/stable-2.6-preparation.md) brings the curr
 Preview improvements into the blue-icon app. It is not built or published yet;
 Stable 2.5.1 remains the current download.
 
-- **Experimental Grand Kingdom support.** Play untimed games from the standard position on a Square Off Grand Kingdom, including assisted Maia promotion. Chessnut Air, Go and Pro are supported; Pro awaits further hardware testing.
+- **Grand Kingdom support.** Play untimed games from the standard position on a Square Off Grand Kingdom, including assisted Maia promotion. Chessnut Air, Go and Pro are supported; Pro awaits further hardware testing.
 - **More room for chess.** Larger landscape boards and adaptive wide Home/Settings layouts. Engine output stays visible while moves scroll independently; holding either arrow reveals the beginning or end in portrait and landscape.
 - **Better Recent games.** Compact Date/Game/Result rows, yyyy/MM/dd dates and clear Incomplete labels. Back cancels selection first, and saved-game Back restores the same browsing position. Select games to delete them from the toolbar; per-row delete icons are removed.
 - **PGN collections.** Long-press a Recent games entry or choose Select games, select individual games or Select all, then Export games to save or share one PGN. Import and export both allow 5 MiB. Importing a collection adds new games to Recent games for transfer between installations, skips identical PGNs and reports both counts; importing a single game still opens it for analysis. Oversized/unreadable selections retain your selection and never produce a partial collection.
@@ -440,7 +440,7 @@ confirmation.
 
 ### Chessnut electronic-board play
 
-Experimental Chessnut support has been confirmed with both Chessnut Go and
+Chessnut support has been confirmed with both Chessnut Go and
 Chessnut Air. It enters physical moves over Bluetooth and lights Maia's reply
 on the board. Mobile Maia compares the complete sensed position, treats
 temporary piece lifts and partial castling as unfinished, and lights mismatched
@@ -870,7 +870,7 @@ Support planned for Stable 2.6 and the updated Preview/Dev sources:
 | Chessnut Air | Supported | Fully tested | Piece recognition and LED guidance. |
 | Chessnut Go | Supported | Fully tested | Piece recognition and LED guidance. |
 | Chessnut Pro | Supported | Not fully tested | Uses the shared Chessnut protocol; further device testing is welcome. |
-| Square Off Grand Kingdom | Supported (experimental) | Partially tested | Untimed games from the standard position; assisted Maia promotion. |
+| Square Off Grand Kingdom | Supported | Partially tested | Untimed games from the standard position; assisted Maia promotion. |
 | DGT Pegasus | Not supported | — | Prototype withdrawn because initialization licensing and downstream redistribution permission remain unresolved. |
 
 The [support decision](docs/decisions/2026-11-22-electronic-board-support.md)
@@ -905,7 +905,7 @@ are also informed by the open-source
 [Lichess Mobile analysis experience](https://github.com/lichess-org/mobile).
 Mobile Maia is independently implemented and is not affiliated with Lichess.
 
-Experimental Chessnut support uses Chessnut's
+Chessnut support uses Chessnut's
 [published e-board API](https://github.com/chessnutech/Chessnut_eBoards) and
 MIT-licensed [EasyLinkSDK](https://github.com/chessnutech/EasyLinkSDK), and was
 cross-checked against Roberto Marabini's GPL-3.0

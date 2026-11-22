@@ -18,9 +18,9 @@ distinguishes that concern from the GPL-licensed protocol reference. See the
 [README table](../README.md#electronic-board-support) for hardware testing status.
 Old Dev saves recover on the phone without reconnecting to the retired board.
 
-Stable 2.6 enables Grand Kingdom in both native and Dart Stable/unflavored
-policies; Preview keeps its existing Preview/Dev Grand Kingdom boundary. Unknown
-channels remain closed. Shared Chessnut behavior, motor session guards and
+Grand Kingdom is supported across Stable 2.6, Preview and Dev. Both source
+repositories use the same Dart and native policy for these channels, including
+unflavored Stable. Unknown packaging channels remain closed. Shared Chessnut behavior, motor session guards and
 channel restriction tests remain in place. Only Dev records automatic local
 traces; Stable/Preview routine diagnostics remain bounded summaries.
 
@@ -41,8 +41,8 @@ this follow-up. Older published APKs/tags remain unchanged.
 ## Historical channel records
 
 The dated records below describe their original releases and decisions. Earlier
-Pegasus/Dev-only policies are historical and are superseded by the current
-withdrawal decision above.
+experimental/Dev-only board policies are historical. Grand Kingdom is supported
+in all current channels, and Pegasus is withdrawn as stated above.
 
 ### Opening variety promoted in Stable 2.4
 

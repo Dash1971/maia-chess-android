@@ -108,11 +108,42 @@ void main() {
     }
 
     testWidgets(
-      '${locale.languageCode} Grand Kingdom status tooltip is board-neutral',
+      '${locale.languageCode} Grand Kingdom supported labels and status are board-neutral',
       (tester) async {
         await mount(tester, locale, compact: false);
         board.status(BoardKind.squareOff);
         await tester.pumpAndSettle();
+        final supported = await AppLocalizations.delegate.load(locale);
+        expect(find.text(supported.electronicBoard), findsWidgets);
+        expect(supported.chessnutBoard, 'Chessnut');
+        final qualifier = RegExp(switch (locale.languageCode) {
+          'ja' => '試験',
+          'zh' => '实验',
+          'ko' => '실험',
+          'hi' => 'प्रायोगिक',
+          'ru' => 'эксперимент',
+          'fr' => 'expériment',
+          _ => 'experiment',
+        }, caseSensitive: false);
+        for (final label in [
+          supported.electronicBoard,
+          supported.chessnutBoard,
+          supported.boardMotorRecovery,
+        ]) {
+          expect(qualifier.hasMatch(label), isFalse);
+        }
+        expect(
+          tester
+              .widgetList<Text>(find.byType(Text))
+              .map((t) => t.data)
+              .whereType<String>()
+              .any(qualifier.hasMatch),
+          isFalse,
+        );
+        expect(
+          find.byKey(const ValueKey('board-confirm-setup')),
+          findsOneWidget,
+        );
         await tester.tap(find.byKey(const ValueKey('board-confirm-setup')));
         await tester.pumpAndSettle();
         final strings = await AppLocalizations.delegate.load(locale);
