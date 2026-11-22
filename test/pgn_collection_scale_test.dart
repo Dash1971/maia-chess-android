@@ -39,7 +39,15 @@ void main() {
     });
     addTearDown(heartbeat.cancel);
     final watch = Stopwatch()..start();
-    final collection = await PgnCollection.parse(source);
+    final parsing = <double>[];
+    final collection = await PgnCollection.parse(
+      source,
+      onProgress: (p) => parsing.add(p.fraction),
+    );
+    expect(parsing.first, 0);
+    expect(parsing.last, 1);
+    expect(parsing.any((value) => value > 0 && value < 1), isTrue);
+    expect(parsing, orderedEquals([...parsing]..sort()));
     final parseMs = watch.elapsedMilliseconds;
     final store = SessionRepository(dir);
     final updates = <double>[];
@@ -70,7 +78,7 @@ void main() {
     // Observational host timings, not phone performance promises or flaky CI deadlines.
     // ignore: avoid_print
     print(
-      'PGN_SCALE games=$count bytes=$bytes parse_ms=$parseMs import_ms=$importMs recent_ms=$recentMs repeat_ms=$duplicateMs progress_updates=${updates.length} heartbeat_ticks=$ticks max_heartbeat_gap_ms=$worstGapMs process_peak_rss_bytes=$peakRss',
+      'PGN_SCALE games=$count bytes=$bytes parse_ms=$parseMs import_ms=$importMs recent_ms=$recentMs repeat_ms=$duplicateMs parse_progress_updates=${parsing.length} progress_updates=${updates.length} heartbeat_ticks=$ticks max_heartbeat_gap_ms=$worstGapMs process_peak_rss_bytes=$peakRss',
     );
   }, timeout: const Timeout(Duration(minutes: 4)));
 }

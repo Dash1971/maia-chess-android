@@ -1,6 +1,21 @@
 part of '../main.dart';
 
+typedef PgnCollectionParser = Future<PgnCollection> Function(
+  String source, {
+  void Function(PgnImportProgress)? onProgress,
+});
+
 class PgnFiles {
+  static PgnCollectionParser? _testParser;
+
+  @visibleForTesting
+  static void setTestParser(PgnCollectionParser? parser) {
+    assert(() {
+      _testParser = parser;
+      return true;
+    }());
+  }
+
   static Future<void> export(
     BuildContext context,
     String pgn, {
@@ -33,41 +48,42 @@ class PgnFiles {
     String text,
   ) async {
     if (!context.mounted) return null;
-    final progress = ValueNotifier<PgnImportProgress?>(null);
+    final progress = ValueNotifier<double>(0);
+    final visible = ValueNotifier<bool>(false);
     final navigator = Navigator.of(context, rootNavigator: true);
-    final route = DialogRoute<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (dialog) => PopScope(
-        canPop: false,
-        child: AlertDialog(
-          title: Text(l10n(dialog).pgnImportProgress),
-          content: ValueListenableBuilder<PgnImportProgress?>(
-            valueListenable: progress,
-            builder: (context, update, _) => LinearProgressIndicator(
-              key: const ValueKey('pgn-import-progress'),
-              value: update?.fraction,
-              semanticsLabel: l10n(context).pgnImportProgress,
-            ),
-          ),
-        ),
-      ),
+    final route = _PgnProgressRoute(
+      visible: visible,
+      progress: progress,
+      themes: InheritedTheme.capture(from: context, to: navigator.context),
     );
+    // Retain the existing input/Back guard immediately, without displaying or
+    // dimming anything until the import has lasted 300 ms.
     unawaited(navigator.push(route));
+    final reveal = Timer(const Duration(milliseconds: 300), route.reveal);
     PgnImportResult? result;
     try {
-      final collection = await PgnCollection.parse(text);
+      final collection = await (_testParser ?? PgnCollection.parse)(
+        text,
+        onProgress: (update) => progress.value = update.fraction / 2,
+      );
+      progress.value = 0.5;
       if (collection.games.length == 1) {
-        return await AnalysisSession.fromPgnAsync(collection.games.single);
+        final session = await AnalysisSession.fromPgnAsync(
+          collection.games.single,
+        );
+        progress.value = 1;
+        return session;
       }
       if (!context.mounted) return null;
       result = await ActiveSessionStore.importCollection(
         collection,
-        onProgress: (update) => progress.value = update,
+        onProgress: (update) => progress.value = 0.5 + update.fraction / 2,
       );
     } finally {
+      reveal.cancel();
       if (navigator.mounted && route.isActive) navigator.removeRoute(route);
       progress.dispose();
+      visible.dispose();
     }
     if (context.mounted) {
       ScaffoldMessenger.of(context)
@@ -91,6 +107,57 @@ class PgnFiles {
   static Future<AnalysisSession?> open(BuildContext context) async {
     final text = await maiaEngineChannel.invokeMethod<String>('openPgnFile');
     return text == null || !context.mounted ? null : importText(context, text);
+  }
+}
+
+/// The transparent route preserves the existing busy guard for quick imports.
+/// Revealing it changes only the dialog and dimming, not navigation state.
+class _PgnProgressRoute extends RawDialogRoute<void> {
+  _PgnProgressRoute({
+    required ValueNotifier<bool> visible,
+    required ValueNotifier<double> progress,
+    required CapturedThemes themes,
+  }) : _visible = visible,
+       super(
+         barrierDismissible: false,
+         transitionDuration: Duration.zero,
+         traversalEdgeBehavior: TraversalEdgeBehavior.closedLoop,
+         pageBuilder: (context, _, _) => PopScope(
+           canPop: false,
+           child: ValueListenableBuilder<bool>(
+             valueListenable: visible,
+             builder: (context, shown, _) => shown
+                 ? themes.wrap(
+                     SafeArea(
+                       child: AlertDialog(
+                         title: Text(l10n(context).pgnImportProgress),
+                         content: ValueListenableBuilder<double>(
+                           valueListenable: progress,
+                           builder: (context, value, _) =>
+                               LinearProgressIndicator(
+                                 key: const ValueKey('pgn-import-progress'),
+                                 value: value,
+                                 semanticsLabel: l10n(context)
+                                     .pgnImportProgress,
+                               ),
+                         ),
+                       ),
+                     ),
+                   )
+                 : const SizedBox.shrink(),
+           ),
+         ),
+       );
+
+  final ValueNotifier<bool> _visible;
+  @override
+  Color? get barrierColor =>
+      _visible.value ? Colors.black54 : Colors.transparent;
+
+  void reveal() {
+    if (!isActive) return;
+    _visible.value = true;
+    changedInternalState();
   }
 }
 
@@ -121,7 +188,36 @@ class PgnCollection {
   final List<String> games;
   final List<Map<String, String>> headers;
 
-  static Future<PgnCollection> parse(String source) => Isolate.run(() {
+  static Future<PgnCollection> parse(
+    String source, {
+    void Function(PgnImportProgress)? onProgress,
+  }) async {
+    if (onProgress == null) return _runParser(source, null);
+    final port = ReceivePort();
+    final finished = Completer<void>();
+    final subscription = port.listen((message) {
+      final values = message as List<int>;
+      onProgress(PgnImportProgress(values[0], values[1]));
+      if (values[0] == values[1] && !finished.isCompleted) finished.complete();
+    });
+    try {
+      onProgress(PgnImportProgress(0, source.length));
+      final parsed = await _runParser(source, port.sendPort);
+      // Drain the worker's ordered progress stream before handing off phases.
+      await finished.future;
+      onProgress(const PgnImportProgress(1, 1));
+      return parsed;
+    } finally {
+      port.close();
+      await subscription.cancel();
+    }
+  }
+
+  // Keep this closure separate from callbacks/ports in the coordinating isolate.
+  static Future<PgnCollection> _runParser(String source, SendPort? progress) =>
+      Isolate.run(() => _parse(source, progress));
+
+  static PgnCollection _parse(String source, SendPort? progress) {
     if (source.length > AnalysisSession.maxPgnBytes ||
         utf8.encode(source).length > AnalysisSession.maxPgnBytes) {
       throw const FormatException('PGN exceeds 5 MB.');
@@ -133,6 +229,14 @@ class PgnCollection {
     final headers = <Map<String, String>>[];
     var start = 0, depth = 0;
     var brace = false, line = false, seenMove = false, ended = false;
+    final reports = Stopwatch()..start();
+    void report(int end, {bool force = false}) {
+      if (progress != null && (force || reports.elapsedMilliseconds >= 40)) {
+        progress.send(<int>[end, text.length]);
+        reports.reset();
+      }
+    }
+
     void add(int end) {
       final raw = text.substring(start, end).trim();
       if (raw.isEmpty) return;
@@ -146,6 +250,8 @@ class PgnCollection {
           ).headers,
         ),
       );
+      // Advance only after the entire game, including variations, validates.
+      report(end, force: games.length == 1);
     }
 
     for (var i = 0; i < text.length; i++) {
@@ -198,11 +304,12 @@ class PgnCollection {
     }
     add(text.length);
     if (games.isEmpty) throw const FormatException('The PGN contains no game.');
+    report(text.length, force: true);
     return PgnCollection._(
       List.unmodifiable(games),
       List.unmodifiable(headers),
     );
-  });
+  }
 }
 
 /// Match Android's 5 MiB PGN export limit, including UTF-8 and separators.

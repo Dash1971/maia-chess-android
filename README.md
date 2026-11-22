@@ -701,8 +701,7 @@ game with its variations, comments, and annotations in published Stable 2.5.1
 to the same 5 MiB limit and adds new games from a collection to Recent games.
 Matching PGNs already saved or repeated within the file are skipped, including
 formatting changes made by our exporter; differently
-annotated or identified copies are kept. A progress bar accompanies import, and
-completion reports imported and skipped counts. Interrupted staging is cleaned
+annotated or identified copies are kept. Longer imports show progress during validation, duplicate checking and saving; quick imports finish without a dialog. Completion reports imported and skipped counts. Interrupted staging is cleaned
 on the next startup. Single-game opening stays unchanged. See the
 [import/export guide](docs/RECENT_GAMES_PGN_EXPORT.md) for the exact rules. PGN transfers games and annotations, not
 app settings or live electronic-board session state.

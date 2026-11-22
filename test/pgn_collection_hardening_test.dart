@@ -38,6 +38,7 @@ void main() {
   });
   tearDown(() async {
     ActiveSessionStore.setTestRepository(null);
+    PgnFiles.setTestParser(null);
     await dir.delete(recursive: true);
   });
 
@@ -186,7 +187,8 @@ void main() {
     testWidgets(
       'import progress and duplicate summary at 320px / 200% ${locale.languageCode}',
       (tester) async {
-        ActiveSessionStore.setTestRepository(store);
+        final controlled = ControlledImportRepository(dir);
+        ActiveSessionStore.setTestRepository(controlled);
         tester.view.physicalSize = const Size(320, 720);
         tester.view.devicePixelRatio = 1;
         addTearDown(tester.view.resetPhysicalSize);
@@ -216,6 +218,8 @@ void main() {
         );
         await tester.tap(find.text('Import'));
         await tester.pump();
+        expect(find.byKey(const ValueKey('pgn-import-progress')), findsNothing);
+        await tester.pump(const Duration(milliseconds: 300));
         expect(
           find.byKey(const ValueKey('pgn-import-progress')),
           findsOneWidget,
@@ -228,6 +232,7 @@ void main() {
           find.byKey(const ValueKey('pgn-import-progress')),
           findsOneWidget,
         );
+        controlled.finished.complete(const PgnImportResult(1, 1));
         final summary = strings.pgnCollectionImportSummary(1, 1);
         for (var i = 0; i < 150 && find.text(summary).evaluate().isEmpty; i++) {
           await tester.runAsync(
@@ -248,59 +253,65 @@ void main() {
     );
   }
 
-  testWidgets('progress becomes determinate and disappears only after commit', (
-    tester,
-  ) async {
-    final controlled = ControlledImportRepository(dir);
-    ActiveSessionStore.setTestRepository(controlled);
-    Future<AnalysisSession?>? operation;
-    await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
-          body: Builder(
-            builder: (context) => TextButton(
-              onPressed: () {
-                operation = PgnFiles.importText(context, '$game\n$game');
-              },
-              child: const Text('Import'),
+  testWidgets(
+    'delayed progress continues through storage and disappears after commit',
+    (tester) async {
+      final controlled = ControlledImportRepository(dir);
+      ActiveSessionStore.setTestRepository(controlled);
+      Future<AnalysisSession?>? operation;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Builder(
+              builder: (context) => TextButton(
+                onPressed: () {
+                  operation = PgnFiles.importText(context, '$game\n$game');
+                },
+                child: const Text('Import'),
+              ),
             ),
           ),
         ),
-      ),
-    );
-    await tester.tap(find.text('Import'));
-    await tester.pump();
-    expect(
-      tester
-          .widget<LinearProgressIndicator>(
-            find.byKey(const ValueKey('pgn-import-progress')),
-          )
-          .value,
-      isNull,
-    );
-    for (var i = 0; i < 100 && !controlled.entered.isCompleted; i++) {
-      await tester.runAsync(
-        () => Future<void>.delayed(const Duration(milliseconds: 20)),
       );
+      await tester.tap(find.text('Import'));
       await tester.pump();
-    }
-    expect(controlled.entered.isCompleted, isTrue);
-    controlled.update!(const PgnImportProgress(5, 10));
-    await tester.pump();
-    expect(
-      tester
-          .widget<LinearProgressIndicator>(
-            find.byKey(const ValueKey('pgn-import-progress')),
-          )
-          .value,
-      0.5,
-    );
-    controlled.finished.complete(const PgnImportResult(1, 1));
-    await tester.pumpAndSettle();
-    await operation;
-    expect(find.byKey(const ValueKey('pgn-import-progress')), findsNothing);
-    expect(find.text('1 game imported · 1 duplicate skipped'), findsOneWidget);
-  });
+      expect(find.byKey(const ValueKey('pgn-import-progress')), findsNothing);
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(
+        tester
+            .widget<LinearProgressIndicator>(
+              find.byKey(const ValueKey('pgn-import-progress')),
+            )
+            .value,
+        0,
+      );
+      for (var i = 0; i < 100 && !controlled.entered.isCompleted; i++) {
+        await tester.runAsync(
+          () => Future<void>.delayed(const Duration(milliseconds: 20)),
+        );
+        await tester.pump();
+      }
+      expect(controlled.entered.isCompleted, isTrue);
+      controlled.update!(const PgnImportProgress(5, 10));
+      await tester.pump();
+      expect(
+        tester
+            .widget<LinearProgressIndicator>(
+              find.byKey(const ValueKey('pgn-import-progress')),
+            )
+            .value,
+        0.75,
+      );
+      controlled.finished.complete(const PgnImportResult(1, 1));
+      await tester.pumpAndSettle();
+      await operation;
+      expect(find.byKey(const ValueKey('pgn-import-progress')), findsNothing);
+      expect(
+        find.text('1 game imported · 1 duplicate skipped'),
+        findsOneWidget,
+      );
+    },
+  );
 
   testWidgets(
     'invalid input closes progress and propagates the error without writes',

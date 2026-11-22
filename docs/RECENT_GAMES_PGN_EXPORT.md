@@ -24,7 +24,7 @@ file yourself, and open it in the receiving installation.
   settings remain intact; imported unfinished games open paused.
 - Identical saved PGNs and repeats within the incoming file are skipped. Formatting changes made by the exporter are normalized for comparison. Different metadata,
   comments, clocks or variations produce separate records.
-- A progress bar accompanies the operation. Completion reports new games and
+- Imports lasting more than 300 ms show a progress bar from validation through saving; quick imports finish without a dialog or dimming flash. Completion reports new games and
   duplicates skipped; an entirely duplicate collection adds zero records.
 - The complete collection must validate and save successfully. An invalid game,
   oversized file or storage failure does not expose a partial import.
@@ -130,7 +130,7 @@ Recent games. A failed write does not expose a partial collection. Existing
 records, the active checkpoint and crash-recovery preferences stay unchanged.
 Imported records retain PGN names, dates, results, comments, clocks, variations
 and starting positions. Equal-date imported records retain their source order.
-A progress bar covers validation (indeterminate), duplicate scanning and staged writes (determinate). The completion message reports imported and skipped counts. Work runs off the UI isolate. Back cannot dismiss an in-progress import; success or failure closes the progress dialog.
+A delayed progress bar covers validation, duplicate scanning and staged writes without resetting between phases. The completion message reports imported and skipped counts. Work runs off the UI isolate. Back cannot dismiss an in-progress import; success or failure closes the progress dialog.
 
 Import skips identical PGN content already present in saved games or earlier in the same collection. The same PGN serializer used by export normalizes formatting before comparison. Headers, comments, variations and clocks remain part of the comparison: differently annotated or identified copies are kept. Re-importing the same collection adds no extra copies. Completion reports imported and skipped counts. Single-game opening is unchanged.
 PGN transfers games and annotations, not app settings or live clock/motor session
@@ -161,3 +161,9 @@ See the [10,000-game host measurements and device-test limits](verification/pgn-
 Duplicate detection compares supported PGN content in the same format used by export. An exported collection can be re-imported on the same installation without adding another copy because of spacing, move-number formatting or comment padding. Original saved PGNs and checkpoints are not rewritten for comparison.
 
 Different header values, comments, clock annotations and variation trees remain separate. The check conservatively compares original text when serialization would discard information, such as semicolon comments, escape lines, repeated headers or conflicting declared results. An exported copy that lost such information is considered different; importing an identical original still skips it. Malformed legacy records cannot hide valid incoming games. Single-game opening and the shared 5 MiB limits are unchanged.
+
+## Parsing progress and quick imports
+
+A longer import displays progress after **300 ms**. Quick single-game and collection imports finish without showing or dimming a dialog. The existing input and Back guard applies from the start; successful completion or failure removes it. The progress display remains safe if the source screen is disposed.
+
+Validation runs in its worker and reports the input position after each complete game, including variations, has validated. Reports are throttled to avoid flooding the UI. One continuous bar reserves its first half for validation and its second half for duplicate checking and staged writes; it does not jump back to zero at the handoff. The percentage describes work phases, not remaining time. A failed later game never reports successful validation or publishes a partial collection. The worker progress stream is drained and closed before the next phase. Existing limits, duplicate matching and single-game opening are unchanged.
