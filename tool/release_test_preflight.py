@@ -94,11 +94,12 @@ def main():
         return 1 if errors else 0
     if not args.scratch or not args.output:
         parser.error('--scratch and --output are required for a host/device preflight.')
+    destination, scratch_path = args.output.resolve(), args.scratch.resolve()
+    if destination == scratch_path or scratch_path in destination.parents:
+        parser.error('Keep the preflight evidence outside disposable scratch.')
     report = {'passed': False}
     try:
         scratch = owned_scratch(args.scratch)
-        if args.output.resolve() == scratch or scratch in args.output.resolve().parents:
-            raise ValueError('Keep the preflight evidence outside disposable scratch.')
         if args.expected_growth_gib < 0:
             raise ValueError('Expected growth cannot be negative.')
         report['capacity'] = capacity(scratch, args.expected_growth_gib)

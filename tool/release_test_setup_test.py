@@ -1,4 +1,7 @@
 import importlib
+import contextlib
+import io
+import sys
 import json
 from pathlib import Path
 import tempfile
@@ -29,6 +32,15 @@ class ReleaseTestSetupTest(unittest.TestCase):
                 with self.assertRaises(ValueError): preflight.owned_scratch(bulk)
                 with self.assertRaises(ValueError): preflight.owned_scratch(repo)
                 with self.assertRaises(ValueError): preflight.owned_scratch(root)
+
+    def test_rejected_report_destination_is_not_overwritten(self):
+        with tempfile.TemporaryDirectory() as directory:
+            bulk = Path(directory).resolve(); report = bulk / 'keep.json'
+            report.write_text('preserve')
+            with patch.object(sys, 'argv', ['preflight', '--scratch', str(bulk), '--output', str(report)]), \
+                    contextlib.redirect_stderr(io.StringIO()), self.assertRaises(SystemExit):
+                preflight.main()
+            self.assertEqual(report.read_text(), 'preserve')
 
     def test_foreground_app_and_owned_ready_emulator_pass(self):
         self.assertTrue(preflight.emulator_health(self.emulator(), 'owned', 'app.id')['awake'])
