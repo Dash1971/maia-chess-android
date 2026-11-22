@@ -96,3 +96,5 @@ The updated full host suite passed **1,526 tests, one skipped**, in each reposit
 ## Export/re-import correction
 
 Host regressions reproduced duplicate records after exporting/reimporting app-generated and imported PGNs. Duplicate keys now normalize supported content through the export serializer. Changed annotations and metadata stay separate; lossy serialization uses conservative original-text comparison. Ten new round-trip regressions and updated README/PGN guidance accompany the shared fix in Stable #82 and Preview #261. No Android builds, Actions or LFS downloads.
+
+Verification of the round-trip correction: 85 focused import/export checks passed in Stable, and all ten new regressions passed under the official Preview flavor. The complete remaining Stable host suite passed 1,535 tests with one skipped. The identical 10,000-game assertions passed separately in the instrumented diagnostic after a combined run exceeded the scale timeout on a loaded Mac. Both analyzers pass. These checks preserve the no-Android-build/no-Actions/no-LFS boundary and do not replace release qualification.

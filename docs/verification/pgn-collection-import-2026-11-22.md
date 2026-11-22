@@ -45,3 +45,5 @@ Ten dedicated regressions cover the round trip, active/archived records, within-
 ### Loaded-host diagnostic after the correction
 
 A combined full-suite run hit the existing four-minute scale timeout while the Mac was also running nine unrelated CPU-heavy Stockfish jobs. An isolated diagnostic of the same 10,000-game assertions passed in 2 minutes 33 seconds: parsing 106.15 s, import 21.95 s, Recent games 7.08 s, repeat import 11.73 s. The parser slowed before duplicate comparison began. These loaded-host numbers are not directly comparable with the earlier quiet-host measurements above, and do not establish phone performance. The large test and remaining suite are checked separately under this load.
+
+Final round-trip verification: **85 focused Stable import/export checks passed; ten official Preview-flavor round-trip regressions passed; the remaining full Stable host suite passed 1,535 tests with one skipped**. The separately run instrumented 10,000-game test passed the same assertions and unchanged four-minute limit. The earlier combined timeout remains recorded rather than counted as a passing default full-suite invocation. Both analyzers are clean.
