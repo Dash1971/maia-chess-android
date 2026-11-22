@@ -1436,9 +1436,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get editorPositionSettings => '局面设置';
 
   @override
-  String get editorImageImportUnavailable => '从图片导入局面（尚不可用）';
-
-  @override
   String get editorShareFen => '分享 FEN';
 
   @override
@@ -1507,4 +1504,50 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get sessionRecovery =>
       '为避免重新打开可能导致崩溃的会话，Mobile Maia 已返回主页。已保存的对局和设置均已保留。';
+
+  @override
+  String get saveDevDiagnostics => '保存Dev诊断信息…';
+
+  @override
+  String get devDiagnosticsHelp =>
+      'Dev会在此设备上记录最近的应用事件，以及Grand Kingdom走棋和棋盘通信的详细信息。旧数据会自动删除。不记录照片或蓝牙地址，也不会自动上传。仅在愿意分享时导出。';
+
+  @override
+  String get devDiagnosticsExportFailed => '无法保存Dev诊断信息。';
+
+  @override
+  String get boardPromotionTitle => '确认 Maia 升变';
+
+  @override
+  String boardPromotionMove(String square, String piece) {
+    return '$square：$piece。请替换兵。';
+  }
+
+  @override
+  String get boardPromotionHelp =>
+      '请等电机停止后，将兵替换为指定棋子，并检查实体棋盘上的所有棋子是否与屏幕一致。如果移动未完成或无法确认，请在应用中继续对局。';
+
+  @override
+  String get boardPromotionReplaced => '电机已停止，我已替换兵，所有棋子均与屏幕一致。';
+
+  @override
+  String get recentExportGames => '导出对局';
+
+  @override
+  String get recentExportTooLarge => '所选对局超出 5 MB 的导出上限。请选择更少的对局后重试。';
+
+  @override
+  String get recentExportFailed => '无法导出所选对局。已保存的对局未被更改。';
+
+  @override
+  String get recentDateColumn => '日期';
+
+  @override
+  String get recentGameColumn => '对局';
+
+  @override
+  String get recentResultColumn => '结果';
+
+  @override
+  String get settingsDiagnostics => '诊断';
 }

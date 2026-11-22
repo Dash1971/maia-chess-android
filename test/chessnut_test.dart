@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maia_chess/main.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'fixtures/immediate_maia_preferences.dart';
 
 const _startingPayload = <int>[
   0x58,
@@ -197,7 +198,7 @@ void main() {
   });
 
   testWidgets('repeated board errors retain diagnostic reasons', (tester) async {
-    SharedPreferences.setMockInitialValues({});
+    setImmediateMaiaPreferences({});
     final board = _FakeElectronicBoard();
     await tester.pumpWidget(
       MaterialApp(home: GamePage(electronicBoardTransport: board)),
@@ -333,7 +334,7 @@ void main() {
   testWidgets('physical move drives Maia and LEDs gate the next turn', (
     tester,
   ) async {
-    SharedPreferences.setMockInitialValues({});
+    setImmediateMaiaPreferences({});
     final board = _FakeElectronicBoard();
     final policy = Float32List(4352)..fillRange(0, 4352, -100);
     policy[MaiaEncoding.moveIndex('e7e5', true)] = 100;
@@ -420,7 +421,7 @@ void main() {
   testWidgets('Chessnut always starts and returns home with Unlimited time', (
     tester,
   ) async {
-    SharedPreferences.setMockInitialValues({
+    setImmediateMaiaPreferences({
       maiaTimePresetPreferenceKey: TimePreset.blitzFive.name,
     });
     final board = _FakeElectronicBoard();
@@ -460,7 +461,7 @@ void main() {
   testWidgets('inline reconnect rescans without losing the live game', (
     tester,
   ) async {
-    SharedPreferences.setMockInitialValues({});
+    setImmediateMaiaPreferences({});
     final board = _FakeElectronicBoard();
     final policy = Float32List(4352)..fillRange(0, 4352, -100);
     policy[MaiaEncoding.moveIndex('e7e5', true)] = 100;
@@ -508,7 +509,7 @@ void main() {
   testWidgets(
     'completed illegal moves beep once while piece lifts stay silent',
     (tester) async {
-      SharedPreferences.setMockInitialValues({});
+      setImmediateMaiaPreferences({});
       final board = _FakeElectronicBoard();
       final pendingMaia = Completer<Float32List>();
       await tester.pumpWidget(
@@ -562,7 +563,7 @@ void main() {
   testWidgets('the persistent Chessnut board-sounds setting can mute alerts', (
     tester,
   ) async {
-    SharedPreferences.setMockInitialValues({'chessnutBoardSounds': false});
+    setImmediateMaiaPreferences({'chessnutBoardSounds': false});
     final board = _FakeElectronicBoard();
     await tester.pumpWidget(
       MaterialApp(
@@ -606,7 +607,7 @@ void main() {
   testWidgets('Chessnut takeback restores the physical board before play', (
     tester,
   ) async {
-    SharedPreferences.setMockInitialValues({});
+    setImmediateMaiaPreferences({});
     final board = _FakeElectronicBoard();
     final policy = Float32List(4352)..fillRange(0, 4352, -100);
     policy[MaiaEncoding.moveIndex('e7e5', true)] = 100;
@@ -670,7 +671,7 @@ void main() {
   testWidgets('disconnect still closes the board if clearing LEDs fails', (
     tester,
   ) async {
-    SharedPreferences.setMockInitialValues({});
+    setImmediateMaiaPreferences({});
     final board = _FakeElectronicBoard();
     await tester.pumpWidget(
       MaterialApp(home: GamePage(electronicBoardTransport: board)),
@@ -692,7 +693,7 @@ void main() {
   testWidgets(
     'pausing during a Maia check alert retains physical move guidance',
     (tester) async {
-      SharedPreferences.setMockInitialValues({});
+      setImmediateMaiaPreferences({});
       const pgn = '[Result "*"]\n\n1. e4 e5 2. d4 Nc6 3. Nf3 *';
       final session = AnalysisSession.fromPgn(pgn);
       await ActiveSessionStore.save({
@@ -738,7 +739,7 @@ void main() {
   testWidgets('a delayed check alert cannot update a disposed game', (
     tester,
   ) async {
-    SharedPreferences.setMockInitialValues({});
+    setImmediateMaiaPreferences({});
     const pgn = '[Result "*"]\n\n1. e4 e5 2. Bc4 Nc6 *';
     final session = AnalysisSession.fromPgn(pgn);
     await ActiveSessionStore.save({
@@ -782,7 +783,7 @@ void main() {
   testWidgets('a physical human move that gives check sounds the board', (
     tester,
   ) async {
-    SharedPreferences.setMockInitialValues({});
+    setImmediateMaiaPreferences({});
     const pgn = '''
 [Event "Mobile Maia Game"]
 [Result "*"]
@@ -827,7 +828,7 @@ void main() {
   testWidgets('Chessnut checkmate records and displays the winning result', (
     tester,
   ) async {
-    SharedPreferences.setMockInitialValues({});
+    setImmediateMaiaPreferences({});
     const pgn = '''
 [Event "Mobile Maia Game"]
 [Site "Mobile Maia"]
@@ -899,7 +900,7 @@ void main() {
   testWidgets('a physical human checkmate sounds two distinct alerts', (
     tester,
   ) async {
-    SharedPreferences.setMockInitialValues({});
+    setImmediateMaiaPreferences({});
     const pgn = '''
 [Event "Mobile Maia Game"]
 [Result "*"]
@@ -950,7 +951,7 @@ void main() {
   testWidgets('restored Rxe1 checkmate repairs a stale unfinished result', (
     tester,
   ) async {
-    SharedPreferences.setMockInitialValues({});
+    setImmediateMaiaPreferences({});
     const pgn = '''
 [Event "Mobile Maia Game"]
 [Site "Mobile Maia"]
@@ -984,7 +985,7 @@ void main() {
   });
 
   testWidgets('unlimited mobile games keep the screen awake', (tester) async {
-    SharedPreferences.setMockInitialValues({});
+    setImmediateMaiaPreferences({});
     tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
     final values = <bool>[];
     final messenger =

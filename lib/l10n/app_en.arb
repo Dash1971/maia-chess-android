@@ -2018,10 +2018,6 @@
   "@editorPositionSettings": {
     "description": "Standard-chess board editor: Position settings. Tool labels must distinguish moving existing pieces, repeated placement and erasure. FEN counters are preserved; camera recognition is unavailable."
   },
-  "editorImageImportUnavailable": "Import position from image (not yet available)",
-  "@editorImageImportUnavailable": {
-    "description": "Standard-chess board editor: Import position from image (not yet available). Tool labels must distinguish moving existing pieces, repeated placement and erasure. FEN counters are preserved; camera recognition is unavailable."
-  },
   "editorShareFen": "Share FEN",
   "@editorShareFen": {
     "description": "Standard-chess board editor: Share FEN. Tool labels must distinguish moving existing pieces, repeated placement and erasure. FEN counters are preserved; camera recognition is unavailable."
@@ -2113,5 +2109,69 @@
   "sessionRecovery": "Mobile Maia opened Home to avoid reopening a session that may have caused a crash. Your saved games and settings have been kept.",
   "@sessionRecovery": {
     "description": "Home notice after suppressing an unsafe or interrupted automatic session restore. No games or settings are deleted."
+  },
+  "saveDevDiagnostics": "Save Dev diagnostics…",
+  "@saveDevDiagnostics": {
+    "description": "Dev-only local diagnostic export. App-specific testing feature; automatic bounded recording, manual export, never telemetry."
+  },
+  "devDiagnosticsHelp": "Dev records recent app events and detailed Grand Kingdom moves and board messages on this device. Older data is removed automatically. Photos and Bluetooth addresses are not recorded. Nothing is uploaded automatically. Export only if you want to share it.",
+  "@devDiagnosticsHelp": {
+    "description": "Dev-only local diagnostic export. App-specific testing feature; automatic bounded recording, manual export, never telemetry."
+  },
+  "devDiagnosticsExportFailed": "Could not save Dev diagnostics.",
+  "@devDiagnosticsExportFailed": {
+    "description": "Dev-only local diagnostic export. App-specific testing feature; automatic bounded recording, manual export, never telemetry."
+  },
+  "boardPromotionTitle": "Confirm Maia promotion",
+  "@boardPromotionTitle": {
+    "description": "Experimental Grand Kingdom assisted Maia promotion. The user, not a BLE write/OK, confirms stopped motors and physical piece replacement. Reuse existing localized piece names; no automatic replacement is implied."
+  },
+  "boardPromotionMove": "{square}: {piece}. Replace the pawn.",
+  "@boardPromotionMove": {
+    "description": "Experimental Grand Kingdom assisted Maia promotion. The user, not a BLE write/OK, confirms stopped motors and physical piece replacement. Reuse existing localized piece names; no automatic replacement is implied.",
+    "placeholders": {
+      "square": {
+        "type": "String"
+      },
+      "piece": {
+        "type": "String"
+      }
+    }
+  },
+  "boardPromotionHelp": "Wait until the motors have stopped. Replace the pawn with the indicated piece and check the entire physical position against the screen. If the move is incomplete or uncertain, continue in the app instead.",
+  "@boardPromotionHelp": {
+    "description": "Experimental Grand Kingdom assisted Maia promotion. The user, not a BLE write/OK, confirms stopped motors and physical piece replacement. Reuse existing localized piece names; no automatic replacement is implied."
+  },
+  "boardPromotionReplaced": "The motors are stopped, I replaced the pawn, and every piece matches.",
+  "@boardPromotionReplaced": {
+    "description": "Experimental Grand Kingdom assisted Maia promotion. The user, not a BLE write/OK, confirms stopped motors and physical piece replacement. Reuse existing localized piece names; no automatic replacement is implied."
+  },
+  "@recentExportGames": {
+    "description": "Recent Games selection toolbar: export the selected games into one PGN file using Save or Share. Reuses pinned Lichess exportGames."
+  },
+  "recentExportGames": "Export games",
+  "@recentExportTooLarge": {
+    "description": "Recent Games export exceeds the 5 MiB UTF-8 limit, shown as 5 MB. Nothing is saved/shared; keep selection and ask the user to select fewer games and retry. Import remains limited to 2 MiB."
+  },
+  "recentExportTooLarge": "Selected games exceed the 5 MB export limit. Select fewer games and try again.",
+  "@recentExportFailed": {
+    "description": "Recent Games multi-game export error: one selected record could not be read/validated, or Android save/share failed. No selected game is silently omitted and stored games are not modified."
+  },
+  "recentExportFailed": "Could not export the selected games. Saved games were not changed.",
+  "recentDateColumn": "Date",
+  "@recentDateColumn": {
+    "description": "Adaptive layout: Recent games table column"
+  },
+  "recentGameColumn": "Game",
+  "@recentGameColumn": {
+    "description": "Adaptive layout: Recent games table column"
+  },
+  "recentResultColumn": "Result",
+  "@recentResultColumn": {
+    "description": "Adaptive layout: Recent games table column"
+  },
+  "settingsDiagnostics": "Diagnostics",
+  "@settingsDiagnostics": {
+    "description": "Adaptive layout: settings category for existing reset and diagnostic actions"
   }
 }

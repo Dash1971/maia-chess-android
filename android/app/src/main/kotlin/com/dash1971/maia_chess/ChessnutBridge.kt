@@ -31,6 +31,7 @@ import java.util.UUID
 class ChessnutBridge(
     private val activity: Activity,
     messenger: BinaryMessenger,
+    private val devDiagnostics: DevDiagnostics? = null,
 ) : MethodChannel.MethodCallHandler, EventChannel.StreamHandler {
     companion object {
         private const val METHOD_CHANNEL = "maia_chess/chessnut"
@@ -356,7 +357,7 @@ class ChessnutBridge(
 
     private fun connectGatt(device: BluetoothDevice, name: String) {
         check(BoardChannelPolicy.supports(BuildConfig.FLAVOR, boardKind)) {
-            "This board is available only in the Dev build."
+            "This board is unavailable in this build channel."
         }
         connectionSession = UUID.randomUUID().toString()
         deviceName = name
@@ -486,6 +487,9 @@ class ChessnutBridge(
                 writeInProgress = false
                 val completedWrite = activeWrite
                 activeWrite = null
+                devDiagnostics?.board("gatt-write-result", boardKind, connectionSession, mapOf(
+                    "hex" to (completedWrite?.command?.joinToString("") { "%02x".format(it.toInt() and 255) } ?: ""),
+                    "status" to status, "motorPending" to motorPending))
                 if (status != BluetoothGatt.GATT_SUCCESS) {
                     completedWrite?.completion?.error(
                         "write_failed",
@@ -517,7 +521,7 @@ class ChessnutBridge(
 
     private fun configureServices(services: List<BluetoothGattService>) {
         if (!BoardChannelPolicy.supports(BuildConfig.FLAVOR, boardKind)) {
-            failConnection("This board is available only in the Dev build."); return
+            failConnection("This board is unavailable in this build channel."); return
         }
         if (boardKind == "chessnut") {
             writeCharacteristic = findCharacteristic(services, WRITE_UUID)
@@ -582,7 +586,7 @@ class ChessnutBridge(
 
     private fun finishConfiguration() {
         if (!BoardChannelPolicy.supports(BuildConfig.FLAVOR, boardKind)) {
-            failConnection("This board is available only in the Dev build."); return
+            failConnection("This board is unavailable in this build channel."); return
         }
         ready = true
         emitStatus("ready", "Chessnut is ready.", deviceName)
@@ -610,6 +614,9 @@ class ChessnutBridge(
         mainHandler.post {
             if (gatt !== source) return@post
             if (boardKind != "chessnut") {
+                devDiagnostics?.board("rx", boardKind, connectionSession, mapOf(
+                    "bytes" to snapshot.size, "hex" to snapshot.take(128).joinToString("") { "%02x".format(it.toInt() and 255) },
+                    "truncated" to (snapshot.size > 128), "motorPending" to motorPending))
                 if (snapshot.size <= 1024) emit(mapOf("type" to "boardData", "boardKind" to boardKind,
                     "data" to snapshot.map { it.toInt() and 255 }, "connectionSession" to connectionSession), source)
                 return@post
@@ -677,7 +684,11 @@ class ChessnutBridge(
     }
 
     private fun squareOffCommand(call: MethodCall, result: MethodChannel.Result) {
-        if (BuildConfig.FLAVOR != "dev" || !ready || boardKind != "squareOff" || call.argument<String>("connectionSession") != connectionSession) {
+        devDiagnostics?.board("request", boardKind, connectionSession, mapOf(
+            "method" to call.method, "sessionMatches" to (call.argument<String>("connectionSession") == connectionSession),
+            "ready" to ready, "motorPending" to motorPending, "queued" to writeQueue.size))
+        if (!BoardChannelPolicy.permitsMotorCommand(BuildConfig.FLAVOR, boardKind, ready,
+                call.argument<String>("connectionSession"), connectionSession)) {
             result.error("invalid_session", "The selected board session is unavailable.", null); return
         }
         if (call.method == "confirmPosition") {
@@ -722,7 +733,7 @@ class ChessnutBridge(
         completion: MethodChannel.Result? = null,
     ) {
         if (!BoardChannelPolicy.supports(BuildConfig.FLAVOR, boardKind)) {
-            completion?.error("unsupported", "This board is available only in the Dev build.", null)
+            completion?.error("unsupported", "This board is unavailable in this build channel.", null)
             return
         }
         if (isLedCommand(command)) {
@@ -745,6 +756,8 @@ class ChessnutBridge(
             completion?.error("queue_full", "Board command queue is full.", null)
             return
         }
+        devDiagnostics?.board("queued", boardKind, connectionSession, mapOf(
+            "hex" to command.joinToString("") { "%02x".format(it.toInt() and 255) }, "depth" to writeQueue.size))
         writeQueue.add(PendingWrite(command.copyOf(), failureIsFatal, completion))
         writeNext()
     }
@@ -757,6 +770,9 @@ class ChessnutBridge(
         val writeType = if (characteristic.properties and BluetoothGattCharacteristic.PROPERTY_WRITE != 0)
             BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT else BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE
         val command = pendingWrite.command
+        devDiagnostics?.board("dispatch", boardKind, connectionSession, mapOf(
+            "hex" to command.joinToString("") { "%02x".format(it.toInt() and 255) },
+            "writeType" to writeType, "motorPending" to motorPending))
         activeWrite = pendingWrite
         writeInProgress = true
         try {
@@ -774,6 +790,7 @@ class ChessnutBridge(
                 @Suppress("DEPRECATION")
                 currentGatt.writeCharacteristic(characteristic)
             }
+            devDiagnostics?.board("write-start", boardKind, connectionSession, mapOf("started" to started))
             if (started) {
                 mainHandler.postDelayed({
                     if (gatt === currentGatt && activeWrite === pendingWrite) failConnection("Board command acknowledgement timed out. Reconnect before continuing.")
@@ -873,6 +890,9 @@ class ChessnutBridge(
         name: String? = null,
         diagnostic: String? = null,
     ) {
+        devDiagnostics?.board("status", boardKind, connectionSession, mapOf(
+            "state" to newState, "ready" to ready, "motorPending" to motorPending,
+            "gattStatus" to (lastGattStatus ?: -1)))
         state = newState
         stateMessage = message
         val errorDiagnostic = if (newState == "error") {

@@ -1564,10 +1564,6 @@ class AppLocalizationsHi extends AppLocalizations {
   String get editorPositionSettings => 'स्थिति की सेटिंग';
 
   @override
-  String get editorImageImportUnavailable =>
-      'चित्र से स्थिति आयात करें (अभी उपलब्ध नहीं)';
-
-  @override
   String get editorShareFen => 'FEN साझा करें';
 
   @override
@@ -1639,4 +1635,54 @@ class AppLocalizationsHi extends AppLocalizations {
   @override
   String get sessionRecovery =>
       'ऐप क्रैश होने का कारण रहे संभावित सत्र को दोबारा खोलने के बजाय Mobile Maia ने होम स्क्रीन खोली है। आपके सहेजे गए खेल और सेटिंग्स सुरक्षित हैं।';
+
+  @override
+  String get saveDevDiagnostics => 'Dev की निदान जानकारी सहेजें…';
+
+  @override
+  String get devDiagnosticsHelp =>
+      'Dev हाल की ऐप गतिविधियों और Grand Kingdom की चालों व बोर्ड संदेशों का विस्तृत रिकॉर्ड इसी डिवाइस पर रखता है। पुराना डेटा अपने आप हटा दिया जाता है। फ़ोटो और ब्लूटूथ पते रिकॉर्ड नहीं किए जाते। कुछ भी अपने आप अपलोड नहीं होता। साझा करना चाहें तभी डेटा एक्सपोर्ट करें।';
+
+  @override
+  String get devDiagnosticsExportFailed =>
+      'Dev की निदान जानकारी सहेजी नहीं जा सकी।';
+
+  @override
+  String get boardPromotionTitle => 'Maia के पदोन्नयन की पुष्टि करें';
+
+  @override
+  String boardPromotionMove(String square, String piece) {
+    return '$square: $piece। प्यादा बदलें।';
+  }
+
+  @override
+  String get boardPromotionHelp =>
+      'मोटर रुकने तक प्रतीक्षा करें। प्यादे को बताई गई गोटी से बदलें और बिसात की पूरी स्थिति का स्क्रीन से मिलान करें। चाल अधूरी है या संदेह है तो ऐप में खेल जारी रखें।';
+
+  @override
+  String get boardPromotionReplaced =>
+      'मोटर रुक गई है, मैंने प्यादा बदल दिया है और सभी गोटियाँ स्क्रीन से मेल खाती हैं।';
+
+  @override
+  String get recentExportGames => 'खेल को निर्यात (एक्सपोर्ट) करें';
+
+  @override
+  String get recentExportTooLarge =>
+      'चुने गए खेल 5 MB की निर्यात सीमा से अधिक हैं। कम खेल चुनें और फिर से प्रयास करें।';
+
+  @override
+  String get recentExportFailed =>
+      'चुने गए खेल निर्यात नहीं किए जा सके। सहेजे गए खेलों में कोई बदलाव नहीं हुआ।';
+
+  @override
+  String get recentDateColumn => 'तारीख';
+
+  @override
+  String get recentGameColumn => 'बाज़ी';
+
+  @override
+  String get recentResultColumn => 'परिणाम';
+
+  @override
+  String get settingsDiagnostics => 'निदान';
 }

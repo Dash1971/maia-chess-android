@@ -1,5 +1,84 @@
 part of '../main.dart';
 
+// Shared by the analysis editor and position-continuation entry points.
+// Both enter the existing continuation dialog and board-lease workflow.
+Future<void> _continueFromPosition(
+  BuildContext context,
+  String fen,
+  List<String> positions, {
+  required bool useMoveHistory,
+  required ElectronicBoardTransport? transport,
+}) async {
+  final preferences = await SharedPreferences.getInstance();
+  if (!context.mounted) return;
+  final defaults = _ContinuationSettings(
+    side: _readValidatedPreference<PlayerSide>(
+      preferences,
+      maiaPlaySidePreferenceKey,
+      fallback: PlayerSide.white,
+      decode: (value) => value is String
+          ? PlayerSide.values.where((side) => side.name == value).firstOrNull
+          : null,
+    ),
+    elo: _readMaiaRatingPreference(
+      preferences,
+      maiaPlayEloPreferenceKey,
+      fallback: 1500,
+    ),
+    timePreset: _readValidatedPreference<TimePreset>(
+      preferences,
+      maiaTimePresetPreferenceKey,
+      fallback: TimePreset.unlimited,
+      decode: (value) => value is String
+          ? TimePreset.values
+                .where((preset) => preset.name == value)
+                .firstOrNull
+          : null,
+    ),
+    customMinutes: _readValidatedPreference<int>(
+      preferences,
+      maiaCustomMinutesPreferenceKey,
+      fallback: 10,
+      decode: (value) =>
+          value is int && value >= 1 && value <= 60 ? value : null,
+    ),
+    customIncrement: _readValidatedPreference<int>(
+      preferences,
+      maiaCustomIncrementPreferenceKey,
+      fallback: 0,
+      decode: (value) =>
+          value is int && value >= 0 && value <= 30 ? value : null,
+    ),
+  );
+  final selection = await showDialog<_ContinuationSettings>(
+    context: context,
+    builder: (context) => _ContinueFromHereDialog(
+      defaults: defaults,
+      transport: transport ?? ChessnutPlatformTransport.instance,
+    ),
+  );
+  if (selection == null) return;
+  if (!context.mounted) {
+    await selection.boardLease?.release(disconnect: true);
+    return;
+  }
+  await Navigator.of(context).push(
+    MaterialPageRoute<void>(
+      builder: (_) => GamePage(
+        startingFen: fen,
+        startingBoardLease: selection.boardLease,
+        startingUseMoveHistory: useMoveHistory,
+        startingPositionHistory: positions,
+        startingSide: selection.side,
+        startingElo: selection.elo,
+        startingTimePreset: selection.timePreset,
+        startingCustomMinutes: selection.customMinutes,
+        startingCustomIncrement: selection.customIncrement,
+      ),
+    ),
+  );
+}
+
 class _ContinuationSettings {
   const _ContinuationSettings({
     required this.side,
@@ -701,75 +780,12 @@ class _AnalysisBoardPageState extends State<AnalysisBoardPage> {
   }
 
   Future<void> _playFrom(String fen, List<String> positions) async {
-    final preferences = await SharedPreferences.getInstance();
-    if (!mounted) return;
-    final defaults = _ContinuationSettings(
-      side: _readValidatedPreference<PlayerSide>(
-        preferences,
-        maiaPlaySidePreferenceKey,
-        fallback: PlayerSide.white,
-        decode: (value) => value is String
-            ? PlayerSide.values.where((side) => side.name == value).firstOrNull
-            : null,
-      ),
-      elo: _readMaiaRatingPreference(
-        preferences,
-        maiaPlayEloPreferenceKey,
-        fallback: 1500,
-      ),
-      timePreset: _readValidatedPreference<TimePreset>(
-        preferences,
-        maiaTimePresetPreferenceKey,
-        fallback: TimePreset.unlimited,
-        decode: (value) => value is String
-            ? TimePreset.values
-                  .where((preset) => preset.name == value)
-                  .firstOrNull
-            : null,
-      ),
-      customMinutes: _readValidatedPreference<int>(
-        preferences,
-        maiaCustomMinutesPreferenceKey,
-        fallback: 10,
-        decode: (value) =>
-            value is int && value >= 1 && value <= 60 ? value : null,
-      ),
-      customIncrement: _readValidatedPreference<int>(
-        preferences,
-        maiaCustomIncrementPreferenceKey,
-        fallback: 0,
-        decode: (value) =>
-            value is int && value >= 0 && value <= 30 ? value : null,
-      ),
-    );
-    final selection = await showDialog<_ContinuationSettings>(
-      context: context,
-      builder: (context) => _ContinueFromHereDialog(
-        defaults: defaults,
-        transport:
-            widget.electronicBoardTransport ??
-            ChessnutPlatformTransport.instance,
-      ),
-    );
-    if (selection == null) return;
-    if (!mounted) {
-      await selection.boardLease?.release(disconnect: true);
-      return;
-    }
-    await Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => GamePage(
-          startingFen: fen,
-          startingBoardLease: selection.boardLease,
-          startingUseMoveHistory: widget.useMoveHistory,
-          startingPositionHistory: positions,
-          startingSide: selection.side,
-          startingElo: selection.elo,
-          startingTimePreset: selection.timePreset,
-          startingCustomMinutes: selection.customMinutes,
-          startingCustomIncrement: selection.customIncrement,
-        ),
-      ),
+    await _continueFromPosition(
+      context,
+      fen,
+      positions,
+      useMoveHistory: widget.useMoveHistory,
+      transport: widget.electronicBoardTransport,
     );
   }
 

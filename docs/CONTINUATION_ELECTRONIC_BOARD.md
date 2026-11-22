@@ -1,8 +1,6 @@
 # Continue from here on an electronic board (#182)
 
-Proposed for Stable 2.5 after Preview beta.10. The owner reported physical
-Chessnut tests passed on 2026-10-27. Stable APK qualification remains pending;
-see [promotion preparation](stable-2.5-preparation.md).
+Preview 2.5 feature. Physical Chessnut acceptance is pending owner testing with the published Preview build.
 
 The existing continuation dialog keeps side, Maia rating and phone time-control
 choices, and adds **Use electronic board** (off on each opening). Selecting it

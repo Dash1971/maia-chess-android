@@ -152,9 +152,7 @@ Widget _recentResultSubtitle(
           if (index > 0)
             TextSpan(
               text: result,
-              style: TextStyle(
-                color: outcome.colorFor(Theme.of(context).brightness),
-              ),
+              style: TextStyle(color: _recentResultColor(context, game)),
             ),
           TextSpan(text: parts[index]),
         ],
@@ -163,6 +161,17 @@ Widget _recentResultSubtitle(
     semanticsLabel: strings.recentGameSummary(description, date),
   );
 }
+
+Color? _recentResultColor(BuildContext context, RecentSession game) =>
+    game.isIncomplete
+    ? Theme.of(context).colorScheme.onSurfaceVariant
+    : game.outcome.colorFor(Theme.of(context).brightness);
+
+String _recentGameDate(BuildContext context, DateTime? date) => date == null
+    ? l10n(context).dateUnknown
+    : '${date.year.toString().padLeft(4, '0')}/'
+          '${date.month.toString().padLeft(2, '0')}/'
+          '${date.day.toString().padLeft(2, '0')}';
 
 /// App-private, transactional files. Each successful write retains the previous
 /// readable checkpoint. Archived games are separate files, not rewritten per move.
@@ -220,7 +229,11 @@ class SessionRepository {
 
   Future<Map<String, dynamic>?> _readFile(File file) async {
     try {
-      final source = await file.readAsString();
+      // A pending write can end halfway through a UTF-8 character. Decode
+      // its bytes explicitly so it follows the malformed-JSON recovery path.
+      final source = file.path.endsWith('.pending')
+          ? utf8.decode(await file.readAsBytes())
+          : await file.readAsString();
       final decoded = await Isolate.run(() => jsonDecode(source));
       if (decoded is Map &&
           decoded.containsKey('version') &&
@@ -326,16 +339,23 @@ class SessionRepository {
     });
   }
 
-  static Map<String, dynamic>? _recentGameData(Object? value) {
+  static Map<String, dynamic>? _recentGameData(
+    Object? value, {
+    bool includeLive = true,
+  }) {
     if (value is! Map) return null;
     final data = Map<String, dynamic>.from(value);
     if (data['type'] == 'review') {
-      return _recentGameData(data['activeGame']);
+      return _recentGameData(data['activeGame'], includeLive: includeLive);
     }
     if (data['type'] != 'game') return null;
     final state = data['recentState'];
-    // Sessions written before recentState existed remain visible and are
-    // labelled from their PGN result. New live checkpoints stay recovery-only.
+    // Freeze the last saved clock when a live game becomes a manual recovery.
+    if (state == 'active') {
+      if (!includeLive) return null;
+      return {...data, 'recentState': 'incomplete', 'clockPaused': true};
+    }
+    // Older saves have no recentState and derive their label from the PGN.
     if (state == null || state == 'incomplete' || state == 'completed') {
       return data;
     }
@@ -384,11 +404,11 @@ class SessionRepository {
     await _deleteArchiveFiles(id);
   });
 
-  Future<List<RecentSession>> recent() => _serial(() async {
+  Future<List<RecentSession>> recent({bool restoreBlocked = false}) => _serial(() async {
     final entries = <String, RecentSession>{};
-    void add(Map<String, dynamic>? envelope) {
+    void add(Map<String, dynamic>? envelope, {bool includeLive = false}) {
       if (envelope == null) return;
-      final data = _recentGameData(envelope['data']);
+      final data = _recentGameData(envelope['data'], includeLive: includeLive);
       if (data == null) return;
       final id = envelope['id'] as String;
       entries[id] = RecentSession(
@@ -416,7 +436,7 @@ class SessionRepository {
         add(await _read(File(name)));
       }
     }
-    add(await _read(_active));
+    add(await _read(_active), includeLive: restoreBlocked);
     return entries.values.toList()..sort((a, b) {
       final day = (b.history.playedOn ?? '').compareTo(
         a.history.playedOn ?? '',
@@ -446,6 +466,21 @@ class SessionRepository {
     await _archive();
     await _write(_active, _withHistory({...entry, 'data': data}));
     return Map<String, dynamic>.from(_detach(data) as Map);
+  });
+
+  /// Export must never call open(), which archives/replaces the active session.
+  Future<String?> readPgnForExport(String id) => _serial(() async {
+    final archive = _archiveFile(id);
+    final active = await _read(_active);
+    final entry =
+        active?['id'] == id && _recentGameData(active?['data']) != null
+        ? active
+        : await _read(archive);
+    if (entry == null || entry['id'] != id) return null;
+    final data = _recentGameData(entry['data']);
+    final session = data?['session'];
+    final pgn = data?['pgn'] ?? (session is Map ? session['pgn'] : null);
+    return pgn is String ? pgn : null;
   });
 
   Future<void> delete(String id) => _serial(() async {
@@ -503,12 +538,14 @@ class RecentGamesPage extends StatefulWidget {
     this.loadGames,
     this.openGame,
     this.deleteGames,
+    this.readPgnForExport,
     super.key,
   });
 
   final Future<List<RecentSession>> Function()? loadGames;
   final Future<Map<String, dynamic>?> Function(String id)? openGame;
   final Future<void> Function(Iterable<String> ids)? deleteGames;
+  final Future<String?> Function(String id)? readPgnForExport;
 
   @override
   State<RecentGamesPage> createState() => _RecentGamesPageState();
@@ -520,6 +557,7 @@ class _RecentGamesPageState extends State<RecentGamesPage> {
   bool _selecting = false;
   bool _busy = false;
   bool _updatingFiles = false;
+  bool _exporting = false;
   final Set<String> _selected = {};
 
   @override
@@ -552,6 +590,60 @@ class _RecentGamesPageState extends State<RecentGamesPage> {
       _selecting = true;
       if (!_selected.add(id)) _selected.remove(id);
     });
+  }
+
+  void _cancelSelection() {
+    if (_busy) return;
+    setState(() {
+      _selecting = false;
+      _selected.clear();
+    });
+  }
+
+  Future<void> _exportSelected({required bool share}) async {
+    if (_busy || _selected.isEmpty) return;
+    // Selection order is irrelevant: use the exact displayed Recent Games order.
+    final ids = [
+      for (final game in _games ?? <RecentSession>[])
+        if (_selected.contains(game.id)) game.id,
+    ];
+    if (ids.isEmpty) return;
+    setState(() {
+      _busy = true;
+      _exporting = true;
+    });
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    try {
+      final pgn = await RecentGamesPgn.export(
+        ids,
+        widget.readPgnForExport ?? ActiveSessionStore.readPgnForExport,
+      );
+      if (!mounted) return;
+      await PgnFiles.export(
+        context,
+        pgn,
+        share: share,
+        failureMessage: l10n(context).recentExportFailed,
+      );
+    } catch (error, stackTrace) {
+      unawaited(
+        AppDiagnostics.record('recent-games-export', error, stackTrace),
+      );
+      if (mounted) {
+        _showOperationError(
+          error is PgnExportTooLarge
+              ? l10n(context).recentExportTooLarge
+              : l10n(context).recentExportFailed,
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _busy = false;
+          _exporting = false;
+        });
+      }
+    }
   }
 
   Future<void> _deleteGames(List<RecentSession> games) async {
@@ -661,22 +753,21 @@ class _RecentGamesPageState extends State<RecentGamesPage> {
     final games = _games;
     final page = Scaffold(
       appBar: AppBar(
-        bottom: _updatingFiles
+        bottom: _updatingFiles || _exporting
             ? PreferredSize(
                 preferredSize: const Size.fromHeight(2),
                 child: LinearProgressIndicator(
                   minHeight: 2,
-                  semanticsLabel: l10n(context).recentUpdating,
+                  semanticsLabel: _exporting
+                      ? l10n(context).recentExportGames
+                      : l10n(context).recentUpdating,
                 ),
               )
             : null,
         leading: _selecting
             ? IconButton(
                 tooltip: l10n(context).recentCancelSelection,
-                onPressed: () => setState(() {
-                  _selecting = false;
-                  _selected.clear();
-                }),
+                onPressed: _cancelSelection,
                 icon: const Icon(Icons.close),
               )
             : null,
@@ -684,21 +775,40 @@ class _RecentGamesPageState extends State<RecentGamesPage> {
           _selecting
               ? l10n(context).recentSelectedCount(_selected.length)
               : l10n(context).recentGames,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
         ),
         actions: [
           if (_selecting && games != null) ...[
+            PopupMenuButton<bool>(
+              key: const ValueKey('export-selected-games'),
+              tooltip: l10n(context).recentExportGames,
+              enabled: _selected.isNotEmpty && !_busy,
+              icon: const Icon(Icons.ios_share_outlined),
+              onSelected: (share) => unawaited(_exportSelected(share: share)),
+              itemBuilder: (_) => [
+                PopupMenuItem(
+                  value: false,
+                  child: Text(l10n(context).savePgnFile),
+                ),
+                PopupMenuItem(value: true, child: Text(l10n(context).sharePgn)),
+              ],
+            ),
             IconButton(
               key: const ValueKey('select-all-games'),
               tooltip: _selected.length == games.length
                   ? l10n(context).recentClearSelection
                   : l10n(context).recentSelectAll,
-              onPressed: () => setState(() {
-                if (_selected.length == games.length) {
-                  _selected.clear();
-                } else {
-                  _selected.addAll(games.map((game) => game.id));
-                }
-              }),
+              onPressed: () {
+                if (_busy) return;
+                setState(() {
+                  if (_selected.length == games.length) {
+                    _selected.clear();
+                  } else {
+                    _selected.addAll(games.map((game) => game.id));
+                  }
+                });
+              },
               icon: const Icon(Icons.select_all),
             ),
             IconButton(
@@ -749,45 +859,246 @@ class _RecentGamesPageState extends State<RecentGamesPage> {
               ),
             );
           }
-          return ListView.builder(
-            itemCount: games.length,
-            itemBuilder: (context, index) {
-              final game = games[index];
-              final date = game.history.playedDate;
-              return ListTile(
-                key: ValueKey('recent-game-${game.id}'),
-                selected: _selected.contains(game.id),
-                leading: _selecting
-                    ? Checkbox(
-                        value: _selected.contains(game.id),
-                        onChanged: (_) => _toggleSelection(game.id),
-                      )
-                    : null,
-                title: Text(game.localizedTitle(context)),
-                subtitle: _recentResultSubtitle(
-                  context,
-                  game,
-                  date == null
-                      ? l10n(context).dateUnknown
-                      : MaterialLocalizations.of(context)
-                            .formatCompactDate(date),
-                ),
-                onTap: () {
-                  if (_busy) return;
-                  if (_selecting) {
-                    _toggleSelection(game.id);
-                    return;
-                  }
-                  unawaited(_openGame(game));
-                },
-                onLongPress: () => _toggleSelection(game.id),
-                trailing: _selecting
-                    ? null
-                    : IconButton(
-                        icon: const Icon(Icons.delete_outline),
-                        tooltip: l10n(context).recentDeleteOne,
-                        onPressed: () => _deleteGames([game]),
+          return LayoutBuilder(
+            builder: (context, constraints) {
+              final strings = l10n(context);
+              final theme = Theme.of(context).textTheme;
+              final dateStyle = theme.bodySmall!.copyWith(
+                fontFeatures: const [ui.FontFeature.tabularFigures()],
+              );
+              final resultStyle = theme.bodyMedium!;
+              double textWidth(String text, TextStyle style) {
+                final painter = TextPainter(
+                  text: TextSpan(text: text, style: style),
+                  textDirection: Directionality.of(context),
+                  textScaler: MediaQuery.textScalerOf(context),
+                  maxLines: 1,
+                )..layout();
+                final width = painter.width.ceilToDouble() + 2;
+                painter.dispose();
+                return width;
+              }
+
+              final dateWidth = [
+                textWidth(strings.recentDateColumn, theme.labelMedium!),
+                textWidth('8888/88/88', dateStyle),
+                if (games.any((game) => game.history.playedDate == null))
+                  textWidth(strings.dateUnknown, dateStyle),
+              ].reduce(max);
+              final resultWidth = [
+                textWidth(strings.recentResultColumn, theme.labelMedium!),
+                for (final label in {
+                  strings.recentIncomplete,
+                  strings.recentCompleted,
+                  '1/2-1/2',
+                })
+                  textWidth(label, resultStyle),
+              ].reduce(max);
+              final minimumGameWidth = MediaQuery.textScalerOf(context)
+                  .scale(96);
+              if (min(constraints.maxWidth, 1100) <
+                  dateWidth +
+                      resultWidth +
+                      minimumGameWidth +
+                      56 +
+                      (_selecting ? 48 : 0)) {
+                return ListView.builder(
+                  key: const PageStorageKey('recent-games-list'),
+                  itemCount: games.length,
+                  itemBuilder: (context, index) {
+                    final game = games[index];
+                    final date = game.history.playedDate;
+                    return ListTile(
+                      key: ValueKey('recent-game-${game.id}'),
+                      selected: _selected.contains(game.id),
+                      leading: _selecting
+                          ? Checkbox(
+                              value: _selected.contains(game.id),
+                              onChanged: (_) => _toggleSelection(game.id),
+                            )
+                          : null,
+                      title: Text(game.localizedTitle(context)),
+                      subtitle: _recentResultSubtitle(
+                        context,
+                        game,
+                        _recentGameDate(context, date),
                       ),
+                      onTap: () {
+                        if (_busy) return;
+                        if (_selecting) {
+                          _toggleSelection(game.id);
+                          return;
+                        }
+                        unawaited(_openGame(game));
+                      },
+                      onLongPress: () => _toggleSelection(game.id),
+                    );
+                  },
+                );
+              }
+              return Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 1100),
+                  child: Column(
+                    children: [
+                      Padding(
+                        key: const ValueKey('recent-table-header'),
+                        padding: const EdgeInsetsDirectional.fromSTEB(
+                          12,
+                          8,
+                          12,
+                          8,
+                        ),
+                        child: DefaultTextStyle(
+                          style: Theme.of(context).textTheme.labelMedium!,
+                          child: Row(
+                            children: [
+                              if (_selecting) const SizedBox(width: 48),
+                              SizedBox(
+                                width: dateWidth,
+                                child: Semantics(
+                                  header: true,
+                                  child: Text(strings.recentDateColumn),
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Semantics(
+                                  header: true,
+                                  child: Text(
+                                    strings.recentGameColumn,
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              SizedBox(
+                                width: resultWidth,
+                                child: Semantics(
+                                  header: true,
+                                  child: Text(
+                                    strings.recentResultColumn,
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const Divider(height: 1),
+                      Expanded(
+                        child: ListView.builder(
+                          key: const PageStorageKey('recent-games-list'),
+                          itemCount: games.length,
+                          itemBuilder: (context, index) {
+                            final game = games[index];
+                            final played = game.history.playedDate;
+                            final date = _recentGameDate(context, played);
+                            final result = game.localizedResult(context);
+                            final description = switch (game.outcome) {
+                              RecentGameOutcome.win => strings.recentWinResult(
+                                result,
+                              ),
+                              RecentGameOutcome.loss =>
+                                strings.recentLossResult(result),
+                              RecentGameOutcome.draw =>
+                                strings.recentDrawResult(result),
+                              _ => result,
+                            };
+                            return Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                ListTile(
+                                  key: ValueKey('recent-game-${game.id}'),
+                                  minTileHeight: 52,
+                                  minVerticalPadding: 4,
+                                  horizontalTitleGap: 16,
+                                  contentPadding:
+                                      const EdgeInsetsDirectional.symmetric(
+                                        horizontal: 12,
+                                      ),
+                                  selected: _selected.contains(game.id),
+                                  leading: SizedBox(
+                                    width: dateWidth + (_selecting ? 48 : 0),
+                                    child: Row(
+                                      children: [
+                                        if (_selecting)
+                                          SizedBox(
+                                            width: 48,
+                                            child: Checkbox(
+                                              value: _selected.contains(
+                                                game.id,
+                                              ),
+                                              onChanged: (_) =>
+                                                  _toggleSelection(game.id),
+                                            ),
+                                          ),
+                                        Expanded(
+                                          child: Text(
+                                            date,
+                                            maxLines: 1,
+                                            softWrap: false,
+                                            style: dateStyle,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  title: Row(
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                          game.localizedTitle(context),
+                                          textAlign: TextAlign.center,
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .bodyMedium,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 16),
+                                      SizedBox(
+                                        width: resultWidth,
+                                        child: Text(
+                                          result,
+                                          textAlign: TextAlign.center,
+                                          maxLines: 1,
+                                          softWrap: false,
+                                          semanticsLabel: description,
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .bodyMedium
+                                              ?.copyWith(
+                                                color: _recentResultColor(
+                                                  context,
+                                                  game,
+                                                ),
+                                              ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  onTap: () {
+                                    if (_busy) return;
+                                    if (_selecting) {
+                                      _toggleSelection(game.id);
+                                    } else {
+                                      unawaited(_openGame(game));
+                                    }
+                                  },
+                                  onLongPress: () => _toggleSelection(game.id),
+                                ),
+                                const Divider(height: 1),
+                              ],
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               );
             },
           );
@@ -795,7 +1106,10 @@ class _RecentGamesPageState extends State<RecentGamesPage> {
       ),
     );
     return PopScope(
-      canPop: !_busy,
+      canPop: !_busy && !_selecting,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop && _selecting) _cancelSelection();
+      },
       child: AbsorbPointer(absorbing: _busy, child: page),
     );
   }

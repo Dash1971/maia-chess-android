@@ -6,15 +6,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maia_chess/main.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import 'fixtures/launch_game.dart';
 import 'fixtures/electronic_board.dart';
+import 'fixtures/immediate_maia_preferences.dart';
 
 void main() {
   String? copiedPgn;
   setUp(() {
-    SharedPreferences.setMockInitialValues({});
+    setImmediateMaiaPreferences({});
     copiedPgn = null;
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(SystemChannels.platform, (call) async {
@@ -37,7 +37,7 @@ void main() {
         testWidgets(
           'premove penalty=$penalty multiple=$multiple unlimited=$unlimited',
           (tester) async {
-            SharedPreferences.setMockInitialValues({
+            setImmediateMaiaPreferences({
               'premovePenalty': penalty,
               'multiplePremoves': multiple,
             });
@@ -93,7 +93,7 @@ void main() {
     testWidgets(
       'queued pieces stay projected through every update, playerWhite=$playerWhite',
       (tester) async {
-        SharedPreferences.setMockInitialValues({'multiplePremoves': true});
+        setImmediateMaiaPreferences({'multiplePremoves': true});
         final maia = ControlledMaia();
         await ActiveSessionStore.save(
           gameRecord(
@@ -192,7 +192,7 @@ void main() {
   testWidgets('Maia mate reveals the real board and cancels projected moves', (
     tester,
   ) async {
-    SharedPreferences.setMockInitialValues({'multiplePremoves': true});
+    setImmediateMaiaPreferences({'multiplePremoves': true});
     final maia = ControlledMaia();
     await ActiveSessionStore.save(
       gameRecord(pgn: '1. f3 e5 2. g4 *', preset: 'unlimited'),
@@ -219,7 +219,7 @@ void main() {
       testWidgets(
         '100ms penalty with $remaining ms, playerWhite=$playerWhite',
         (tester) async {
-          SharedPreferences.setMockInitialValues({
+          setImmediateMaiaPreferences({
             'premovePenalty': true,
             'multiplePremoves': true,
           });
@@ -267,7 +267,7 @@ void main() {
   testWidgets(
     'invalid next premove cancels dependants without penalty or increment',
     (tester) async {
-      SharedPreferences.setMockInitialValues({
+      setImmediateMaiaPreferences({
         'premovePenalty': true,
         'multiplePremoves': true,
       });
@@ -307,7 +307,7 @@ void main() {
     'cancel restores actual position and single mode replaces the previous premove',
     (tester) async {
       for (final multiple in [true, false]) {
-        SharedPreferences.setMockInitialValues({'multiplePremoves': multiple});
+        setImmediateMaiaPreferences({'multiplePremoves': multiple});
         final maia = ControlledMaia();
         await ActiveSessionStore.save(
           gameRecord(playerWhite: false, preset: 'unlimited'),
@@ -549,7 +549,7 @@ void main() {
     testWidgets('$action clears queued premoves and rejects a late old reply', (
       tester,
     ) async {
-      SharedPreferences.setMockInitialValues({
+      setImmediateMaiaPreferences({
         'multiplePremoves': true,
         'premovePenalty': true,
       });
@@ -654,7 +654,7 @@ void main() {
     testWidgets(
       'queued ${scenario.$1} is validated and committed with one charge',
       (tester) async {
-        SharedPreferences.setMockInitialValues({
+        setImmediateMaiaPreferences({
           'multiplePremoves': true,
           'premovePenalty': true,
         });
@@ -871,7 +871,7 @@ void main() {
   testWidgets(
     'mating premove clears later moves without requesting another reply',
     (tester) async {
-      SharedPreferences.setMockInitialValues({
+      setImmediateMaiaPreferences({
         'multiplePremoves': true,
         'premovePenalty': true,
       });
@@ -905,7 +905,7 @@ void main() {
     testWidgets('premove penalty without increment, $remaining ms remains', (
       tester,
     ) async {
-      SharedPreferences.setMockInitialValues({'premovePenalty': true});
+      setImmediateMaiaPreferences({'premovePenalty': true});
       final maia = ControlledMaia();
       await ActiveSessionStore.save(
         gameRecord(playerWhite: false, preset: 'bullet', black: remaining),
@@ -977,7 +977,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(clocks, 0);
       await disposeGame(tester);
-      SharedPreferences.setMockInitialValues({
+      setImmediateMaiaPreferences({
         'multiplePremoves': true,
         'premovePenalty': true,
       });
@@ -1002,7 +1002,7 @@ void main() {
   testWidgets(
     'dragging a projected piece appends a premove without resizing the board',
     (tester) async {
-      SharedPreferences.setMockInitialValues({'multiplePremoves': true});
+      setImmediateMaiaPreferences({'multiplePremoves': true});
       final maia = ControlledMaia();
       await ActiveSessionStore.save(
         gameRecord(playerWhite: false, preset: 'unlimited'),

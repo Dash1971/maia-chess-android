@@ -5,43 +5,45 @@ match: '^Mobile-Maia-v[0-9]+\.[0-9]+\.[0-9]+\.apk$'
 name: Mobile Maia
 # Explicit Markdown: the Android store does not render Fastlane HTML.
 description: |
-  **By Maia fans, for Maia fans.** Mobile Maia is a community project for playing and studying chess with Maia on Android. It will always be free, never show ads, and always remain open source.
+  **By Maia fans, for Maia fans.** Mobile Maia is a free, open-source community project for playing and studying chess with Maia on Android. No ads, subscriptions or daily analysis limits.
 
-  The app uses the human-like Maia-3 79M model from the University of Toronto’s Computational Social Science Lab for play and analysis, alongside Stockfish for comparison and game review. Everything runs locally on your phone, without an account or Internet connection.
-
-  Pick a Maia rating from 600 to 2600, then review your game with Maia and Stockfish to explore what you could have played. There are no subscriptions or daily analysis limits.
+  Maia-3 79M and Stockfish run locally on your phone, without an account or Internet connection. Choose a Maia rating from 600 to 2600 to explore human-like moves; the rating is not a guaranteed playing strength.
 
   **Play at your own pace**
 
-  - Choose your side and play with a clock or without a time limit.
-  - Adjust Maia's move variety and optional human-like pauses. Keep varied openings before switching to your chosen settings.
-  - Take back moves, play rematches and return to saved unfinished games.
+  - Choose your side, time control, takebacks and rematches.
+  - Adjust move variety, opening variety and human move timing. Timing defaults on for new settings; saved choices are preserved.
+  - Recover unfinished games from Recent games, including after opening another game or importing PGN.
 
   **Understand your games**
 
-  - Compare the moves Maia thinks people would play with Stockfish's suggestions. You can compare two Maia ratings side by side.
-  - Review a whole game with an evaluation graph, accuracy scores and move annotations.
-  - Explore variations, edit board positions and continue playing from a position you choose.
-  - Optionally show Maia’s expected score alongside its move probabilities.
+  - Compare two Maia ratings with Stockfish, including move probabilities and optional expected-score estimates.
+  - Run full-game analysis with an evaluation graph, accuracy scores and move annotations.
+  - Keep engine analysis visible while scrolling or jumping through moves.
+  - Resume unfinished analysis after returning to the same open Review screen.
+  - Explore variations, edit positions and continue playing from a position you choose.
 
   **Keep your chess on your phone**
 
-  - Open PGN games or FEN positions, and save or share PGN files with comments and variations.
-  - Browse recent games and look up opening names offline.
-  - Choose from ten interface languages, light or dark themes, system colors and an optional pure-black background.
-  - Customize board colors, piece sets and move aids.
-  - Optionally export Maia’s actual move probabilities and choices in a readable offline report.
+  - Import PGN games or FEN positions and save or share games with supported comments and variations.
+  - Select multiple Recent games and export one PGN collection, up to 5 MiB. Imports remain limited to 2 MiB.
+  - Browse compact game-history rows and return from saved games without losing your list position.
+  - Use larger landscape boards and adaptive layouts on wider screens.
+  - Choose from ten interface languages, light/dark themes, system colors, a pure-black background, board designs, piece sets and move aids.
+  - Optionally export Maia's move probabilities and choices as a readable offline report.
 
-  **Experimental Chessnut support**
+  **Electronic-board play**
 
-  Chessnut Air and Go boards can connect over Bluetooth for untimed games, including continuing from an analysis position. Lights guide piece setup and show Maia's moves. Other Chessnut models have not been confirmed.
+  Chessnut Air and Go connect over Bluetooth for untimed games; lights guide setup and Maia's moves. You can also continue from an analysis position on Chessnut.
 
-  On Android 11 and older, connecting a Chessnut board requires location permission to scan for Bluetooth devices. Mobile Maia does not use it to determine your location. Android 12 and newer use Nearby devices permissions instead. On-screen chess does not need location permission.
+  Square Off Grand Kingdom is supported for untimed games from the standard position. Maia promotions require physical piece replacement and confirmation. Interrupted motor movement and takebacks use phone continuation. DGT Pegasus is not available in Stable.
 
-  Mobile Maia works entirely offline, with zero telemetry: no analytics, tracking, or data sent to servers. Your games and analysis stay on your device unless you choose to export or share them.
+  On Android 11 and older, Bluetooth board discovery needs location permission; the app does not use it to determine your location. Android 12 and newer use Nearby devices permissions. On-screen chess needs neither.
+
+  Mobile Maia has no telemetry, analytics or tracking. Games and analysis stay on your device unless you choose to export or share them. Camera/image board recognition is not included.
 
   **Before you download**
 
-  The download is several hundred megabytes because the Maia-3 79M model is included for offline use. Maia's rating setting guides the human moves it predicts; it is not a guaranteed playing strength.
+  The download is several hundred megabytes because the Maia-3 79M model is bundled for offline use.
 
-  Mobile Maia is an independent community project, licensed under AGPL-3.0-only. It uses the Maia-3 79M model from the University of Toronto’s Computational Social Science Lab and Stockfish. Its chess interface and app development philosophy are informed by Lichess. Game Review’s move-classification and sacrifice-detection logic is adapted from En Croissant. It is not an official Maia Chess, University of Toronto CSSLab, Lichess, Stockfish, En Croissant or Chessnut app.
+  Mobile Maia is an independent community project under AGPL-3.0-only. It uses Maia-3 from the University of Toronto's Computational Social Science Lab and Stockfish. Its interface and development philosophy are informed by Lichess. Review classification and sacrifice heuristics are adapted from En Croissant. It is not an official Maia Chess, University of Toronto CSSLab, Lichess, Stockfish, En Croissant, Chessnut or Square Off app.

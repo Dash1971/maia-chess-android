@@ -1,5 +1,8 @@
 part of '../main.dart';
 
+// Preview 2.6: apply only when no valid saved choice exists, and on explicit reset.
+const defaultHumanMoveTiming = true;
+
 /// Total move-time target, including inference. A null initial time is Unlimited.
 /// Use the configured time control, never the remaining clock, to select a tier.
 Duration sampleHumanMoveTime(

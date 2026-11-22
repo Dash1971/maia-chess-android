@@ -35,5 +35,7 @@ unzip -q "$task_dir/compiler.zip" -d "$task_dir/compiler"
   "$repo_root/android/native_test/SamplingDocumentSnapshotTest.kt" \
   "$repo_root/android/app/src/main/kotlin/com/dash1971/maia_chess/SessionRecoveryPolicy.kt" \
   "$repo_root/android/native_test/SessionRecoveryPolicyTest.kt" \
+  "$repo_root/android/app/src/main/kotlin/com/dash1971/maia_chess/DevTraceStore.kt" \
+  "$repo_root/android/native_test/DevTraceStoreTest.kt" \
   -include-runtime -d "$task_dir/native-checks.jar"
 java -jar "$task_dir/native-checks.jar"

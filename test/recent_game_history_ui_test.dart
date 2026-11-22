@@ -31,13 +31,11 @@ void main() {
       await tester.pumpAndSettle();
       final context = tester.element(find.byType(RecentGamesPage));
       final strings = AppLocalizations.of(context)!;
-      final day = MaterialLocalizations.of(context)
-          .formatCompactDate(DateTime.utc(2020, 2, 29));
-      expect(find.text(strings.recentGameSummary('1-0', day)), findsOneWidget);
-      expect(
-        find.text(strings.recentGameSummary('0-1', strings.dateUnknown)),
-        findsOneWidget,
-      );
+      const day = '2020/02/29';
+      expect(find.text(day), findsOneWidget);
+      expect(find.text(strings.dateUnknown), findsOneWidget);
+      expect(find.text('1-0'), findsOneWidget);
+      expect(find.text('0-1'), findsOneWidget);
       expect(find.textContaining('2035'), findsNothing);
       expect(tester.takeException(), isNull);
     });

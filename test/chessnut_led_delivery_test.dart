@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maia_chess/main.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'fixtures/immediate_maia_preferences.dart';
 
 Map<String, String> _after(chess.Chess game, String uci) {
   final next = chess.Chess.fromFEN(game.fen);
@@ -179,7 +179,7 @@ void main() {
   testWidgets('delayed clear must not erase a newer pending Maia move', (
     tester,
   ) async {
-    SharedPreferences.setMockInitialValues({});
+    setImmediateMaiaPreferences({});
     final board = _FakeElectronicBoard();
     final pendingMaia = Completer<Float32List>();
     final policy = Float32List(4352)..fillRange(0, 4352, -100);
@@ -247,7 +247,7 @@ void main() {
   testWidgets('unchanged guidance must not be resent before refresh', (
     tester,
   ) async {
-    SharedPreferences.setMockInitialValues({});
+    setImmediateMaiaPreferences({});
     final board = _FakeElectronicBoard();
     final policy = Float32List(4352)..fillRange(0, 4352, -100);
     policy[MaiaEncoding.moveIndex('e7e5', true)] = 100;

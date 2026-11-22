@@ -97,6 +97,19 @@ void main() {
         find.byKey(const ValueKey('maia-score-secondary')),
         findsOneWidget,
       );
+      final engineToggle = find.byKey(const ValueKey('analysis-engine-toggle'));
+      await tester.tap(engineToggle);
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey('maia-score-primary')), findsNothing);
+      expect(find.byKey(const ValueKey('maia-score-secondary')), findsNothing);
+      expect(controller.enabled, isTrue);
+      await tester.tap(engineToggle);
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey('maia-score-primary')), findsOneWidget);
+      expect(
+        find.byKey(const ValueKey('maia-score-secondary')),
+        findsOneWidget,
+      );
       await tester.tap(find.byKey(const ValueKey('maia-score-details')));
       await tester.pumpAndSettle();
       expect(find.text('Maia score'), findsOneWidget);

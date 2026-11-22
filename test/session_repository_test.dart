@@ -47,6 +47,20 @@ void main() {
     },
   );
 
+  test('truncated UTF-8 in pending does not hide or block a saved game', () async {
+    const game = {'type': 'game', 'pgn': '1. e4 *'};
+    await store.save(game);
+    final pending = File('${directory.path}/active.json.pending');
+    await pending.writeAsBytes([...utf8.encode('{"name":"'), 0xe3, 0x81]);
+    final restarted = SessionRepository(directory);
+    expect(await restarted.load(), game);
+    expect((await restarted.recent()).single.data, game);
+    const updated = {'type': 'game', 'pgn': '1. e4 e5 *'};
+    await restarted.save(updated);
+    expect(await SessionRepository(directory).load(), updated);
+    expect(await pending.exists(), isFalse);
+  });
+
   test(
     'analysis sessions are excluded while games remain reopenable',
     () async {
@@ -62,7 +76,7 @@ void main() {
     },
   );
 
-  test('live checkpoints restore but do not appear in Recent games', () async {
+  test('replacing a live checkpoint keeps it as an incomplete game', () async {
     await store.save({
       'type': 'game',
       'recentState': 'active',
@@ -72,7 +86,11 @@ void main() {
     expect((await store.load())!['pgn'], contains('e4'));
     expect(await store.recent(), isEmpty);
     await store.startNew();
-    expect(await store.recent(), isEmpty);
+    await store.save({'type': 'analysis', 'pgn': '1. d4 *'});
+    final restarted = SessionRepository(directory);
+    final game = (await restarted.recent()).single;
+    expect(game.isIncomplete, isTrue);
+    expect((await restarted.open(game.id))!['pgn'], contains('e4'));
   });
 
   test('incomplete games convert to completed without duplication', () async {
@@ -304,8 +322,10 @@ void main() {
 
       expect(find.text('Player — Maia 500'), findsOneWidget);
       expect(find.text('Player — Maia 1500'), findsOneWidget);
-      expect(find.textContaining('Incomplete · 09/05/2026'), findsOneWidget);
-      expect(find.textContaining('1-0 · 09/04/2026'), findsOneWidget);
+      expect(find.text('Incomplete'), findsOneWidget);
+      expect(find.text('2026/09/05'), findsOneWidget);
+      expect(find.text('1-0'), findsOneWidget);
+      expect(find.text('2026/09/04'), findsOneWidget);
       await tester.tap(find.byKey(const ValueKey('recent-games-menu')));
       await tester.pumpAndSettle();
       expect(find.text('Delete all games'), findsOneWidget);

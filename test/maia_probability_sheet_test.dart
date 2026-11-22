@@ -12,6 +12,7 @@ void main() {
       const Size(360, 720),
       const Size(320, 568),
       const Size(1200, 800),
+      const Size(1600, 800),
     ]) {
       for (final scale in [1.0, 1.6, 2.0]) {
         testWidgets(
@@ -78,7 +79,7 @@ void main() {
                 reason: 'Wrapped entries stay inside the shared move column',
               );
             }
-            if (scale == 1 && size.width == 1200) {
+            if (scale == 1 && size.width == 1600) {
               final labels = find.descendant(
                 of: line,
                 matching: find.byType(RichText),

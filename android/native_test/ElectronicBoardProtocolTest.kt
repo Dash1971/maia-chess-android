@@ -4,9 +4,10 @@ private fun bytes(vararg values: Int) = values.map { it.toByte() }.toByteArray()
 private fun rejects(block: () -> Unit) { check(runCatching(block).isFailure) }
 
 fun main() {
+    testDevTraceStore()
     sessionRecoveryPolicyTests()
     samplingShareFilesChecks()
-    for (flavor in listOf("preview", "", "stable", "production")) {
+    for (flavor in listOf("production", "unknown")) {
         check(BoardChannelPolicy.supports(flavor, "chessnut"))
         check(!BoardChannelPolicy.supports(flavor, "pegasus"))
         check(!BoardChannelPolicy.supports(flavor, "squareOff"))
@@ -14,6 +15,28 @@ fun main() {
         check(BoardChannelPolicy.discover(flavor, "Square Off") == null)
         check(BoardChannelPolicy.discover(flavor, "Chessnut Go") == "chessnut")
         check(BoardChannelPolicy.discover(flavor, "Smart Chess") == "chessnut")
+    }
+    for (flavor in listOf("", "stable", "preview")) {
+        check(BoardChannelPolicy.supports(flavor, "chessnut"))
+        check(BoardChannelPolicy.supports(flavor, "squareOff"))
+        check(!BoardChannelPolicy.supports(flavor, "pegasus"))
+        check(BoardChannelPolicy.discover(flavor, "Square Off") == "squareOff")
+        check(BoardChannelPolicy.discover(flavor, "DGT Pegasus") == null)
+        check(BoardChannelPolicy.discover(flavor, "Square Off Pro") == null)
+    }
+    check(BoardChannelPolicy.supports("preview", "chessnut"))
+    check(BoardChannelPolicy.discover("preview", "Square Off") == "squareOff")
+    check(BoardChannelPolicy.discover("preview", "DGT Pegasus") == null)
+    check(!BoardChannelPolicy.supports("preview", "pegasus"))
+    check(BoardChannelPolicy.discover("preview", "Square Off Pro") == null)
+    for (flavor in listOf("preview", "dev", "", "stable", "production", "unknown")) {
+        val allowed = flavor in setOf("", "stable", "preview", "dev")
+        check(BoardChannelPolicy.permitsMotorCommand(flavor, "squareOff", true, "live", "live") == allowed)
+        check(!BoardChannelPolicy.permitsMotorCommand(flavor, "squareOff", false, "live", "live"))
+        check(!BoardChannelPolicy.permitsMotorCommand(flavor, "squareOff", true, "old", "live"))
+        check(!BoardChannelPolicy.permitsMotorCommand(flavor, "squareOff", true, null, "live"))
+        check(!BoardChannelPolicy.permitsMotorCommand(flavor, "pegasus", true, "live", "live"))
+        check(!BoardChannelPolicy.supports(flavor, "unknown"))
     }
     check(BoardChannelPolicy.discover("dev", "DGT Pegasus") == "pegasus")
     check(BoardChannelPolicy.discover("dev", "Square Off") == "squareOff")

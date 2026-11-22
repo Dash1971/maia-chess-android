@@ -1574,10 +1574,6 @@ class AppLocalizationsPt extends AppLocalizations {
   String get editorPositionSettings => 'Configurações da posição';
 
   @override
-  String get editorImageImportUnavailable =>
-      'Importar posição de imagem (ainda indisponível)';
-
-  @override
   String get editorShareFen => 'Compartilhar FEN';
 
   @override
@@ -1649,4 +1645,54 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get sessionRecovery =>
       'O Mobile Maia abriu a tela inicial para evitar reabrir uma sessão que pode ter causado uma falha. Suas partidas salvas e configurações foram mantidas.';
+
+  @override
+  String get saveDevDiagnostics => 'Salvar diagnóstico do Dev…';
+
+  @override
+  String get devDiagnosticsHelp =>
+      'O Dev registra neste dispositivo os eventos recentes do aplicativo e os detalhes dos lances e das mensagens do tabuleiro Grand Kingdom. Os dados antigos são excluídos automaticamente. Fotos e endereços Bluetooth não são registrados. Nada é enviado automaticamente. Exporte os dados apenas se quiser compartilhá-los.';
+
+  @override
+  String get devDiagnosticsExportFailed =>
+      'Não foi possível salvar o diagnóstico do Dev.';
+
+  @override
+  String get boardPromotionTitle => 'Confirmar promoção de Maia';
+
+  @override
+  String boardPromotionMove(String square, String piece) {
+    return '$square: $piece. Substitua o peão.';
+  }
+
+  @override
+  String get boardPromotionHelp =>
+      'Espere os motores pararem. Substitua o peão pela peça indicada e confira se toda a posição física corresponde à tela. Se o movimento estiver incompleto ou houver dúvida, continue a partida no aplicativo.';
+
+  @override
+  String get boardPromotionReplaced =>
+      'Os motores estão parados, substituí o peão e todas as peças correspondem.';
+
+  @override
+  String get recentExportGames => 'Exportar partidas';
+
+  @override
+  String get recentExportTooLarge =>
+      'As partidas selecionadas ultrapassam o limite de exportação de 5 MB. Selecione menos partidas e tente novamente.';
+
+  @override
+  String get recentExportFailed =>
+      'Não foi possível exportar as partidas selecionadas. As partidas salvas não foram alteradas.';
+
+  @override
+  String get recentDateColumn => 'Data';
+
+  @override
+  String get recentGameColumn => 'Partida';
+
+  @override
+  String get recentResultColumn => 'Resultado';
+
+  @override
+  String get settingsDiagnostics => 'Diagnóstico';
 }

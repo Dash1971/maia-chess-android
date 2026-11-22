@@ -67,6 +67,7 @@ or offline PWA.
 - [Why the 79M model?](#why-the-79m-model)
 - [Community](#community)
 - [Download and install](#download-and-install)
+- [Planned Mobile Maia 2.6](#planned-mobile-maia-26)
 - [Mobile Maia 2.5](#mobile-maia-25)
 - [Feature guide](#feature-guide)
 - [Google Play, iPhone, and forks](#availability-and-forks)
@@ -75,6 +76,28 @@ or offline PWA.
 - [Re-export Maia-3](#re-export-maia-3)
 - [Credits and attributions](#credits-and-attributions)
 - [Licensing](#licensing)
+
+## Planned Mobile Maia 2.6
+
+The [Stable 2.6 promotion draft](docs/stable-2.6-preparation.md) brings the current
+Preview improvements into the blue-icon app. It is not built or published yet;
+Stable 2.5.1 remains the current download.
+
+- **Grand Kingdom support.** Play untimed games from the standard position on a Square Off Grand Kingdom, including assisted Maia promotion. Chessnut Air and Go remain supported.
+- **More room for chess.** Larger landscape boards and adaptive wide Home/Settings layouts. Engine output stays visible while moves scroll independently; holding either arrow reveals the beginning or end in portrait and landscape.
+- **Better Recent games.** Compact Date/Game/Result rows, yyyy/MM/dd dates and clear Incomplete labels. Back cancels selection first, and saved-game Back restores the same browsing position.
+- **PGN collections.** Long-press a Recent games entry or choose Select games, select individual games or Select all, then Export games to save or share one PGN. The export limit is 5 MiB; imports remain 2 MiB. Oversized/unreadable selections retain your selection and never produce a partial collection.
+- **Safer recovery and analysis resume.** Interrupted games remain in Recent games when another game or PGN is opened; damaged temporary saves recover the committed game. Unfinished computer analysis resumes on returning to the same open Review page after backgrounding or screen coverage.
+- **Human move timing on by default.** New settings and Settings reset enable timing; a saved off choice remains off.
+
+Grand Kingdom setup requires the standard position; promotion needs replacement
+confirmation, and interrupted movement/takebacks use phone continuation. DGT
+Pegasus, automatic Dev diagnostics and camera/image recognition are not enabled
+in Stable. No new model, cloud service or account is introduced.
+
+[Draft release notes](docs/release-notes/v2.6.0.md) describe the final proposed
+behavior. Builds, changed Stable screenshots and release qualification remain
+pending; the existing 2.5 images below are not presented as 2.6 captures.
 
 ## Mobile Maia 2.5
 
@@ -427,7 +450,7 @@ automatically; multiple candidates open a chooser. Connection messages identify
 the board. The board's NEW GAME button opens the reset warning; a second press
 within 2.5 seconds confirms it. The game stays on screen, keeps the colors and
 waits for the LED-guided physical setup before starting again. The double-press NEW GAME Chessnut e-board behavior was inspired by [MoveAPiece](https://github.com/egdels/moveapiece) by [egdels](https://github.com/egdels).
-DGT Pegasus and Square Off Grand Kingdom remain blocked in Stable pending separate acceptance.
+The Stable 2.6 draft also enables Square Off Grand Kingdom for untimed standard-position games, with assisted promotion and phone recovery. DGT Pegasus remains Dev-only.
 
 Reconnect keeps the game and verifies the physical position before play
 continues. Pending Maia and takeback lights are restored. **Play in app** moves
@@ -559,7 +582,7 @@ board** to connect to or reuse a Chessnut board; choose **Set up board** after
 connection. Board continuation is untimed and waits for the physical pieces to
 match the full selected position. Turning the option off restores the chosen
 phone clock. Cancel preserves analysis; Retry handles a failed connection.
-DGT Pegasus and Square Off Grand Kingdom are not enabled by this feature.
+This custom-position continuation workflow remains Chessnut-only. Grand Kingdom 2.6 support starts from the standard position; DGT Pegasus remains Dev-only.
 
 ### Save and share analysis
 

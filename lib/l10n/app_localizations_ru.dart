@@ -1588,10 +1588,6 @@ class AppLocalizationsRu extends AppLocalizations {
   String get editorPositionSettings => 'Настройки позиции';
 
   @override
-  String get editorImageImportUnavailable =>
-      'Импорт позиции из изображения (пока недоступен)';
-
-  @override
   String get editorShareFen => 'Поделиться FEN';
 
   @override
@@ -1663,4 +1659,54 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get sessionRecovery =>
       'Mobile Maia открыл главный экран, чтобы не открывать повторно сеанс, который мог вызвать сбой. Сохранённые партии и настройки не удалены.';
+
+  @override
+  String get saveDevDiagnostics => 'Сохранить диагностику Dev…';
+
+  @override
+  String get devDiagnosticsHelp =>
+      'Dev записывает на этом устройстве недавние события приложения, а также подробности ходов и сообщений доски Grand Kingdom. Старые данные удаляются автоматически. Фотографии и адреса Bluetooth не записываются. Автоматической отправки нет. Экспортируйте данные, только если хотите ими поделиться.';
+
+  @override
+  String get devDiagnosticsExportFailed =>
+      'Не удалось сохранить диагностику Dev.';
+
+  @override
+  String get boardPromotionTitle => 'Подтвердить превращение пешки Maia';
+
+  @override
+  String boardPromotionMove(String square, String piece) {
+    return '$square: $piece. Замените пешку.';
+  }
+
+  @override
+  String get boardPromotionHelp =>
+      'Дождитесь остановки моторов. Замените пешку указанной фигурой и сверьте всю позицию на доске с экраном. Если движение не завершено или вы не уверены, продолжите партию в приложении.';
+
+  @override
+  String get boardPromotionReplaced =>
+      'Моторы остановлены, пешка заменена, все фигуры соответствуют экрану.';
+
+  @override
+  String get recentExportGames => 'Скачать игры';
+
+  @override
+  String get recentExportTooLarge =>
+      'Выбранные партии превышают ограничение экспорта в 5 МБ. Выберите меньше партий и повторите попытку.';
+
+  @override
+  String get recentExportFailed =>
+      'Не удалось экспортировать выбранные партии. Сохранённые партии не изменены.';
+
+  @override
+  String get recentDateColumn => 'Дата';
+
+  @override
+  String get recentGameColumn => 'Партия';
+
+  @override
+  String get recentResultColumn => 'Результат';
+
+  @override
+  String get settingsDiagnostics => 'Диагностика';
 }

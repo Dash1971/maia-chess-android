@@ -1567,10 +1567,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get editorPositionSettings => 'Réglages de la position';
 
   @override
-  String get editorImageImportUnavailable =>
-      'Importer une position depuis une image (pas encore disponible)';
-
-  @override
   String get editorShareFen => 'Partager la FEN';
 
   @override
@@ -1642,4 +1638,54 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get sessionRecovery =>
       'Mobile Maia a ouvert l’accueil pour éviter de rouvrir une session qui a pu provoquer un plantage. Vos parties enregistrées et vos réglages ont été conservés.';
+
+  @override
+  String get saveDevDiagnostics => 'Enregistrer les données de diagnostic Dev…';
+
+  @override
+  String get devDiagnosticsHelp =>
+      'Dev enregistre sur cet appareil les événements récents de l’application ainsi que les détails des coups et des messages du plateau Grand Kingdom. Les anciennes données sont supprimées automatiquement. Les photos et les adresses Bluetooth ne sont pas enregistrées. Aucun envoi automatique n’est effectué. N’exportez les données que si vous souhaitez les partager.';
+
+  @override
+  String get devDiagnosticsExportFailed =>
+      'Impossible d’enregistrer les données de diagnostic Dev.';
+
+  @override
+  String get boardPromotionTitle => 'Confirmer la promotion de Maia';
+
+  @override
+  String boardPromotionMove(String square, String piece) {
+    return '$square : $piece. Remplacez le pion.';
+  }
+
+  @override
+  String get boardPromotionHelp =>
+      'Attendez l’arrêt des moteurs. Remplacez le pion par la pièce indiquée et vérifiez que toute la position physique correspond à l’écran. Si le mouvement est incomplet ou incertain, poursuivez la partie dans l’application.';
+
+  @override
+  String get boardPromotionReplaced =>
+      'Les moteurs sont arrêtés, j’ai remplacé le pion et toutes les pièces correspondent.';
+
+  @override
+  String get recentExportGames => 'Exporter les parties';
+
+  @override
+  String get recentExportTooLarge =>
+      'Les parties sélectionnées dépassent la limite d’exportation de 5 Mo. Sélectionnez moins de parties et réessayez.';
+
+  @override
+  String get recentExportFailed =>
+      'Impossible d’exporter les parties sélectionnées. Les parties enregistrées n’ont pas été modifiées.';
+
+  @override
+  String get recentDateColumn => 'Date de jeu';
+
+  @override
+  String get recentGameColumn => 'Partie';
+
+  @override
+  String get recentResultColumn => 'Résultat';
+
+  @override
+  String get settingsDiagnostics => 'Diagnostic';
 }

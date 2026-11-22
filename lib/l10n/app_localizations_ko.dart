@@ -1461,9 +1461,6 @@ class AppLocalizationsKo extends AppLocalizations {
   String get editorPositionSettings => '포지션 설정';
 
   @override
-  String get editorImageImportUnavailable => '이미지에서 포지션 가져오기 (아직 사용할 수 없음)';
-
-  @override
   String get editorShareFen => 'FEN 공유';
 
   @override
@@ -1534,4 +1531,51 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String get sessionRecovery =>
       '충돌을 일으켰을 수 있는 세션을 다시 열지 않고 홈 화면을 열었습니다. 저장된 대국과 설정은 유지됩니다.';
+
+  @override
+  String get saveDevDiagnostics => 'Dev 진단 정보 저장…';
+
+  @override
+  String get devDiagnosticsHelp =>
+      'Dev는 최근 앱 동작과 Grand Kingdom의 수 및 보드 통신 세부 정보를 이 기기에 기록합니다. 오래된 데이터는 자동으로 삭제됩니다. 사진과 블루투스 주소는 기록하지 않으며 자동으로 업로드하지 않습니다. 공유하려는 경우에만 내보내세요.';
+
+  @override
+  String get devDiagnosticsExportFailed => 'Dev 진단 정보를 저장하지 못했습니다.';
+
+  @override
+  String get boardPromotionTitle => 'Maia의 승격 확인';
+
+  @override
+  String boardPromotionMove(String square, String piece) {
+    return '$square: $piece. 폰을 교체하세요.';
+  }
+
+  @override
+  String get boardPromotionHelp =>
+      '모터가 멈출 때까지 기다리세요. 폰을 지정된 기물로 교체하고 실제 체스판의 모든 기물이 화면과 일치하는지 확인하세요. 이동이 끝나지 않았거나 확실하지 않으면 앱에서 대국을 계속하세요.';
+
+  @override
+  String get boardPromotionReplaced => '모터가 멈췄고 폰을 교체했으며 모든 기물이 화면과 일치합니다.';
+
+  @override
+  String get recentExportGames => '대국 저장하기';
+
+  @override
+  String get recentExportTooLarge =>
+      '선택한 대국이 5 MB 내보내기 제한을 초과합니다. 대국을 더 적게 선택한 후 다시 시도하세요.';
+
+  @override
+  String get recentExportFailed => '선택한 대국을 내보낼 수 없습니다. 저장된 대국은 변경되지 않았습니다.';
+
+  @override
+  String get recentDateColumn => '날짜';
+
+  @override
+  String get recentGameColumn => '대국';
+
+  @override
+  String get recentResultColumn => '결과';
+
+  @override
+  String get settingsDiagnostics => '진단';
 }

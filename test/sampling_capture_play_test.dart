@@ -14,6 +14,7 @@ import 'package:maia_chess/main.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'support/sampling_replay.dart';
+import 'fixtures/immediate_maia_preferences.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -23,7 +24,7 @@ void main() {
   var calls = 0;
   setUp(() async {
     MaiaInferenceQueue.resetForTesting();
-    SharedPreferences.setMockInitialValues({
+    setImmediateMaiaPreferences({
       'temperatureV2': 0.0,
       'maxOpeningVarietyV1': false,
       'topPV2': 0.0,

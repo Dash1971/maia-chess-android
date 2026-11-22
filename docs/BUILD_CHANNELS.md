@@ -1,26 +1,30 @@
 # Build channels and promotion status
 
-Updated 2026-10-27. Release pages are authoritative for published artifacts;
-source on a branch alone is not an installed release. Each release PR records
-its exact source SHA, tests, hashes, signing identity and remaining limitations.
+Updated 22 November 2026. Release pages are authoritative for published artifacts;
+a promotion branch is not an installed release.
 
-| Channel | Version / status | Package and model | Scope |
+| Channel | Published version | Package / model | Current scope |
 | --- | --- | --- | --- |
-| [Stable](https://github.com/Dash1971/maia-chess-android/releases) | [2.4.0/code 81 published on GitHub](https://github.com/Dash1971/maia-chess-android/releases/tag/v2.4.0); see [store status](https://github.com/Dash1971/maia-chess-android/pull/54#issuecomment-6233972011) | `com.dash1971.maia_chess`, 79M | Production app; use Stable's release guide for GitHub, Zapstore and F-Droid. |
-| [Preview](https://github.com/Dash1971/maia-chess-android-preview/releases) | Published [2.5.0-beta.10](https://github.com/Dash1971/maia-chess-android-preview/releases/tag/v2.5.0-beta.10), code 2510 | `com.dash1971.maia_chess.preview`, 79M | 2.5 appearance, board/editor, Maia score and Chessnut continuation features. Grand Kingdom and DGT are disabled. |
-| [Dev](https://github.com/Dash1971/maia-chess-android-preview-dev/releases/tag/v2.4.0-alpha.2-dev) | Published 2.4.0-alpha.2-dev, code 2402 | `com.dash1971.maia_chess.preview.dev`, 5M | Prototype Grand Kingdom/DGT work remains here. This release retains the previous, longer history subtitle. |
+| Stable | [2.5.1 / code 83](https://github.com/Dash1971/maia-chess-android/releases/tag/v2.5.1) | `com.dash1971.maia_chess`, blue icon, 79M | Published app. The proposed 2.6.0 / code 84 promotion is separate below. |
+| Preview | [2.6.0-beta.10 / code 2610](https://github.com/Dash1971/maia-chess-android-preview/releases/tag/v2.6.0-beta.10) | `com.dash1971.maia_chess.preview`, gold icon, 79M | Current 2.6 app changes; Grand Kingdom experimental, Pegasus blocked. |
+| Dev | [2.6.0-alpha.2-dev](https://github.com/Dash1971/maia-chess-android-preview-dev/releases) | `com.dash1971.maia_chess.preview.dev`, red icon, 5M | Separate development feed; Pegasus prototype and automatic local diagnostics remain Dev-only. |
 
-The three packages install side by side. Obtainium users should select the
-intended repository and enable prereleases for Preview/Dev. Installing Preview
-does not upgrade Dev or transfer its saved games/preferences. Existing Preview
-installations update in place using the established Preview certificate.
+The packages install side by side with separate games/settings. Preview does not
+upgrade Stable or transfer its saved data. Stable upgrades preserve Stable's own
+package/signing identity.
 
-## Stable 2.5 preparation
+## Stable 2.6 promotion draft
 
-2.5.0/code 82 is proposed for review, not built or published. The owner reported
-Chessnut testing passed on Preview beta.10. See [promotion scope and remaining
-release checks](stable-2.5-preparation.md). Stable 2.4.0 remains the published
-release until a separately authorized, fully qualified publication.
+[Promotion scope and pending checks](stable-2.6-preparation.md) and [draft release
+notes](release-notes/v2.6.0.md) propose 2.6.0 / code 84. Grand Kingdom is enabled
+in Dart and native Stable/unflavored policies. DGT remains Dev-only; unknown
+channel strings remain blocked. The 79M model, blue identity, canonical Linux /
+F-Droid qualification and Stable publication gates are retained.
+
+No build, Actions run, signing, tag or publication is part of this draft. Fresh
+Stable screenshots and exact-source qualification are pending. Historical
+publication/acceptance notes below describe their original channel and date;
+they do not override this current promotion scope.
 
 ## Release instructions
 

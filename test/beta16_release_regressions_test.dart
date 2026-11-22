@@ -6,13 +6,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maia_chess/main.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import 'fixtures/launch_game.dart';
+import 'fixtures/immediate_maia_preferences.dart';
 
 void main() {
   setUp(() {
-    SharedPreferences.setMockInitialValues({});
+    setImmediateMaiaPreferences({});
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(maiaEngineChannel, (_) async => null);
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger

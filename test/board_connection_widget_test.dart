@@ -3,11 +3,10 @@ import 'dart:typed_data';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maia_chess/main.dart';
 import 'package:maia_chess/l10n/app_localizations.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'fixtures/immediate_maia_preferences.dart';
 
 class DiscoveryBoard implements DiscoverableBoardTransport {
   final controller = StreamController<ElectronicBoardEvent>.broadcast(
@@ -128,20 +127,10 @@ class MotorCheckpointRepository extends SessionRepository {
 }
 
 void main() {
-  group(
-    'Dev prototype board flows',
-    devBoardTests,
-    skip: appFlavor != 'dev'
-        ? 'Run with --flavor dev; Stable rejection is tested separately.'
-        : false,
-  );
-}
-
-void devBoardTests() {
   TestWidgetsFlutterBinding.ensureInitialized();
   late DiscoveryBoard board;
   setUp(() {
-    SharedPreferences.setMockInitialValues({});
+    setImmediateMaiaPreferences({});
     board = DiscoveryBoard();
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(maiaEngineChannel, (_) async => null);

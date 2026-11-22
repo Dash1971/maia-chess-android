@@ -1544,10 +1544,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get editorPositionSettings => 'Position settings';
 
   @override
-  String get editorImageImportUnavailable =>
-      'Import position from image (not yet available)';
-
-  @override
   String get editorShareFen => 'Share FEN';
 
   @override
@@ -1618,4 +1614,53 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get sessionRecovery =>
       'Mobile Maia opened Home to avoid reopening a session that may have caused a crash. Your saved games and settings have been kept.';
+
+  @override
+  String get saveDevDiagnostics => 'Save Dev diagnostics…';
+
+  @override
+  String get devDiagnosticsHelp =>
+      'Dev records recent app events and detailed Grand Kingdom moves and board messages on this device. Older data is removed automatically. Photos and Bluetooth addresses are not recorded. Nothing is uploaded automatically. Export only if you want to share it.';
+
+  @override
+  String get devDiagnosticsExportFailed => 'Could not save Dev diagnostics.';
+
+  @override
+  String get boardPromotionTitle => 'Confirm Maia promotion';
+
+  @override
+  String boardPromotionMove(String square, String piece) {
+    return '$square: $piece. Replace the pawn.';
+  }
+
+  @override
+  String get boardPromotionHelp =>
+      'Wait until the motors have stopped. Replace the pawn with the indicated piece and check the entire physical position against the screen. If the move is incomplete or uncertain, continue in the app instead.';
+
+  @override
+  String get boardPromotionReplaced =>
+      'The motors are stopped, I replaced the pawn, and every piece matches.';
+
+  @override
+  String get recentExportGames => 'Export games';
+
+  @override
+  String get recentExportTooLarge =>
+      'Selected games exceed the 5 MB export limit. Select fewer games and try again.';
+
+  @override
+  String get recentExportFailed =>
+      'Could not export the selected games. Saved games were not changed.';
+
+  @override
+  String get recentDateColumn => 'Date';
+
+  @override
+  String get recentGameColumn => 'Game';
+
+  @override
+  String get recentResultColumn => 'Result';
+
+  @override
+  String get settingsDiagnostics => 'Diagnostics';
 }

@@ -440,3 +440,18 @@ ten languages, including palette tooltips and board-square accessibility labels.
 
 Spanish Maia-score help explicitly names Elo as the rating input for both players,
 keeping it distinct from the predicted game score. The English meaning is unchanged.
+
+## Adaptive layout headings (2.6 draft)
+
+The pinned mobile English catalog at `99dd3e0e4859afc7de37290b3f1905045af92004`
+has no direct Date/Game/Result table headings or application Diagnostics category.
+The four new keys (`recentDateColumn`, `recentGameColumn`, `recentResultColumn`,
+`settingsDiagnostics`) therefore use context-specific native fallbacks in all ten
+catalogs, rather than unrelated study, tournament, or search-result labels. Date
+is the original played day, Game is the stored player/opponent pairing, Result
+is the game's saved result, and Diagnostics groups the existing reset/export
+actions. French uses “Date de jeu” to make the played-date meaning explicit and
+“Diagnostic” for the category. Existing player names, colors, result descriptions,
+settings actions, and chess terms continue to use their reviewed translations.
+New rows in the translation review sheet require native review; this source
+update does not certify linguistic acceptance.

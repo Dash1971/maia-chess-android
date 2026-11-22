@@ -431,7 +431,6 @@
   "editorEraseTool": "Apagar peças",
   "editorEmptySquare": "Casa vazia",
   "editorPositionSettings": "Configurações da posição",
-  "editorImageImportUnavailable": "Importar posição de imagem (ainda indisponível)",
   "editorShareFen": "Compartilhar FEN",
   "editorFenMetadata": "Metadados FEN",
   "editorHalfmoveClock": "Contador de meios-lances",
@@ -454,5 +453,19 @@
   "continuationSetUpBoard": "Preparar tabuleiro",
   "continuationSetupHelp": "Monte no seu tabuleiro a posição mostrada na tela. A partida começa quando a posição das peças coincidir.",
   "continuationBoardUnsupported": "No momento, continuar a partir de uma posição só é compatível com tabuleiros Chessnut.",
-  "sessionRecovery": "O Mobile Maia abriu a tela inicial para evitar reabrir uma sessão que pode ter causado uma falha. Suas partidas salvas e configurações foram mantidas."
+  "sessionRecovery": "O Mobile Maia abriu a tela inicial para evitar reabrir uma sessão que pode ter causado uma falha. Suas partidas salvas e configurações foram mantidas.",
+  "saveDevDiagnostics": "Salvar diagnóstico do Dev…",
+  "devDiagnosticsHelp": "O Dev registra neste dispositivo os eventos recentes do aplicativo e os detalhes dos lances e das mensagens do tabuleiro Grand Kingdom. Os dados antigos são excluídos automaticamente. Fotos e endereços Bluetooth não são registrados. Nada é enviado automaticamente. Exporte os dados apenas se quiser compartilhá-los.",
+  "devDiagnosticsExportFailed": "Não foi possível salvar o diagnóstico do Dev.",
+  "boardPromotionTitle": "Confirmar promoção de Maia",
+  "boardPromotionMove": "{square}: {piece}. Substitua o peão.",
+  "boardPromotionHelp": "Espere os motores pararem. Substitua o peão pela peça indicada e confira se toda a posição física corresponde à tela. Se o movimento estiver incompleto ou houver dúvida, continue a partida no aplicativo.",
+  "boardPromotionReplaced": "Os motores estão parados, substituí o peão e todas as peças correspondem.",
+  "recentExportGames": "Exportar partidas",
+  "recentExportFailed": "Não foi possível exportar as partidas selecionadas. As partidas salvas não foram alteradas.",
+  "recentExportTooLarge": "As partidas selecionadas ultrapassam o limite de exportação de 5 MB. Selecione menos partidas e tente novamente.",
+  "recentDateColumn": "Data",
+  "recentGameColumn": "Partida",
+  "recentResultColumn": "Resultado",
+  "settingsDiagnostics": "Diagnóstico"
 }

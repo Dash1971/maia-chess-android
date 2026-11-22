@@ -1457,9 +1457,6 @@ class AppLocalizationsJa extends AppLocalizations {
   String get editorPositionSettings => '局面の設定';
 
   @override
-  String get editorImageImportUnavailable => '画像から局面を読み込む（準備中）';
-
-  @override
   String get editorShareFen => 'FENを共有';
 
   @override
@@ -1530,4 +1527,51 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String get sessionRecovery =>
       'クラッシュの原因となった可能性があるセッションを再開せず、ホームを開きました。保存済みの対局と設定は保持されています。';
+
+  @override
+  String get saveDevDiagnostics => 'Devの診断情報を保存…';
+
+  @override
+  String get devDiagnosticsHelp =>
+      'Devは最近のアプリ動作と、Grand Kingdomの指し手・ボード通信の詳細をこの端末に記録します。古いデータは自動で削除されます。写真やBluetoothアドレスは記録しません。自動送信は行いません。共有したい場合のみエクスポートしてください。';
+
+  @override
+  String get devDiagnosticsExportFailed => 'Devの診断情報を保存できませんでした。';
+
+  @override
+  String get boardPromotionTitle => 'Maiaの昇格を確認';
+
+  @override
+  String boardPromotionMove(String square, String piece) {
+    return '$square：$piece。ポーンを交換してください。';
+  }
+
+  @override
+  String get boardPromotionHelp =>
+      'モーターが停止するまで待ってください。ポーンを指定された駒に交換し、盤上の全ての駒が画面と一致することを確認してください。移動が未完了か不確かな場合は、アプリ内で対局を続けてください。';
+
+  @override
+  String get boardPromotionReplaced => 'モーターは停止し、ポーンを交換しました。全ての駒が画面と一致しています。';
+
+  @override
+  String get recentExportGames => '対局をエクスポートする';
+
+  @override
+  String get recentExportTooLarge =>
+      '選択した対局は5 MBのエクスポート上限を超えています。対局数を減らして、もう一度お試しください。';
+
+  @override
+  String get recentExportFailed => '選択した対局をエクスポートできませんでした。保存済みの対局は変更されていません。';
+
+  @override
+  String get recentDateColumn => '日付';
+
+  @override
+  String get recentGameColumn => '対局';
+
+  @override
+  String get recentResultColumn => '結果';
+
+  @override
+  String get settingsDiagnostics => '診断';
 }

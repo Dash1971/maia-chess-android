@@ -38,6 +38,14 @@ void main() {
   Future<void> openSettings(WidgetTester tester) async {
     await tester.tap(find.byKey(const ValueKey('home-settings-button')));
     await tester.pumpAndSettle();
+    if (find.byKey(const ValueKey('adaptive-settings')).evaluate().isNotEmpty) {
+      await tester.tap(
+        find.byKey(
+          ValueKey('settings-category-${Icons.analytics_outlined.codePoint}'),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
   }
 
   Slider ratingSlider(WidgetTester tester, String label) =>

@@ -431,7 +431,6 @@
   "editorEraseTool": "Effacer les pièces",
   "editorEmptySquare": "Case vide",
   "editorPositionSettings": "Réglages de la position",
-  "editorImageImportUnavailable": "Importer une position depuis une image (pas encore disponible)",
   "editorShareFen": "Partager la FEN",
   "editorFenMetadata": "Métadonnées FEN",
   "editorHalfmoveClock": "Compteur de demi-coups",
@@ -454,5 +453,19 @@
   "continuationSetUpBoard": "Placer les pièces",
   "continuationSetupHelp": "Reproduisez la position affichée sur votre échiquier. La partie commence lorsque les pièces correspondent.",
   "continuationBoardUnsupported": "Pour le moment, seuls les échiquiers Chessnut permettent de continuer depuis une position.",
-  "sessionRecovery": "Mobile Maia a ouvert l’accueil pour éviter de rouvrir une session qui a pu provoquer un plantage. Vos parties enregistrées et vos réglages ont été conservés."
+  "sessionRecovery": "Mobile Maia a ouvert l’accueil pour éviter de rouvrir une session qui a pu provoquer un plantage. Vos parties enregistrées et vos réglages ont été conservés.",
+  "saveDevDiagnostics": "Enregistrer les données de diagnostic Dev…",
+  "devDiagnosticsHelp": "Dev enregistre sur cet appareil les événements récents de l’application ainsi que les détails des coups et des messages du plateau Grand Kingdom. Les anciennes données sont supprimées automatiquement. Les photos et les adresses Bluetooth ne sont pas enregistrées. Aucun envoi automatique n’est effectué. N’exportez les données que si vous souhaitez les partager.",
+  "devDiagnosticsExportFailed": "Impossible d’enregistrer les données de diagnostic Dev.",
+  "boardPromotionTitle": "Confirmer la promotion de Maia",
+  "boardPromotionMove": "{square} : {piece}. Remplacez le pion.",
+  "boardPromotionHelp": "Attendez l’arrêt des moteurs. Remplacez le pion par la pièce indiquée et vérifiez que toute la position physique correspond à l’écran. Si le mouvement est incomplet ou incertain, poursuivez la partie dans l’application.",
+  "boardPromotionReplaced": "Les moteurs sont arrêtés, j’ai remplacé le pion et toutes les pièces correspondent.",
+  "recentExportGames": "Exporter les parties",
+  "recentExportFailed": "Impossible d’exporter les parties sélectionnées. Les parties enregistrées n’ont pas été modifiées.",
+  "recentExportTooLarge": "Les parties sélectionnées dépassent la limite d’exportation de 5 Mo. Sélectionnez moins de parties et réessayez.",
+  "recentDateColumn": "Date de jeu",
+  "recentGameColumn": "Partie",
+  "recentResultColumn": "Résultat",
+  "settingsDiagnostics": "Diagnostic"
 }

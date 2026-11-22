@@ -2704,12 +2704,6 @@ abstract class AppLocalizations {
   /// **'Position settings'**
   String get editorPositionSettings;
 
-  /// Standard-chess board editor: Import position from image (not yet available). Tool labels must distinguish moving existing pieces, repeated placement and erasure. FEN counters are preserved; camera recognition is unavailable.
-  ///
-  /// In en, this message translates to:
-  /// **'Import position from image (not yet available)'**
-  String get editorImageImportUnavailable;
-
   /// Standard-chess board editor: Share FEN. Tool labels must distinguish moving existing pieces, repeated placement and erasure. FEN counters are preserved; camera recognition is unavailable.
   ///
   /// In en, this message translates to:
@@ -2847,6 +2841,90 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Mobile Maia opened Home to avoid reopening a session that may have caused a crash. Your saved games and settings have been kept.'**
   String get sessionRecovery;
+
+  /// Dev-only local diagnostic export. App-specific testing feature; automatic bounded recording, manual export, never telemetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Save Dev diagnostics…'**
+  String get saveDevDiagnostics;
+
+  /// Dev-only local diagnostic export. App-specific testing feature; automatic bounded recording, manual export, never telemetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Dev records recent app events and detailed Grand Kingdom moves and board messages on this device. Older data is removed automatically. Photos and Bluetooth addresses are not recorded. Nothing is uploaded automatically. Export only if you want to share it.'**
+  String get devDiagnosticsHelp;
+
+  /// Dev-only local diagnostic export. App-specific testing feature; automatic bounded recording, manual export, never telemetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save Dev diagnostics.'**
+  String get devDiagnosticsExportFailed;
+
+  /// Experimental Grand Kingdom assisted Maia promotion. The user, not a BLE write/OK, confirms stopped motors and physical piece replacement. Reuse existing localized piece names; no automatic replacement is implied.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm Maia promotion'**
+  String get boardPromotionTitle;
+
+  /// Experimental Grand Kingdom assisted Maia promotion. The user, not a BLE write/OK, confirms stopped motors and physical piece replacement. Reuse existing localized piece names; no automatic replacement is implied.
+  ///
+  /// In en, this message translates to:
+  /// **'{square}: {piece}. Replace the pawn.'**
+  String boardPromotionMove(String square, String piece);
+
+  /// Experimental Grand Kingdom assisted Maia promotion. The user, not a BLE write/OK, confirms stopped motors and physical piece replacement. Reuse existing localized piece names; no automatic replacement is implied.
+  ///
+  /// In en, this message translates to:
+  /// **'Wait until the motors have stopped. Replace the pawn with the indicated piece and check the entire physical position against the screen. If the move is incomplete or uncertain, continue in the app instead.'**
+  String get boardPromotionHelp;
+
+  /// Experimental Grand Kingdom assisted Maia promotion. The user, not a BLE write/OK, confirms stopped motors and physical piece replacement. Reuse existing localized piece names; no automatic replacement is implied.
+  ///
+  /// In en, this message translates to:
+  /// **'The motors are stopped, I replaced the pawn, and every piece matches.'**
+  String get boardPromotionReplaced;
+
+  /// Recent Games selection toolbar: export the selected games into one PGN file using Save or Share. Reuses pinned Lichess exportGames.
+  ///
+  /// In en, this message translates to:
+  /// **'Export games'**
+  String get recentExportGames;
+
+  /// Recent Games export exceeds the 5 MiB UTF-8 limit, shown as 5 MB. Nothing is saved/shared; keep selection and ask the user to select fewer games and retry. Import remains limited to 2 MiB.
+  ///
+  /// In en, this message translates to:
+  /// **'Selected games exceed the 5 MB export limit. Select fewer games and try again.'**
+  String get recentExportTooLarge;
+
+  /// Recent Games multi-game export error: one selected record could not be read/validated, or Android save/share failed. No selected game is silently omitted and stored games are not modified.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not export the selected games. Saved games were not changed.'**
+  String get recentExportFailed;
+
+  /// Adaptive layout: Recent games table column
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get recentDateColumn;
+
+  /// Adaptive layout: Recent games table column
+  ///
+  /// In en, this message translates to:
+  /// **'Game'**
+  String get recentGameColumn;
+
+  /// Adaptive layout: Recent games table column
+  ///
+  /// In en, this message translates to:
+  /// **'Result'**
+  String get recentResultColumn;
+
+  /// Adaptive layout: settings category for existing reset and diagnostic actions
+  ///
+  /// In en, this message translates to:
+  /// **'Diagnostics'**
+  String get settingsDiagnostics;
 }
 
 class _AppLocalizationsDelegate

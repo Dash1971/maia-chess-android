@@ -217,29 +217,35 @@ void main() {
         await showGames(tester, games, locale: locale, brightness: brightness);
         final context = tester.element(find.byType(RecentGamesPage));
         final strings = AppLocalizations.of(context)!;
-        final date = MaterialLocalizations.of(context)
-            .formatCompactDate(DateTime.utc(2020, 2, 29));
+        const date = '2020/02/29';
         for (final game in games) {
           final tile = tester.widget<ListTile>(
             find.byKey(ValueKey('recent-game-${game.id}')),
           );
-          final subtitle = tile.subtitle! as Text;
           final result = game.localizedResult(context);
-          expect(
-            subtitle.textSpan!.toPlainText(),
-            strings.recentGameSummary(result, date),
+          final resultWidget = tester.widget<Text>(
+            find.descendant(
+              of: find.byKey(ValueKey('recent-game-${game.id}')),
+              matching: find.text(result),
+            ),
           );
-          final spans = (subtitle.textSpan! as TextSpan).children!
-              .cast<TextSpan>();
-          final resultSpan = spans.singleWhere((span) => span.text == result);
-          expect(resultSpan.style!.color, game.outcome.colorFor(brightness));
-          for (final span in spans.where((span) => span != resultSpan)) {
-            expect(
-              span.style,
-              isNull,
-            ); // Date/punctuation inherit unchanged style.
-          }
-          expect((tile.title! as Text).style, isNull);
+          expect(
+            resultWidget.style?.color,
+            game.isIncomplete
+                ? Theme.of(context).colorScheme.onSurfaceVariant
+                : game.outcome.colorFor(brightness) ??
+                      Theme.of(context).textTheme.bodyMedium?.color,
+          );
+          final dateWidget = tester.widget<Text>(
+            find.descendant(
+              of: find.byKey(ValueKey('recent-game-${game.id}')),
+              matching: find.text(date),
+            ),
+          );
+          expect(
+            dateWidget.style?.color,
+            Theme.of(context).textTheme.bodySmall?.color,
+          );
           expect(tile.tileColor, isNull);
           final description = switch (game.outcome) {
             RecentGameOutcome.win => strings.recentWinResult(result),
@@ -247,10 +253,7 @@ void main() {
             RecentGameOutcome.draw => strings.recentDrawResult(result),
             _ => result,
           };
-          expect(
-            subtitle.semanticsLabel,
-            strings.recentGameSummary(description, date),
-          );
+          expect(resultWidget.semanticsLabel, description);
           expect(
             find.bySemanticsLabel(RegExp(RegExp.escape(description))),
             findsWidgets,

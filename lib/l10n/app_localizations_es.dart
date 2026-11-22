@@ -1567,10 +1567,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get editorPositionSettings => 'Ajustes de la posición';
 
   @override
-  String get editorImageImportUnavailable =>
-      'Importar posición desde una imagen (aún no disponible)';
-
-  @override
   String get editorShareFen => 'Compartir FEN';
 
   @override
@@ -1642,4 +1638,54 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get sessionRecovery =>
       'Mobile Maia ha abierto la pantalla de inicio para evitar reabrir una sesión que podría haber causado un fallo. Tus partidas guardadas y ajustes se han conservado.';
+
+  @override
+  String get saveDevDiagnostics => 'Guardar diagnóstico de Dev…';
+
+  @override
+  String get devDiagnosticsHelp =>
+      'Dev registra en este dispositivo los eventos recientes de la aplicación y los detalles de las jugadas y mensajes del tablero Grand Kingdom. Los datos antiguos se eliminan automáticamente. No se registran fotos ni direcciones Bluetooth. No se sube nada automáticamente. Exporta los datos solo si quieres compartirlos.';
+
+  @override
+  String get devDiagnosticsExportFailed =>
+      'No se pudo guardar el diagnóstico de Dev.';
+
+  @override
+  String get boardPromotionTitle => 'Confirmar promoción de Maia';
+
+  @override
+  String boardPromotionMove(String square, String piece) {
+    return '$square: $piece. Sustituye el peón.';
+  }
+
+  @override
+  String get boardPromotionHelp =>
+      'Espera a que los motores se detengan. Sustituye el peón por la pieza indicada y comprueba que toda la posición física coincide con la pantalla. Si el movimiento está incompleto o no estás seguro, continúa la partida en la aplicación.';
+
+  @override
+  String get boardPromotionReplaced =>
+      'Los motores están parados, he sustituido el peón y todas las piezas coinciden.';
+
+  @override
+  String get recentExportGames => 'Exportar partidas';
+
+  @override
+  String get recentExportTooLarge =>
+      'Las partidas seleccionadas superan el límite de exportación de 5 MB. Selecciona menos partidas e inténtalo de nuevo.';
+
+  @override
+  String get recentExportFailed =>
+      'No se pudieron exportar las partidas seleccionadas. Las partidas guardadas no han cambiado.';
+
+  @override
+  String get recentDateColumn => 'Fecha';
+
+  @override
+  String get recentGameColumn => 'Partida';
+
+  @override
+  String get recentResultColumn => 'Resultado';
+
+  @override
+  String get settingsDiagnostics => 'Diagnóstico';
 }

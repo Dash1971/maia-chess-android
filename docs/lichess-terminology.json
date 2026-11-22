@@ -2550,6 +2550,22 @@
           "reason": "Share a FEN position rather than a PGN game; preserve the format name."
         }
       }
+    },
+    "recentExportGames": {
+      "upstream_key": "exportGames",
+      "upstream": {
+        "en": "Export games",
+        "ja": "対局をエクスポートする",
+        "zh": "导出对局",
+        "ko": "대국 저장하기",
+        "es": "Exportar partidas",
+        "de": "Partien exportieren",
+        "fr": "Exporter les parties",
+        "ru": "Скачать игры",
+        "hi": "खेल को निर्यात (एक्सपोर्ट) करें",
+        "pt": "Exportar partidas"
+      },
+      "adaptations": {}
     }
   }
 }

@@ -1570,10 +1570,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get editorPositionSettings => 'Stellungseinstellungen';
 
   @override
-  String get editorImageImportUnavailable =>
-      'Stellung aus Bild importieren (noch nicht verfügbar)';
-
-  @override
   String get editorShareFen => 'FEN teilen';
 
   @override
@@ -1645,4 +1641,54 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get sessionRecovery =>
       'Mobile Maia hat die Startseite geöffnet, um eine möglicherweise für einen Absturz verantwortliche Sitzung nicht erneut zu öffnen. Deine gespeicherten Partien und Einstellungen bleiben erhalten.';
+
+  @override
+  String get saveDevDiagnostics => 'Dev-Diagnosedaten speichern…';
+
+  @override
+  String get devDiagnosticsHelp =>
+      'Dev zeichnet aktuelle App-Ereignisse sowie Züge und Brettnachrichten von Grand Kingdom detailliert auf diesem Gerät auf. Ältere Daten werden automatisch gelöscht. Fotos und Bluetooth-Adressen werden nicht erfasst. Nichts wird automatisch hochgeladen. Exportiere die Daten nur, wenn du sie teilen möchtest.';
+
+  @override
+  String get devDiagnosticsExportFailed =>
+      'Die Dev-Diagnosedaten konnten nicht gespeichert werden.';
+
+  @override
+  String get boardPromotionTitle => 'Maias Umwandlung bestätigen';
+
+  @override
+  String boardPromotionMove(String square, String piece) {
+    return '$square: $piece. Ersetze den Bauern.';
+  }
+
+  @override
+  String get boardPromotionHelp =>
+      'Warte, bis die Motoren stillstehen. Ersetze den Bauern durch die angegebene Figur und prüfe, ob die gesamte Stellung auf dem Brett mit dem Bildschirm übereinstimmt. Falls der Zug unvollständig oder unklar ist, spiele in der App weiter.';
+
+  @override
+  String get boardPromotionReplaced =>
+      'Die Motoren stehen still, ich habe den Bauern ersetzt und alle Figuren stimmen überein.';
+
+  @override
+  String get recentExportGames => 'Partien exportieren';
+
+  @override
+  String get recentExportTooLarge =>
+      'Die ausgewählten Partien überschreiten die Exportgrenze von 5 MB. Wähle weniger Partien und versuche es erneut.';
+
+  @override
+  String get recentExportFailed =>
+      'Die ausgewählten Partien konnten nicht exportiert werden. Gespeicherte Partien wurden nicht verändert.';
+
+  @override
+  String get recentDateColumn => 'Datum';
+
+  @override
+  String get recentGameColumn => 'Partie';
+
+  @override
+  String get recentResultColumn => 'Ergebnis';
+
+  @override
+  String get settingsDiagnostics => 'Diagnose';
 }

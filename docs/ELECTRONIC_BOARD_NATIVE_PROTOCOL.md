@@ -1,4 +1,4 @@
-# Native electronic board protocol evidence (Dev only)
+# Native electronic board protocol evidence
 
 Reviewed sources, 2026-10-07:
 
@@ -15,6 +15,27 @@ Square Off outgoing commands are ASCII `x` + payload + `z`, payload at most sixt
 
 Channel extensions retain the existing Chessnut channel names. Dev connect modes are `remembered`, `discover`, `reconnect`; reconnect can specify persisted opaque `boardId` and refuses discovery fallback. Discovery collects at most 32 deduplicated addresses for three seconds, then auto-connects one candidate or emits opaque scan-bound chooser IDs. Device addresses stay exclusively in private Android preferences; events and diagnostic snapshots contain no address. A verified profile gets a random persisted boardId and new connectionSession per connection. Motor methods require the exact connectionSession. All Dev events include snapshots of connectionSession, boardKind and known boardId; queued deliveries from earlier sessions are discarded. Reconnect requires the explicit saved boardId and never silently substitutes the locally remembered board. confirmPosition requires the current Square Off session and only clears local movement uncertainty after explicit physical reconciliation; it sends no BLE command.
 
-Limits: 15-second connection/configuration deadline, five-second write callback deadline, 32 queued writes, 100ms write gap, stale GATT callbacks and delayed queue advancement guarded by source identity. Notifications for experimental profiles are delivered as boardData (at most 1024 bytes per callback) to bounded Dart parsers. Late advertisements and chooser tokens from replaced/cancelled scans are rejected. The non-Chessnut adapters are guarded by BuildConfig.FLAVOR == dev, with matching Dart policy. Preview shares the newer Chessnut discovery/lifecycle behavior but cannot discover, connect to, configure or command Grand Kingdom/Pegasus. Non-Dev flavors, including the production flavor, reject these prototypes. See BUILD_CHANNELS.md for the current publication and promotion boundary.
+Limits: 15-second connection/configuration deadline, five-second write callback deadline, 32 queued writes, 100ms write gap, stale GATT callbacks and delayed queue advancement guarded by source identity. Notifications for experimental profiles are delivered as boardData (at most 1024 bytes per callback) to bounded Dart parsers. Late advertisements and chooser tokens from replaced/cancelled scans are rejected. The 2.6 channel policy permits Grand Kingdom in Stable/unflavored Stable, Preview and Dev, and Pegasus only in Dev, with matching Dart/native checks. Motor methods additionally require a ready Grand Kingdom and the exact current connectionSession. Unknown/production channel strings reject both adapters; Stable/unflavored Stable reject Pegasus. Published Preview 2.5 still excludes both. See BUILD_CHANNELS.md for the current publication and promotion boundary.
 
 Validation: native helper host checks passed on isolated Linux JDK 21 with official JetBrains Kotlin 2.2.0. Checks cover duplicate advertisements, capacity, opaque tokens and stale selection, motor session binding, command rejection, full setup LED guidance capped to default ATT20, all 37 split points of the 38-byte Chessnut report, coalesced reports, partial frame reset/expiration, corruption recovery, oversized input and fragmented/coalesced NEW GAME/battery confirmations. Source/diff review is also clean. Android bridge compilation remains part of the root-owned Dev build. No hardware was available; native BLE pairing, notification fragmentation, physical input, LEDs, NEW GAME buttons, motor acknowledgements and cancellation are **not certified**. Root-owned Dev integration checks and model/firmware/Android-specific tester acceptance remain required.
+
+Hardware feedback, updated 15 November 2026: the October wrong-piece removal at
+`19...Bxf8` and missed removal at `7...Nxb4` were unexplained at the time. The
+[owner’s later follow-up](https://github.com/Dash1971/maia-chess-android/issues/15#issuecomment-6863134393) attributes them to hardware drift after many
+moves without game-start calibration or an uneven surface, confirms firmware
+**36v5**, and reports good overall operation. These are historical regression
+cases, not current known app capture defects. PGNs still do not establish BLE
+frames or motor completion; the reference supplies no separate capture opcode,
+and no guessed opcode or movement retry is justified. Local `confirmPosition`
+does not repair firmware state. See the [current acceptance record](ELECTRONIC_BOARD_GRAND_KINGDOM_26.md)
+for the source feedback and separately untested en-passant/promotion/recovery scenarios.
+
+2026-10-29 assisted-promotion draft: the full five-character UCI move stays in
+logical/PGN/checkpoint state; Dart sends only its four coordinates, matching the
+pinned reference's `make_move()` truncation. Native framing and session gates are
+unchanged. Delivery completion enables a user confirmation flow, not an inferred
+motor-completion event. Promotions block further input until stopped motors,
+manual replacement and the full position are explicitly confirmed. Background,
+stale dialogs, write failure and restart cannot cause replay or implicit
+confirmation. Firmware handling of replacement/underpromotion/subsequent moves
+is unverified; see the owner checklist in `ELECTRONIC_BOARD_GRAND_KINGDOM_26.md`.

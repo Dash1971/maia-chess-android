@@ -37,10 +37,11 @@ The menu contains Starting position, Load FEN, Continue from here and Clear boar
 The toolbar has menu, flip, Analysis and position settings. Sharing uses Android's
 plain-text chooser; copying works offline and is also the fallback when a native
 share handler is unavailable. Neither action sends to a recipient automatically.
-Variant and Challenge from position are absent. The camera entry is disabled with
-an explicit unavailable label; recognition remains a dependency of #179, not a
-working feature in this PR. All UI uses the selected board/piece designs and
-applicable aid preferences. No renderer, model, version or channel gate changes.
+Variant, Challenge from position and camera/image recognition are absent.
+Camera and screenshot import have been shelved after the
+[offline model investigation](https://github.com/Dash1971/mobile-maia-research/blob/main/studies/offline-board-recognition-2026-11-13/REPORT.md).
+Manual editing, FEN loading, Analysis and Continue from here retain their normal
+position validation and selected board/piece designs and aid preferences.
 
 New tool/share terms reuse the pinned Lichess terminology with explicit editor/FEN
 adaptations. Remaining new labels are translated in all ten languages and still

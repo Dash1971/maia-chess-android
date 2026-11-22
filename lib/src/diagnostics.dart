@@ -17,6 +17,7 @@ class AppDiagnostics {
     Object error,
     StackTrace stackTrace,
   ) async {
+    DevDiagnostics.record('app.error', {'state': source});
     final entry = StringBuffer()
       ..writeln('${DateTime.now().toUtc().toIso8601String()} [$source]')
       ..writeln(error)
@@ -168,7 +169,7 @@ class AppDiagnostics {
     }
   }
 
-  static Future<String> report() async {
+  static Future<String> report({bool includeDevTrace = true}) async {
     String version = 'unknown';
     String build = 'unknown';
     try {
@@ -200,6 +201,8 @@ class AppDiagnostics {
       ...platform,
       if (entries.isEmpty) 'No recorded diagnostic events.',
       ...entries,
+      if (appFlavor == 'dev' && includeDevTrace)
+        await DevDiagnostics.recentTrace(),
     ].join('\n\n');
   }
 

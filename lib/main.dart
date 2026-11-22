@@ -39,9 +39,11 @@ part 'src/maia_queue.dart';
 part 'src/sampling_capture.dart';
 part 'src/sampling_capture_settings.dart';
 part 'src/settings_widgets.dart';
+part 'src/adaptive_layout.dart';
 part 'src/sampling_report.dart';
 part 'src/sampling_report_format.dart';
 part 'src/diagnostics.dart';
+part 'src/dev_diagnostics.dart';
 part 'src/session_types.dart';
 part 'src/variation_tree.dart';
 part 'src/game_clocks.dart';
@@ -140,8 +142,7 @@ const lichessMultistockfishUrl =
     'https://github.com/lichess-org/dart-multistockfish';
 const enCroissantProjectUrl =
     'https://github.com/franciscoBSalgueiro/en-croissant';
-const mobileMaiaSourceUrl =
-    'https://github.com/Dash1971/maia-chess-android';
+const mobileMaiaSourceUrl = 'https://github.com/Dash1971/maia-chess-android';
 const mobileMaiaLicenseUrl = '$mobileMaiaSourceUrl/blob/main/LICENSE';
 const maiaPlayEloPreferenceKey = 'maiaPlayEloV1';
 const maiaPlaySidePreferenceKey = 'maiaPlaySideV1';

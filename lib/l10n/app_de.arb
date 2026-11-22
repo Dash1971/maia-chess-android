@@ -431,7 +431,6 @@
   "editorEraseTool": "Figuren entfernen",
   "editorEmptySquare": "Leeres Feld",
   "editorPositionSettings": "Stellungseinstellungen",
-  "editorImageImportUnavailable": "Stellung aus Bild importieren (noch nicht verfügbar)",
   "editorShareFen": "FEN teilen",
   "editorFenMetadata": "FEN-Metadaten",
   "editorHalfmoveClock": "Halbzugzähler",
@@ -454,5 +453,19 @@
   "continuationSetUpBoard": "Stellung aufbauen",
   "continuationSetupHelp": "Baue die angezeigte Stellung auf deinem Brett auf. Die Partie beginnt, sobald die Figurenpositionen übereinstimmen.",
   "continuationBoardUnsupported": "Das Weiterspielen aus einer Stellung wird derzeit nur mit Chessnut-Brettern unterstützt.",
-  "sessionRecovery": "Mobile Maia hat die Startseite geöffnet, um eine möglicherweise für einen Absturz verantwortliche Sitzung nicht erneut zu öffnen. Deine gespeicherten Partien und Einstellungen bleiben erhalten."
+  "sessionRecovery": "Mobile Maia hat die Startseite geöffnet, um eine möglicherweise für einen Absturz verantwortliche Sitzung nicht erneut zu öffnen. Deine gespeicherten Partien und Einstellungen bleiben erhalten.",
+  "saveDevDiagnostics": "Dev-Diagnosedaten speichern…",
+  "devDiagnosticsHelp": "Dev zeichnet aktuelle App-Ereignisse sowie Züge und Brettnachrichten von Grand Kingdom detailliert auf diesem Gerät auf. Ältere Daten werden automatisch gelöscht. Fotos und Bluetooth-Adressen werden nicht erfasst. Nichts wird automatisch hochgeladen. Exportiere die Daten nur, wenn du sie teilen möchtest.",
+  "devDiagnosticsExportFailed": "Die Dev-Diagnosedaten konnten nicht gespeichert werden.",
+  "boardPromotionTitle": "Maias Umwandlung bestätigen",
+  "boardPromotionMove": "{square}: {piece}. Ersetze den Bauern.",
+  "boardPromotionHelp": "Warte, bis die Motoren stillstehen. Ersetze den Bauern durch die angegebene Figur und prüfe, ob die gesamte Stellung auf dem Brett mit dem Bildschirm übereinstimmt. Falls der Zug unvollständig oder unklar ist, spiele in der App weiter.",
+  "boardPromotionReplaced": "Die Motoren stehen still, ich habe den Bauern ersetzt und alle Figuren stimmen überein.",
+  "recentExportGames": "Partien exportieren",
+  "recentExportFailed": "Die ausgewählten Partien konnten nicht exportiert werden. Gespeicherte Partien wurden nicht verändert.",
+  "recentExportTooLarge": "Die ausgewählten Partien überschreiten die Exportgrenze von 5 MB. Wähle weniger Partien und versuche es erneut.",
+  "recentDateColumn": "Datum",
+  "recentGameColumn": "Partie",
+  "recentResultColumn": "Ergebnis",
+  "settingsDiagnostics": "Diagnose"
 }
