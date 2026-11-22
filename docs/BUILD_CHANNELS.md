@@ -34,7 +34,7 @@ they do not override this current promotion scope.
   Preview upstream review and README/roadmap pass; lightweight Dev publication
   by default, with no published-download check.
 
-## Preview acceptance
+## Current board and model acceptance
 
 - Use move history remains off by default, with its own information button.
   The updated help explains the measured prediction improvement, unestablished
@@ -45,10 +45,12 @@ they do not override this current promotion scope.
   confirmation by a second deliberate press within 2.5 seconds.
 - Board sounds remain under **Chessnut**, because the buzzer commands are
   Chessnut-specific. Other brands must not imply equivalent sound support.
-- The Grand Kingdom and DGT implementations remain in shared source for Dev,
-  but Preview and Stable must neither discover/connect to those boards nor send their
-  commands. Both Dart and native channel policies are tested. A future promotion
-  requires explicit approval; merging shared source does not change this policy.
+- Grand Kingdom is enabled in current Preview and this Stable 2.6 draft, with
+  standard-position setup, assisted promotion and current-session motor guards.
+  See the [acceptance record](ELECTRONIC_BOARD_GRAND_KINGDOM_26.md) for hardware
+  coverage and remaining scenarios. DGT Pegasus remains Dev-only: Preview and
+  Stable must neither discover/connect to it nor send its commands. Both Dart
+  and native channel policies have regression coverage.
 - Qualify the actual 79M Preview APK, including history on/off, inference,
   upgrade/data retention, help layout and package/signature continuity. Dev's
   5M measurements are not evidence of 79M performance.
@@ -129,11 +131,11 @@ commits do not change the immutable release tag or APK.
 
 ## Dev limitations
 
-Grand Kingdom is an experimental motor adapter, not support for all Square Off
-boards. DGT Pegasus remains a protocol prototype; locked firmware is unsupported
-because no unrestricted initialization route has been incorporated. Neither is
-Preview or Stable support. See [the board tester guide](ELECTRONIC_BOARD_DEV.md).
-Keep the board-specific issues open until hardware acceptance is recorded.
+Grand Kingdom support covers that model, not all Square Off boards. It is enabled
+in Preview and this Stable 2.6 draft. DGT Pegasus remains a Dev-only protocol
+prototype; locked firmware is unsupported because no unrestricted initialization
+route has been incorporated. See [the board tester guide](ELECTRONIC_BOARD_DEV.md)
+and its linked acceptance record for supported workflows and test coverage.
 
 The published Dev alpha.2 APK uses 5M even though its exported PGN model label
 still says 79M. This known Dev-only label limitation does not describe Preview's

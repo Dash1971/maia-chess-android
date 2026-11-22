@@ -1,14 +1,14 @@
 # Electronic-board development snapshot
 
-Published Preview 2.4/2.5 promotes only Chessnut; Grand Kingdom and DGT remain
-available only in published Dev builds. The proposed 2.6 source enables Grand
-Kingdom in Stable 2.6, Preview and Dev; DGT remains Dev-only. See the
+Current Preview 2.6 includes Chessnut and Grand Kingdom. This Stable 2.6 draft
+enables the same board families; DGT Pegasus and automatic diagnostic recording
+remain Dev-only. Published Stable 2.5.1 supports Chessnut. See the
 [2.6 hardware report and acceptance checklist](ELECTRONIC_BOARD_GRAND_KINGDOM_26.md).
-Keep the enablement PR in draft until remaining physical acceptance is recorded.
+Stable 2.6 remains a draft pending its own release qualification.
 
 Use [Preview releases](https://github.com/Dash1971/maia-chess-android-preview/releases)
-for Chessnut testing and [Dev releases](https://github.com/Dash1971/maia-chess-android-preview-dev/releases)
-for prototype board testing. See [channel status](BUILD_CHANNELS.md).
+for Chessnut/Grand Kingdom testing and [Dev releases](https://github.com/Dash1971/maia-chess-android-preview-dev/releases)
+for prototype boards and automatic local diagnostics. See [channel status](BUILD_CHANNELS.md).
 
 The three-second scan and in-game Chessnut reset below are included in Preview
 2.4.0-beta.2. They are not in beta.1. See channel status for exact release evidence.
@@ -42,15 +42,14 @@ The three-second scan and in-game Chessnut reset below are included in Preview
   Generic OK is insufficient. The proposed 2.6 source sends promotion pawn
   movement once, then requires
   stopped-motor/piece-replacement/full-position confirmation before continuing.
-  `OK` or a following human move cannot confirm a promotion. Hardware validation
-  is pending. Interrupted motor delivery, takebacks and midgame restoration still
+  `OK` or a following human move cannot confirm a promotion. The acceptance record
+  distinguishes tested workflows from remaining hardware scenarios. Interrupted
+  motor delivery, takebacks and midgame restoration still
   require phone continuation; arbitrary-position restoration and motor
-  cancellation have no established safe protocol here. The owner's later
-  [capture-failure report](https://github.com/Dash1971/maia-chess-android/issues/15#issuecomment-6477270546)
-  supersedes the initial positive capture/synchronization result: one capture
-  removed the wrong piece and another left the captured pawn. Resolving these
-  ordinary captures is the next readiness blocker; see the
-  [recorded histories and test plan](ELECTRONIC_BOARD_GRAND_KINGDOM_26.md).
+  cancellation have no established safe protocol here. The earlier capture
+  reports are historical, not a current known app capture defect or release
+  blocker; see the current status and retained reproduction histories in the
+  [acceptance record](ELECTRONIC_BOARD_GRAND_KINGDOM_26.md).
   After a mismatch, wait for stopped motors and continue on the phone; do not
   retry movement or assume local confirmation repairs firmware bookkeeping.
 

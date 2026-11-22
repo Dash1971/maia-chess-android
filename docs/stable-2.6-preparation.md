@@ -19,6 +19,28 @@ Keep Stable's release wrapper, source gate, dependency/audit job, canonical F-Dr
 
 The four mandatory workspace/cleanup helpers remain byte-identical to Preview. The Gradle 9.9.2 pin/checksum and verifier match current Preview and include the scope of [Stable #81](https://github.com/Dash1971/maia-chess-android/pull/81), which remains a separate open PR. [#73](https://github.com/Dash1971/maia-chess-android/pull/73) is the older 9.9.1 pin. This promotion includes the later navigation behavior rather than independently applying the earlier, partial [#78](https://github.com/Dash1971/maia-chess-android/pull/78). No companion app promotion or publication is implied.
 
+## Pre-build source review — 22 November 2026
+
+Review against Stable and current Preview found no additional app-code omissions
+or accidental behavior changes. Stable's 2.5.1 unsafe-position checks and their
+native/real-engine regressions remain in place. The independent analysis/move
+panes, endpoint holds, saved-game browsing position, selection cancellation,
+separate PGN limits and Grand Kingdom session/promotion safeguards match the
+intended scope. Package, model, signing configuration and release gates remain
+unchanged outside the documented promotion adaptations.
+
+Corrected stale guide text that still blocked Grand Kingdom, treated historical
+capture reports as a current release blocker, or described the manual editor as
+Preview-only. Historical dated release records remain intact. No app code or
+shared tooling changed during this review.
+
+All four files in #81 match this draft byte for byte. Merge that focused security
+PR before merging this promotion, then verify the updated promotion diff. Its
+existing test and dependency jobs passed; Android was skipped. Neither PR has
+been merged as part of this review. Fresh Stable screenshots and exact-source
+runtime/release qualification remain pending; this source review does not replace
+them. No builds, Actions or LFS downloads were run.
+
 ## Prepared metadata and screenshots
 
 The draft includes [release notes](release-notes/v2.6.0.md), a version-84 Fastlane changelog, English store-description updates and matching Zapstore Markdown, plus README feature introductions. Download links continue to target the published release until publication.

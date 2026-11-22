@@ -1,4 +1,8 @@
-# Preview board editor (#189)
+# Board editor
+
+The existing editor is retained in Stable 2.6. Camera and screenshot recognition
+are not included. The original Preview work is recorded in
+[Preview #189](https://github.com/Dash1971/maia-chess-android-preview/issues/189).
 
 The interaction/layout reference is Lichess mobile v0.30.1, commit
 `243b19b532c86101a389072becce60e51c71bbd0`, files:
@@ -48,6 +52,7 @@ adaptations. Remaining new labels are translated in all ten languages and still
 need native-speaker review. The metadata sheet owns its controllers through the
 route's reverse transition, preventing disposed-controller errors on dismissal.
 
-This is a Preview feature. No shared build/CI/cleanup helper is changed, and no
-Stable tooling port or feature promotion is included. Full Preview release gates
-remain separate from draft PR widget/native verification.
+The Stable 2.6 draft preserves the manual editor and its validation while removing
+the disabled camera placeholder. No shared build/CI/cleanup helper is changed by
+the editor work. Stable release qualification remains separate from Preview
+evidence and draft PR verification.
