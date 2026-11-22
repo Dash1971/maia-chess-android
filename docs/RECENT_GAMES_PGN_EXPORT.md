@@ -22,8 +22,7 @@ file yourself, and open it in the receiving installation.
 - A single-game document opens in Analysis Board, as before.
 - A collection adds new games to Recent games. The current game and recovery
   settings remain intact; imported unfinished games open paused.
-- Identical saved PGNs and repeats within the incoming file are skipped. Only
-  line endings and outer whitespace are ignored. Different metadata,
+- Identical saved PGNs and repeats within the incoming file are skipped. Formatting changes made by the exporter are normalized for comparison. Different metadata,
   comments, clocks or variations produce separate records.
 - A progress bar accompanies the operation. Completion reports new games and
   duplicates skipped; an entirely duplicate collection adds zero records.
@@ -133,7 +132,7 @@ Imported records retain PGN names, dates, results, comments, clocks, variations
 and starting positions. Equal-date imported records retain their source order.
 A progress bar covers validation (indeterminate), duplicate scanning and staged writes (determinate). The completion message reports imported and skipped counts. Work runs off the UI isolate. Back cannot dismiss an in-progress import; success or failure closes the progress dialog.
 
-Import skips identical PGN content already present in saved games or earlier in the same collection. Only line endings and surrounding whitespace are normalized for comparison. Headers, comments, variations and clocks remain part of the comparison: differently annotated or identified copies are kept. Re-importing the same collection adds no extra copies. Completion reports imported and skipped counts. Single-game opening is unchanged.
+Import skips identical PGN content already present in saved games or earlier in the same collection. The same PGN serializer used by export normalizes formatting before comparison. Headers, comments, variations and clocks remain part of the comparison: differently annotated or identified copies are kept. Re-importing the same collection adds no extra copies. Completion reports imported and skipped counts. Single-game opening is unchanged.
 PGN transfers games and annotations, not app settings or live clock/motor session
 checkpoints. This is not a complete app-data backup. Imported unfinished games
 open paused; no physical board connection or movement is restored from PGN.
@@ -156,3 +155,9 @@ On first repository access after startup, abandoned `.import-<timestamp>-<random
 Import file work and Recent games reading/decoding run in background workers. Recent games still uses the existing files and sort order; this change adds no database, persistent index or cache. The collection scale regression exercises 10,000 distinct games near 5 MiB, a repeat import, progress updates, Recent games and event-loop responsiveness. Host measurements are recorded separately from required installed Android checks.
 
 See the [10,000-game host measurements and device-test limits](verification/pgn-collection-import-2026-11-22.md).
+
+## Export/re-import duplicate comparison
+
+Duplicate detection compares supported PGN content in the same format used by export. An exported collection can be re-imported on the same installation without adding another copy because of spacing, move-number formatting or comment padding. Original saved PGNs and checkpoints are not rewritten for comparison.
+
+Different header values, comments, clock annotations and variation trees remain separate. The check conservatively compares original text when serialization would discard information, such as semicolon comments, escape lines, repeated headers or conflicting declared results. An exported copy that lost such information is considered different; importing an identical original still skips it. Malformed legacy records cannot hide valid incoming games. Single-game opening and the shared 5 MiB limits are unchanged.

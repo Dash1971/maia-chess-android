@@ -699,7 +699,8 @@ or **Share PGN** for an independent copy.
 game with its variations, comments, and annotations in published Stable 2.5.1
 (2 MB; first game only for collections). The 2.6 draft raises import and export
 to the same 5 MiB limit and adds new games from a collection to Recent games.
-Identical PGNs already saved or repeated within the file are skipped; differently
+Matching PGNs already saved or repeated within the file are skipped, including
+formatting changes made by our exporter; differently
 annotated or identified copies are kept. A progress bar accompanies import, and
 completion reports imported and skipped counts. Interrupted staging is cleaned
 on the next startup. Single-game opening stays unchanged. See the

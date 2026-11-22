@@ -347,13 +347,62 @@ class SessionRepository {
     return pgn is String ? pgn : null;
   }
 
-  /// Exact content only: line endings and surrounding whitespace are immaterial.
-  /// Never discard an annotated or differently identified version of a game.
-  static String _pgnFingerprint(String pgn) => crypto.sha256
-      .convert(
-        utf8.encode(pgn.replaceAll('\r\n', '\n').replaceAll('\r', '\n').trim()),
-      )
-      .toString();
+  static final _identityTag = RegExp(
+    r'\[([A-Za-z0-9][A-Za-z0-9_+#=:-]*)\s+"((?:[^"\\]|\\["\\])*)"\]',
+  );
+
+  /// Use the exporter's formatting, without replaying every saved game. Raw
+  /// fallback protects metadata or annotations the serializer would discard.
+  static String _pgnFingerprint(String pgn) {
+    final text = pgn.replaceAll('\r\n', '\n').replaceAll('\r', '\n').trim();
+    var identity = 'raw:$text';
+    try {
+      if (text.length <= AnalysisSession.maxPgnBytes) {
+        RecentGamesPgn._validateSingleGame(text);
+        AnalysisSession._validatePgnTokens(text);
+        final parsed = dc.PgnGame.parsePgn(
+          text,
+          initHeaders: dc.PgnGame.emptyHeaders,
+        );
+        final declared = <String, String>{};
+        var brace = false, lossless = true;
+        for (var i = 0; i < text.length; i++) {
+          final c = text[i];
+          if (brace) {
+            if (c == '}') brace = false;
+          } else if (c == '{') {
+            brace = true;
+          } else if (c == '[') {
+            final tag = _identityTag.matchAsPrefix(text, i);
+            if (tag == null || declared.containsKey(tag[1])) {
+              lossless = false;
+              break;
+            }
+            final key = tag[1]!;
+            final value = tag[2]!
+                .replaceAll(r'\"', '"')
+                .replaceAll(r'\\', r'\');
+            declared[key] = value;
+            if (parsed.headers[key] != value) {
+              lossless = false;
+              break;
+            }
+            i = tag.end - 1;
+          } else if (c == ';' || c == '%') {
+            // The serializer omits line comments and escape lines entirely.
+            lossless = false;
+            break;
+          }
+        }
+        if (lossless) identity = 'pgn:${parsed.makePgn().trim()}';
+      }
+    } on FormatException {
+      // Malformed legacy records must not become a valid-looking duplicate.
+    } on ArgumentError {
+      // Includes malformed legacy setup headers rejected by makePgn().
+    }
+    return crypto.sha256.convert(utf8.encode(identity)).toString();
+  }
 
   /// Publish all new games with one directory rename. Validation, duplicate
   /// checks and file writes run off the UI isolate, under this repository queue.

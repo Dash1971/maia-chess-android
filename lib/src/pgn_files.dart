@@ -244,10 +244,17 @@ class RecentGamesPgn {
   }
 
   static String _singleGame(String source) {
+    final text = source.trim();
+    _validateSingleGame(text);
+    // Existing parser checks tokens, starting position and every variation,
+    // preserving supported headers, comments, NAGs, clocks and branch structure.
+    return '${AnalysisSession.fromPgn(text).pgn}\n\n';
+  }
+
+  static void _validateSingleGame(String text) {
     // Reject a second game instead of allowing the single-game parser to drop it.
     // Comments (including tag-like text), tags and variations cannot terminate
-    // the mainline. Validation/re-serialization below uses the individual importer.
-    final text = source.trim();
+    // the mainline. The caller validates/re-serializes with the individual importer.
     final scan = text.replaceAll(RegExp(r'^\s*%.*$', multiLine: true), '');
     final tag = RegExp(r'\[([A-Za-z0-9_]+)\s+"((?:[^"\\]|\\.)*)"\s*\]');
     final top = StringBuffer();
@@ -302,8 +309,5 @@ class RecentGamesPgn {
     if (result != null && mainline.substring(result.end).trim().isNotEmpty) {
       throw const FormatException('More than one game in a saved game record.');
     }
-    // Existing parser checks tokens, starting position and every variation,
-    // preserving supported headers, comments, NAGs, clocks and branch structure.
-    return '${AnalysisSession.fromPgn(text).pgn}\n\n';
   }
 }

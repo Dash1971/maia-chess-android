@@ -92,3 +92,7 @@ Collection import now skips identical PGNs already saved or repeated in the file
 ## Final collection hardening host checks
 
 The updated full host suite passed **1,526 tests, one skipped**, in each repository. New regressions cover exact-content duplicates, metadata/annotation differences, readable backups, all-duplicate retry without writes, abandoned/live staging, progress transitions and ten-language compact/large-text feedback. The 10,000-game near-5-MiB fixture and repeat import pass in both repositories. Final localized checks also run under the official Preview flavor. The [measurement report](verification/pgn-collection-import-2026-11-22.md) records fixture scope, timings and pending device checks. No Android builds, Actions or LFS downloads.
+
+## Export/re-import correction
+
+Host regressions reproduced duplicate records after exporting/reimporting app-generated and imported PGNs. Duplicate keys now normalize supported content through the export serializer. Changed annotations and metadata stay separate; lossy serialization uses conservative original-text comparison. Ten new round-trip regressions and updated README/PGN guidance accompany the shared fix in Stable #82 and Preview #261. No Android builds, Actions or LFS downloads.

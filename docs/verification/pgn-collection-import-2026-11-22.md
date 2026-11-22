@@ -6,7 +6,7 @@ Scope: Stable promotion #82 and Preview #261. Flutter 3.47.8 host tests on an Ap
 
 The deterministic fixture has **10,000 distinct games and 5,240,000 UTF-8 bytes**, just below the shared 5 MiB limit. These are short, ten-ply games with player/date/result headers and comments, stressing the file count and byte limit. The measurements do not establish validation speed for long, heavily varied games. No full dataset is checked in; `test/pgn_collection_scale_test.dart` regenerates it in a task-owned temporary directory and deletes it on completion.
 
-First focused runs on the same host:
+Initial exact-text comparison, before the export/re-import correction (historical measurements on the same host):
 
 | Operation | Stable | Preview |
 | --- | ---: | ---: |
@@ -22,8 +22,8 @@ Recent games retains the existing files and ordering. Its complete read/decode/s
 
 ## Correctness regressions
 
-- Exact-content duplicates within the file, existing archives, active games and readable archive backups; repeat import after repository restart.
-- Different headers (including extra metadata), comments, clocks and variations remain distinct. Only line endings and surrounding whitespace are ignored.
+- Matching supported PGN content within the file, existing archives, active games and readable archive backups; repeat import after repository restart and after export serialization.
+- Different headers (including extra metadata), comments, clocks and variations remain distinct. Supported PGN formatting is normalized with the exporter; lossy serialization falls back to original-text comparison.
 - All-duplicate imports add no records and leave checkpoint/archive bytes unchanged.
 - Validation/write failures leave no partial import, preserve recovery settings and close progress feedback.
 - Startup cleanup removes only abandoned import staging directories. Normal checkpoints, committed imports, unrelated directories and links remain untouched; a concurrent repository cannot clean a live import.
@@ -34,4 +34,14 @@ Recent games retains the existing files and ordering. Its complete read/decode/s
 
 Preview beta.11 should exercise real Android file providers, sharing, a large collection, cancel/failure paths available through the provider, app process termination during import, reopening Recent games and signed upgrade/data retention. Stable still requires its independent Linux/F-Droid and exact-source release gates. No physical board result is inferred from these storage tests.
 
-Full host suites: **1,526 passed, one skipped per repository**. The focused import-hardening suite contains 18 regressions, including the final progress transition and localized summary checks. Official Preview-flavor import-hardening checks are included separately; host checks do not replace release qualification.
+Before the export/re-import correction, full host suites passed **1,526 tests, one skipped per repository**. The focused import-hardening suite contains 18 regressions, including the final progress transition and localized summary checks. Official Preview-flavor import-hardening checks are included separately; host checks do not replace release qualification.
+
+## Export/re-import regression
+
+The original exact-text comparison reproduced three failures: raw imported games, app-generated games and formatted/raw duplicates in the same incoming collection. The two app-generated games both produced duplicate records after export/re-import. The correction compares supported content using the exporter’s serializer without rewriting saved games or replaying all existing moves. It preserves original-text comparison for information the serializer would discard.
+
+Ten dedicated regressions cover the round trip, active/archived records, within-file formatting copies, edited comments/clock annotations/variations/metadata, escaped headers/Unicode, semicolon comments, repeated tags, conflicting results, escape lines and malformed legacy PGNs. The original failing regressions pass after the fix. Source, channel identity and release qualification boundaries remain unchanged.
+
+### Loaded-host diagnostic after the correction
+
+A combined full-suite run hit the existing four-minute scale timeout while the Mac was also running nine unrelated CPU-heavy Stockfish jobs. An isolated diagnostic of the same 10,000-game assertions passed in 2 minutes 33 seconds: parsing 106.15 s, import 21.95 s, Recent games 7.08 s, repeat import 11.73 s. The parser slowed before duplicate comparison began. These loaded-host numbers are not directly comparable with the earlier quiet-host measurements above, and do not establish phone performance. The large test and remaining suite are checked separately under this load.
