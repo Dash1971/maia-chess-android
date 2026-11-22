@@ -870,7 +870,7 @@ Support planned for Stable 2.6 and the updated Preview/Dev sources:
 | Chessnut Air | Supported | Fully tested | Piece recognition and LED guidance. |
 | Chessnut Go | Supported | Fully tested | Piece recognition and LED guidance. |
 | Chessnut Pro | Supported | Not fully tested | Uses the shared Chessnut protocol; further device testing is welcome. |
-| Square Off Grand Kingdom | Supported | Partially tested | Untimed games from the standard position; assisted Maia promotion. |
+| Square Off Grand Kingdom | Supported | Passed user acceptance testing | Untimed games from the standard position; assisted Maia promotion. |
 | DGT Pegasus | Not supported | — | Prototype withdrawn because initialization licensing and downstream redistribution permission remain unresolved. |
 
 The [support decision](docs/decisions/2026-11-22-electronic-board-support.md)
@@ -883,7 +883,7 @@ Board owners and manufacturers are welcome to
 to help test devices, document protocols, and expand supported models. The
 [board testing guide](docs/ELECTRONIC_BOARD_DEV.md) describes the supported
 workflows and the [Grand Kingdom acceptance record](docs/ELECTRONIC_BOARD_GRAND_KINGDOM_26.md)
-records its remaining hardware scenarios.
+records its passed user acceptance testing, source feedback and operating limits.
 
 ## Credits and attributions
 

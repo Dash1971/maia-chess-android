@@ -18,8 +18,9 @@ distinguishes that concern from the GPL-licensed protocol reference. See the
 [README table](../README.md#electronic-board-support) for hardware testing status.
 Old Dev saves recover on the phone without reconnecting to the retired board.
 
-Grand Kingdom is supported across Stable 2.6, Preview and Dev. Both source
-repositories use the same Dart and native policy for these channels, including
+Grand Kingdom is supported across Stable 2.6, Preview and Dev and has passed
+user acceptance testing; see the
+[acceptance record](ELECTRONIC_BOARD_GRAND_KINGDOM_26.md). Both source repositories use the same Dart and native policy for these channels, including
 unflavored Stable. Unknown packaging channels remain closed. Shared Chessnut behavior, motor session guards and
 channel restriction tests remain in place. Only Dev records automatic local
 traces; Stable/Preview routine diagnostics remain bounded summaries.
@@ -42,7 +43,9 @@ this follow-up. Older published APKs/tags remain unchanged.
 
 The dated records below describe their original releases and decisions. Earlier
 experimental/Dev-only board policies are historical. Grand Kingdom is supported
-in all current channels, and Pegasus is withdrawn as stated above.
+in all current channels and has passed user acceptance testing. Earlier pending
+hardware-acceptance statements below are superseded by the current acceptance
+record. Pegasus is withdrawn as stated above.
 
 ### Opening variety promoted in Stable 2.4
 

@@ -136,5 +136,7 @@ work. Record cleanup in the release PR, including anything intentionally retaine
 
 Grand Kingdom is supported across Stable, Preview and Dev. Do not reintroduce
 a Preview/Dev-only support gate or experimental board labels. Hardware testing
-coverage is recorded separately. Preserve standard setup, assisted promotion,
+coverage is recorded separately. Grand Kingdom has passed user acceptance testing;
+do not revive superseded physical-acceptance checklists as release blockers.
+Preserve standard setup, assisted promotion,
 current-session motor guards and phone recovery. Pegasus remains withdrawn.

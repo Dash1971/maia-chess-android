@@ -1,8 +1,8 @@
 # Grand Kingdom support and testing
 
 Current policy: Grand Kingdom is supported in Stable 2.6, Preview and Dev,
-with identical Dart/native support policy in both source repositories. Hardware
-coverage is recorded separately; it does not make support experimental. Pegasus has been withdrawn from all channels; see the
+with identical Dart/native support policy in both source repositories.
+**Passed user acceptance testing.** Pegasus has been withdrawn from all channels; see the
 [support decision](decisions/2026-11-22-electronic-board-support.md). Dated
 historical channel descriptions below do not override that decision.
 
@@ -23,6 +23,21 @@ preserved. Stable release qualification has not run for this draft; no APK or
 store update has been published. Historical Preview decisions and scenario
 records below remain evidence, not a reason to omit the authorized promotion.
 
+## User acceptance — passed, recorded 22 November 2026
+
+Grand Kingdom has passed user acceptance testing and is accepted for Stable 2.6.
+Physical testing and subsequent successful Preview play are recorded in
+[Stable issue #15](https://github.com/Dash1971/maia-chess-android/issues/15),
+including the [capture/calibration follow-up](https://github.com/Dash1971/maia-chess-android/issues/15#issuecomment-6863134393)
+and [79M Preview feedback](https://github.com/Dash1971/maia-chess-android/issues/15#issuecomment-6875973632).
+
+This status supersedes the earlier pending-acceptance checklists and experimental
+classification. The dated reports below remain historical evidence; an older
+“not tested yet” entry is not the current acceptance status. The feedback is not
+an exhaustive scenario-by-scenario certification of every firmware or promotion
+variant. Further regression coverage is welcome and does not reopen user acceptance.
+Normal exact-source release qualification remains required before publication.
+
 ## Current owner feedback — 14 November 2026
 
 [The owner’s follow-up](https://github.com/Dash1971/maia-chess-android/issues/15#issuecomment-6863134393) reports many games with Mobile Maia and the
@@ -38,8 +53,8 @@ game](https://github.com/Dash1971/maia-chess-android/issues/15#issuecomment-6875
 
 The two October PGNs remain regression/reference material. No software capture
 fix is being claimed, and the owner’s report does not establish every board or
-firmware. En passant, assisted Maia promotion and lifecycle/recovery scenarios
-still need explicit results, as listed below. Firmware is now known; the exact
+firmware. The overall user acceptance status is passed; the replies are not an
+itemized record of every edge case. Firmware is now known; the exact
 app build for the hardware-drift follow-up and a specific phone model were not
 supplied and must not be inferred from the earlier Dev report.
 
@@ -53,6 +68,9 @@ exclude Grand Kingdom. That historical designation is superseded by the supporte
 above. Additional physical scenarios track coverage, not a channel restriction.
 
 ## Historical physical evidence — 28 October 2026
+
+The results in this dated table describe that initial report only. They do not
+override the passed user acceptance status above.
 
 [Tester report, 2026-10-28](https://github.com/Dash1971/maia-chess-android/issues/15#issuecomment-6468925765):
 Square Off Grand Kingdom, Android 17 / SDK 37, app `2.4.0-alpha.2-dev`.
@@ -73,8 +91,9 @@ The later firmware confirmation is 36v5, as recorded above.
 | Background/resume, connection loss, phone continuation without repeat movement | Not tested yet |
 | Reset, multiple-board discovery, denied permission, Bluetooth/power interruption | Not established |
 
-This is evidence for one tester's Grand Kingdom on the older 5M Dev build, not
-other Square Off products, every firmware or the future 79M Preview candidate.
+This initial report concerns one Grand Kingdom on an older Dev build. Later
+79M Preview feedback is recorded above. It does not establish support for other
+Square Off products or every firmware.
 Protocol provenance remains in
 [ELECTRONIC_BOARD_NATIVE_PROTOCOL.md](ELECTRONIC_BOARD_NATIVE_PROTOCOL.md).
 
@@ -157,7 +176,7 @@ reconciliation can acknowledge completion. Promotions always require explicit
 piece-replacement confirmation.
 Starting a new game still requires physical setup. Interrupted movement,
 midgame motor-board restoration and takebacks require phone continuation.
-Maia promotions now have the assisted flow below; physical acceptance is pending.
+Maia promotions use the assisted flow below.
 There is no verified stop/cancel opcode, automatic replay or arbitrary-position
 motor restoration.
 
@@ -193,19 +212,20 @@ confirmation or explicit phone continuation.
 
 Automated policies test the logical/transport state machine. They do not prove
 that the firmware handles physical replacement or subsequent underpromotion
-moves correctly. This remains experimental; physical acceptance is pending and is not claimed by
-the Preview publication.
+moves correctly. User acceptance has passed based on physical testing; automated
+checks remain separate evidence and do not certify every firmware or variant.
 
-## Owner testing plan
+## Optional extended regression checks
 
-The owner is testing the published Preview build. The older Dev-only advice is
-historical. Use a level surface and fresh game-start calibration, then report
+User acceptance has passed. These checks are suggestions for additional coverage,
+not outstanding release-acceptance requirements. The older Dev-only advice is
+historical. Use a level surface and fresh game-start calibration, then record
 the exact app build, firmware, phone/Android and scenario actually exercised.
 
 1. Retain ordinary play/captures as regression checks on a level, calibrated
    board. The earlier symptoms have an owner-reported hardware explanation;
    reproducing and fixing an assumed app defect is not a prerequisite. Record
-   en passant separately, since it has not yet been physically established.
+   en passant separately in any further scenario-specific reports.
 2. Try a Maia queen promotion first. Verify one pawn movement, the correct
    destination/piece instruction, disabled continuation before the checkbox,
    manual replacement, full-position confirmation and normal subsequent play.
@@ -223,43 +243,24 @@ underpromotion matrix may need a separately labelled maintainer-controlled Dev
 scenario build from the standard position. The deterministic automated test
 scripts are not a claim that normal Maia play will quickly produce every case.
 
-## Remaining development order
+## Future development and release qualification
 
-1. Use the owner’s hardware-drift/calibration explanation as the current status.
-   Retain the two historical PGNs; investigate only a new mismatch on a level,
-   calibrated board, recording the first physical divergence before assigning
-   an app cause or changing the protocol.
-2. Qualify assisted promotions and the existing en-passant/lifecycle paths with
-   the owner, recording each scenario independently of the overall positive report.
-   Improve bounded diagnostics and recovery instructions using those results; preserve
-   the distinction between an idle live session and uncertain motor delivery.
-3. Investigate full midgame reconnection and takebacks only after establishing a
-   reliable reconciliation/firmware protocol. Never infer motor cancellation or
-   reset completion from `RSTVAR` or automatically replay movement commands.
+User acceptance is complete. Retain the two historical PGNs as regression cases;
+investigate any new mismatch on a level, calibrated board by recording the first
+physical divergence before assigning a cause or changing the protocol.
 
-## Remaining physical acceptance
+Full midgame reconnection and motor-board takebacks remain outside the supported
+workflow. Any future implementation needs a reliable reconciliation/firmware
+protocol. Never infer motor cancellation or reset completion from `RSTVAR` or
+automatically replay movement commands.
 
-- [x] Record the owner’s explanation of the earlier `19...Bxf8` / `7...Nxb4`
-      symptoms: hardware drift/calibration or an uneven surface, firmware 36v5.
-      This closes the unexplained-status item, not every physical scenario.
-- [ ] Record physical en passant acceptance.
-- [ ] Record background/resume and idle disconnect → Play in the app, preserving
-      the game without repeated motor movement.
-- [ ] Physically validate assisted Maia promotions, including captures, both colors,
-      underpromotions and subsequent play.
-- [ ] Verify interrupted/restarted sessions and unsupported takeback/reconnection
-      paths retain the logical game and offer phone continuation without replay.
-- [x] Record later firmware confirmation: 36v5.
-- [ ] Obtain the specific phone model/latest exact app build if available; keep
-      the old Dev build-code discrepancy historical rather than substituting it.
-- [ ] Recheck channel-policy, promotion/motor, saved-session and Chessnut
-      regressions on the eventual candidate source.
-
-Keep #27 open until remaining acceptance is complete. Before publishing a 2.6
-Preview candidate, follow the full [Preview release procedure](RELEASING.md),
+[Preview #27](https://github.com/Dash1971/maia-chess-android-preview/issues/27) is
+closed as delivered. [Stable #15](https://github.com/Dash1971/maia-chess-android/issues/15)
+tracks delivery to Stable, not an outstanding physical user-acceptance gate.
+Before publishing, follow the applicable channel's [release procedure](RELEASING.md),
 including exact-source Linux reproduction, real 79M native checks and signed
-upgrade/data retention. Automated/emulator checks do not certify physical BLE
-or motors. Dev publication, if requested later, uses its separate procedure.
+upgrade/data retention. Dev publication, if requested later, uses its separate
+procedure. Passing user acceptance does not substitute for these release checks.
 
 ## Earlier Stable counterpart review (historical)
 
