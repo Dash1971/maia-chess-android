@@ -21,6 +21,13 @@ artifact/model verification and cleanup changes:
 
 The following files are shared verbatim:
 
+- `tool/requirements-release-test.txt`
+- `tool/setup_release_tests.py`
+- `tool/release_test_preflight.py`
+- `tool/release_test_setup_test.py`
+- `tool/android_release_ui.py`
+- `tool/hardening/android_release/FastDump.java`
+- `docs/RELEASE_TEST_SETUP.md`
 - `tool/build_workspace.py`
 - `tool/build_workspace_test.py`
 - `docs/BUILD_WORKSPACE.md`
