@@ -326,7 +326,6 @@
   "boardNoResults": "Aucun échiquier compatible trouvé. Réveillez votre échiquier et réessayez.",
   "boardWaitingForSelection": "Choisissez un échiquier à connecter.",
   "boardReconnect": "Reconnecter l’échiquier",
-  "boardLockedPegasus": "Pegasus est verrouillé. Cette version Dev ne contient pas la clé d’initialisation du fabricant.",
   "boardMotorRecovery": "Continuez sur votre téléphone. Cet adaptateur expérimental ne peut pas rétablir en toute sécurité l’état du moteur de l’échiquier.",
   "boardConfirmPosition": "Confirmer la position sur l’échiquier physique",
   "boardConfirmPositionHelp": "Vérifiez que chaque pièce correspond à la position affichée à l’écran.",

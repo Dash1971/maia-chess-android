@@ -1,5 +1,9 @@
 # Grand Kingdom: Stable 2.6 promotion
 
+Current policy: Pegasus has been withdrawn from all channels; see the
+[support decision](decisions/2026-11-22-electronic-board-support.md). Dated
+historical channel descriptions below do not override that decision.
+
 Preview testing started in [Preview 2.6.0-beta.3](https://github.com/Dash1971/maia-chess-android-preview/releases/tag/v2.6.0-beta.3), updated 15 November 2026.
 Tracks [Preview #27](https://github.com/Dash1971/maia-chess-android-preview/issues/27).
 
@@ -7,7 +11,7 @@ Tracks [Preview #27](https://github.com/Dash1971/maia-chess-android-preview/issu
 
 Grand Kingdom support is included in the Stable 2.6 promotion draft, following
 successful Preview testing. Both Dart and native policies permit Stable and
-unflavored Stable builds, alongside Preview/Dev. DGT Pegasus remains Dev-only;
+unflavored Stable builds, alongside Preview/Dev. DGT Pegasus is withdrawn from every channel;
 automatic diagnostics and their local export remain Dev-only.
 
 This changes the shipping scope, not the motor protocol or recovery rules.

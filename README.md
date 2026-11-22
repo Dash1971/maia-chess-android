@@ -74,6 +74,7 @@ or offline PWA.
 - [Support and contributing](#support-and-contributing)
 - [Build and reproducibility](#build)
 - [Re-export Maia-3](#re-export-maia-3)
+- [Electronic-board support](#electronic-board-support)
 - [Credits and attributions](#credits-and-attributions)
 - [Licensing](#licensing)
 
@@ -83,7 +84,7 @@ The [Stable 2.6 promotion draft](docs/stable-2.6-preparation.md) brings the curr
 Preview improvements into the blue-icon app. It is not built or published yet;
 Stable 2.5.1 remains the current download.
 
-- **Experimental Grand Kingdom support.** Play untimed games from the standard position on a Square Off Grand Kingdom, including assisted Maia promotion. Chessnut Air and Go remain supported.
+- **Experimental Grand Kingdom support.** Play untimed games from the standard position on a Square Off Grand Kingdom, including assisted Maia promotion. Chessnut Air, Go and Pro are supported; Pro awaits further hardware testing.
 - **More room for chess.** Larger landscape boards and adaptive wide Home/Settings layouts. Engine output stays visible while moves scroll independently; holding either arrow reveals the beginning or end in portrait and landscape.
 - **Better Recent games.** Compact Date/Game/Result rows, yyyy/MM/dd dates and clear Incomplete labels. Back cancels selection first, and saved-game Back restores the same browsing position. Select games to delete them from the toolbar; per-row delete icons are removed.
 - **PGN collections.** Long-press a Recent games entry or choose Select games, select individual games or Select all, then Export games to save or share one PGN. Import and export both allow 5 MiB. Importing a collection adds every game to Recent games for transfer between installations; importing a single game still opens it for analysis. Oversized/unreadable selections retain your selection and never produce a partial collection.
@@ -91,9 +92,8 @@ Stable 2.5.1 remains the current download.
 - **Human move timing on by default.** An unset preference now enables timing, including on upgrade; a saved off choice remains off. Settings reset also enables timing.
 
 Grand Kingdom setup requires the standard position; promotion needs replacement
-confirmation, and interrupted movement/takebacks use phone continuation. DGT
-Pegasus, automatic Dev diagnostics and camera/image recognition are not enabled
-in Stable. No new model, cloud service or account is introduced.
+confirmation, and interrupted movement/takebacks use phone continuation. DGT Pegasus is not supported because initialization licensing is unresolved.
+Automatic Dev diagnostics and camera/image recognition are not enabled in Stable. No new model, cloud service or account is introduced.
 
 [Draft release notes](docs/release-notes/v2.6.0.md) describe the final proposed
 behavior. Builds, changed Stable screenshots and release qualification remain
@@ -452,7 +452,7 @@ automatically; multiple candidates open a chooser. Connection messages identify
 the board. The board's NEW GAME button opens the reset warning; a second press
 within 2.5 seconds confirms it. The game stays on screen, keeps the colors and
 waits for the LED-guided physical setup before starting again. The double-press NEW GAME Chessnut e-board behavior was inspired by [MoveAPiece](https://github.com/egdels/moveapiece) by [egdels](https://github.com/egdels).
-The Stable 2.6 draft also enables Square Off Grand Kingdom for untimed standard-position games, with assisted promotion and phone recovery. DGT Pegasus remains Dev-only.
+The Stable 2.6 draft also enables Square Off Grand Kingdom for untimed standard-position games, with assisted promotion and phone recovery. DGT Pegasus is withdrawn from all channels because initialization licensing is unresolved.
 
 Reconnect keeps the game and verifies the physical position before play
 continues. Pending Maia and takeback lights are restored. **Play in app** moves
@@ -584,7 +584,7 @@ board** to connect to or reuse a Chessnut board; choose **Set up board** after
 connection. Board continuation is untimed and waits for the physical pieces to
 match the full selected position. Turning the option off restores the chosen
 phone clock. Cancel preserves analysis; Retry handles a failed connection.
-This custom-position continuation workflow remains Chessnut-only. Grand Kingdom 2.6 support starts from the standard position; DGT Pegasus remains Dev-only.
+This custom-position continuation workflow remains Chessnut-only. Grand Kingdom 2.6 support starts from the standard position; DGT Pegasus is withdrawn from all channels because initialization licensing is unresolved.
 
 ### Save and share analysis
 
@@ -856,6 +856,30 @@ The exporter verifies ONNX Runtime outputs against PyTorch before succeeding.
 python -m pip install /path/to/maia3 onnx onnxruntime
 python tool/export_maia3_onnx.py --model maia3-79m --output assets/models/maia3-79m.onnx
 ```
+
+## Electronic-board support
+
+Support planned for Stable 2.6 and the updated Preview/Dev sources:
+
+| Board | Support | Hardware testing | Notes |
+| --- | --- | --- | --- |
+| Chessnut Air | Supported | Fully tested | Piece recognition and LED guidance. |
+| Chessnut Go | Supported | Fully tested | Piece recognition and LED guidance. |
+| Chessnut Pro | Supported | Not fully tested | Uses the shared Chessnut protocol; further device testing is welcome. |
+| Square Off Grand Kingdom | Supported (experimental) | Partially tested | Untimed games from the standard position; assisted Maia promotion. |
+| DGT Pegasus | Not supported | — | Prototype withdrawn because initialization licensing and downstream redistribution permission remain unresolved. |
+
+The [support decision](docs/decisions/2026-11-22-electronic-board-support.md)
+records the Pegasus withdrawal. The uncertainty concerns initialization
+permission, not the GPL-licensed MoveAPiece protocol code. Older Dev APKs may
+contain the retired prototype; no published APK is changed by this source PR.
+
+Board owners and manufacturers are welcome to
+[contact us through an issue](https://github.com/Dash1971/maia-chess-android/issues/new)
+to help test devices, document protocols, and expand supported models. The
+[board testing guide](docs/ELECTRONIC_BOARD_DEV.md) describes the supported
+workflows and the [Grand Kingdom acceptance record](docs/ELECTRONIC_BOARD_GRAND_KINGDOM_26.md)
+records its remaining hardware scenarios.
 
 ## Credits and attributions
 

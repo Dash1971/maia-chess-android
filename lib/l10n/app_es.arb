@@ -326,7 +326,6 @@
   "boardNoResults": "No se ha encontrado ningún tablero compatible. Activa tu tablero e inténtalo de nuevo.",
   "boardWaitingForSelection": "Elige un tablero para conectar.",
   "boardReconnect": "Reconectar tablero",
-  "boardLockedPegasus": "Pegasus está bloqueado. Esta versión Dev no incluye la clave de inicialización del fabricante.",
   "boardMotorRecovery": "Continúa en tu teléfono. Este adaptador experimental no puede restablecer con seguridad el estado del motor del tablero.",
   "boardConfirmPosition": "Confirmar la posición del tablero físico",
   "boardConfirmPositionHelp": "Comprueba que todas las piezas coincidan con la posición en pantalla.",

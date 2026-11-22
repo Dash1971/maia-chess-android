@@ -1089,9 +1089,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get boardReconnect => '重新连接棋盘';
 
   @override
-  String get boardLockedPegasus => 'Pegasus已锁定。此Dev版本未包含厂商的初始化密钥。';
-
-  @override
   String get boardMotorRecovery => '请在手机上继续。此实验性连接功能无法安全恢复棋盘的电机状态。';
 
   @override

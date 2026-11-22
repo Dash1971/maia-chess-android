@@ -38,7 +38,8 @@ fun main() {
         check(!BoardChannelPolicy.permitsMotorCommand(flavor, "pegasus", true, "live", "live"))
         check(!BoardChannelPolicy.supports(flavor, "unknown"))
     }
-    check(BoardChannelPolicy.discover("dev", "DGT Pegasus") == "pegasus")
+    check(BoardChannelPolicy.discover("dev", "DGT Pegasus") == null)
+    check(!BoardChannelPolicy.supports("dev", "pegasus"))
     check(BoardChannelPolicy.discover("dev", "Square Off") == "squareOff")
     check(!BoardChannelPolicy.supports("dev", "unknown"))
 
@@ -73,15 +74,6 @@ fun main() {
     discovery.clear()
     check(discovery.snapshot().isEmpty())
 
-    val allGuidance = ElectronicBoardProtocol.pegasusLeds((0..63).toList())
-    check(allGuidance.size == 20)
-    check(allGuidance[1].toInt() == 18)
-    check(allGuidance.copyOfRange(6, 19).contentEquals((0..12).map { it.toByte() }.toByteArray()))
-    check(allGuidance.last() == 0.toByte())
-    check(ElectronicBoardProtocol.pegasusLeds(listOf(63, 63)).size == 8)
-    check(ElectronicBoardProtocol.pegasusLeds(emptyList()).contentEquals(bytes(0x60, 2, 0, 0)))
-    rejects { ElectronicBoardProtocol.pegasusLeds(listOf(-1)) }
-    rejects { ElectronicBoardProtocol.pegasusLeds(listOf(64)) }
     check(String(ElectronicBoardProtocol.squareOffMove("e2e4", "live", "live")) == "xe2e4z")
     rejects { ElectronicBoardProtocol.squareOffMove("e2e4", "old", "live") }
     rejects { ElectronicBoardProtocol.squareOffMove("e2e4", null, "live") }

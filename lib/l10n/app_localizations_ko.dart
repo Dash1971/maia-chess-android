@@ -1103,10 +1103,6 @@ class AppLocalizationsKo extends AppLocalizations {
   String get boardReconnect => '체스보드 다시 연결';
 
   @override
-  String get boardLockedPegasus =>
-      'Pegasus가 잠겨 있습니다. 이 Dev 빌드에는 제조사의 초기화 키가 포함되어 있지 않습니다.';
-
-  @override
   String get boardMotorRecovery =>
       '휴대전화에서 계속하세요. 이 실험용 연결 기능은 체스보드의 모터 상태를 안전하게 복원할 수 없습니다.';
 

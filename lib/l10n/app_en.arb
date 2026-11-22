@@ -1549,10 +1549,6 @@
   "@boardReconnect": {
     "description": "Electronic board Dev support: Button to reconnect selected physical board."
   },
-  "boardLockedPegasus": "Pegasus is locked. This Dev build does not include its manufacturer initialization key.",
-  "@boardLockedPegasus": {
-    "description": "Electronic board Dev support: Manufacturer initialization missing/locked state; Dev means the separate development build."
-  },
   "boardMotorRecovery": "Continue on your phone. This experimental adapter cannot safely restore the board’s motor state.",
   "@boardMotorRecovery": {
     "description": "Electronic board Dev support: Motorized-board safety recovery instruction; continue with phone input because firmware motor state cannot be restored."
@@ -1595,7 +1591,7 @@
     "placeholders": {
       "boardName": {
         "type": "String",
-        "description": "Product name, e.g. Chessnut Go or DGT Pegasus; do not translate product names."
+        "description": "Product name, e.g. Chessnut Go or Square Off Grand Kingdom; do not translate product names."
       }
     }
   },
@@ -1605,7 +1601,7 @@
     "placeholders": {
       "boardName": {
         "type": "String",
-        "description": "Product name, e.g. Chessnut Go or DGT Pegasus; do not translate product names."
+        "description": "Product name, e.g. Chessnut Go or Square Off Grand Kingdom; do not translate product names."
       }
     }
   },

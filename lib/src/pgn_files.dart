@@ -181,7 +181,9 @@ class RecentGamesPgn {
         throw const PgnExportGameTooLarge();
       }
       final game = await Isolate.run(() => _singleGame(source));
-      bytes += utf8.encode(game).length;
+      final gameBytes = utf8.encode(game).length;
+      if (gameBytes > maxBytes) throw const PgnExportGameTooLarge();
+      bytes += gameBytes;
       if (bytes > maxBytes) throw const PgnExportTooLarge();
       output.write(game);
     }

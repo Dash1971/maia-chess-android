@@ -12,42 +12,27 @@ import 'fixtures/immediate_maia_preferences.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
-  test(
-    'Grand Kingdom permits Stable/Preview/Dev; Pegasus permits only Dev',
-    () {
-      for (final flavor in ['production', 'unknown']) {
-        expect(BoardChannelPolicy.supports(flavor, BoardKind.chessnut), isTrue);
-        expect(BoardChannelPolicy.supports(flavor, BoardKind.pegasus), isFalse);
-        expect(
-          BoardChannelPolicy.supports(flavor, BoardKind.squareOff),
-          isFalse,
-        );
-      }
-      for (final flavor in ['stable', '', null]) {
-        expect(
-          BoardChannelPolicy.supports(flavor, BoardKind.squareOff),
-          isTrue,
-        );
-        expect(BoardChannelPolicy.supports(flavor, BoardKind.pegasus), isFalse);
-        expect(BoardChannelPolicy.supports(flavor, BoardKind.chessnut), isTrue);
-      }
+  test('only Chessnut and Grand Kingdom have supported adapters', () {
+    expect(BoardKind.values.map((kind) => kind.name), [
+      'chessnut',
+      'squareOff',
+    ]);
+    for (final flavor in [
+      'production',
+      'unknown',
+      'stable',
+      '',
+      null,
+      'preview',
+      'dev',
+    ]) {
+      expect(BoardChannelPolicy.supports(flavor, BoardKind.chessnut), isTrue);
       expect(
-        BoardChannelPolicy.supports('preview', BoardKind.chessnut),
-        isTrue,
+        BoardChannelPolicy.supports(flavor, BoardKind.squareOff),
+        const {'dev', 'preview', 'stable', '', null}.contains(flavor),
       );
-      expect(
-        BoardChannelPolicy.supports('preview', BoardKind.squareOff),
-        isTrue,
-      );
-      expect(
-        BoardChannelPolicy.supports('preview', BoardKind.pegasus),
-        isFalse,
-      );
-      for (final kind in BoardKind.values) {
-        expect(BoardChannelPolicy.supports('dev', kind), isTrue);
-      }
-    },
-  );
+    }
+  });
 
   for (final legacySave in [false, true]) {
     testWidgets(
@@ -160,77 +145,102 @@ void main() {
         await tester.pumpWidget(const SizedBox.shrink());
         await tester.pumpAndSettle();
       },
-      skip: appFlavor == 'dev',
     );
   }
-  testWidgets('channels reject ready events from unsupported boards', (
-    tester,
-  ) async {
-    SharedPreferences.setMockInitialValues({});
-    final board = DiscoveryBoard();
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(maiaEngineChannel, (_) async => null);
-    addTearDown(() async {
-      await board.controller.close();
+  testWidgets(
+    'retired and unknown native events never replace the connected board',
+    (tester) async {
+      setImmediateMaiaPreferences({});
+      final board = DiscoveryBoard();
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-          .setMockMethodCallHandler(maiaEngineChannel, null);
-    });
-    tester.view.physicalSize = const Size(1000, 1600);
-    tester.view.devicePixelRatio = 1;
-    addTearDown(tester.view.resetPhysicalSize);
-    addTearDown(tester.view.resetDevicePixelRatio);
-    await tester.pumpWidget(
-      MaterialApp(
-        home: GamePage(
-          electronicBoardTransport: board,
-          maiaEvaluator: (_, _) async => Float32List(4352),
-        ),
-      ),
-    );
-    await tester.pumpAndSettle();
-    final toggle = find.byKey(const ValueKey('home-chessnut-toggle'));
-    await tester.ensureVisible(toggle);
-    await tester.tap(toggle);
-    await tester.pumpAndSettle();
-    board.candidates();
-    await tester.pumpAndSettle();
-    expect(
-      find.byKey(const ValueKey('board-candidate-board-one')),
-      findsOneWidget,
-    );
-    expect(
-      find.byKey(const ValueKey('board-candidate-board-two')),
-      findsNothing,
-    );
-    await tester.tap(find.text('Cancel'));
-    await tester.pumpAndSettle();
-    board.controller.add(
-      const ElectronicBoardEvent(
-        type: 'status',
-        connectionState: ElectronicBoardConnectionState.ready,
-        boardKind: BoardKind.chessnut,
-        boardId: 'chessnut-go',
-        connectionSession: 'preview-chessnut',
-        deviceName: 'Chessnut Go',
-      ),
-    );
-    await tester.pumpAndSettle();
-    expect(find.text('Chessnut Go connected'), findsOneWidget);
-    for (final kind in [
-      BoardKind.pegasus,
-      if (!BoardChannelPolicy.supports(appFlavor, BoardKind.squareOff))
-        BoardKind.squareOff,
-    ]) {
-      board.status(kind);
+          .setMockMethodCallHandler(maiaEngineChannel, (_) async => null);
+      addTearDown(() async {
+        await board.controller.close();
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockMethodCallHandler(maiaEngineChannel, null);
+      });
+      await tester.pumpWidget(
+        MaterialApp(home: GamePage(electronicBoardTransport: board)),
+      );
       await tester.pumpAndSettle();
-      expect(find.text('Confirm board setup'), findsNothing);
-      expect(board.starts, isEmpty);
+      final toggle = find.byKey(const ValueKey('home-chessnut-toggle'));
+      await tester.ensureVisible(toggle);
+      await tester.tap(toggle);
+      board.status(BoardKind.chessnut);
+      await tester.pumpAndSettle();
+      expect(find.text('Chessnut connected'), findsOneWidget);
+      final decoder = ChessnutEventDecoder();
+      for (final kind in ['pegasus', 'unrecognized']) {
+        for (final type in ['status', 'boardData', 'position', 'newGame']) {
+          final event = decoder.decode({
+            'type': type,
+            'state': 'ready',
+            'boardKind': kind,
+            'connectionSession': 'session-selected-board',
+            'data': 'e2e4'.codeUnits,
+          });
+          expect(event.type, 'unsupported');
+          expect(event.connectionState, isNull);
+          board.controller.add(event);
+          await tester.pumpAndSettle();
+          expect(find.text('Chessnut connected'), findsOneWidget);
+          expect(find.text('Confirm board setup'), findsNothing);
+          expect(board.starts, isEmpty);
+          expect(board.motorMoves, isEmpty);
+        }
+      }
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pumpAndSettle();
+    },
+  );
+
+  testWidgets(
+    'retired Dev board saves recover on the phone without reconnecting',
+    (tester) async {
+      setImmediateMaiaPreferences({});
+      await ActiveSessionStore.save({
+        'type': 'game',
+        'pgn': '1. e4 e5 *',
+        'electronicBoard': 'pegasus',
+        'electronicBoardId': 'retired-board',
+        'playerIsWhite': true,
+        'clockPaused': true,
+        'timePreset': TimePreset.blitzFiveZero.name,
+        'whiteMillis': 1,
+        'blackMillis': 1,
+        'pendingPhysicalMaiaMove': 'e7e5',
+      });
+      final board = DiscoveryBoard();
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(maiaEngineChannel, (_) async => null);
+      addTearDown(() async {
+        await board.controller.close();
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockMethodCallHandler(maiaEngineChannel, null);
+      });
+      await tester.pumpWidget(
+        MaterialApp(home: GamePage(electronicBoardTransport: board)),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey('game-home-button')), findsOneWidget);
+      expect(
+        find.byKey(const ValueKey('chessnut-status-banner')),
+        findsNothing,
+      );
+      expect(board.discoveries, 0);
+      expect(board.reconnects, isEmpty);
       expect(board.motorMoves, isEmpty);
-      expect(find.text('Chessnut Go connected'), findsOneWidget);
-    }
-    await tester.pumpWidget(const SizedBox.shrink());
-    await tester.pumpAndSettle();
-  }, skip: appFlavor == 'dev');
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+      await tester.pumpAndSettle();
+      final saved = (await ActiveSessionStore.load())!;
+      expect(saved['timePreset'], TimePreset.unlimited.name);
+      expect(saved['pendingPhysicalMaiaMove'], isNull);
+      expect(saved['pgn'], contains('e4 e5'));
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pumpAndSettle();
+    },
+  );
 
   testWidgets(
     'Stable Grand Kingdom requires setup and never replays a pending motor move',

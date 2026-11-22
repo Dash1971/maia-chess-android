@@ -1195,10 +1195,6 @@ class AppLocalizationsHi extends AppLocalizations {
   String get boardReconnect => 'बोर्ड फिर से कनेक्ट करें';
 
   @override
-  String get boardLockedPegasus =>
-      'Pegasus लॉक है। इस Dev संस्करण में निर्माता की शुरुआती सेटअप कुंजी शामिल नहीं है।';
-
-  @override
   String get boardMotorRecovery =>
       'फ़ोन पर खेल जारी रखें। यह प्रायोगिक अडैप्टर बोर्ड की मोटर की स्थिति सुरक्षित रूप से बहाल नहीं कर सकता।';
 

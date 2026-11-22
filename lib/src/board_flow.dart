@@ -1,6 +1,6 @@
 part of '../main.dart';
 
-enum BoardProblem { locked, motor, generic }
+enum BoardProblem { motor, generic }
 
 extension _ElectronicBoardFlow on _GamePageState {
   void _traceGrandKingdom(String event, {String? uci}) {
@@ -71,7 +71,6 @@ extension _ElectronicBoardFlow on _GamePageState {
     if (_chessnutState == ElectronicBoardConnectionState.error &&
         _boardProblem != null) {
       return switch (_boardProblem!) {
-        BoardProblem.locked => t.boardLockedPegasus,
         BoardProblem.motor => t.boardMotorRecovery,
         BoardProblem.generic => t.boardConnectionError,
       };
@@ -98,7 +97,6 @@ extension _ElectronicBoardFlow on _GamePageState {
   }
 
   void _cancelBoardInteractions() {
-    _boardSettleTimer?.cancel();
     _boardInteractionEpoch++;
     _disarmBoardReset();
     final dialog = _boardDialogContext;
@@ -115,9 +113,6 @@ extension _ElectronicBoardFlow on _GamePageState {
 
   void _resetBoardProtocol() {
     _cancelBoardInteractions();
-    _pegasusDecoder.reset();
-    _occupancyResolver.reset();
-    _physicalOccupancy = null;
     _squareOffDecoder.reset();
     _deferredSquareOffMove = null;
     _boardSetupConfirmed = false;
@@ -189,7 +184,6 @@ extension _ElectronicBoardFlow on _GamePageState {
                     title: Text(candidate.name),
                     subtitle: Text(switch (candidate.kind) {
                       BoardKind.chessnut => 'Chessnut',
-                      BoardKind.pegasus => 'DGT Pegasus',
                       BoardKind.squareOff => 'Square Off Grand Kingdom',
                     }),
                     onTap: () => Navigator.pop(dialog, candidate.id),
@@ -242,10 +236,7 @@ extension _ElectronicBoardFlow on _GamePageState {
     _chessnutPosition = null;
     _queuedChessnutPosition = null;
     _squareOffDecoder.reset();
-    _pegasusDecoder.reset();
-    _boardProblem = error.toString().toLowerCase().contains('locked')
-        ? BoardProblem.locked
-        : _boardKind == BoardKind.squareOff
+    _boardProblem = _boardKind == BoardKind.squareOff
         ? BoardProblem.motor
         : BoardProblem.generic;
     _updateBoardUi(() {
@@ -265,19 +256,7 @@ extension _ElectronicBoardFlow on _GamePageState {
     try {
       final bytes = event.data;
       if (bytes == null) throw const FormatException('Invalid board event');
-      if (_boardKind == BoardKind.pegasus) {
-        for (final occupied in _pegasusDecoder.add(bytes)) {
-          _physicalOccupancy = occupied;
-          _occupancyResolver.observe(_game, occupied);
-          _boardSettleTimer?.cancel();
-          final epoch = _boardInteractionEpoch;
-          _boardSettleTimer = Timer(const Duration(milliseconds: 350), () {
-            if (mounted && epoch == _boardInteractionEpoch && _chessnutReady) {
-              unawaited(_applyOccupancy(occupied));
-            }
-          });
-        }
-      } else if (_boardKind == BoardKind.squareOff) {
+      if (_boardKind == BoardKind.squareOff) {
         final uci = _squareOffDecoder.add(bytes);
         if (uci != null) unawaited(_receiveSquareOffMove(uci));
       }
@@ -335,92 +314,6 @@ extension _ElectronicBoardFlow on _GamePageState {
     }
     _boardDialogContext = null;
     return selected;
-  }
-
-  Future<void> _applyOccupancy(Set<String> occupied) async {
-    if (!_useChessnutGo ||
-        !_chessnutReady ||
-        _boardKind != BoardKind.pegasus ||
-        !_feedbackForeground ||
-        !_feedbackRouteVisible) {
-      return;
-    }
-    final expected = ChessnutProtocol.pieceMapFromFen(
-      _started ? _game.fen : chess.Chess.DEFAULT_POSITION,
-    );
-    final matches =
-        occupied.length == expected.length &&
-        occupied.containsAll(expected.keys);
-    final pending = _pendingPhysicalMaiaMove;
-    if (matches && pending != null && _positionHistory.length > 1) {
-      final before = chess.Chess.fromFEN(
-        _positionHistory[_positionHistory.length - 2],
-      );
-      final needsPhysicalConfirmation =
-          pending.length == 5 ||
-          (before.get(pending.substring(2, 4)) != null &&
-              !_occupancyResolver.lifted.contains(pending.substring(2, 4)));
-      if (needsPhysicalConfirmation) {
-        final epoch = _boardInteractionEpoch;
-        final confirmed = await _confirmBoardMove([pending]);
-        if (confirmed == null ||
-            !mounted ||
-            epoch != _boardInteractionEpoch ||
-            _pendingPhysicalMaiaMove != pending ||
-            _physicalOccupancy == null ||
-            !setEquals(_physicalOccupancy!, occupied)) {
-          return;
-        }
-      }
-    }
-    if (!_started ||
-        _pendingPhysicalMaiaMove != null ||
-        _chessnutTakebackRestoreActive ||
-        !_isPlayerTurn ||
-        matches) {
-      final position = {
-        for (final square in occupied) square: expected[square] ?? '?',
-      };
-      _updateBoardUi(() => _chessnutPosition = position);
-      _queueChessnutPosition(position);
-      return;
-    }
-    if (_engineThinking ||
-        _physicalMoveInProgress ||
-        _clockPaused ||
-        _boardDialogContext != null) {
-      return;
-    }
-    final candidates = _occupancyResolver.candidates(_game, occupied);
-    if (candidates.isEmpty) {
-      await _setChessnutLeds(const []);
-      return;
-    }
-    final fen = _game.fen;
-    final epoch = _boardInteractionEpoch;
-    final chosen = _occupancyResolver.needsConfirmation(_game, candidates)
-        ? await _confirmBoardMove(candidates)
-        : candidates.single;
-    if (chosen == null ||
-        !mounted ||
-        fen != _game.fen ||
-        epoch != _boardInteractionEpoch ||
-        _physicalOccupancy == null ||
-        !setEquals(_physicalOccupancy!, occupied)) {
-      return;
-    }
-    final next = chess.Chess.fromFEN(fen);
-    if (!next.move({
-      'from': chosen.substring(0, 2),
-      'to': chosen.substring(2, 4),
-      if (chosen.length == 5) 'promotion': chosen[4],
-    })) {
-      return;
-    }
-    final position = ChessnutProtocol.pieceMapFromFen(next.fen);
-    _updateBoardUi(() => _chessnutPosition = position);
-    _queueChessnutPosition(position);
-    _occupancyResolver.reset();
   }
 
   Future<void> _receiveSquareOffMove(
@@ -763,10 +656,6 @@ extension _ElectronicBoardFlow on _GamePageState {
         !_useChessnutGo ||
         !_chessnutReady) {
       return;
-    }
-    final occupancy = _physicalOccupancy;
-    if (_boardKind == BoardKind.pegasus && occupancy != null) {
-      unawaited(_applyOccupancy(occupancy));
     }
     final deferred = _deferredSquareOffMove;
     _deferredSquareOffMove = null;

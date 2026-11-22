@@ -40,7 +40,11 @@ class ChoosingBoard extends SimulatedElectronicBoard
         candidates: [
           BoardCandidate('go', 'Chessnut Go', BoardKind.chessnut),
           BoardCandidate('air', 'Chessnut Air', BoardKind.chessnut),
-          BoardCandidate('prototype', 'DGT Pegasus', BoardKind.pegasus),
+          BoardCandidate(
+            'prototype',
+            'Square Off Grand Kingdom',
+            BoardKind.squareOff,
+          ),
         ],
       ),
     );

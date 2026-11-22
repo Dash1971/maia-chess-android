@@ -238,12 +238,8 @@ class _GamePageState extends State<GamePage>
   String? _selectedBoardId;
   String? _boardConnectionSession;
   final Set<String> _retiredBoardSessions = {};
-  final PegasusDecoder _pegasusDecoder = PegasusDecoder();
-  final OccupancyMoveResolver _occupancyResolver = OccupancyMoveResolver();
-  Set<String>? _physicalOccupancy;
   final SquareOffDecoder _squareOffDecoder = SquareOffDecoder();
   String? _deferredSquareOffMove;
-  Timer? _boardSettleTimer;
   BuildContext? _boardDialogContext;
   int _boardInteractionEpoch = 0;
   bool _boardSetupConfirmed = false;
@@ -678,11 +674,12 @@ class _GamePageState extends State<GamePage>
       final savedBoard = saved['electronicBoard'];
       final isBoardSave =
           savedBoard == 'chessnut-go' ||
-          (savedBoard == 'pegasus' &&
-              BoardChannelPolicy.supports(appFlavor, BoardKind.pegasus)) ||
           (savedBoard == 'squareOff' &&
               BoardChannelPolicy.supports(appFlavor, BoardKind.squareOff));
-      final preset = isBoardSave ? TimePreset.unlimited : storedPreset;
+      // Removed Dev adapters still restore their saved game on the phone,
+      // without reviving a physical connection or a stale board clock.
+      final wasPhysicalBoardSave = isBoardSave || savedBoard == 'pegasus';
+      final preset = wasPhysicalBoardSave ? TimePreset.unlimited : storedPreset;
       if (savedAt != null &&
           preset != TimePreset.unlimited &&
           saved['clockPaused'] != true &&
@@ -812,9 +809,7 @@ class _GamePageState extends State<GamePage>
                 .hasMatch(saved['pendingPhysicalMaiaMove'] as String);
         _chessnutGameActive =
             isBoardSave && (!_gameFinished || unfinishedMotorPromotion);
-        _boardKind = savedBoard == 'pegasus'
-            ? BoardKind.pegasus
-            : savedBoard == 'squareOff'
+        _boardKind = savedBoard == 'squareOff'
             ? BoardKind.squareOff
             : BoardKind.chessnut;
         _selectedBoardId = saved['electronicBoardId'] is String
@@ -3900,7 +3895,6 @@ class _GamePageState extends State<GamePage>
     if (_chessnutGameActive) {
       _boardSetupConfirmed = false;
       _cancelBoardInteractions();
-      _occupancyResolver.reset();
       _physicalMoveInProgress = false;
       _queuedChessnutPosition = null;
       _stopChessnutLedRefresh();
@@ -5902,7 +5896,6 @@ class _GamePageState extends State<GamePage>
 
   @override
   void dispose() {
-    _boardSettleTimer?.cancel();
     _resetExpiryTimer?.cancel();
     _resetDialogRevision.dispose();
     WidgetsBinding.instance.removeObserver(this);

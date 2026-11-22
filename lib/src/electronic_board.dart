@@ -1,6 +1,6 @@
 part of '../main.dart';
 
-enum BoardKind { chessnut, pegasus, squareOff }
+enum BoardKind { chessnut, squareOff }
 
 /// Canonical product names, never a Bluetooth address or an unrecognized alias.
 String electronicBoardDisplayName(
@@ -21,7 +21,6 @@ String electronicBoardDisplayName(
     };
   }
   return switch (kind) {
-    BoardKind.pegasus => 'DGT Pegasus',
     BoardKind.squareOff => 'Square Off Grand Kingdom',
     _ => translations.chessboardDeviceName,
   };
@@ -31,8 +30,7 @@ String electronicBoardDisplayName(
 class BoardChannelPolicy {
   static bool supports(String? flavor, BoardKind kind) =>
       kind == BoardKind.chessnut ||
-      flavor == 'dev' ||
-      (const {'', 'stable', 'preview'}.contains(flavor ?? '') &&
+      (const {'', 'stable', 'preview', 'dev'}.contains(flavor ?? '') &&
           kind == BoardKind.squareOff);
 }
 
@@ -166,129 +164,5 @@ class SquareOffDecoder {
   void reset() {
     _buffer = '';
     _fragmentStarted = null;
-  }
-}
-
-/// Streaming DGT framing. No manufacturer initialization keys are included.
-/// Unknown/locked occupancy must never become an empty, playable board.
-class PegasusDecoder {
-  final List<int> _buffer = [];
-  final Set<String> _occupied = {};
-  bool _hasDump = false;
-
-  static String square(int index) {
-    if (index < 0 || index >= 64) throw const FormatException('Invalid square');
-    return '${String.fromCharCode(97 + index % 8)}${8 - index ~/ 8}';
-  }
-
-  List<Set<String>> add(List<int> bytes) {
-    if (bytes.any((b) => b < 0 || b > 255) ||
-        _buffer.length + bytes.length > 512) {
-      reset();
-      throw const FormatException('Invalid board frame');
-    }
-    _buffer.addAll(bytes);
-    final positions = <Set<String>>[];
-    while (_buffer.length >= 3) {
-      if (_buffer[0] < 0x80 || _buffer[1] > 127 || _buffer[2] > 127) {
-        reset();
-        throw const FormatException('Invalid board frame');
-      }
-      final length = (_buffer[1] << 7) | _buffer[2];
-      if (length < 3 || length > 256) {
-        reset();
-        throw const FormatException('Invalid board frame length');
-      }
-      if (_buffer.length < length) break;
-      final frame = _buffer.sublist(0, length);
-      _buffer.removeRange(0, length);
-      final type = frame[0];
-      final data = frame.sublist(3);
-      if (type == 0xa5 && (data.length != 1 || data.single != 1)) {
-        reset();
-        throw const FormatException('Pegasus is locked');
-      }
-      if (type == 0x86) {
-        if (data.length != 64 || data.any((b) => b != 0 && b != 1)) {
-          reset();
-          throw const FormatException('Invalid or locked board position');
-        }
-        _occupied.clear();
-        for (var i = 0; i < 64; i++) {
-          if (data[i] == 1) _occupied.add(square(i));
-        }
-        _hasDump = true;
-        positions.add(Set.of(_occupied));
-      } else if (type == 0x8e) {
-        if (data.length != 2 || data[0] > 63 || data[1] > 1) {
-          reset();
-          throw const FormatException('Invalid board square update');
-        }
-        if (!_hasDump) continue;
-        if (data[1] == 1) {
-          _occupied.add(square(data[0]));
-        } else {
-          _occupied.remove(square(data[0]));
-        }
-        positions.add(Set.of(_occupied));
-      }
-    }
-    return positions;
-  }
-
-  void reset() {
-    _buffer.clear();
-    _occupied.clear();
-    _hasDump = false;
-  }
-}
-
-/// Track lifts separately from final occupancy, which alone cannot distinguish
-/// which occupied square was captured on. Never invent piece identities.
-class OccupancyMoveResolver {
-  String? _fen;
-  final Set<String> lifted = {};
-
-  void observe(chess.Chess game, Set<String> occupied) {
-    if (_fen != game.fen) {
-      _fen = game.fen;
-      lifted.clear();
-    }
-    final expected = ChessnutProtocol.pieceMapFromFen(game.fen).keys.toSet();
-    if (setEquals(expected, occupied)) {
-      lifted.clear();
-    } else {
-      lifted.addAll(expected.difference(occupied));
-    }
-  }
-
-  List<String> candidates(chess.Chess game, Set<String> occupied) {
-    final result = <String>[];
-    for (final move in game.moves({'asObjects': true}).cast<chess.Move>()) {
-      final uci = MaiaEncoding.uci(move);
-      final next = chess.Chess.fromFEN(game.fen);
-      if (!next.move(move)) continue;
-      final expected = ChessnutProtocol.pieceMapFromFen(next.fen).keys.toSet();
-      if (expected.length == occupied.length &&
-          expected.containsAll(occupied)) {
-        result.add(uci);
-      }
-    }
-    // Destination-lift evidence disambiguates captures when it was observed.
-    final witnessed = result
-        .where((uci) => lifted.contains(uci.substring(2, 4)))
-        .toList();
-    return witnessed.isNotEmpty ? witnessed : result;
-  }
-
-  bool needsConfirmation(chess.Chess game, List<String> candidates) =>
-      candidates.length != 1 ||
-      (candidates.isNotEmpty &&
-          game.get(candidates.single.substring(2, 4)) != null &&
-          !lifted.contains(candidates.single.substring(2, 4)));
-
-  void reset() {
-    _fen = null;
-    lifted.clear();
   }
 }

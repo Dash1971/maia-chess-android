@@ -1101,10 +1101,6 @@ class AppLocalizationsJa extends AppLocalizations {
   String get boardReconnect => 'チェス盤に再接続';
 
   @override
-  String get boardLockedPegasus =>
-      'Pegasusはロックされています。このDev版にはメーカーの初期化キーが含まれていません。';
-
-  @override
   String get boardMotorRecovery =>
       'スマートフォンで続けてください。この試験的な接続機能では、チェス盤のモーターの状態を安全に復元できません。';
 

@@ -19,7 +19,6 @@ import 'package:flutter/foundation.dart'
         LicenseEntryWithLineBreaks,
         mapEquals,
         listEquals,
-        setEquals,
         visibleForTesting;
 import 'package:flutter/services.dart';
 import 'package:flutter/semantics.dart' show OrdinalSortKey;

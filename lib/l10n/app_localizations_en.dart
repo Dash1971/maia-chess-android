@@ -1179,10 +1179,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get boardReconnect => 'Reconnect board';
 
   @override
-  String get boardLockedPegasus =>
-      'Pegasus is locked. This Dev build does not include its manufacturer initialization key.';
-
-  @override
   String get boardMotorRecovery =>
       'Continue on your phone. This experimental adapter cannot safely restore the board’s motor state.';
 

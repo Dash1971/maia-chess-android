@@ -243,7 +243,7 @@ void main() {
       } else {
         expect(() => AnalysisSession.fromPgn(pgn), returnsNormally);
         // Normalized headers/separators must also fit the same 5 MiB cap.
-        await expectLater(result, throwsA(isA<PgnExportTooLarge>()));
+        await expectLater(result, throwsA(isA<PgnExportGameTooLarge>()));
       }
     }
     final multibyte = '{${'😀' * (AnalysisSession.maxPgnBytes ~/ 4)}} *';

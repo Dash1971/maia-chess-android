@@ -326,7 +326,6 @@
   "boardNoResults": "Nenhum tabuleiro compatível encontrado. Ative seu tabuleiro e tente novamente.",
   "boardWaitingForSelection": "Escolha um tabuleiro para conectar.",
   "boardReconnect": "Reconectar tabuleiro",
-  "boardLockedPegasus": "O Pegasus está bloqueado. Esta versão Dev não inclui a chave de inicialização do fabricante.",
   "boardMotorRecovery": "Continue no celular. Este adaptador experimental não consegue restaurar com segurança o estado do motor do tabuleiro.",
   "boardConfirmPosition": "Confirmar a posição do tabuleiro físico",
   "boardConfirmPositionHelp": "Confira se todas as peças correspondem à posição na tela.",

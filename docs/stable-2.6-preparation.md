@@ -5,9 +5,9 @@ Prepared 22 November 2026. This draft proposes **2.6.0 / version code 84**. It d
 ## Source and scope
 
 - Original Stable base: `eac2e512e9a10cebc26f3c2f72675fae598a4908`. Updated against main at `af21c730f2b029b8068a1dc41c035ac9a4977207` after #81 merged on 22 November. The main merge changed no files in the promotion tree because its security changes were already included.
-- Current Preview source: `e162a61e995452b748e5f85d710c6f7dab2ab24a`, the beta.10 publication/documentation head. Preview's exact APK source is `89097ac739fb83f08b14cc9c119d27c538870257`; its release evidence is not qualification of this Stable draft.
-- Promote the current app, localization, Android transport/document handling, and regression changes: adaptive layouts; independent engine/move panes; first/last holds; Recent games and Back behavior; 5 MiB bulk PGN export / 2 MiB import; timing defaults; score visibility; interrupted-game/save recovery; same-open-Review analysis resume; Grand Kingdom assisted promotion and session-safe motor handling.
-- Enable Grand Kingdom in Dart and native Stable/unflavored policies. Keep unknown channels closed and DGT Pegasus Dev-only. Preserve explicit setup, session guards, promotion confirmation and phone fallback.
+- Preview promotion baseline: `e162a61e995452b748e5f85d710c6f7dab2ab24a`, the beta.10 publication/documentation head. Preview's exact APK source is `89097ac739fb83f08b14cc9c119d27c538870257`; its release evidence is not qualification of this Stable draft.
+- Promote the current app, localization, Android transport/document handling, and regression changes: adaptive layouts; independent engine/move panes; first/last holds; Recent games and Back behavior; matching 5 MiB PGN import/export and complete collection transfer; timing defaults; score visibility; interrupted-game/save recovery; same-open-Review analysis resume; Grand Kingdom assisted promotion and session-safe motor handling.
+- Enable Grand Kingdom in Dart and native Stable/unflavored policies. Keep unknown channels closed and withdraw DGT Pegasus from every channel. Preserve explicit setup, session guards, promotion confirmation and phone fallback.
 - Dev recording/export code remains gated by Dev in Dart and native code. Stable neither records nor exposes automatic Dev diagnostics.
 - Do not restore camera/image recognition or add its model, camera entry points, runtime or permissions.
 
@@ -25,7 +25,7 @@ Review against Stable and current Preview found no additional app-code omissions
 or accidental behavior changes. Stable's 2.5.1 unsafe-position checks and their
 native/real-engine regressions remain in place. The independent analysis/move
 panes, endpoint holds, saved-game browsing position, selection cancellation,
-separate PGN limits and Grand Kingdom session/promotion safeguards match the
+PGN transfer and Grand Kingdom session/promotion safeguards match the
 intended scope. Package, model, signing configuration and release gates remain
 unchanged outside the documented promotion adaptations.
 
@@ -50,8 +50,37 @@ Existing Stable 2.5 screenshots remain identified by their actual version. Fresh
 
 ## Validation and publication boundary
 
-Source-only checks in this task cover identity/model/build-gate preservation, Preview source parity with explicit Stable adaptations, matching channel policies, metadata/catalog/terminology consistency and the reviewed security pin. No Flutter tests, Kotlin compilation, APK build or Actions run is performed. Full app and native behavior tests are prepared for later execution, not claimed as passed on Stable.
+The initial source review checked identity/model/build-gate preservation, Preview parity with explicit Stable adaptations, channel policies, metadata/catalog/terminology consistency and the reviewed security pin. The review follow-up also ran the host Flutter regressions and analyzer listed below. Kotlin compilation, Android/runtime tests and release qualification remain pending; no APK build or Actions run was performed.
 
 Before publication, use [RELEASING.md](RELEASING.md): complete a fresh upstream/dependency review; confirm the canonical F-Droid recipe and version code; refresh changed screenshots; freeze the final source; run exact-source Stable CI/audit and independent Linux reproduction; verify full native/model/channel tests and signed Stable 2.5.1 upgrades/data retention; complete the combined gate and separately verify GitHub, F-Droid progress and Zapstore. Store publication and hardware/emulator evidence are distinct. Preview evidence remains useful context, not a replacement for these gates.
 
 [Preview beta.10 qualification](https://github.com/Dash1971/maia-chess-android-preview/blob/main/docs/releases/preview-2.6.0-beta.10.md) and the [Grand Kingdom acceptance record](ELECTRONIC_BOARD_GRAND_KINGDOM_26.md) retain the existing test scope and hardware feedback. Their dated untested scenarios remain recorded; they do not remove Grand Kingdom from the authorized Stable 2.6 scope.
+
+## Review follow-up and testing plan
+
+The follow-up adds matching 5 MiB UTF-8 import/export limits and complete
+collection import into Recent games. Single-game opening is unchanged. Whole
+collections are validated off-thread and staged before a single commit; failure
+must preserve the current game, recovery settings and existing records. Imported
+names/dates/annotations are retained, including after reopening and saving.
+PGN transfer does not copy app settings or live clock/motor session checkpoints.
+
+Individual-game and aggregate export-size errors are distinct. Bluetooth,
+permission and status messages are board-neutral in every language. The timing
+notes explicitly cover upgrades without a saved preference; saved off remains
+off. Selection-toolbar deletion and unfinished-game confirmation are intentional.
+
+Pegasus has been removed from Stable and all Preview/Dev flavors. The
+[support decision](decisions/2026-11-22-electronic-board-support.md) records the
+unresolved initialization permission separately from the GPL protocol reference.
+README tables show Air/Go fully tested, Pro supported but not fully tested,
+Grand Kingdom supported and partially tested, and Pegasus unsupported. Protocol
+attribution and the invitation for owners/manufacturers are included.
+
+The Preview companion carries the same changes for beta.11 testing. Stable
+release approval remains pending that testing and its own exact-source release
+qualification. This task performs no Android build, Actions run or LFS download.
+
+## Host verification of the review follow-up
+
+Stable: 1,507 host tests passed, one skipped; the additional Dev board-policy suite passed 41 tests. Flutter analyze reports no issues. Localization/terminology, source gates, metadata consistency and unchanged workflow structure checks pass. Native policy regressions are updated but not compiled: the current Mac host has no JDK. These checks do not qualify an Android release.

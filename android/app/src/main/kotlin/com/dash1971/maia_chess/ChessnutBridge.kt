@@ -202,12 +202,6 @@ class ChessnutBridge(
         }
         if (ready) {
             emitStatus("ready", "Chessnut is ready.", deviceName)
-            if (boardKind == "pegasus") {
-                // Dart resets occupancy history when reconnecting after a parser error.
-                // Field updates cannot recover that history without a fresh complete dump.
-                enqueueWrite(byteArrayOf(0x5a))
-                enqueueWrite(byteArrayOf(0x42))
-            }
             result.success(null)
             return
         }
@@ -601,10 +595,6 @@ class ChessnutBridge(
         }
         when (boardKind) {
             "chessnut" -> { enqueueWrite(INIT_COMMAND); enqueueWrite(BATTERY_COMMAND) }
-            "pegasus" -> {
-                // No manufacturer application key: compatibility requires an already unlocked profile.
-                enqueueWrite(byteArrayOf(0x5a)); enqueueWrite(byteArrayOf(0x44)); enqueueWrite(byteArrayOf(0x42))
-            }
             "squareOff" -> enqueueWrite("xCONNECTEDz".toByteArray(Charsets.US_ASCII))
         }
     }
@@ -644,14 +634,6 @@ class ChessnutBridge(
         if (!ready) {
             result.error("not_connected", "Chessnut is not ready.", null)
             return
-        }
-        if (boardKind == "pegasus") {
-            val squares = call.argument<List<Number>>("squares")?.map { it.toInt() }
-            if (squares == null || squares.size > 64 || squares.any { it !in 0..63 }) {
-                result.error("bad_arguments", "Expected DGT square indices.", null); return
-            }
-            val command = ElectronicBoardProtocol.pegasusLeds(squares)
-            enqueueWrite(command, completion = result); return
         }
         if (boardKind != "chessnut") { result.error("unsupported", "This board has no LED guidance.", null); return }
         val values = call.argument<List<Number>>("command")
@@ -918,7 +900,7 @@ class ChessnutBridge(
                 boardId?.let { put("boardId", it) }
                 put("connectionSession", connectionSession)
                 put("capabilities", mapOf("pieceIdentity" to (boardKind == "chessnut"),
-                    "occupancy" to (boardKind == "pegasus"), "leds" to (boardKind != "squareOff"),
+                    "leds" to (boardKind != "squareOff"),
                     "sound" to (boardKind == "chessnut"), "battery" to (boardKind == "chessnut"),
                     "physicalButtons" to (boardKind == "chessnut"), "motors" to (boardKind == "squareOff")))
                 put("state", newState)

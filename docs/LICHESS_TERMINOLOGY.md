@@ -466,3 +466,9 @@ These device/error messages are app-specific, with no direct pinned Lichess
 equivalent; they reuse the existing board, Bluetooth, PGN and size terminology.
 Generated catalogs, the review CSV and compact/large-text regression tests cover
 all ten languages. Translations remain provisional pending native-speaker review.
+
+## Pegasus withdrawal — 22 November 2026
+
+The dedicated Pegasus lock message was removed from every catalog with the
+adapter. Generic board recovery wording remains available for Chessnut and
+Grand Kingdom. No new chess terminology or upstream translation is introduced.

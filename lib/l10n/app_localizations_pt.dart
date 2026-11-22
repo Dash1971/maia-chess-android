@@ -1205,10 +1205,6 @@ class AppLocalizationsPt extends AppLocalizations {
   String get boardReconnect => 'Reconectar tabuleiro';
 
   @override
-  String get boardLockedPegasus =>
-      'O Pegasus está bloqueado. Esta versão Dev não inclui a chave de inicialização do fabricante.';
-
-  @override
   String get boardMotorRecovery =>
       'Continue no celular. Este adaptador experimental não consegue restaurar com segurança o estado do motor do tabuleiro.';
 

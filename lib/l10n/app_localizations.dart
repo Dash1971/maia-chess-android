@@ -2074,12 +2074,6 @@ abstract class AppLocalizations {
   /// **'Reconnect board'**
   String get boardReconnect;
 
-  /// Electronic board Dev support: Manufacturer initialization missing/locked state; Dev means the separate development build.
-  ///
-  /// In en, this message translates to:
-  /// **'Pegasus is locked. This Dev build does not include its manufacturer initialization key.'**
-  String get boardLockedPegasus;
-
   /// Electronic board Dev support: Motorized-board safety recovery instruction; continue with phone input because firmware motor state cannot be restored.
   ///
   /// In en, this message translates to:

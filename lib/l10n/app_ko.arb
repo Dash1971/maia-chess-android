@@ -326,7 +326,6 @@
   "boardNoResults": "지원되는 체스보드를 찾지 못했습니다. 체스보드를 깨운 뒤 다시 시도하세요.",
   "boardWaitingForSelection": "연결할 체스보드를 선택하세요.",
   "boardReconnect": "체스보드 다시 연결",
-  "boardLockedPegasus": "Pegasus가 잠겨 있습니다. 이 Dev 빌드에는 제조사의 초기화 키가 포함되어 있지 않습니다.",
   "boardMotorRecovery": "휴대전화에서 계속하세요. 이 실험용 연결 기능은 체스보드의 모터 상태를 안전하게 복원할 수 없습니다.",
   "boardConfirmPosition": "실제 체스보드 포지션 확인",
   "boardConfirmPositionHelp": "모든 기물이 화면에 표시된 포지션과 일치하는지 확인하세요.",

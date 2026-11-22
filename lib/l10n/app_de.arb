@@ -326,7 +326,6 @@
   "boardNoResults": "Kein unterstütztes Brett gefunden. Wecke dein Brett auf und versuche es erneut.",
   "boardWaitingForSelection": "Wähle ein Brett zum Verbinden.",
   "boardReconnect": "Brett erneut verbinden",
-  "boardLockedPegasus": "Pegasus ist gesperrt. Diese Dev-Version enthält keinen Initialisierungsschlüssel des Herstellers.",
   "boardMotorRecovery": "Spiele auf deinem Smartphone weiter. Dieser experimentelle Adapter kann den Motorzustand des Bretts nicht sicher wiederherstellen.",
   "boardConfirmPosition": "Stellung auf dem Brett bestätigen",
   "boardConfirmPositionHelp": "Prüfe, ob jede Figur mit der Stellung auf dem Bildschirm übereinstimmt.",

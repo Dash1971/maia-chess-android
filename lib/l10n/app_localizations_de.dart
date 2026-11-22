@@ -1201,10 +1201,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get boardReconnect => 'Brett erneut verbinden';
 
   @override
-  String get boardLockedPegasus =>
-      'Pegasus ist gesperrt. Diese Dev-Version enthält keinen Initialisierungsschlüssel des Herstellers.';
-
-  @override
   String get boardMotorRecovery =>
       'Spiele auf deinem Smartphone weiter. Dieser experimentelle Adapter kann den Motorzustand des Bretts nicht sicher wiederherstellen.';
 

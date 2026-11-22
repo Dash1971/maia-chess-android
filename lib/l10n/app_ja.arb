@@ -326,7 +326,6 @@
   "boardNoResults": "対応するチェス盤が見つかりません。チェス盤を起動して、もう一度お試しください。",
   "boardWaitingForSelection": "接続するチェス盤を選んでください。",
   "boardReconnect": "チェス盤に再接続",
-  "boardLockedPegasus": "Pegasusはロックされています。このDev版にはメーカーの初期化キーが含まれていません。",
   "boardMotorRecovery": "スマートフォンで続けてください。この試験的な接続機能では、チェス盤のモーターの状態を安全に復元できません。",
   "boardConfirmPosition": "チェス盤の局面を確認",
   "boardConfirmPositionHelp": "すべての駒が画面の局面と一致していることを確認してください。",

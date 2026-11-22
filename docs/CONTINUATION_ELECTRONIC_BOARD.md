@@ -1,5 +1,10 @@
 # Continue from here on an electronic board (#182)
 
+Current support policy, 22 November 2026: Pegasus has been withdrawn from all
+channels; see the [decision](decisions/2026-11-22-electronic-board-support.md).
+Custom-position continuation remains Chessnut-only; Grand Kingdom support is
+for untimed games from the standard starting position.
+
 Preview 2.5 feature. Physical Chessnut acceptance is pending owner testing with the published Preview build.
 
 The existing continuation dialog keeps side, Maia rating and phone time-control

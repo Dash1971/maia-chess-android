@@ -7,3 +7,4 @@
 - Safer interrupted-game and damaged-save recovery.
 - Resume unfinished analysis when returning to the same Review.
 - Human move timing defaults on when unset; saved off stays off.
+- Retired Pegasus prototype removed.

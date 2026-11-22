@@ -1,63 +1,50 @@
 # Build channels and promotion status
 
-Updated 22 November 2026. Release pages are authoritative for published artifacts;
-a promotion branch is not an installed release.
+Updated 22 November 2026. Published artifacts and the pending source changes are
+separate; this PR does not build or publish a release.
 
-| Channel | Published version | Package / model | Current scope |
+| Channel | Published release | Package / model | Pending source scope |
 | --- | --- | --- | --- |
-| Stable | [2.5.1 / code 83](https://github.com/Dash1971/maia-chess-android/releases/tag/v2.5.1) | `com.dash1971.maia_chess`, blue icon, 79M | Published app. The proposed 2.6.0 / code 84 promotion is separate below. |
-| Preview | [2.6.0-beta.10 / code 2610](https://github.com/Dash1971/maia-chess-android-preview/releases/tag/v2.6.0-beta.10) | `com.dash1971.maia_chess.preview`, gold icon, 79M | Current 2.6 app changes; Grand Kingdom experimental, Pegasus blocked. |
-| Dev | [2.6.0-alpha.2-dev](https://github.com/Dash1971/maia-chess-android-preview-dev/releases) | `com.dash1971.maia_chess.preview.dev`, red icon, 5M | Separate development feed; Pegasus prototype and automatic local diagnostics remain Dev-only. |
+| Stable | [2.5.1 / code 83](https://github.com/Dash1971/maia-chess-android/releases/tag/v2.5.1) | `com.dash1971.maia_chess`, blue icon, 79M | Draft 2.6.0 / code 84 promotion, including Grand Kingdom, PGN transfer and Pegasus withdrawal. |
+| Preview | [2.6.0-beta.10 / code 2610](https://github.com/Dash1971/maia-chess-android-preview/releases/tag/v2.6.0-beta.10) | `com.dash1971.maia_chess.preview`, gold icon, 79M | Beta.11 follow-up for testing before Stable approval. |
+| Dev | [2.6.0-alpha.2-dev](https://github.com/Dash1971/maia-chess-android-preview-dev/releases) | `com.dash1971.maia_chess.preview.dev`, red icon, 5M | Uses canonical Preview source; Pegasus is withdrawn from future builds. Automatic diagnostics remain Dev-only. |
 
-The packages install side by side with separate games/settings. Preview does not
-upgrade Stable or transfer its saved data. Stable upgrades preserve Stable's own
-package/signing identity.
+## Current source policy
 
-## Stable 2.6 promotion draft
+Chessnut and Grand Kingdom are the only supported board families. Pegasus is
+removed from every channel because initialization permission and downstream
+redistribution remain unresolved. The [decision](decisions/2026-11-22-electronic-board-support.md)
+distinguishes that concern from the GPL-licensed protocol reference. See the
+[README table](../README.md#electronic-board-support) for hardware testing status.
+Old Dev saves recover on the phone without reconnecting to the retired board.
 
-[Promotion scope and pending checks](stable-2.6-preparation.md) and [draft release
-notes](release-notes/v2.6.0.md) propose 2.6.0 / code 84. Grand Kingdom is enabled
-in Dart and native Stable/unflavored policies. DGT remains Dev-only; unknown
-channel strings remain blocked. The 79M model, blue identity, canonical Linux /
-F-Droid qualification and Stable publication gates are retained.
+Stable 2.6 enables Grand Kingdom in both native and Dart Stable/unflavored
+policies; Preview keeps its existing Preview/Dev Grand Kingdom boundary. Unknown
+channels remain closed. Shared Chessnut behavior, motor session guards and
+channel restriction tests remain in place. Only Dev records automatic local
+traces; Stable/Preview routine diagnostics remain bounded summaries.
 
-No build, Actions run, signing, tag or publication is part of this draft. Fresh
-Stable screenshots and exact-source qualification are pending. Historical
-publication/acceptance notes below describe their original channel and date;
-they do not override this current promotion scope.
+The packages install side by side with separate app data. PGN collection
+transfer now uses matching 5 MiB import/export limits and imports every game
+into Recent games. It transfers games/annotations, not app settings or live
+clock/motor session checkpoints. Single-game opening remains unchanged.
 
 ## Release instructions
 
-- [Stable release procedure](https://github.com/Dash1971/maia-chess-android/blob/main/docs/RELEASING.md):
-  full qualification, stores and post-release README/feature/screenshot updates.
-- [Preview and Dev release procedure](https://github.com/Dash1971/maia-chess-android-preview/blob/main/docs/RELEASING.md):
-  Preview upstream review and README/roadmap pass; lightweight Dev publication
-  by default, with no published-download check.
+- [Stable release procedure](https://github.com/Dash1971/maia-chess-android/blob/main/docs/RELEASING.md): exact-source qualification, canonical F-Droid reproduction, signed upgrade checks and separate GitHub/F-Droid/Zapstore delivery status.
+- [Preview/Dev release procedure](https://github.com/Dash1971/maia-chess-android-preview/blob/main/docs/RELEASING.md): preserve each channel's model, identity, native/upgrade checks and release gates.
 
-## Current board and model acceptance
+Stable release approval remains pending Preview beta.11 testing and Stable's
+own qualification. No Android build, Actions run or LFS download is part of
+this follow-up. Older published APKs/tags remain unchanged.
 
-- Use move history remains off by default, with its own information button.
-  The updated help explains the measured prediction improvement, unestablished
-  strength gain and off recommendation, with a research link. Saved sessions
-  continue to retain their recorded mode. All ten languages are covered.
-- Chessnut: bounded diagnostics and decoder recovery, single/multiple-board
-  discovery, remembered selection, session/lifecycle protection, and NEW GAME
-  confirmation by a second deliberate press within 2.5 seconds.
-- Board sounds remain under **Chessnut**, because the buzzer commands are
-  Chessnut-specific. Other brands must not imply equivalent sound support.
-- Grand Kingdom is enabled in current Preview and this Stable 2.6 draft, with
-  standard-position setup, assisted promotion and current-session motor guards.
-  See the [acceptance record](ELECTRONIC_BOARD_GRAND_KINGDOM_26.md) for hardware
-  coverage and remaining scenarios. DGT Pegasus remains Dev-only: Preview and
-  Stable must neither discover/connect to it nor send its commands. Both Dart
-  and native channel policies have regression coverage.
-- Qualify the actual 79M Preview APK, including history on/off, inference,
-  upgrade/data retention, help layout and package/signature continuity. Dev's
-  5M measurements are not evidence of 79M performance.
-- Physical Chessnut acceptance remains with the owner/testers. Automated tests
-  cannot confirm radio reliability, physical LEDs or button behavior on hardware.
+## Historical channel records
 
-## Opening variety promoted in Stable 2.4
+The dated records below describe their original releases and decisions. Earlier
+Pegasus/Dev-only policies are historical and are superseded by the current
+withdrawal decision above.
+
+### Opening variety promoted in Stable 2.4
 
 Beta.15 (2417) is published for #152, superseding beta.14 as the intended
 final candidate. It adds optional full sampling through move 5, then the user's
@@ -68,7 +55,7 @@ No new inference, model, engine or board-support changes. Exact-source CI,
 independent Linux build comparison and signed Android qualification passed.
 This behavior is now promoted into Stable 2.4.0 after owner acceptance.
 
-## Beta.14 baseline for Stable 2.4
+### Beta.14 baseline for Stable 2.4
 
 Preview 2.4.0-beta.14 (2416) combines the approved engine help in all ten
 languages, shared Chessnut behavior across Preview/Stable, and the verified
@@ -82,7 +69,7 @@ behavior and qualified toolchain together with beta.15 opening variety. Future
 app fixes require their own tested Preview candidate. Stable packaging, metadata,
 signing and F-Droid/Zapstore release checks remain separate obligations.
 
-## Stable 2.4 promotion boundary
+### Stable 2.4 promotion boundary
 
 A Stable 2.4 release can proceed with Chessnut support while Grand Kingdom and
 Pegasus remain unaccepted Dev prototypes. Keep both Dart and native flavor gates
@@ -129,7 +116,7 @@ and [live distribution record](https://github.com/Dash1971/maia-chess-android/pu
 keep build qualification separate from store publication. Later documentation
 commits do not change the immutable release tag or APK.
 
-## Dev limitations
+### Dev limitations
 
 Grand Kingdom support covers that model, not all Square Off boards. It is enabled
 in Preview and this Stable 2.6 draft. DGT Pegasus remains a Dev-only protocol
@@ -141,7 +128,7 @@ The published Dev alpha.2 APK uses 5M even though its exported PGN model label
 still says 79M. This known Dev-only label limitation does not describe Preview's
 actual 79M model. History is experimental and does not promise greater strength.
 
-## Preview 2.4.0-beta.1 publication record
+### Preview 2.4.0-beta.1 publication record
 
 - Source: `3304a54e4a11fb974e77db8c559f5f2fc82e5473` ([PR #106](https://github.com/Dash1971/maia-chess-android-preview/pull/106)). Documentation-only commits after this SHA are not a rebuilt APK.
 - [Release CI](https://github.com/Dash1971/maia-chess-android-preview/actions/runs/38192040612): full host regression suite, explicit Preview restrictions/settings tests, native board policies, localization and release packaging.
@@ -150,7 +137,7 @@ actual 79M model. History is experimental and does not promise greater strength.
 - The release's verification bundle records APK packaging/signature checks, byte-identical signature reconstruction, beta.9 upgrade checks and native 79M qualification. The separate harness source is provided for reproduction; the harness is not in the app.
 - Stable 2.3.0 and Dev alpha.2 were not rebuilt or republished. Physical Chessnut acceptance remains outstanding with the owner/testers; this publication does not claim Grand Kingdom/DGT support.
 
-## Preview 2.4.0-beta.2 publication record
+### Preview 2.4.0-beta.2 publication record
 
 - Source: `0f4f2400b1f8cedcbe925deb233ad6700cba4bfa` ([fix #108](https://github.com/Dash1971/maia-chess-android-preview/pull/108), [release #109](https://github.com/Dash1971/maia-chess-android-preview/pull/109)). Later documentation commits do not rebuild this APK.
 - Fresh discovery is three seconds. Confirmed Chessnut NEW GAME stays in-game, retains colors/settings and waits for LED-guided physical setup before automatically starting. Pending setup supports restore, reconnect and phone fallback.
@@ -161,7 +148,7 @@ actual 79M model. History is experimental and does not promise greater strength.
 - Model/engine dependencies are unchanged; beta.1's native tensor qualification is historical evidence, not a newly repeated beta.2 run. Physical discovery, LEDs and NEW GAME behavior still need owner/tester acceptance.
 - Grand Kingdom/DGT remain Dev-only. Stable 2.3.0 and Dev alpha.2 were not rebuilt or republished; no Stable app-store changes.
 
-## Preview 2.4.0-beta.3 publication record
+### Preview 2.4.0-beta.3 publication record
 
 - Source: `50af20b6e885737a304ec9c3cddbf7a9e70495bb` ([fix #111](https://github.com/Dash1971/maia-chess-android-preview/pull/111), [release #112](https://github.com/Dash1971/maia-chess-android-preview/pull/112)). Later documentation commits do not rebuild this APK.
 - Multiple premoves retain projected piece positions while each move is consumed. Highlights shrink without the intermediate jump to the real board. White/Black continuity and Maia-checkmate regressions supplement the existing queue, clock and reset tests.
@@ -172,7 +159,7 @@ actual 79M model. History is experimental and does not promise greater strength.
 - Models, native engines and dependencies are unchanged. Beta.1's native tensor qualification is historical evidence, not a new beta.3 run. Phone visual/physical Chessnut acceptance remains with owner/testers.
 - Grand Kingdom/DGT remain Dev-only. Stable 2.3.0 and Dev alpha.2 were not rebuilt or republished; no app-store changes. The release PR records temporary artifact/container cleanup.
 
-## Preview 2.4.0-beta.4 publication record
+### Preview 2.4.0-beta.4 publication record
 
 - Source: `abdb27697b73a436fe55930dfa23c327db2aefc2` ([change #114](https://github.com/Dash1971/maia-chess-android-preview/pull/114), [release #115](https://github.com/Dash1971/maia-chess-android-preview/pull/115)). Later documentation commits do not rebuild this APK.
 - Board connection/disconnection messages name recognized devices, with brand/generic fallbacks and translations in all ten languages. Readiness, stale-event protection, name retention, switching boards, Preview restrictions and narrow/large-text layouts have regression coverage.
@@ -183,7 +170,7 @@ actual 79M model. History is experimental and does not promise greater strength.
 - Models, native engines and dependencies are unchanged. Beta.1's native tensor qualification is historical evidence, not a new beta.4 run. Physical board acceptance remains with owner/testers.
 - Grand Kingdom/DGT remain Dev-only. Stable 2.3.0 and Dev alpha.2 were not rebuilt or republished; no app-store changes. Release #115 records temporary artifact/container cleanup.
 
-## Preview 2.4.0-beta.5 publication record
+### Preview 2.4.0-beta.5 publication record
 
 - Source: `074ac69f987c4f7f6d521378be70235fb826a666` ([PR #121](https://github.com/Dash1971/maia-chess-android-preview/pull/121), [issue #120](https://github.com/Dash1971/maia-chess-android-preview/issues/120)). Later documentation commits do not rebuild this APK.
 - Home from restored post-game analysis now returns directly Home after process restart. Unfinished-game review retains Back to game; standalone review does not create an underlying game. Five committed navigation regressions cover these paths and ordinary background/resume.
@@ -193,7 +180,7 @@ actual 79M model. History is experimental and does not promise greater strength.
 - The actual beta.4 APK reproduced the two-tap Home defect after a background process kill. The same review checkpoint survived a real signed beta.4 → beta.5 upgrade; one-tap Home, another restart and archived moves/clocks passed. Real Maia play and additional variation, unfinished-game and checkmate upgrades also passed on the isolated ARM64 emulator. Additional fixture upgrades use temporary test signatures.
 - Models, engines and dependencies are unchanged. Physical board checks were not repeated for this navigation-only fix. Grand Kingdom/DGT remain Dev-only; Stable 2.3.0 and Dev alpha.2 were not rebuilt or published. PR #121 records release verification and cleanup.
 
-## Preview 2.4.0-beta.6 publication record
+### Preview 2.4.0-beta.6 publication record
 
 - Source: `11534b8ea58e39682f902520d17f054fc1a7fa58` ([PR #125](https://github.com/Dash1971/maia-chess-android-preview/pull/125), [issue #122](https://github.com/Dash1971/maia-chess-android-preview/issues/122)). The merge commit preserves this tested source as an ancestor with an identical tree; the release tag points to the exact built commit. Later documentation commits do not rebuild the APK.
 - Optional local Maia sampling capture is off by default. Export/Clear and help are available in all ten languages. The 64 MiB FIFO store removes oldest captured games, never Recent Games/PGNs. See [sampling-data format and limits](SAMPLING_DATA.md).
@@ -204,7 +191,7 @@ actual 79M model. History is experimental and does not promise greater strength.
 - The small interleaved 1+0 emulator sample observed no slowdown from recording (median launch-to-move about 1.76 s off, 1.63 s on; near-capacity about 1.81 s). These include launch/inference and do not establish a speedup or physical-phone guarantees.
 - Models/native engines are unchanged. `crypto` 3.0.7 is the sole new Dart dependency for local checksums. Grand Kingdom/DGT remain Dev-only; Stable 2.3.0 and Dev alpha.2 are unchanged. Physical device/board acceptance remains with owner/testers. The release verification bundle and PR #125 record qualification and cleanup.
 
-## Preview 2.4.0-beta.7 publication record
+### Preview 2.4.0-beta.7 publication record
 
 - Source: `695fd38992ab1f24e6dea85377e0767621b6cef2` ([PR #129](https://github.com/Dash1971/maia-chess-android-preview/pull/129), issues #127 and #128). The tag points to the exact built commit; later documentation does not rebuild the APK.
 - Readable offline HTML reports show actual post-Temperature/Top-P probabilities, plain-language odds and charcoal/gray board diagrams. Save/Share also offers original JSONL. All ten languages are supported; there is no in-app summary screen.
@@ -215,7 +202,7 @@ actual 79M model. History is experimental and does not promise greater strength.
 - Android qualification found and fixed a pending Save being lost when the process died in the system picker. Forced process-death save/cancel and Activity recreation now pass on the corrected APK, with snapshot cleanup and another successful export. Fixed preparation files left by abrupt process death are bounded and removed on the next export/Clear.
 - Models, engines and dependencies are unchanged. Physical phone/board acceptance remains with owner/testers. Grand Kingdom/DGT remain Dev-only; Stable 2.3.0 and Dev alpha.2 are unchanged. Release verification and task-owned cleanup are recorded in PR #129.
 
-## Preview 2.4.0-beta.8 publication record
+### Preview 2.4.0-beta.8 publication record
 
 - Source: `23d88b585fcc16b572b6591ff3d0d10b806b9146` ([PR #131](https://github.com/Dash1971/maia-chess-android-preview/pull/131)). The release tag points to the exact built commit; later documentation does not rebuild the APK.
 - HTML and JSONL keep the latest ten recorded games, including unfinished games, newest first. Compact game headings show known players/results/openings/time controls and the original start date; HTML adds jump links. Only results use the shared Recent Games colors. The 64 MiB safeguard remains and never deletes Recent Games/PGNs.
@@ -226,7 +213,7 @@ actual 79M model. History is experimental and does not promise greater strength.
 - Regression tests cover resumed/evicted games, terminal human/forced results, stale inference metadata, and concurrent Settings storage loading/enabling. Unknown metadata remains unknown. Models, native engines and dependencies are unchanged.
 - Grand Kingdom/DGT remain Dev-only; Stable 2.3.0 and Dev alpha.2 are unchanged. Physical phone/board acceptance remains with owner/testers. PR #131 records public-download verification and task-owned cleanup.
 
-## Preview 2.4.0-beta.9 publication record
+### Preview 2.4.0-beta.9 publication record
 
 - Source: `1a7fc2e05e32e76de549f7228cd7e53eb2b153cc` ([PR #135](https://github.com/Dash1971/maia-chess-android-preview/pull/135), issue #134). The tag points to the exact built commit, preserved unchanged in the merge. Later documentation does not rebuild the APK.
 - Clearing sampling data requires an explicit Delete data confirmation in all ten languages. Cancel, Back and outside dismissal preserve captures; guards prevent duplicate actions and overlapping exports. Large-text confirmation/help layouts are covered.
@@ -236,7 +223,7 @@ actual 79M model. History is experimental and does not promise greater strength.
 - Actual signed beta.8 → beta.9 upgrade preserved UID, saved games and captures. Android confirmation Cancel/Back/outside dismissal preserved capture bytes. Delete cleared only captures, kept saved games/exported HTML/recording preference, survived restart, and allowed recording real Maia moves again. Widget regressions additionally cover repeated taps, export exclusion and failure/retry.
 - Models, engines and dependencies are unchanged. Physical phone/board acceptance remains with owner/testers. Grand Kingdom/DGT remain Dev-only; Stable 2.3.0 and Dev alpha.2 are unchanged. PR #135 records public-download verification and task-owned cleanup.
 
-## Preview 2.4.0-beta.10 publication record
+### Preview 2.4.0-beta.10 publication record
 
 - Source: `a8cc2bee2ead6cf663e0863a362d7ff007b7329a` ([PR #138](https://github.com/Dash1971/maia-chess-android-preview/pull/138), issue #137). The tag points to the exact built commit, preserved unchanged in the merge. Later documentation does not rebuild the APK.
 - Settings groups premove suboptions, separates analysis controls, gives move history dedicated help and combines sampling export/delete actions. The move-history advice, defaults, preference keys, storage and gameplay remain unchanged. All ten languages have layout coverage at 320px and 200% text, independent help/switch accessibility and explicit reset scope.
@@ -247,7 +234,7 @@ actual 79M model. History is experimental and does not promise greater strength.
 - Models, engines and dependencies are unchanged. Grand Kingdom/DGT remain Dev-only; Stable 2.3.0 and Dev alpha.2 are unchanged. Physical phone/board acceptance remains with owner/testers. PR #138 records public-download verification and cleanup of task-owned builds, APKs, signing workspace and emulator data.
 
 
-## Preview 2.4.0-beta.11 publication record
+### Preview 2.4.0-beta.11 publication record
 
 - Source: `d99724a33d82fc2c88cdfccd854cb8ce0708da97` ([PR #140](https://github.com/Dash1971/maia-chess-android-preview/pull/140)). The tag points to the exact built commit, preserved unchanged in the merge. Later documentation does not rebuild the APK.
 - Research report links are distinct from JSONL export labels and identify English in non-English screens. Sampling help and reports clarify that the last ten recorded games are saved and shown newest first. All ten languages are updated.
@@ -258,7 +245,7 @@ actual 79M model. History is experimental and does not promise greater strength.
 - Actual signed beta.10 to beta.11 upgrade on ARM64 Android emulator: UID, game, captures and preferences preserved. Research/export labels, confirmation Cancel/Back/outside dismissal, reset to all Settings defaults, language to system, restart persistence and byte-preserved saved games/captures passed. Real 79M inference with history off/on passed on both versions. Host tests cover all ten languages at large text and failure/retry.
 - Models, engines and dependencies are unchanged. Grand Kingdom/DGT remain Dev-only; Stable 2.3.0 and Dev alpha.2 are unchanged. Physical phone/board acceptance remains with owner/testers. PR #140 records public-download verification and task-owned build/APK/emulator cleanup.
 
-## Preview 2.4.0-beta.12 publication record
+### Preview 2.4.0-beta.12 publication record
 
 - Source: `2267d2eafc9b3ab2d1748528160939b0ffc41811` ([PR #143](https://github.com/Dash1971/maia-chess-android-preview/pull/143), issue #142). The tag points to the exact tested build source, preserved in the merge. Later documentation does not rebuild the APK.
 - Opening names stay on one line. Only truncated names show an information icon and open a localized, scrollable full-name dialog. Close, Back and outside dismissal preserve the board/selected position. Names that fit have no icon/action. Large-text layouts reserve usable move-list space.
@@ -268,7 +255,7 @@ actual 79M model. History is experimental and does not promise greater strength.
 - Actual signed beta.11 to beta.12 upgrade on ARM64 Android emulator: UID, saved game, captures and preferences preserved. Opening details checked at normal, narrow, large-text and landscape layouts, with short names and both longest names; complete accessibility labels, conditional details action, dialog dismissal, navigation, background and process restart. Real 79M inference with history off/on passed. Host tests cover all ten dialog languages, precise truncation boundary, navigation, semantics, and large-text layouts.
 - Models, engines and dependencies are unchanged. Grand Kingdom/DGT remain Dev-only; Stable 2.3.0 and Dev alpha.2 are unchanged. Physical phone/board acceptance remains with owner/testers. PR #143 records public-download verification and task-owned build/APK/emulator cleanup.
 
-## Preview 2.4.0-beta.13 publication record
+### Preview 2.4.0-beta.13 publication record
 
 - Source: `0a030a37d0eee4b3562c3e517a5f9b9f11523d28` ([PR #145](https://github.com/Dash1971/maia-chess-android-preview/pull/145)). The tag points to the exact tested build source, preserved in the merge. Later documentation does not rebuild the APK.
 - Short and truncated opening names use the same compact row height. Showing the information action no longer pushes the engine panel and move list down. The whole truncated row remains tappable; larger accessibility text receives consistent space in both cases.
@@ -280,7 +267,7 @@ actual 79M model. History is experimental and does not promise greater strength.
 - Models, engines and dependencies are unchanged. Grand Kingdom/DGT remain Dev-only; Stable 2.3.0 and Dev alpha.2 are unchanged. Physical phone/board acceptance remains with owner/testers. PR #145 records public-download verification and task-owned build/APK/emulator cleanup.
 
 
-## Preview 2.4.0-beta.14 publication record
+### Preview 2.4.0-beta.14 publication record
 
 - Source: `49058a541132bb61312b7d8071c07f1b84c3a01a` ([release #150](https://github.com/Dash1971/maia-chess-android-preview/pull/150), changes #147, #148 and #149). The tag points to the exact built commit, preserved unchanged in the merge. Later documentation does not rebuild the APK.
 - Approved Temperature/Top-P, history and sampling-data help in all ten languages; the balanced-play example is Temperature 1.0 / Top-P 0.95. Shared Chessnut behavior is ready for Stable promotion, including legacy reconnect without a saved board identity. Models, engines, settings defaults and sampling behavior are unchanged.
@@ -292,7 +279,7 @@ actual 79M model. History is experimental and does not promise greater strength.
 - Grand Kingdom/DGT remain Dev-only; Stable 2.3.0 and Dev alpha.2 were not rebuilt or published. Owner phone/Chessnut testing remains the final acceptance step before Stable promotion. The release verification bundle and PR #150 record public-download verification and task-owned cleanup.
 
 
-## Preview 2.4.0-beta.15 publication record
+### Preview 2.4.0-beta.15 publication record
 
 - Source: `48a4d0a57f501923d43cc14248ef291a05e915f0` ([PR #153](https://github.com/Dash1971/maia-chess-android-preview/pull/153), issue #152 split from #97). The tag points to the exact tested build source; the merge preserves an identical tree. Later documentation does not rebuild the APK.
 - Optional **Max variety in opening** uses Temperature/Top-P 1.0/1.0 through move 5 for both colors, then the configured settings from move 6. It is off by default and disabled/off at default 1.0/1.0. New games retain their sampling profile; old saves never silently opt in. Ten-language help, effective/configured capture metadata, takeback/Continue from here and Chessnut reset coverage are included. Analysis probabilities and model/engine defaults are unchanged; no extra inference is introduced.

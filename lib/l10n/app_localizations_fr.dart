@@ -1194,10 +1194,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get boardReconnect => 'Reconnecter l’échiquier';
 
   @override
-  String get boardLockedPegasus =>
-      'Pegasus est verrouillé. Cette version Dev ne contient pas la clé d’initialisation du fabricant.';
-
-  @override
   String get boardMotorRecovery =>
       'Continuez sur votre téléphone. Cet adaptateur expérimental ne peut pas rétablir en toute sécurité l’état du moteur de l’échiquier.';
 

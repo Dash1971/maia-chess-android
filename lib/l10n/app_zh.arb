@@ -326,7 +326,6 @@
   "boardNoResults": "未找到支持的棋盘。请唤醒棋盘后重试。",
   "boardWaitingForSelection": "请选择要连接的棋盘。",
   "boardReconnect": "重新连接棋盘",
-  "boardLockedPegasus": "Pegasus已锁定。此Dev版本未包含厂商的初始化密钥。",
   "boardMotorRecovery": "请在手机上继续。此实验性连接功能无法安全恢复棋盘的电机状态。",
   "boardConfirmPosition": "确认实体棋盘局面",
   "boardConfirmPositionHelp": "请确认每个棋子的位置都与屏幕上显示的局面一致。",

@@ -1217,10 +1217,6 @@ class AppLocalizationsRu extends AppLocalizations {
   String get boardReconnect => 'Подключить доску заново';
 
   @override
-  String get boardLockedPegasus =>
-      'Pegasus заблокирован. Эта Dev-сборка не содержит ключ инициализации производителя.';
-
-  @override
   String get boardMotorRecovery =>
       'Продолжите на телефоне. Этот экспериментальный адаптер не может безопасно восстановить состояние мотора доски.';
 
