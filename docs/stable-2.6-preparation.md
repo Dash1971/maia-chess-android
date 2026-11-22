@@ -77,7 +77,7 @@ README tables show Air/Go fully tested, Pro supported but not fully tested,
 Grand Kingdom supported and partially tested, and Pegasus unsupported. Protocol
 attribution and the invitation for owners/manufacturers are included.
 
-The Preview companion carries the same changes for beta.11 testing. Stable
+The [Preview companion #261](https://github.com/Dash1971/maia-chess-android-preview/pull/261) carries the same changes for beta.11 testing (1,507 host tests passed, one skipped; 130 explicit Preview-flavor focused tests passed). Stable
 release approval remains pending that testing and its own exact-source release
 qualification. This task performs no Android build, Actions run or LFS download.
 
