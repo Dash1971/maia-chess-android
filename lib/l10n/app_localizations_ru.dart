@@ -233,7 +233,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get start => 'НАЧАЛО';
 
   @override
-  String get chessnutStatus => 'Состояние Chessnut';
+  String get chessnutStatus => 'Состояние доски';
 
   @override
   String get leaveCurrentGame => 'Выйти из текущей партии?';
@@ -845,7 +845,8 @@ class AppLocalizationsRu extends AppLocalizations {
   String get couldNotConnectChessnut => 'Не удалось подключить Chessnut.';
 
   @override
-  String get chessnutAndroidOnly => 'Поддержка Chessnut доступна на Android.';
+  String get chessnutAndroidOnly =>
+      'Электронные доски поддерживаются на Android.';
 
   @override
   String get chessnutIsDisconnected => 'Chessnut отключён.';
@@ -1093,11 +1094,11 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get chessnutPermissionPending =>
-      'Разрешите доступ к Bluetooth, затем подключите Chessnut заново.';
+      'Разрешите доступ к Bluetooth, затем подключите доску заново.';
 
   @override
   String get chessnutBluetoothDisabled =>
-      'Включите Bluetooth, затем подключите Chessnut заново.';
+      'Включите Bluetooth, затем подключите доску заново.';
 
   @override
   String get whiteShort => 'Б';
@@ -1693,6 +1694,23 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get recentExportTooLarge =>
       'Выбранные партии превышают ограничение экспорта в 5 МБ. Выберите меньше партий и повторите попытку.';
+
+  @override
+  String pgnCollectionImported(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count партии добавлено в недавние игры.',
+      many: '$count партий добавлено в недавние игры.',
+      few: '$count партии добавлены в недавние игры.',
+      one: '$count партия добавлена в недавние игры.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get recentExportGameTooLarge =>
+      'Выбранная партия превышает лимит 5 МБ на партию.';
 
   @override
   String get recentExportFailed =>

@@ -284,9 +284,9 @@
   "@start": {
     "description": "Live game: START"
   },
-  "chessnutStatus": "Chessnut status",
+  "chessnutStatus": "Board status",
   "@chessnutStatus": {
-    "description": "Live game: Chessnut status"
+    "description": "Electronic-board status tooltip."
   },
   "leaveCurrentGame": "Leave current game?",
   "@leaveCurrentGame": {
@@ -1059,9 +1059,9 @@
   "@couldNotConnectChessnut": {
     "description": "Play screen: Could not connect Chessnut."
   },
-  "chessnutAndroidOnly": "Chessnut support is available on Android.",
+  "chessnutAndroidOnly": "Electronic-board support is available on Android.",
   "@chessnutAndroidOnly": {
-    "description": "Play screen: Chessnut support is available on Android."
+    "description": "Electronic-board connection recovery; applies to every supported board brand. Legacy message identifier retained for saved-session compatibility."
   },
   "chessnutIsDisconnected": "Chessnut is disconnected.",
   "@chessnutIsDisconnected": {
@@ -1393,13 +1393,13 @@
   },
   "chessnutBluetoothUnavailable": "Bluetooth is unavailable on this device.",
   "@chessnutBluetoothUnavailable": {
-    "description": "Actionable Chessnut connection failure; native diagnostic details are recorded separately."
+    "description": "Electronic-board connection recovery; applies to every supported board brand. Legacy message identifier retained for saved-session compatibility."
   },
-  "chessnutPermissionPending": "Allow Bluetooth permissions, then reconnect Chessnut.",
+  "chessnutPermissionPending": "Allow Bluetooth permissions, then reconnect your board.",
   "@chessnutPermissionPending": {
-    "description": "Actionable Chessnut connection failure; native diagnostic details are recorded separately."
+    "description": "Electronic-board connection recovery; applies to every supported board brand. Legacy message identifier retained for saved-session compatibility."
   },
-  "chessnutBluetoothDisabled": "Turn on Bluetooth, then reconnect Chessnut.",
+  "chessnutBluetoothDisabled": "Turn on Bluetooth, then reconnect your board.",
   "@chessnutBluetoothDisabled": {
     "description": "Actionable Chessnut connection failure; native diagnostic details are recorded separately."
   },
@@ -2151,9 +2151,15 @@
   },
   "recentExportGames": "Export games",
   "@recentExportTooLarge": {
-    "description": "Recent Games export exceeds the 5 MiB UTF-8 limit, shown as 5 MB. Nothing is saved/shared; keep selection and ask the user to select fewer games and retry. Import remains limited to 2 MiB."
+    "description": "Recent Games export exceeds the 5 MiB UTF-8 limit, shown as 5 MB. Nothing is saved/shared; keep selection and ask the user to select fewer games and retry. Import also allows 5 MiB."
   },
   "recentExportTooLarge": "Selected games exceed the 5 MB export limit. Select fewer games and try again.",
+  "pgnCollectionImported": "{count, plural, one{{count} game added to Recent games.} other{{count} games added to Recent games.}}",
+  "@pgnCollectionImported": {"description": "A whole PGN collection was validated and added to Recent games without replacing the current game. Reuse the existing localized Recent games screen name.", "placeholders": {"count": {"type": "int"}}},
+  "recentExportGameTooLarge": "A selected game exceeds the 5 MB limit per game.",
+  "@recentExportGameTooLarge": {
+    "description": "One selected PGN exceeds the 5 MiB individual-game parser limit, shown as 5 MB (or localized equivalent). This is distinct from the 5 MiB combined export limit. Nothing is saved/shared and saved games are unchanged."
+  },
   "@recentExportFailed": {
     "description": "Recent Games multi-game export error: one selected record could not be read/validated, or Android save/share failed. No selected game is silently omitted and stored games are not modified."
   },

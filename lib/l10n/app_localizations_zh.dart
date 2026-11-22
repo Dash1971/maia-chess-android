@@ -227,7 +227,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get start => '初始局面';
 
   @override
-  String get chessnutStatus => 'Chessnut 状态';
+  String get chessnutStatus => '棋盘状态';
 
   @override
   String get leaveCurrentGame => '离开当前对局？';
@@ -747,7 +747,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get couldNotConnectChessnut => '无法连接 Chessnut。';
 
   @override
-  String get chessnutAndroidOnly => 'Android 版支持连接 Chessnut。';
+  String get chessnutAndroidOnly => '电子棋盘功能仅支持Android。';
 
   @override
   String get chessnutIsDisconnected => 'Chessnut 未连接。';
@@ -979,10 +979,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get chessnutBluetoothUnavailable => '此设备无法使用蓝牙。';
 
   @override
-  String get chessnutPermissionPending => '请授予蓝牙权限，然后重新连接 Chessnut。';
+  String get chessnutPermissionPending => '请允许蓝牙权限，然后重新连接棋盘。';
 
   @override
-  String get chessnutBluetoothDisabled => '请开启蓝牙，然后重新连接 Chessnut。';
+  String get chessnutBluetoothDisabled => '请开启蓝牙，然后重新连接棋盘。';
 
   @override
   String get whiteShort => '白';
@@ -1535,6 +1535,14 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get recentExportTooLarge => '所选对局超出 5 MB 的导出上限。请选择更少的对局后重试。';
+
+  @override
+  String pgnCollectionImported(int count) {
+    return '已将$count局对局添加到最近的对局。';
+  }
+
+  @override
+  String get recentExportGameTooLarge => '所选对局超过了单局5 MB的限制。';
 
   @override
   String get recentExportFailed => '无法导出所选对局。已保存的对局未被更改。';

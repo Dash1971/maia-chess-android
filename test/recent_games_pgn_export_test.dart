@@ -186,10 +186,10 @@ void main() {
     expect(unicode.length, lessThan(RecentGamesPgn.maxBytes));
     expect(
       RecentGamesPgn.export(['a'], (_) async => unicode),
-      throwsA(isA<PgnExportTooLarge>()),
+      throwsA(isA<PgnExportGameTooLarge>()),
     );
     final reads = <String>[];
-    // Each game remains below the unchanged 2 MiB individual parser limit.
+    // Each game remains below the unchanged 5 MiB individual parser limit.
     final large =
         '[Event "Large"]\n\n{${'x' * (RecentGamesPgn.maxBytes ~/ 3 + 100)}} *';
     await expectLater(
@@ -223,12 +223,41 @@ void main() {
     },
   );
 
-  test('single-game imports still reject more than 2 MiB of UTF-8', () {
-    final oversized = '{${'x' * (2 * 1024 * 1024)}} *';
+  test('single-game imports still reject more than 5 MiB of UTF-8', () {
+    final oversized = '{${'x' * (5 * 1024 * 1024)}} *';
     expect(() => AnalysisSession.fromPgn(oversized), throwsFormatException);
-    final multibyte = '{${'😀' * (2 * 1024 * 1024 ~/ 4)}} *';
-    expect(multibyte.length, lessThan(2 * 1024 * 1024));
+    final multibyte = '{${'😀' * (5 * 1024 * 1024 ~/ 4)}} *';
+    expect(multibyte.length, lessThan(5 * 1024 * 1024));
     expect(() => AnalysisSession.fromPgn(multibyte), throwsFormatException);
+  });
+
+  test('individual export limit is distinct from the collection limit', () async {
+    for (final delta in [-1, 0, 1]) {
+      const prefix = '[Event "Sized"]\n\n';
+      final pgn =
+          '$prefix{${'x' * (AnalysisSession.maxPgnBytes + delta - prefix.length - 4)}} *';
+      expect(utf8.encode(pgn).length, AnalysisSession.maxPgnBytes + delta);
+      final result = RecentGamesPgn.export(['one'], (_) async => pgn);
+      if (delta > 0) {
+        await expectLater(result, throwsA(isA<PgnExportGameTooLarge>()));
+      } else {
+        expect(() => AnalysisSession.fromPgn(pgn), returnsNormally);
+        // Normalized headers/separators must also fit the same 5 MiB cap.
+        await expectLater(result, throwsA(isA<PgnExportTooLarge>()));
+      }
+    }
+    final multibyte = '{${'😀' * (AnalysisSession.maxPgnBytes ~/ 4)}} *';
+    expect(multibyte.length, lessThan(AnalysisSession.maxPgnBytes));
+    await expectLater(
+      RecentGamesPgn.export(['one'], (_) async => multibyte),
+      throwsA(isA<PgnExportGameTooLarge>()),
+    );
+    await expectLater(
+      RecentGamesPgn.export([
+        'one',
+      ], (_) async => 'x' * (RecentGamesPgn.maxBytes + 1)),
+      throwsA(isA<PgnExportGameTooLarge>()),
+    );
   });
 
   test(
@@ -520,6 +549,76 @@ void main() {
     'hi',
     'pt',
   ]) {
+    testWidgets(
+      '$locale oversized individual game keeps selection and allows retry',
+      (tester) async {
+        tester.view.physicalSize = const Size(320, 640);
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+        final calls = <MethodCall>[];
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockMethodCallHandler(maiaEngineChannel, (call) async {
+              calls.add(call);
+              return true;
+            });
+        var oversized = true;
+        final pgn = '{${'x' * (AnalysisSession.maxPgnBytes - 3)}} *';
+        await tester.pumpWidget(
+          page(
+            locale: locale,
+            scale: 2,
+            read: (_) async => oversized ? pgn : incomplete,
+          ),
+        );
+        await tester.pumpAndSettle();
+        await select(tester, ['one']);
+        final strings = AppLocalizations.of(
+          tester.element(find.byType(RecentGamesPage)),
+        )!;
+        final menu = find.byKey(const ValueKey('export-selected-games'));
+        for (final share in [false, true]) {
+          await tester.tap(menu);
+          await tester.pumpAndSettle();
+          await tester.tap(
+            find.text(share ? strings.sharePgn : strings.savePgnFile),
+          );
+          await waitForExport(tester);
+          expect(find.text(strings.recentExportGameTooLarge), findsOneWidget);
+          expect(find.text(strings.recentExportTooLarge), findsNothing);
+          expect(find.text(strings.recentExportFailed), findsNothing);
+          expect(find.text(strings.recentSelectedCount(1)), findsOneWidget);
+          expect(
+            calls.where(
+              (call) =>
+                  call.method == 'savePgnFile' || call.method == 'sharePgn',
+            ),
+            isEmpty,
+          );
+          expect(tester.takeException(), isNull);
+          await tester.pump(const Duration(seconds: 5));
+          await tester.pumpAndSettle();
+        }
+        oversized = false;
+        await tester.tap(menu);
+        await tester.pumpAndSettle();
+        await tester.tap(find.text(strings.savePgnFile));
+        await waitForExport(tester);
+        expect(
+          calls
+              .where(
+                (call) =>
+                    call.method == 'savePgnFile' || call.method == 'sharePgn',
+              )
+              .single
+              .method,
+          'savePgnFile',
+        );
+        expect(find.text(strings.recentSelectedCount(1)), findsOneWidget);
+        expect(tester.takeException(), isNull);
+      },
+    );
+
     testWidgets(
       '$locale selection, export menu and size error fit 320px at 200% text',
       (tester) async {

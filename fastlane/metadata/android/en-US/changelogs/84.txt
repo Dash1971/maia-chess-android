@@ -1,9 +1,9 @@
 2.6.0
 
-- Square Off Grand Kingdom support with assisted Maia promotion.
+- Experimental Grand Kingdom support with assisted Maia promotion.
 - Larger landscape boards and independent analysis/move panes.
 - Clearer Recent games; Back preserves your browsing position.
-- Export selected games together as one PGN (up to 5 MiB).
+- Import/export PGN collections (5 MiB each).
 - Safer interrupted-game and damaged-save recovery.
 - Resume unfinished analysis when returning to the same Review.
-- Human move timing defaults on; existing settings are preserved.
+- Human move timing defaults on when unset; saved off stays off.

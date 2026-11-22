@@ -256,6 +256,8 @@ class PgnVariationExporter {
 }
 
 class AnalysisSession {
+  static const maxPgnBytes = 5 * 1024 * 1024;
+
   const AnalysisSession({
     required this.positions,
     required this.uciMoves,
@@ -423,8 +425,8 @@ class AnalysisSession {
       AnalysisSession.fromFen(chess.Chess.DEFAULT_POSITION);
 
   factory AnalysisSession.fromPgn(String source) {
-    if (source.length > 2 * 1024 * 1024 ||
-        utf8.encode(source).length > 2 * 1024 * 1024) {
+    if (source.length > maxPgnBytes ||
+        utf8.encode(source).length > maxPgnBytes) {
       throw const FormatException('PGN is too large.');
     }
     _validatePgnTokens(source);

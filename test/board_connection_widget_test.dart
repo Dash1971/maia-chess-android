@@ -3,9 +3,11 @@ import 'dart:typed_data';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maia_chess/main.dart';
 import 'package:maia_chess/l10n/app_localizations.dart';
+
 import 'fixtures/immediate_maia_preferences.dart';
 
 class DiscoveryBoard implements DiscoverableBoardTransport {
@@ -34,11 +36,17 @@ class DiscoveryBoard implements DiscoverableBoardTransport {
     ),
   );
   void candidates() => controller.add(
-    const ElectronicBoardEvent(
+    ElectronicBoardEvent(
       type: 'candidates',
       candidates: [
-        BoardCandidate('board-one', 'First board', BoardKind.chessnut),
-        BoardCandidate('board-two', 'Second board', BoardKind.pegasus),
+        const BoardCandidate('board-one', 'First board', BoardKind.chessnut),
+        BoardCandidate(
+          'board-two',
+          'Second board',
+          BoardChannelPolicy.supports(appFlavor, BoardKind.pegasus)
+              ? BoardKind.pegasus
+              : BoardKind.squareOff,
+        ),
       ],
     ),
   );
@@ -271,6 +279,7 @@ void main() {
         (BoardKind.pegasus, 'pegasus', 'DGT Pegasus'),
         (BoardKind.squareOff, 'square-off', 'Square Off Grand Kingdom'),
       ]) {
+        if (!BoardChannelPolicy.supports(appFlavor, entry.$1)) continue;
         status(
           ElectronicBoardConnectionState.ready,
           kind: entry.$1,
@@ -558,6 +567,7 @@ void main() {
       expect(board.motorMoves, isEmpty);
       await dispose(tester);
     },
+    skip: !BoardChannelPolicy.supports(appFlavor, BoardKind.pegasus),
   );
 
   testWidgets(

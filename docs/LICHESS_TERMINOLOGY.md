@@ -455,3 +455,14 @@ actions. French uses “Date de jeu” to make the played-date meaning explicit 
 settings actions, and chess terms continue to use their reviewed translations.
 New rows in the translation review sheet require native review; this source
 update does not certify linguistic acceptance.
+
+## Board-neutral recovery and individual PGN export limits — 22 November 2026
+
+The existing Bluetooth-permission, Bluetooth-disabled, Android-only and status
+messages now refer to the board rather than a specific brand in every catalog.
+Their legacy message identifiers and persisted status codes are retained. The
+individual 5 MiB PGN export error is separate from the combined 5 MiB limit.
+These device/error messages are app-specific, with no direct pinned Lichess
+equivalent; they reuse the existing board, Bluetooth, PGN and size terminology.
+Generated catalogs, the review CSV and compact/large-text regression tests cover
+all ten languages. Translations remain provisional pending native-speaker review.

@@ -42,8 +42,12 @@ unfinished `*` games and supported custom starting positions use the same path.
 - Save/share exports allow **5 MiB (5,242,880 UTF-8 bytes)**, including inter-game
   separators. This is a byte limit, not a game-count limit. The UI calls it
   **5 MB**. Imports, including Open with/shared attachments, and the individual
-  game parser retain their separate **2 MiB** limits; a 5 MB multi-game export
-  is intended for external tools, not whole-collection reimport into Mobile Maia.
+  game parser now use the same **5 MiB** limit. Importing a collection adds every
+  game to Recent games, so exports can transfer games between installations.
+  Importing a single game keeps the existing open-in-analysis behavior.
+- A selected game over the individual 5 MiB parser limit fails with its own
+  localized message, distinct from the combined 5 MiB collection error. Save and
+  Share both stop before opening Android UI, retain selection and allow retry.
 - Preparation stops as soon as adding a game would exceed the export limit,
   before opening Android's save/share UI. No partial file is saved/shared and
   there is no silent omission or automatic splitting. The message is:
@@ -67,8 +71,8 @@ when Maia is the only installed PGN receiver. Users can still import files
 explicitly through the existing import actions.
 
 Android continues to use the existing document picker and FileProvider chooser,
-temporary URI grants and MIME type. Native size guards distinguish 5 MiB
-exports from 2 MiB imports. There is no new permission, network dependency,
+temporary URI grants and MIME type. Native import/export guards share one
+5 MiB byte limit. There is no new permission, network dependency,
 model or automatic upload.
 
 ## Verification
@@ -77,7 +81,7 @@ model or automatic upload.
 display ordering, round-trip metadata/annotations/variations, custom FEN,
 unfinished games, missing/invalid/multiple-game records, UTF-8 and aggregate byte
 limits (including exactly 5 MiB and one byte over), a 200-game collection,
-an oversized 10,000-game selection, unchanged 2 MiB import rejection,
+an oversized 10,000-game selection, matching 5 MiB import rejection,
 read-only repository files, save/share method
 dispatch, cancellation, native failure/retry and stale callbacks. All ten
 languages exercise the selection/export menu and size-error message at 320 px
@@ -89,4 +93,34 @@ they do not certify an OEM document provider or third-party PGN application.
 Android device smoke testing remains a release check. The feature PR is merged;
 exact-source release checks and Android smoke results are recorded below.
 
-Actual signed-APK qualification covered small Select all, cancel/retry, 5 MiB overflow, a 3.66 MB UTF-8 save and separate-UID share, unchanged source hashes, the native 2 MiB import guard and sole-target self-share regression. [Release evidence](https://github.com/Dash1971/maia-chess-android-preview/blob/e162a61e995452b748e5f85d710c6f7dab2ab24a/docs/releases/preview-2.6.0-beta.3.md).
+Historical beta.3 signed-APK qualification covered small Select all, cancel/retry, 5 MiB overflow, a 3.66 MB UTF-8 save and separate-UID share, unchanged source hashes, the native 2 MiB import guard and sole-target self-share regression. [Release evidence](https://github.com/Dash1971/maia-chess-android-preview/blob/e162a61e995452b748e5f85d710c6f7dab2ab24a/docs/releases/preview-2.6.0-beta.3.md).
+
+## Collection import follow-up — 22 November 2026
+
+File picker, pasted PGN, Android Open with and shared attachments use the same
+validated collection parser. It recognizes game boundaries outside comments,
+headers and variations, validates every game off the UI thread, and rejects
+invalid later games instead of silently importing only the first one.
+
+All records are staged privately, then published by one directory rename into
+Recent games. A failed write does not expose a partial collection. Existing
+records, the active checkpoint and crash-recovery preferences stay unchanged.
+Imported records retain PGN names, dates, results, comments, clocks, variations
+and starting positions. Equal-date imported records retain their source order.
+The completion message reports the number of games added to Recent games.
+
+Import adds records; it does not merge or deduplicate them with earlier imports.
+PGN transfers games and annotations, not app settings or live clock/motor session
+checkpoints. This is not a complete app-data backup. Imported unfinished games
+open paused; no physical board connection or movement is restored from PGN.
+
+The 5 MiB limit is measured on actual UTF-8 file bytes. Export includes serialized
+headers and separators; source text just under the cap can grow during export
+normalization and must still pass the final combined-byte check. There is no
+additional game-count cap. The former 2 MiB import cap and first-game-only
+collection behavior are historical, superseded by this follow-up.
+
+Host regression coverage includes a collection over 2 MiB, the 5 MiB boundary,
+UTF-8, fake boundaries inside comments/variations, invalid later games, atomic
+failure, active-game preservation and imported-record open/delete after restart.
+Android document-provider checks remain pending the beta.11 build phase.

@@ -232,7 +232,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get start => 'START';
 
   @override
-  String get chessnutStatus => 'Chessnut status';
+  String get chessnutStatus => 'Board status';
 
   @override
   String get leaveCurrentGame => 'Leave current game?';
@@ -813,7 +813,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get couldNotConnectChessnut => 'Could not connect Chessnut.';
 
   @override
-  String get chessnutAndroidOnly => 'Chessnut support is available on Android.';
+  String get chessnutAndroidOnly =>
+      'Electronic-board support is available on Android.';
 
   @override
   String get chessnutIsDisconnected => 'Chessnut is disconnected.';
@@ -1056,11 +1057,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get chessnutPermissionPending =>
-      'Allow Bluetooth permissions, then reconnect Chessnut.';
+      'Allow Bluetooth permissions, then reconnect your board.';
 
   @override
   String get chessnutBluetoothDisabled =>
-      'Turn on Bluetooth, then reconnect Chessnut.';
+      'Turn on Bluetooth, then reconnect your board.';
 
   @override
   String get whiteShort => 'W';
@@ -1647,6 +1648,21 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get recentExportTooLarge =>
       'Selected games exceed the 5 MB export limit. Select fewer games and try again.';
+
+  @override
+  String pgnCollectionImported(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count games added to Recent games.',
+      one: '$count game added to Recent games.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get recentExportGameTooLarge =>
+      'A selected game exceeds the 5 MB limit per game.';
 
   @override
   String get recentExportFailed =>

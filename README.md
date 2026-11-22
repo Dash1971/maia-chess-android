@@ -83,12 +83,12 @@ The [Stable 2.6 promotion draft](docs/stable-2.6-preparation.md) brings the curr
 Preview improvements into the blue-icon app. It is not built or published yet;
 Stable 2.5.1 remains the current download.
 
-- **Grand Kingdom support.** Play untimed games from the standard position on a Square Off Grand Kingdom, including assisted Maia promotion. Chessnut Air and Go remain supported.
+- **Experimental Grand Kingdom support.** Play untimed games from the standard position on a Square Off Grand Kingdom, including assisted Maia promotion. Chessnut Air and Go remain supported.
 - **More room for chess.** Larger landscape boards and adaptive wide Home/Settings layouts. Engine output stays visible while moves scroll independently; holding either arrow reveals the beginning or end in portrait and landscape.
-- **Better Recent games.** Compact Date/Game/Result rows, yyyy/MM/dd dates and clear Incomplete labels. Back cancels selection first, and saved-game Back restores the same browsing position.
-- **PGN collections.** Long-press a Recent games entry or choose Select games, select individual games or Select all, then Export games to save or share one PGN. The export limit is 5 MiB; imports remain 2 MiB. Oversized/unreadable selections retain your selection and never produce a partial collection.
+- **Better Recent games.** Compact Date/Game/Result rows, yyyy/MM/dd dates and clear Incomplete labels. Back cancels selection first, and saved-game Back restores the same browsing position. Select games to delete them from the toolbar; per-row delete icons are removed.
+- **PGN collections.** Long-press a Recent games entry or choose Select games, select individual games or Select all, then Export games to save or share one PGN. Import and export both allow 5 MiB. Importing a collection adds every game to Recent games for transfer between installations; importing a single game still opens it for analysis. Oversized/unreadable selections retain your selection and never produce a partial collection.
 - **Safer recovery and analysis resume.** Interrupted games remain in Recent games when another game or PGN is opened; damaged temporary saves recover the committed game. Unfinished computer analysis resumes on returning to the same open Review page after backgrounding or screen coverage.
-- **Human move timing on by default.** New settings and Settings reset enable timing; a saved off choice remains off.
+- **Human move timing on by default.** An unset preference now enables timing, including on upgrade; a saved off choice remains off. Settings reset also enables timing.
 
 Grand Kingdom setup requires the standard position; promotion needs replacement
 confirmation, and interrupted movement/takebacks use phone continuation. DGT
@@ -162,7 +162,9 @@ millisecond precision; unlimited games do not invent clock data.
 
 ### Human move timing
 
-Human move timing is optional and off by default. When enabled, Maia varies
+Human move timing is optional and off by default in published Stable 2.5.1.
+The 2.6 draft defaults it on when no saved choice exists, including on upgrade;
+a saved off choice stays off. When enabled, Maia varies
 its pauses to give games a more natural rhythm. Shorter pauses are more common
 than longer ones. The configured time control selects the timing automatically:
 
@@ -694,9 +696,11 @@ Because Android can erase private app data on uninstall, use **Save PGN file**
 or **Share PGN** for an independent copy.
 
 **Open PGN file**, Android's Open with action, and shared attachments import one
-game with its variations, comments, and annotations. Files are limited to 2 MB
-and 20,000 moves across all branches; the first game is used when a document
-contains several games.
+game with its variations, comments, and annotations in published Stable 2.5.1
+(2 MB; first game only for collections). The 2.6 draft raises import and export
+to the same 5 MiB limit and adds all games from a collection to Recent games.
+Single-game opening stays unchanged. PGN transfers games and annotations, not
+app settings or live electronic-board session state.
 
 ### About, privacy, and licences
 
@@ -881,6 +885,13 @@ cross-checked against Roberto Marabini's GPL-3.0
 implementation. Mobile Maia's Bluetooth transport uses Android's native BLE
 APIs. Protocol sources, copyright notices, licence terms, and adaptation
 details are recorded in [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).
+
+Grand Kingdom protocol support references
+[square-off-remote](https://github.com/greghope667/square-off-remote), the
+GPL-3.0-or-later Grand Kingdom implementation by
+[greghope667](https://github.com/greghope667). See our
+[protocol notes](docs/ELECTRONIC_BOARD_NATIVE_PROTOCOL.md) for the pinned source
+and implementation details.
 
 Game Review's move-classification and sacrifice-detection heuristics are
 adapted and translated to Dart from

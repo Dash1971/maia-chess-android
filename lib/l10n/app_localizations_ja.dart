@@ -229,7 +229,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get start => '開始';
 
   @override
-  String get chessnutStatus => 'Chessnutの状態';
+  String get chessnutStatus => 'ボードの状態';
 
   @override
   String get leaveCurrentGame => '対局から離れますか？';
@@ -752,7 +752,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get couldNotConnectChessnut => 'Chessnutに接続できませんでした。';
 
   @override
-  String get chessnutAndroidOnly => 'Chessnutへの接続機能はAndroidで利用できます。';
+  String get chessnutAndroidOnly => '電子ボードはAndroidで利用できます。';
 
   @override
   String get chessnutIsDisconnected => 'Chessnutは未接続です。';
@@ -988,12 +988,10 @@ class AppLocalizationsJa extends AppLocalizations {
   String get chessnutBluetoothUnavailable => 'この端末ではBluetoothを利用できません。';
 
   @override
-  String get chessnutPermissionPending =>
-      'Bluetoothの権限を許可してからChessnutに再接続してください。';
+  String get chessnutPermissionPending => 'Bluetoothの権限を許可してからボードに再接続してください。';
 
   @override
-  String get chessnutBluetoothDisabled =>
-      'BluetoothをオンにしてからChessnutに再接続してください。';
+  String get chessnutBluetoothDisabled => 'Bluetoothをオンにしてからボードに再接続してください。';
 
   @override
   String get whiteShort => '白';
@@ -1559,6 +1557,14 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String get recentExportTooLarge =>
       '選択した対局は5 MBのエクスポート上限を超えています。対局数を減らして、もう一度お試しください。';
+
+  @override
+  String pgnCollectionImported(int count) {
+    return '最近の対局に$count局追加しました。';
+  }
+
+  @override
+  String get recentExportGameTooLarge => '選択した対局が1局あたりの上限5 MBを超えています。';
 
   @override
   String get recentExportFailed => '選択した対局をエクスポートできませんでした。保存済みの対局は変更されていません。';

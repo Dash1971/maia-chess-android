@@ -230,7 +230,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get start => '시작';
 
   @override
-  String get chessnutStatus => 'Chessnut 상태';
+  String get chessnutStatus => '체스보드 상태';
 
   @override
   String get leaveCurrentGame => '현재 대국을 나가시겠습니까?';
@@ -753,7 +753,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get couldNotConnectChessnut => 'Chessnut에 연결할 수 없습니다.';
 
   @override
-  String get chessnutAndroidOnly => 'Chessnut은 Android에서 사용할 수 있습니다.';
+  String get chessnutAndroidOnly => '전자 체스보드는 Android에서 사용할 수 있습니다.';
 
   @override
   String get chessnutIsDisconnected => 'Chessnut이 연결되지 않았습니다.';
@@ -990,11 +990,10 @@ class AppLocalizationsKo extends AppLocalizations {
   String get chessnutBluetoothUnavailable => '이 기기에서 Bluetooth를 사용할 수 없습니다.';
 
   @override
-  String get chessnutPermissionPending =>
-      'Bluetooth 권한을 허용한 다음 Chessnut에 다시 연결하세요.';
+  String get chessnutPermissionPending => 'Bluetooth 권한을 허용한 다음 보드에 다시 연결하세요.';
 
   @override
-  String get chessnutBluetoothDisabled => 'Bluetooth를 켠 다음 Chessnut에 다시 연결하세요.';
+  String get chessnutBluetoothDisabled => 'Bluetooth를 켠 다음 보드에 다시 연결하세요.';
 
   @override
   String get whiteShort => '백';
@@ -1563,6 +1562,14 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String get recentExportTooLarge =>
       '선택한 대국이 5 MB 내보내기 제한을 초과합니다. 대국을 더 적게 선택한 후 다시 시도하세요.';
+
+  @override
+  String pgnCollectionImported(int count) {
+    return '최근 대국에 $count개 대국을 추가했습니다.';
+  }
+
+  @override
+  String get recentExportGameTooLarge => '선택한 대국이 대국당 5 MB 제한을 초과합니다.';
 
   @override
   String get recentExportFailed => '선택한 대국을 내보낼 수 없습니다. 저장된 대국은 변경되지 않았습니다.';

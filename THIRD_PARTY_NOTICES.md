@@ -42,6 +42,17 @@ The EasyLinkSDK licence notice follows:
 > OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 > SOFTWARE.
 
+## Grand Kingdom protocol reference
+
+- Reference: [square-off-remote](https://github.com/greghope667/square-off-remote), by [greghope667](https://github.com/greghope667)
+- Pinned source: `c64fc4d99d70071707ebd1acd16442eb3d0a6083`, `communicator.py` and `squareoff.py`
+- Upstream license: GPL-3.0-or-later, as stated in its [pinned README](https://github.com/greghope667/square-off-remote/blob/c64fc4d99d70071707ebd1acd16442eb3d0a6083/README.md#license); [license text](https://github.com/greghope667/square-off-remote/blob/c64fc4d99d70071707ebd1acd16442eb3d0a6083/LICENSE)
+
+This implementation is the Grand Kingdom wire-protocol reference for Mobile
+Maia's Android/Dart adapter. No Python runtime is bundled. See
+[protocol evidence](docs/ELECTRONIC_BOARD_NATIVE_PROTOCOL.md) for the command
+mapping and supported workflows.
+
 ## En Croissant
 
 - Project: <https://github.com/franciscoBSalgueiro/en-croissant>

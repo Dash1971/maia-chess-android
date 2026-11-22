@@ -233,7 +233,7 @@ class AppLocalizationsHi extends AppLocalizations {
   String get start => 'शुरुआत';
 
   @override
-  String get chessnutStatus => 'Chessnut की स्थिति';
+  String get chessnutStatus => 'बोर्ड की स्थिति';
 
   @override
   String get leaveCurrentGame => 'मौजूदा खेल से बाहर जाएँ?';
@@ -821,7 +821,8 @@ class AppLocalizationsHi extends AppLocalizations {
   String get couldNotConnectChessnut => 'Chessnut से कनेक्शन नहीं हो सका।';
 
   @override
-  String get chessnutAndroidOnly => 'Chessnut का समर्थन Android पर उपलब्ध है।';
+  String get chessnutAndroidOnly =>
+      'इलेक्ट्रॉनिक बोर्ड Android पर इस्तेमाल किए जा सकते हैं।';
 
   @override
   String get chessnutIsDisconnected => 'Chessnut का कनेक्शन हट गया है।';
@@ -1071,11 +1072,11 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get chessnutPermissionPending =>
-      'Bluetooth की अनुमति दें, फिर Chessnut दोबारा जोड़ें।';
+      'Bluetooth की अनुमति दें, फिर बोर्ड दोबारा जोड़ें।';
 
   @override
   String get chessnutBluetoothDisabled =>
-      'Bluetooth चालू करें, फिर Chessnut दोबारा जोड़ें।';
+      'Bluetooth चालू करें, फिर बोर्ड दोबारा जोड़ें।';
 
   @override
   String get whiteShort => 'स';
@@ -1669,6 +1670,15 @@ class AppLocalizationsHi extends AppLocalizations {
   @override
   String get recentExportTooLarge =>
       'चुने गए खेल 5 MB की निर्यात सीमा से अधिक हैं। कम खेल चुनें और फिर से प्रयास करें।';
+
+  @override
+  String pgnCollectionImported(int count) {
+    return 'हाल के खेलों में $count खेल जोड़े गए।';
+  }
+
+  @override
+  String get recentExportGameTooLarge =>
+      'चुना गया खेल, प्रति खेल 5 MB की सीमा से बड़ा है।';
 
   @override
   String get recentExportFailed =>

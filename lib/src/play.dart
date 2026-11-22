@@ -222,6 +222,7 @@ class _GamePageState extends State<GamePage>
   Object? _drawOfferRequest;
   String? _lastDrawOfferFen;
   bool _savedAsIncomplete = false;
+  bool _importedPgn = false;
   int? _viewedPly;
   final ScrollController _liveMovesController = ScrollController();
   final Map<int, GlobalKey> _liveMoveKeys = {};
@@ -794,6 +795,7 @@ class _GamePageState extends State<GamePage>
             ? _resultText()
             : _PlayMessage.restore(saved['statusCode'] ?? saved['status']);
         _boardFlipped = saved['flipped'] as bool? ?? false;
+        _importedPgn = saved['importedPgn'] == true;
         _savedAsIncomplete =
             !_gameFinished &&
             (saved['recentState'] == 'incomplete' ||
@@ -947,6 +949,11 @@ class _GamePageState extends State<GamePage>
             ? 'incomplete'
             : 'active'),
     'pgn': _exportPgn(),
+    if (_importedPgn) ...{
+      'importedPgn': true,
+      'importedWhite': _game.header['White'],
+      'importedBlack': _game.header['Black'],
+    },
     'positions': List<String>.of(_positionHistory),
     'uciMoves': List<String>.of(_uciMoves),
     'variations': _takebackVariations.map((item) => item.toJson()).toList(),
@@ -1674,10 +1681,10 @@ class _GamePageState extends State<GamePage>
       final text = await maiaEngineChannel.invokeMethod<String>(
         'getPendingPgn',
       );
-      if (text != null) {
+      if (text != null && mounted) {
         consumed = true;
-        final session = await AnalysisSession.fromPgnAsync(text);
-        if (mounted) await _openImportedSession(session);
+        final session = await PgnFiles.importText(context, text);
+        if (mounted && session != null) await _openImportedSession(session);
       }
     } on MissingPluginException {
       /* No Android document bridge in host tests. */
@@ -2930,6 +2937,7 @@ class _GamePageState extends State<GamePage>
         _drawOfferEvaluating = false;
         _lastDrawOfferFen = null;
         _savedAsIncomplete = false;
+        _importedPgn = false;
         _viewedPly = null;
         _chessnutGameActive = _useChessnutGo;
         _pendingPhysicalMaiaMove = null;
@@ -3909,6 +3917,7 @@ class _GamePageState extends State<GamePage>
         _forcedResult = null;
         _naturalGameOver = false;
         _savedAsIncomplete = false;
+        _importedPgn = false;
         _resultDialogShown = false;
         _viewedPly = null;
         _started = false;

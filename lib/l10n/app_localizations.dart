@@ -540,10 +540,10 @@ abstract class AppLocalizations {
   /// **'START'**
   String get start;
 
-  /// Live game: Chessnut status
+  /// Electronic-board status tooltip.
   ///
   /// In en, this message translates to:
-  /// **'Chessnut status'**
+  /// **'Board status'**
   String get chessnutStatus;
 
   /// Live game: Leave current game?
@@ -1452,10 +1452,10 @@ abstract class AppLocalizations {
   /// **'Could not connect Chessnut.'**
   String get couldNotConnectChessnut;
 
-  /// Play screen: Chessnut support is available on Android.
+  /// Electronic-board connection recovery; applies to every supported board brand. Legacy message identifier retained for saved-session compatibility.
   ///
   /// In en, this message translates to:
-  /// **'Chessnut support is available on Android.'**
+  /// **'Electronic-board support is available on Android.'**
   String get chessnutAndroidOnly;
 
   /// Play screen: Chessnut is disconnected.
@@ -1864,22 +1864,22 @@ abstract class AppLocalizations {
   /// **'{percent}%{charging, select, yes{ ⚡} other{}}'**
   String chessnutBattery(String percent, String charging);
 
-  /// Actionable Chessnut connection failure; native diagnostic details are recorded separately.
+  /// Electronic-board connection recovery; applies to every supported board brand. Legacy message identifier retained for saved-session compatibility.
   ///
   /// In en, this message translates to:
   /// **'Bluetooth is unavailable on this device.'**
   String get chessnutBluetoothUnavailable;
 
-  /// Actionable Chessnut connection failure; native diagnostic details are recorded separately.
+  /// Electronic-board connection recovery; applies to every supported board brand. Legacy message identifier retained for saved-session compatibility.
   ///
   /// In en, this message translates to:
-  /// **'Allow Bluetooth permissions, then reconnect Chessnut.'**
+  /// **'Allow Bluetooth permissions, then reconnect your board.'**
   String get chessnutPermissionPending;
 
   /// Actionable Chessnut connection failure; native diagnostic details are recorded separately.
   ///
   /// In en, this message translates to:
-  /// **'Turn on Bluetooth, then reconnect Chessnut.'**
+  /// **'Turn on Bluetooth, then reconnect your board.'**
   String get chessnutBluetoothDisabled;
 
   /// Compact chess-side column header in classification summary. White/black initials or one-character labels; full localized side names remain in accessibility labels.
@@ -2890,11 +2890,23 @@ abstract class AppLocalizations {
   /// **'Export games'**
   String get recentExportGames;
 
-  /// Recent Games export exceeds the 5 MiB UTF-8 limit, shown as 5 MB. Nothing is saved/shared; keep selection and ask the user to select fewer games and retry. Import remains limited to 2 MiB.
+  /// Recent Games export exceeds the 5 MiB UTF-8 limit, shown as 5 MB. Nothing is saved/shared; keep selection and ask the user to select fewer games and retry. Import also allows 5 MiB.
   ///
   /// In en, this message translates to:
   /// **'Selected games exceed the 5 MB export limit. Select fewer games and try again.'**
   String get recentExportTooLarge;
+
+  /// A whole PGN collection was validated and added to Recent games without replacing the current game. Reuse the existing localized Recent games screen name.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} game added to Recent games.} other{{count} games added to Recent games.}}'**
+  String pgnCollectionImported(int count);
+
+  /// One selected PGN exceeds the 5 MiB individual-game parser limit, shown as 5 MB (or localized equivalent). This is distinct from the 5 MiB combined export limit. Nothing is saved/shared and saved games are unchanged.
+  ///
+  /// In en, this message translates to:
+  /// **'A selected game exceeds the 5 MB limit per game.'**
+  String get recentExportGameTooLarge;
 
   /// Recent Games multi-game export error: one selected record could not be read/validated, or Android save/share failed. No selected game is silently omitted and stored games are not modified.
   ///

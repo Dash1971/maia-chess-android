@@ -233,7 +233,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get start => 'INICIO';
 
   @override
-  String get chessnutStatus => 'Estado de Chessnut';
+  String get chessnutStatus => 'Estado del tablero';
 
   @override
   String get leaveCurrentGame => '¿Salir de la partida actual?';
@@ -825,7 +825,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get chessnutAndroidOnly =>
-      'La conexión con Chessnut está disponible en Android.';
+      'Los tableros electrónicos se pueden usar en Android.';
 
   @override
   String get chessnutIsDisconnected => 'Chessnut está desconectado.';
@@ -1074,11 +1074,11 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get chessnutPermissionPending =>
-      'Permite el acceso a Bluetooth y vuelve a conectar Chessnut.';
+      'Permite el acceso a Bluetooth y vuelve a conectar el tablero.';
 
   @override
   String get chessnutBluetoothDisabled =>
-      'Activa Bluetooth y vuelve a conectar Chessnut.';
+      'Activa Bluetooth y vuelve a conectar el tablero.';
 
   @override
   String get whiteShort => 'B';
@@ -1672,6 +1672,21 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get recentExportTooLarge =>
       'Las partidas seleccionadas superan el límite de exportación de 5 MB. Selecciona menos partidas e inténtalo de nuevo.';
+
+  @override
+  String pgnCollectionImported(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Se añadieron $count partidas a Partidas recientes.',
+      one: 'Se añadió $count partida a Partidas recientes.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get recentExportGameTooLarge =>
+      'Una partida seleccionada supera el límite de 5 MB por partida.';
 
   @override
   String get recentExportFailed =>

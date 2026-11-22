@@ -42,6 +42,9 @@ class RecentSession {
   }
 
   String get title {
+    if (data['importedPgn'] == true) {
+      return '${data['importedWhite'] ?? 'White'} — ${data['importedBlack'] ?? 'Black'}';
+    }
     final maia = 'Maia ${data['elo'] ?? 1600}';
     final playerIsWhite = data['playerIsWhite'];
     return playerIsWhite is! bool || playerIsWhite
@@ -51,6 +54,9 @@ class RecentSession {
 
   String localizedTitle(BuildContext context) {
     final strings = l10n(context);
+    if (data['importedPgn'] == true) {
+      return '${data['importedWhite'] ?? strings.white} — ${data['importedBlack'] ?? strings.black}';
+    }
     final rating = data['elo'];
     final displayRating = NumberFormat(
       '0',
@@ -294,12 +300,64 @@ class SessionRepository {
   }
 
   File get _active => File('${directory.path}/active.json');
+  static final _importId = RegExp(r'^(import-[0-9]+-[0-9]+)-[0-9]+$');
   File _archiveFile(String id) {
     if (!RegExp(r'^[0-9a-z-]+$').hasMatch(id)) {
       throw const FormatException('Invalid session identifier');
     }
-    return File('${directory.path}/games/$id.json');
+    final batch = _importId.firstMatch(id)?.group(1);
+    return File('${directory.path}/games/${batch == null ? '' : '$batch/'}$id.json');
   }
+
+  /// Publish the whole validated collection with one directory rename. A failed
+  /// or interrupted preparation cannot expose a partly imported collection.
+  /// The active game and automatic-restore preferences are never replaced.
+  Future<int> importCollection(PgnCollection collection) => _serial(() async {
+    final now = DateTime.now().toUtc();
+    final batch = 'import-${now.microsecondsSinceEpoch}-${Random.secure().nextInt(1 << 30)}';
+    final staging = Directory('${directory.path}/.$batch.pending');
+    final destination = Directory('${directory.path}/games/$batch');
+    try {
+      await staging.create(recursive: true);
+      for (var i = 0; i < collection.games.length; i++) {
+        final pgn = collection.games[i];
+        final headers = collection.headers[i];
+        final result = headers['Result'] ?? '*';
+        final maiaName = RegExp(r'^Maia-3 79M \(([0-9]{3,4})\)$');
+        final whiteMaia = maiaName.firstMatch(headers['White'] ?? '');
+        final blackMaia = maiaName.firstMatch(headers['Black'] ?? '');
+        final maia = whiteMaia ?? blackMaia;
+        final maiaRating = maia == null ? null : _decodeMaiaRating(int.tryParse(maia[1]!));
+        final data = <String, Object?>{
+          'schema': 1,
+          'type': 'game',
+          'pgn': pgn,
+          'recentState': result == '*' ? 'incomplete' : 'completed',
+          'clockPaused': true,
+          'importedPgn': true,
+          'importedWhite': ?headers['White'],
+          'importedBlack': ?headers['Black'],
+          if (maiaRating != null && (whiteMaia == null || blackMaia == null)) ...{
+            'playerIsWhite': blackMaia != null,
+            'elo': maiaRating,
+          },
+        };
+        // Reverse the ordinal so equal-date records keep the source order.
+        final id = '$batch-${(collection.games.length - i).toString().padLeft(8, '0')}';
+        await _write(File('${staging.path}/$id.json'), _withHistory({
+          'version': 1,
+          'id': id,
+          'updatedAt': now.toIso8601String(),
+          'data': data,
+        }));
+      }
+      await destination.parent.create(recursive: true);
+      await staging.rename(destination.path);
+      return collection.games.length;
+    } finally {
+      if (await staging.exists()) await staging.delete(recursive: true);
+    }
+  });
 
   Future<bool> hasCheckpoint() =>
       _serial(() async => await _read(_active) != null);
@@ -426,6 +484,15 @@ class SessionRepository {
     if (await archive.exists()) {
       final names = <String>{};
       await for (final entity in archive.list()) {
+        if (entity is Directory &&
+            RegExp(r'^import-[0-9]+-[0-9]+$').hasMatch(entity.path.split('/').last)) {
+          await for (final file in entity.list(followLinks: false)) {
+            if (file is File &&
+                (file.path.endsWith('.json') || file.path.endsWith('.json.previous'))) {
+              names.add(file.path.replaceFirst(RegExp(r'\.previous$'), ''));
+            }
+          }
+        }
         if (entity is File &&
             (entity.path.endsWith('.json') ||
                 entity.path.endsWith('.json.previous'))) {
@@ -630,11 +697,11 @@ class _RecentGamesPageState extends State<RecentGamesPage> {
         AppDiagnostics.record('recent-games-export', error, stackTrace),
       );
       if (mounted) {
-        _showOperationError(
-          error is PgnExportTooLarge
-              ? l10n(context).recentExportTooLarge
-              : l10n(context).recentExportFailed,
-        );
+        _showOperationError(switch (error) {
+          PgnExportGameTooLarge() => l10n(context).recentExportGameTooLarge,
+          PgnExportTooLarge() => l10n(context).recentExportTooLarge,
+          _ => l10n(context).recentExportFailed,
+        });
       }
     } finally {
       if (mounted) {

@@ -741,7 +741,7 @@ class _AnalysisBoardPageState extends State<AnalysisBoardPage> {
 
   Future<void> _loadPgnFile() async {
     try {
-      final session = await PgnFiles.open();
+      final session = await PgnFiles.open(context);
       if (session != null && mounted) {
         await ActiveSessionStore.startNew();
         if (mounted) _replace(session);
@@ -756,10 +756,10 @@ class _AnalysisBoardPageState extends State<AnalysisBoardPage> {
       l10n(context).loadPgn,
       l10n(context).pastePgn,
     );
-    if (value == null || value.trim().isEmpty) return;
+    if (!mounted || value == null || value.trim().isEmpty) return;
     try {
-      final session = await AnalysisSession.fromPgnAsync(value);
-      if (!mounted) return;
+      final session = await PgnFiles.importText(context, value);
+      if (!mounted || session == null) return;
       await ActiveSessionStore.startNew();
       if (mounted) _replace(session);
     } catch (error) {
