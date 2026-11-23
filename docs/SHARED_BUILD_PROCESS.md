@@ -21,6 +21,7 @@ artifact/model verification and cleanup changes:
 
 The following files are shared verbatim:
 
+- `tool/pgn_android_manifest_test.py`
 - `tool/requirements-release-test.txt`
 - `tool/setup_release_tests.py`
 - `tool/release_test_preflight.py`
@@ -45,3 +46,9 @@ do not justify diverging common disk or cleanup safeguards. Do not copy app
 features, version numbers, signing identities, release tags or publication
 actions as part of synchronizing build tooling. Stable publication remains
 governed by `docs/RELEASING.md` in the Stable repository.
+
+The shared PGN manifest regression checks that MainActivity disables Flutter's
+generic deep-link handler while retaining both native PGN VIEW MIME types. It
+is discovered by the existing Python verification suite; run it locally with
+`python3 -m unittest discover -s tool -p pgn_android_manifest_test.py`. This
+source check complements installed Android cold/warm intent verification.

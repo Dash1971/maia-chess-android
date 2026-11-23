@@ -77,3 +77,23 @@ The 10,000-game near-limit import/re-import and list responsiveness check passed
 in both. Dart analysis reports no issues; all 472 messages in ten catalogs pass
 localization contracts and pinned terminology checks. The private-file harness
 and its temporary storage were removed; no private game collection is committed.
+
+## Native PGN intent routing regression
+
+[Stable #83](https://github.com/Dash1971/maia-chess-android/pull/83) was merged
+into the #82 promotion branch, adding MainActivity's
+`flutter_deeplinking_enabled=false` metadata. Preview already had that setting.
+This keeps warm PGN VIEW intents in the native importer rather than also
+forwarding them into Flutter's generic named-route navigation.
+
+Both repositories carry the identical `tool/pgn_android_manifest_test.py`. Its
+check against the actual Stable manifest failed before the merge and passed
+afterward. All eight checks pass in each repository: they reject a missing,
+enabled, duplicated or incorrectly scoped opt-out, including a misleading XML
+comment, and require both native PGN VIEW MIME types to remain. Channel branding
+and fully qualified activity names are accepted. The existing `*_test.py`
+verification suite discovers this file automatically; workflow files are unchanged.
+
+These are local Python/XML checks. No Android builds, Actions or LFS downloads
+were run for this follow-up. Installed cold/warm PGN opening remains part of
+exact-source release qualification. Stable #82 and Preview #265 remain drafts.
