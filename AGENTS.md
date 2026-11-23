@@ -86,6 +86,12 @@ reason for any intentional difference. Preserve channel-specific behavior and
 Stable's authoritative release gates. Shared tooling changes do not authorize
 an app promotion or publication.
 
+Before expensive qualification, follow `docs/RELEASE_TEST_SETUP.md` for the
+complete operator environment and host/emulator readiness checks. Reuse the
+checked-in bounded UI helper rather than rebuilding an ad hoc driver during
+publication. Distinguish driver/environment failures from app failures; retain
+diagnostics and rerun affected checks without waiving exact-source gates.
+
 ## Release and workspace cleanup
 
 Read `docs/BUILD_WORKSPACE.md` before building or qualifying a release. Preserve

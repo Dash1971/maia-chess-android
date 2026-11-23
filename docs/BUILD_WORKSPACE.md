@@ -18,6 +18,10 @@ volume and allow expected growth plus a 10 GiB reserve. Monitor long jobs and
 stop them before that reserve is consumed. Do not bypass the wrapper with a
 direct Flutter/Gradle invocation to avoid these rules.
 
+Read [Release test setup](RELEASE_TEST_SETUP.md) before qualification: install the
+complete operator requirements, check host/device health, and prepare a bounded
+UI driver before expensive builds. This preserves all channel release gates.
+
 ## Before starting
 
 Record the build host, exact source SHA, checkout, shared toolchain paths,
