@@ -22,6 +22,9 @@ public final class FastDump {
         out.attribute(null, "editable", Boolean.toString(n.isEditable()));
         out.attribute(null, "focused", Boolean.toString(n.isFocused()));
         out.attribute(null, "clickable", Boolean.toString(n.isClickable()));
+        out.attribute(null, "checkable", Boolean.toString(n.isCheckable()));
+        out.attribute(null, "checked", Boolean.toString(n.isChecked()));
+        out.attribute(null, "scrollable", Boolean.toString(n.isScrollable()));
         out.attribute(null, "enabled", Boolean.toString(n.isEnabled()));
         out.attribute(null, "visible-to-user", Boolean.toString(n.isVisibleToUser()));
         Rect bounds = new Rect();

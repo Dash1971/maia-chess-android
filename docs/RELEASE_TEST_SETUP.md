@@ -109,3 +109,74 @@ Immediately after public-download verification, stop owned processes and apply
 checked cleanup on every host **before** documentation CI. Retain compact evidence
 and archive it under the owner's workspace policy; preserve shared tools/keys.
 Report release availability/cleanup separately from documentation CI completion.
+
+## Operator contracts that prevent repeated driver failures
+
+The same tested helpers/fixtures are mirrored in Stable and Preview. Use them
+rather than copying a prior release's scripts and assumptions:
+
+- `android_release_ui.normal_background_stop` accepts a fresh installation only
+  when preferences, checkpoint and app PID are all absent. Otherwise it waits
+  for normal lifecycle completion, fails on malformed preferences/blocked restore
+  or timeout, and never clears recovery guards. The adapter returns `None` only
+  after an explicit file-existence check; a missing-file error is not XML.
+- `persisted_snapshot(..., phase='current'|'archive')` makes the persistence phase
+  explicit. A `current` request fails if its matching live checkpoint is absent,
+  tombstoned or unusable; it never falls back to an archive. After Home/clear,
+  request `archive` explicitly. `SessionRepository.save()` writes the active checkpoint; `clear()`/
+  `startNew()` update the archive. Check completed analysis in the checkpoint,
+  then verify its archive after leaving/reopening the game.
+- `FastDump.java` includes actual checked/checkable/scrollable metadata. Use
+  `checkbox_state` and `visible_label`; missing state or a label below the window
+  is a failure, not an unchecked box or a valid tap coordinate. Check the visible
+  graph plus persisted scores/glyphs; an offscreen refresh button is not proof
+  that graph restoration failed.
+- `receive_share` accepts actual delivery to the sole receiver without demanding
+  a chooser. With multiple handlers it selects an observed destination and then
+  requires receiver/package receipt evidence. A receiver title is not a chooser.
+- `fresh_document_name` uses a unique task-owned name and rejects existing output
+  before Save. Read that exact newly created document; never validate a previous
+  run's file with the same name. Preserve original source hashes separately.
+
+The reusable Android 30+ test receiver lives in
+`tool/hardening/android_release/ProbeActivity.java` / `ProbeManifest.xml`. It uses
+system-bar insets, an explicit readable theme and mixed-case button labels; the
+same receiver handles real content-URI shares and foreground clipboard reads.
+Build only this tiny fixture, outside source, with existing SDK/JDK/debug key:
+
+```sh
+python3 tool/build_pgn_transfer_probe.py --sdk-root "$ANDROID_HOME" \
+  --debug-keystore "$HOME/.android/debug.keystore" \
+  --output /absolute/task/bulk/probe
+```
+
+Set `JAVA_HOME` to the existing shared JDK. The probe defaults to the installed
+Android 36 platform and build-tools 36.0.0; these are explicit tool selections,
+not downloads or permission to update the app toolchain. To select another
+installed platform (API 36 or newer) or tool version, pass `--android-api N` and
+`--build-tools-version X.Y.Z`. Missing environment/tools fail before creating output.
+
+The output directory must be fresh. The debug key stays in shared secure storage;
+no production key signs the fixture. Install it only on the verified task AVD.
+`shared.pgn`, `grant.txt` and `clipboard.pgn` belong to its separate app UID. Use an
+independent PGN reader on actual received bytes; this fixture alone does not
+certify universal OEM/third-party-reader behavior. Retire its APK/data with the
+owned emulator during the normal immediate cleanup.
+
+For the optional VM-service classification audit, use the checked command:
+
+```sh
+# Preview checkout:
+tool/run_classification_vm_audit.sh --flavor preview --reporter expanded
+# Stable checkout:
+tool/run_classification_vm_audit.sh --flavor stable --reporter expanded
+# Stable's unflavored configuration, when that is the configuration being audited:
+tool/run_classification_vm_audit.sh --flavor '' --reporter expanded
+```
+
+Choose the command for the checkout/configuration under test. The wrapper preserves
+the supplied flavor (including an empty value) and always adds the required
+`--enable-vmservice`; calling this fixture as an ordinary Flutter test cannot
+observe VM workers. Driver fixes require the affected checks again on unchanged
+app bytes, with failed diagnostics retained. They do not waive release gates or
+justify rebuilding/repeating already-qualified app/native checks.
