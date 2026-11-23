@@ -146,9 +146,11 @@ def persisted_snapshot(active, archives, identity, *, phase):
     """Read the requested persistence phase, rather than mistaking an archive for live state."""
     if phase not in ('current', 'archive'):
         raise ValueError('Choose current or archive explicitly.')
-    if (phase == 'current' and active and active.get('id') == identity
-            and isinstance(active.get('data'), dict)):
-        return active
+    if phase == 'current':
+        if (active and active.get('id') == identity
+                and isinstance(active.get('data'), dict)):
+            return active
+        raise ValueError('No current checkpoint for requested identity; archive fallback is forbidden.')
     for record in archives:
         if record.get('id') == identity and isinstance(record.get('data'), dict):
             return record

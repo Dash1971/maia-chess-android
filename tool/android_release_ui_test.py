@@ -116,7 +116,15 @@ class StorageContractTests(unittest.TestCase):
 
     def test_home_tombstone_uses_the_existing_archive(self):
         archived = {'id': 'game', 'data': {'pgn': 'saved'}}
-        self.assertIs(u.persisted_snapshot({'id': 'game', 'data': None}, [archived], 'game', phase='current'), archived)
+        self.assertIs(u.persisted_snapshot({'id': 'game', 'data': None}, [archived], 'game', phase='archive'), archived)
+
+    def test_current_checkpoint_cannot_be_proved_by_an_archive(self):
+        archived = {'id': 'game', 'data': {'pgn': 'old [%eval 0.3]'}}
+        for active in (None, {}, {'id': 'game'}, {'id': 'game', 'data': None},
+                       {'id': 'game', 'data': 'invalid'},
+                       {'id': 'other', 'data': {'pgn': 'wrong'}}):
+            with self.subTest(active=active), self.assertRaises(ValueError):
+                u.persisted_snapshot(active, [archived], 'game', phase='current')
 
     def test_another_game_cannot_supply_the_requested_analysis(self):
         with self.assertRaises(ValueError): u.persisted_snapshot({'id': 'other', 'data': {'pgn': 'wrong'}}, [], 'game', phase='current')
@@ -143,12 +151,14 @@ class VmAuditCommandTests(unittest.TestCase):
             fake.write_text('#!/usr/bin/env python3\nimport os,sys,json\nfrom pathlib import Path\nPath(os.environ["AUDIT_ARGS"]).write_text(json.dumps(sys.argv[1:]))\n')
             fake.chmod(0o755)
             env = dict(os.environ, FLUTTER_BIN=str(fake), AUDIT_ARGS=str(output))
-            subprocess.run(['bash', str(Path(__file__).with_name('run_classification_vm_audit.sh')),
-                            '--flavor', 'preview', '--reporter', 'expanded'], env=env, check=True)
             import json
-            self.assertEqual(json.loads(output.read_text()), ['test',
-                'tool/hardening/classification/worker_lifecycle_test.dart', '--enable-vmservice',
-                '--flavor', 'preview', '--reporter', 'expanded'])
+            for flavor in ('preview', 'stable', ''):
+                with self.subTest(flavor=flavor):
+                    subprocess.run(['bash', str(Path(__file__).with_name('run_classification_vm_audit.sh')),
+                                    '--flavor', flavor, '--reporter', 'expanded'], env=env, check=True)
+                    self.assertEqual(json.loads(output.read_text()), ['test',
+                        'tool/hardening/classification/worker_lifecycle_test.dart', '--enable-vmservice',
+                        '--flavor', flavor, '--reporter', 'expanded'])
 
 
 if __name__ == '__main__': unittest.main()

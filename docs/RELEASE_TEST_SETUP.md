@@ -121,7 +121,9 @@ rather than copying a prior release's scripts and assumptions:
   or timeout, and never clears recovery guards. The adapter returns `None` only
   after an explicit file-existence check; a missing-file error is not XML.
 - `persisted_snapshot(..., phase='current'|'archive')` makes the persistence phase
-  explicit. `SessionRepository.save()` writes the active checkpoint; `clear()`/
+  explicit. A `current` request fails if its matching live checkpoint is absent,
+  tombstoned or unusable; it never falls back to an archive. After Home/clear,
+  request `archive` explicitly. `SessionRepository.save()` writes the active checkpoint; `clear()`/
   `startNew()` update the archive. Check completed analysis in the checkpoint,
   then verify its archive after leaving/reopening the game.
 - `FastDump.java` includes actual checked/checkable/scrollable metadata. Use
@@ -148,6 +150,12 @@ python3 tool/build_pgn_transfer_probe.py --sdk-root "$ANDROID_HOME" \
   --output /absolute/task/bulk/probe
 ```
 
+Set `JAVA_HOME` to the existing shared JDK. The probe defaults to the installed
+Android 36 platform and build-tools 36.0.0; these are explicit tool selections,
+not downloads or permission to update the app toolchain. To select another
+installed platform (API 36 or newer) or tool version, pass `--android-api N` and
+`--build-tools-version X.Y.Z`. Missing environment/tools fail before creating output.
+
 The output directory must be fresh. The debug key stays in shared secure storage;
 no production key signs the fixture. Install it only on the verified task AVD.
 `shared.pgn`, `grant.txt` and `clipboard.pgn` belong to its separate app UID. Use an
@@ -158,10 +166,16 @@ owned emulator during the normal immediate cleanup.
 For the optional VM-service classification audit, use the checked command:
 
 ```sh
+# Preview checkout:
 tool/run_classification_vm_audit.sh --flavor preview --reporter expanded
+# Stable checkout:
+tool/run_classification_vm_audit.sh --flavor stable --reporter expanded
+# Stable's unflavored configuration, when that is the configuration being audited:
+tool/run_classification_vm_audit.sh --flavor '' --reporter expanded
 ```
 
-Stable uses its applicable flavor arguments. The wrapper always adds the required
+Choose the command for the checkout/configuration under test. The wrapper preserves
+the supplied flavor (including an empty value) and always adds the required
 `--enable-vmservice`; calling this fixture as an ordinary Flutter test cannot
 observe VM workers. Driver fixes require the affected checks again on unchanged
 app bytes, with failed diagnostics retained. They do not waive release gates or
