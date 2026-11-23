@@ -68,6 +68,12 @@ class UiTests(unittest.TestCase):
     def test_native_all_caps_can_be_matched_explicitly(self):
         self.assertEqual(u.visible_label(ET.fromstring(xml({'text': 'READ CLIPBOARD'})), 'Read clipboard', fold_case=True).get('text'), 'READ CLIPBOARD')
 
+    def test_review_readiness_accepts_both_titles_and_requires_real_controls(self):
+        for title in ('Analysis Board', 'Game review'):
+            root = ET.fromstring(xml({'text': title}, {'text': 'Computer analysis'}, {'text': 'Share and export'}))
+            self.assertTrue(u.has_controls(root, ['Computer analysis', 'Share and export'], package='app'))
+        self.assertFalse(u.has_controls(ET.fromstring(xml({'text': 'Analysis Board'})), ['Computer analysis']))
+
     def test_missing_checkbox_metadata_is_a_failure_not_an_unchecked_box(self):
         with self.assertRaises(ValueError): u.checkbox_state(ET.fromstring(xml({'text': 'Include analysis'})), 'Include analysis')
 

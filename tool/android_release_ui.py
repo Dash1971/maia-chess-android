@@ -167,3 +167,12 @@ def fresh_document_name(stem, exists, *, token=None):
     if exists(name):
         raise ValueError('Document already exists; never validate stale output.')
     return name
+
+
+def has_controls(root, labels, *, package=None):
+    """Identify a usable screen by its controls, not a presentation-only page title."""
+    try:
+        nodes = [visible_label(root, label) for label in labels]
+    except ValueError:
+        return False
+    return package is None or all(n.get('package') == package for n in nodes)
