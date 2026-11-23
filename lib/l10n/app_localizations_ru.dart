@@ -1742,4 +1742,11 @@ class AppLocalizationsRu extends AppLocalizations {
     );
     return '$_temp0 · $_temp1';
   }
+
+  @override
+  String get recentImportGames => 'Импорт PGN';
+
+  @override
+  String get pgnFirstGameOnly =>
+      'Открыта только первая партия. Чтобы импортировать все партии, выберите Недавние игры → Импорт PGN.';
 }

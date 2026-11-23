@@ -1585,4 +1585,11 @@ class AppLocalizationsKo extends AppLocalizations {
   String pgnCollectionImportSummary(int imported, int duplicates) {
     return '기보 $imported개 가져옴 · 중복 $duplicates개 건너뜀';
   }
+
+  @override
+  String get recentImportGames => 'PGN 가져오기';
+
+  @override
+  String get pgnFirstGameOnly =>
+      '첫 번째 대국만 열었습니다. 모든 대국을 가져오려면 최근 대국 → PGN 가져오기를 이용하세요.';
 }

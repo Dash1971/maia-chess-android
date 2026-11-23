@@ -13,13 +13,23 @@ file** and **Share PGN** choices. Each produces a single multi-game `.pgn` file.
 
 ## Import or transfer games
 
-In the Analysis Board menu, use **Open PGN file** to choose a `.pgn` document,
-or **Load PGN** to paste its text. Android **Open with** and sharing a PGN
-attachment to Mobile Maia use the same importer. To transfer a collection to
-another installation, export selected games from Recent games, move/share the
-file yourself, and open it in the receiving installation.
+In **Recent games → ⋮ → Import PGN**, choose a `.pgn` document. The action is
+available even when the list is empty. It imports every game, including a
+single-game file, into Recent games without opening or replacing the current
+game. To transfer games between installations, export from Recent games,
+move/share the file yourself, and use Import PGN in the receiving installation.
 
-- A single-game document opens in Analysis Board, as before.
+In **Analysis Board → ☰ → Open PGN file**, only the first game opens for
+analysis. **Load PGN** behaves the same way for pasted text. If there are more
+games, a notice explains: “Only the first game was opened. To import all games,
+use Recent games → Import PGN.” Later games are not imported or validated by
+this analysis-only action; a malformed later game does not prevent the first
+valid game opening. The 5 MiB limit still applies to the entire document.
+
+Android **Open with** and sharing a PGN attachment to Mobile Maia retain their
+existing routing: one game opens for analysis; a collection imports into Recent
+games using full-file validation and duplicate checking.
+
 - A collection adds new games to Recent games. The current game and recovery
   settings remain intact; imported unfinished games open paused.
 - Identical saved PGNs and repeats within the incoming file are skipped. Formatting changes made by the exporter are normalized for comparison. Different metadata,
@@ -67,7 +77,8 @@ unfinished `*` games and supported custom starting positions use the same path.
   **5 MB**. Imports, including Open with/shared attachments, and the individual
   game parser now use the same **5 MiB** limit. Importing a collection adds each new
   game to Recent games and skips identical PGNs, so exports can transfer games between installations.
-  Importing a single game keeps the existing open-in-analysis behavior.
+  Recent games imports single games as saved records too; Analysis Board opens
+  only the first game, with collection guidance when appropriate.
 - A selected game over the individual 5 MiB parser limit fails with its own
   localized message, distinct from the combined 5 MiB collection error. Save and
   Share both stop before opening Android UI, retain selection and allow retry.
@@ -120,8 +131,9 @@ Historical beta.3 signed-APK qualification covered small Select all, cancel/retr
 
 ## Collection import follow-up — 22 November 2026
 
-File picker, pasted PGN, Android Open with and shared attachments use the same
-validated collection parser. It recognizes game boundaries outside comments,
+Recent games file import, Android Open with and shared collection attachments
+use the validated collection parser. Analysis Board uses its first-game-only
+parser instead. It recognizes game boundaries outside comments,
 headers and variations, validates every game off the UI thread, and rejects
 invalid later games instead of silently importing only the first one.
 
@@ -132,7 +144,8 @@ Imported records retain PGN names, dates, results, comments, clocks, variations
 and starting positions. Equal-date imported records retain their source order.
 A delayed progress bar covers validation, duplicate scanning and staged writes without resetting between phases. The completion message reports imported and skipped counts. Work runs off the UI isolate. Back cannot dismiss an in-progress import; success or failure closes the progress dialog.
 
-Import skips identical PGN content already present in saved games or earlier in the same collection. The same PGN serializer used by export normalizes formatting before comparison. Headers, comments, variations and clocks remain part of the comparison: differently annotated or identified copies are kept. Re-importing the same collection adds no extra copies. Completion reports imported and skipped counts. Single-game opening is unchanged.
+Import skips identical PGN content already present in saved games or earlier in the same collection. The same PGN serializer used by export normalizes formatting before comparison. Headers, comments, variations and clocks remain part of the comparison: differently annotated or identified copies are kept. Re-importing the same collection adds no extra copies. Completion reports imported and skipped counts. Single-game analysis opening is unchanged; explicit Recent games import stores
+a single game in the list instead.
 PGN transfers games and annotations, not app settings or live clock/motor session
 checkpoints. This is not a complete app-data backup. Imported unfinished games
 open paused; no physical board connection or movement is restored from PGN.
@@ -166,4 +179,24 @@ Different header values, comments, clock annotations and variation trees remain 
 
 A longer import displays progress after **300 ms**. Quick single-game and collection imports finish without showing or dimming a dialog. The existing input and Back guard applies from the start; successful completion or failure removes it. The progress display remains safe if the source screen is disposed.
 
-Validation runs in its worker and reports the input position after each complete game, including variations, has validated. Reports are throttled to avoid flooding the UI. One continuous bar reserves its first half for validation and its second half for duplicate checking and staged writes; it does not jump back to zero at the handoff. The percentage describes work phases, not remaining time. A failed later game never reports successful validation or publishes a partial collection. The worker progress stream is drained and closed before the next phase. Existing limits, duplicate matching and single-game opening are unchanged.
+Validation runs in its worker and reports the input position after each complete game, including variations, has validated. Reports are throttled to avoid flooding the UI. One continuous bar reserves its first half for validation and its second half for duplicate checking and staged writes; it does not jump back to zero at the handoff. The percentage describes work phases, not remaining time. A failed later game never reports successful validation or publishes a partial collection. The worker progress stream is drained and closed before the next phase. Limits and duplicate matching are unchanged. Explicit Recent games import saves
+every game, while Analysis Board opens only the first game.
+
+## Save-transition duplicate regression — 23 November 2026
+
+A host regression reproduced a duplicate without any PGN import: backgrounding
+while returning Home could autosave a finished game after the active checkpoint
+was cleared, assigning a second saved-game ID to identical content. Autosaves
+are now suspended while that transition commits the final snapshot and releases
+the game. The guard resets on success or failure so retries remain possible.
+Existing saved games are not silently merged or deleted.
+
+The supplied 119-entry export contains 114 unique PGNs and five exact repeated
+entries. Four pairs include identical millisecond clock annotations; the fifth
+is untimed. This supports duplicate saved copies, not merely repeated opening
+moves. The file alone cannot establish which historical action created them.
+The reproduced save race is a concrete possible cause, rather than proof of the
+origin of those five records. Dates and annotations remain part of import
+identity; otherwise identical games with different dates are kept.
+
+See the [host verification record](verification/pgn-import-entry-points-2026-11-23.md).

@@ -469,5 +469,7 @@
   "recentResultColumn": "結果",
   "settingsDiagnostics": "診断",
   "pgnImportProgress": "棋譜をインポート中…",
-  "pgnCollectionImportSummary": "{imported}件の棋譜をインポート · 重複{duplicates}件をスキップ"
+  "pgnCollectionImportSummary": "{imported}件の棋譜をインポート · 重複{duplicates}件をスキップ",
+  "recentImportGames": "PGN をインポート",
+  "pgnFirstGameOnly": "最初の対局のみを開きました。すべての対局をインポートするには、最近の対局 → PGN をインポートを選んでください。"
 }

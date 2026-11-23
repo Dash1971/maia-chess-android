@@ -758,7 +758,11 @@ class _AnalysisBoardPageState extends State<AnalysisBoardPage> {
     );
     if (!mounted || value == null || value.trim().isEmpty) return;
     try {
-      final session = await PgnFiles.importText(context, value);
+      final session = await PgnFiles.importText(
+        context,
+        value,
+        destination: PgnDestination.analysis,
+      );
       if (!mounted || session == null) return;
       await ActiveSessionStore.startNew();
       if (mounted) _replace(session);

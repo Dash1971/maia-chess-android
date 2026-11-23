@@ -469,5 +469,7 @@
   "recentResultColumn": "Resultado",
   "settingsDiagnostics": "Diagnóstico",
   "pgnImportProgress": "Importando partidas…",
-  "pgnCollectionImportSummary": "{imported, plural, one{{imported} partida importada} other{{imported} partidas importadas}} · {duplicates, plural, one{{duplicates} duplicado omitido} other{{duplicates} duplicados omitidos}}"
+  "pgnCollectionImportSummary": "{imported, plural, one{{imported} partida importada} other{{imported} partidas importadas}} · {duplicates, plural, one{{duplicates} duplicado omitido} other{{duplicates} duplicados omitidos}}",
+  "recentImportGames": "Importar PGN",
+  "pgnFirstGameOnly": "Solo se abrió la primera partida. Para importar todas las partidas, ve a Partidas recientes → Importar PGN."
 }

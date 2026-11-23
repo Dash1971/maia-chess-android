@@ -83,6 +83,8 @@ void main() {
     final versions = [
       game,
       game.replaceFirst('Alice', 'Carol'),
+      '[Date "2026.10.13"]\n$game',
+      '[Date "2026.10.14"]\n$game',
       game.replaceFirst('note', 'another note'),
       game.replaceFirst('e5 *', 'e5 (1... c5) *'),
       game.replaceFirst('note', '[%clk 0:04:58]'),

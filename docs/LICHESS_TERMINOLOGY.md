@@ -482,3 +482,11 @@ The two messages `pgnImportProgress` and `pgnCollectionImportSummary` describe M
 The supported-device decision applies equally to Stable, Preview and Dev. The Home/panel labels now use `electronicBoard` and `chessnutBoard`, without experimental qualifiers, in all ten catalogs. The obsolete experimental-support notice is removed. Motor recovery still explains the actual limitation and phone continuation without describing a supported adapter as experimental. Product names and existing board/motor vocabulary are retained; these app-specific hardware messages have no direct pinned Lichess equivalent. Hardware test coverage remains separate in the README table.
 
 The catalog checker’s former experimental-label exception is replaced with a product-name exception for `chessnutBoard`; the canonical brand token is enforced. A shared checker regression verifies both the allowed unchanged name and rejection of a renamed product. The same checker/test changes are ported to both repositories; mandatory workspace helpers are unchanged.
+
+## Explicit PGN import and first-game analysis — 23 November 2026
+
+Recent games uses the pinned Lichess `importPgn` action in all ten catalogs.
+Analysis Board's collection notice is app-specific prose: only the first game
+opens for analysis; the whole file can be imported through Recent games → Import
+PGN. Each translation uses the actual localized screen and action labels.
+The translations remain provisional pending native review.

@@ -469,5 +469,7 @@
   "recentResultColumn": "Résultat",
   "settingsDiagnostics": "Diagnostic",
   "pgnImportProgress": "Importation des parties…",
-  "pgnCollectionImportSummary": "{imported, plural, one{{imported} partie importée} other{{imported} parties importées}} · {duplicates, plural, one{{duplicates} doublon ignoré} other{{duplicates} doublons ignorés}}"
+  "pgnCollectionImportSummary": "{imported, plural, one{{imported} partie importée} other{{imported} parties importées}} · {duplicates, plural, one{{duplicates} doublon ignoré} other{{duplicates} doublons ignorés}}",
+  "recentImportGames": "Importer le PGN",
+  "pgnFirstGameOnly": "Seule la première partie a été ouverte. Pour importer toutes les parties, utilisez Parties récentes → Importer le PGN."
 }

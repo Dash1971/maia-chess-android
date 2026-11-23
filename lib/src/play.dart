@@ -207,6 +207,7 @@ class _GamePageState extends State<GamePage>
   // Only retain the browsing position until this game returns Home.
   PageStorageBucket? _recentGamesPosition;
   bool _leavingGame = false;
+  bool _clearingGameSession = false;
   final _adaptiveBoardKey = GlobalKey();
   bool _playEloChangedSinceLoad = false;
   bool _screenWakeLockEnabled = false;
@@ -927,7 +928,10 @@ class _GamePageState extends State<GamePage>
   }
 
   Future<void> _saveGameState({bool allowDuringStart = false}) async {
-    if (!_started || _reviewOpen || (_startingGame && !allowDuringStart)) {
+    if (!_started ||
+        _reviewOpen ||
+        _clearingGameSession ||
+        (_startingGame && !allowDuringStart)) {
       return;
     }
     _updateSamplingGame();
@@ -3635,41 +3639,48 @@ class _GamePageState extends State<GamePage>
   }
 
   Future<void> _goHome() async {
-    if (_startingGame) return;
-    _cancelBoardInteractions();
-    _boardSetupConfirmed = false;
-    _pauseGame();
-    _savedAsIncomplete = !_gameFinished;
-    _updateSamplingGame();
-    final snapshot = _gameSnapshot();
-    await ActiveSessionStore.save(snapshot);
-    await ActiveSessionStore.clear();
-    if (!mounted) return;
-    _gameGeneration++;
-    _gameInferenceScope.invalidate();
-    _clockTimer?.cancel();
-    _stopChessnutLedRefresh();
-    if (_chessnutGameActive) await _setChessnutLeds(const []);
-    setState(() {
-      _started = false;
-      _settingsOpen = false;
-      _engineThinking = false;
-      _drawOfferEvaluating = false;
-      _lastDrawOfferFen = null;
-      _chessnutGameActive = false;
-      _pendingPhysicalMaiaMove = null;
-      _chessnutTakebackRestoreActive = false;
-      _chessnutResetPending = false;
-      _lastChessnutIllegalPosition = null;
-      _timePreset = _useChessnutGo
-          ? TimePreset.unlimited
-          : _preferredTimePreset;
-      _customMinutes = _preferredCustomMinutes;
-      _customIncrement = _preferredCustomIncrement;
-      _status = _PlayMessage.chooseSettings;
-    });
-    _recentGamesPosition = null;
-    _syncGameBoard(animate: false, resetPremove: true);
+    if (_startingGame || _clearingGameSession) return;
+    // A lifecycle autosave after clear() would create a new ID for this same
+    // game. Keep autosaves suspended until Home has stopped owning the game.
+    _clearingGameSession = true;
+    try {
+      _cancelBoardInteractions();
+      _boardSetupConfirmed = false;
+      _pauseGame();
+      _savedAsIncomplete = !_gameFinished;
+      _updateSamplingGame();
+      final snapshot = _gameSnapshot();
+      await ActiveSessionStore.save(snapshot);
+      await ActiveSessionStore.clear();
+      if (!mounted) return;
+      _gameGeneration++;
+      _gameInferenceScope.invalidate();
+      _clockTimer?.cancel();
+      _stopChessnutLedRefresh();
+      if (_chessnutGameActive) await _setChessnutLeds(const []);
+      setState(() {
+        _started = false;
+        _settingsOpen = false;
+        _engineThinking = false;
+        _drawOfferEvaluating = false;
+        _lastDrawOfferFen = null;
+        _chessnutGameActive = false;
+        _pendingPhysicalMaiaMove = null;
+        _chessnutTakebackRestoreActive = false;
+        _chessnutResetPending = false;
+        _lastChessnutIllegalPosition = null;
+        _timePreset = _useChessnutGo
+            ? TimePreset.unlimited
+            : _preferredTimePreset;
+        _customMinutes = _preferredCustomMinutes;
+        _customIncrement = _preferredCustomIncrement;
+        _status = _PlayMessage.chooseSettings;
+      });
+      _recentGamesPosition = null;
+      _syncGameBoard(animate: false, resetPremove: true);
+    } finally {
+      _clearingGameSession = false;
+    }
   }
 
   Future<bool> _confirmEraseCurrentGame() async =>

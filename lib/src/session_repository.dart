@@ -868,6 +868,23 @@ class _RecentGamesPageState extends State<RecentGamesPage> {
     });
   }
 
+  Future<void> _importGames() async {
+    if (_busy) return;
+    setState(() => _busy = true);
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    try {
+      await PgnFiles.open(context, destination: PgnDestination.recentGames);
+      if (mounted) await _reload();
+    } catch (error, stackTrace) {
+      unawaited(
+        AppDiagnostics.record('recent-games-import', error, stackTrace),
+      );
+      if (mounted) _showOperationError(l10n(context).couldNotOpenPgn);
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
   Future<void> _exportSelected({required bool share}) async {
     if (_busy || _selected.isEmpty) return;
     // Selection order is irrelevant: use the exact displayed Recent Games order.
@@ -1091,22 +1108,33 @@ class _RecentGamesPageState extends State<RecentGamesPage> {
                     ),
               icon: const Icon(Icons.delete_outline),
             ),
-          ] else if (games != null && games.isNotEmpty)
+          ] else
             PopupMenuButton<String>(
               key: const ValueKey('recent-games-menu'),
+              enabled: !_busy,
               onSelected: (action) {
+                if (_busy) return;
+                if (action == 'import') unawaited(_importGames());
                 if (action == 'select') setState(() => _selecting = true);
-                if (action == 'delete-all') unawaited(_deleteGames(games));
+                if (action == 'delete-all' && games != null) {
+                  unawaited(_deleteGames(games));
+                }
               },
               itemBuilder: (_) => [
                 PopupMenuItem(
-                  value: 'select',
-                  child: Text(l10n(context).recentSelectGames),
+                  value: 'import',
+                  child: Text(l10n(context).recentImportGames),
                 ),
-                PopupMenuItem(
-                  value: 'delete-all',
-                  child: Text(l10n(context).recentDeleteAll),
-                ),
+                if (games != null && games.isNotEmpty) ...[
+                  PopupMenuItem(
+                    value: 'select',
+                    child: Text(l10n(context).recentSelectGames),
+                  ),
+                  PopupMenuItem(
+                    value: 'delete-all',
+                    child: Text(l10n(context).recentDeleteAll),
+                  ),
+                ],
               ],
             ),
         ],

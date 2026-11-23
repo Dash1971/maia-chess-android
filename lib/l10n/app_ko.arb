@@ -469,5 +469,7 @@
   "recentResultColumn": "결과",
   "settingsDiagnostics": "진단",
   "pgnImportProgress": "기보를 가져오는 중…",
-  "pgnCollectionImportSummary": "기보 {imported}개 가져옴 · 중복 {duplicates}개 건너뜀"
+  "pgnCollectionImportSummary": "기보 {imported}개 가져옴 · 중복 {duplicates}개 건너뜀",
+  "recentImportGames": "PGN 가져오기",
+  "pgnFirstGameOnly": "첫 번째 대국만 열었습니다. 모든 대국을 가져오려면 최근 대국 → PGN 가져오기를 이용하세요."
 }

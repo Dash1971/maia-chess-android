@@ -188,7 +188,7 @@ void main() {
   );
 
   for (final method in ['file', 'paste']) {
-    testWidgets('$method collection import keeps the current analysis board', (
+    testWidgets('$method collection opens only the first game for analysis', (
       tester,
     ) async {
       ActiveSessionStore.setTestRepository(store);
@@ -223,15 +223,34 @@ void main() {
         );
         await tester.tap(find.widgetWithText(FilledButton, 'Load'));
       }
-      await waitForMessage(tester, '2 games added to Recent games.');
+      await waitForMessage(
+        tester,
+        'Only the first game was opened. To import all games, use Recent games → Import PGN.',
+      );
+      final expected = AnalysisSession.fromPgn(annotated);
+      for (
+        var i = 0;
+        i < 150 &&
+            tester
+                    .widget<ReviewPage>(find.byType(ReviewPage))
+                    .sanMoves
+                    .length !=
+                expected.sanMoves.length;
+        i++
+      ) {
+        await tester.runAsync(
+          () => Future<void>.delayed(const Duration(milliseconds: 20)),
+        );
+        await tester.pump(const Duration(milliseconds: 20));
+      }
       expect(
         tester.widget<ReviewPage>(find.byType(ReviewPage)).positions,
-        initial.positions,
+        expected.positions,
       );
       expect(
-        (await tester.runAsync(() => store.recent()))!
+        (await tester.runAsync(() => SessionRepository(dir).recent()))!
             .where((g) => g.data['importedPgn'] == true),
-        hasLength(2),
+        isEmpty,
       );
       expect(tester.takeException(), isNull);
       await tester.pumpWidget(const SizedBox.shrink());

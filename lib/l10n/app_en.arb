@@ -2187,5 +2187,13 @@
         "type": "int"
       }
     }
+  },
+  "recentImportGames": "Import PGN",
+  "pgnFirstGameOnly": "Only the first game was opened. To import all games, use Recent games → Import PGN.",
+  "@recentImportGames": {
+    "description": "Recent games menu: import every game from a PGN file. Uses pinned Lichess importPgn wording."
+  },
+  "@pgnFirstGameOnly": {
+    "description": "Analysis Board opened only the first game of a multi-game PGN. Direct the user to the localized Recent games screen and Import PGN menu entry to import the whole collection."
   }
 }

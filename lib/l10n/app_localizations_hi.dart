@@ -1706,4 +1706,11 @@ class AppLocalizationsHi extends AppLocalizations {
     );
     return '$_temp0 · $_temp1';
   }
+
+  @override
+  String get recentImportGames => 'PGN आयात करें';
+
+  @override
+  String get pgnFirstGameOnly =>
+      'केवल पहली बाज़ी खोली गई है। सभी बाज़ियाँ आयात करने के लिए हाल के खेल → PGN आयात करें चुनें।';
 }

@@ -1691,4 +1691,11 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$_temp0 · $_temp1';
   }
+
+  @override
+  String get recentImportGames => 'Import PGN';
+
+  @override
+  String get pgnFirstGameOnly =>
+      'Only the first game was opened. To import all games, use Recent games → Import PGN.';
 }

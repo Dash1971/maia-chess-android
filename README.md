@@ -87,7 +87,7 @@ Stable 2.5.1 remains the current download.
 - **Grand Kingdom support.** Play untimed games from the standard position on a Square Off Grand Kingdom, including assisted Maia promotion. Chessnut Air, Go and Pro are supported; Pro awaits further hardware testing.
 - **More room for chess.** Larger landscape boards and adaptive wide Home/Settings layouts. Engine output stays visible while moves scroll independently; holding either arrow reveals the beginning or end in portrait and landscape.
 - **Better Recent games.** Compact Date/Game/Result rows, yyyy/MM/dd dates and clear Incomplete labels. Back cancels selection first, and saved-game Back restores the same browsing position. Select games to delete them from the toolbar; per-row delete icons are removed.
-- **PGN collections.** Long-press a Recent games entry or choose Select games, select individual games or Select all, then Export games to save or share one PGN. Import and export both allow 5 MiB. Importing a collection adds new games to Recent games for transfer between installations, skips identical PGNs and reports both counts; importing a single game still opens it for analysis. Oversized/unreadable selections retain your selection and never produce a partial collection.
+- **PGN collections.** Select games in Recent games and export them as one PGN file. Use **Recent games → ⋮ → Import PGN** to add every game from a file, including single-game files. Import and export both allow 5 MiB; duplicate PGNs are skipped and counts are reported. Analysis Board opens only the first game and explains where to import the collection. Oversized or unreadable selections retain your selection and never produce a partial collection.
 - **Safer recovery and analysis resume.** Interrupted games remain in Recent games when another game or PGN is opened; damaged temporary saves recover the committed game. Unfinished computer analysis resumes on returning to the same open Review page after backgrounding or screen coverage.
 - **Human move timing on by default.** An unset preference now enables timing, including on upgrade; a saved off choice remains off. Settings reset also enables timing.
 
@@ -140,9 +140,9 @@ explicitly older illustrative examples. See [capture provenance](docs/screenshot
 The home screen is the starting point for every workflow. Play as White, Black,
 or a random side; choose a preset or custom **Play Maia rating**; then start a game.
 **Analysis Board** opens a free-form position, **Recent games** restores saved
-work, and PGN files can be imported through Analysis Board or Android's Open
-with action. Your side, rating, clock, custom time values, and advanced settings
-are remembered locally.
+work, and PGN files can be imported through Recent games or Android's Open
+with action. Analysis Board opens the first game for analysis. Your side, rating,
+clock, custom time values, and advanced settings are remembered locally.
 
 ### Time controls
 
@@ -698,11 +698,14 @@ or **Share PGN** for an independent copy.
 **Open PGN file**, Android's Open with action, and shared attachments import one
 game with its variations, comments, and annotations in published Stable 2.5.1
 (2 MB; first game only for collections). The 2.6 draft raises import and export
-to the same 5 MiB limit and adds new games from a collection to Recent games.
+to the same 5 MiB limit. **Recent games → ⋮ → Import PGN** adds every game
+from the file, including a single game. Analysis Board opens only the first
+game and explains where to import the full collection.
 Matching PGNs already saved or repeated within the file are skipped, including
 formatting changes made by our exporter; differently
 annotated or identified copies are kept. Longer imports show progress during validation, duplicate checking and saving; quick imports finish without a dialog. Completion reports imported and skipped counts. Interrupted staging is cleaned
-on the next startup. Single-game opening stays unchanged. See the
+on the next startup. A Home-transition autosave race that could create duplicate
+saved games is also fixed. See the
 [import/export guide](docs/RECENT_GAMES_PGN_EXPORT.md) for the exact rules. PGN transfers games and annotations, not
 app settings or live electronic-board session state.
 

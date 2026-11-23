@@ -469,5 +469,7 @@
   "recentResultColumn": "Результат",
   "settingsDiagnostics": "Диагностика",
   "pgnImportProgress": "Импорт партий…",
-  "pgnCollectionImportSummary": "{imported, plural, one{Импортирована {imported} партия} few{Импортированы {imported} партии} many{Импортировано {imported} партий} other{Импортировано {imported} партии}} · {duplicates, plural, one{пропущен {duplicates} дубликат} few{пропущено {duplicates} дубликата} many{пропущено {duplicates} дубликатов} other{пропущено {duplicates} дубликата}}"
+  "pgnCollectionImportSummary": "{imported, plural, one{Импортирована {imported} партия} few{Импортированы {imported} партии} many{Импортировано {imported} партий} other{Импортировано {imported} партии}} · {duplicates, plural, one{пропущен {duplicates} дубликат} few{пропущено {duplicates} дубликата} many{пропущено {duplicates} дубликатов} other{пропущено {duplicates} дубликата}}",
+  "recentImportGames": "Импорт PGN",
+  "pgnFirstGameOnly": "Открыта только первая партия. Чтобы импортировать все партии, выберите Недавние игры → Импорт PGN."
 }

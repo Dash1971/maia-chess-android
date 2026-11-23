@@ -5,6 +5,8 @@ typedef PgnCollectionParser = Future<PgnCollection> Function(
   void Function(PgnImportProgress)? onProgress,
 });
 
+enum PgnDestination { automatic, analysis, recentGames }
+
 class PgnFiles {
   static PgnCollectionParser? _testParser;
 
@@ -45,8 +47,9 @@ class PgnFiles {
 
   static Future<AnalysisSession?> importText(
     BuildContext context,
-    String text,
-  ) async {
+    String text, {
+    PgnDestination destination = PgnDestination.automatic,
+  }) async {
     if (!context.mounted) return null;
     final progress = ValueNotifier<double>(0);
     final visible = ValueNotifier<bool>(false);
@@ -62,16 +65,31 @@ class PgnFiles {
     final reveal = Timer(const Duration(milliseconds: 300), route.reveal);
     PgnImportResult? result;
     try {
-      final collection = await (_testParser ?? PgnCollection.parse)(
+      final parser = destination == PgnDestination.analysis
+          ? PgnCollection.parseFirst
+          : (_testParser ?? PgnCollection.parse);
+      final collection = await parser(
         text,
         onProgress: (update) => progress.value = update.fraction / 2,
       );
       progress.value = 0.5;
-      if (collection.games.length == 1) {
+      if (destination == PgnDestination.analysis ||
+          (destination == PgnDestination.automatic &&
+              collection.games.length == 1)) {
         final session = await AnalysisSession.fromPgnAsync(
           collection.games.single,
         );
         progress.value = 1;
+        if (collection.hasMoreGames && context.mounted) {
+          ScaffoldMessenger.of(context)
+            ..hideCurrentSnackBar()
+            ..showSnackBar(
+              SnackBar(
+                content: Text(l10n(context).pgnFirstGameOnly),
+                duration: const Duration(seconds: 10),
+              ),
+            );
+        }
         return session;
       }
       if (!context.mounted) return null;
@@ -104,9 +122,14 @@ class PgnFiles {
     return null;
   }
 
-  static Future<AnalysisSession?> open(BuildContext context) async {
+  static Future<AnalysisSession?> open(
+    BuildContext context, {
+    PgnDestination destination = PgnDestination.analysis,
+  }) async {
     final text = await maiaEngineChannel.invokeMethod<String>('openPgnFile');
-    return text == null || !context.mounted ? null : importText(context, text);
+    return text == null || !context.mounted
+        ? null
+        : importText(context, text, destination: destination);
   }
 }
 
@@ -184,15 +207,28 @@ class PgnExportGameTooLarge implements Exception {
 
 /// Validated PGNs only: comments and variations cannot create game boundaries.
 class PgnCollection {
-  PgnCollection._(this.games, this.headers);
+  PgnCollection._(this.games, this.headers, {this.hasMoreGames = false});
+  final bool hasMoreGames;
   final List<String> games;
   final List<Map<String, String>> headers;
 
   static Future<PgnCollection> parse(
     String source, {
     void Function(PgnImportProgress)? onProgress,
+  }) => _parseAsync(source, onProgress, firstOnly: false);
+
+  /// Validate only the first game. Later games cannot prevent it opening.
+  static Future<PgnCollection> parseFirst(
+    String source, {
+    void Function(PgnImportProgress)? onProgress,
+  }) => _parseAsync(source, onProgress, firstOnly: true);
+
+  static Future<PgnCollection> _parseAsync(
+    String source,
+    void Function(PgnImportProgress)? onProgress, {
+    required bool firstOnly,
   }) async {
-    if (onProgress == null) return _runParser(source, null);
+    if (onProgress == null) return _runParser(source, null, firstOnly);
     final port = ReceivePort();
     final finished = Completer<void>();
     final subscription = port.listen((message) {
@@ -202,7 +238,7 @@ class PgnCollection {
     });
     try {
       onProgress(PgnImportProgress(0, source.length));
-      final parsed = await _runParser(source, port.sendPort);
+      final parsed = await _runParser(source, port.sendPort, firstOnly);
       // Drain the worker's ordered progress stream before handing off phases.
       await finished.future;
       onProgress(const PgnImportProgress(1, 1));
@@ -214,10 +250,17 @@ class PgnCollection {
   }
 
   // Keep this closure separate from callbacks/ports in the coordinating isolate.
-  static Future<PgnCollection> _runParser(String source, SendPort? progress) =>
-      Isolate.run(() => _parse(source, progress));
+  static Future<PgnCollection> _runParser(
+    String source,
+    SendPort? progress,
+    bool firstOnly,
+  ) => Isolate.run(() => _parse(source, progress, firstOnly));
 
-  static PgnCollection _parse(String source, SendPort? progress) {
+  static PgnCollection _parse(
+    String source,
+    SendPort? progress,
+    bool firstOnly,
+  ) {
     if (source.length > AnalysisSession.maxPgnBytes ||
         utf8.encode(source).length > AnalysisSession.maxPgnBytes) {
       throw const FormatException('PGN exceeds 5 MB.');
@@ -280,6 +323,14 @@ class PgnCollection {
       }
       if (depth == 0 && ((c == '[' && seenMove) || ended)) {
         add(i);
+        if (firstOnly) {
+          report(text.length, force: true);
+          return PgnCollection._(
+            List.unmodifiable(games),
+            List.unmodifiable(headers),
+            hasMoreGames: true,
+          );
+        }
         start = i;
         seenMove = ended = false;
       }

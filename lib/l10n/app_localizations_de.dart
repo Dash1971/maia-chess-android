@@ -1718,4 +1718,11 @@ class AppLocalizationsDe extends AppLocalizations {
     );
     return '$_temp0 · $_temp1';
   }
+
+  @override
+  String get recentImportGames => 'PGN importieren';
+
+  @override
+  String get pgnFirstGameOnly =>
+      'Nur die erste Partie wurde geöffnet. Um alle Partien zu importieren, wähle Neueste Partien → PGN importieren.';
 }

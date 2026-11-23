@@ -2566,6 +2566,27 @@
         "pt": "Exportar partidas"
       },
       "adaptations": {}
+    },
+    "recentImportGames": {
+      "upstream_key": "importPgn",
+      "upstream": {
+        "en": "Import PGN",
+        "ja": "PGN をインポート",
+        "zh": "导入 PGN",
+        "ko": "PGN 가져오기",
+        "es": "Importar PGN",
+        "de": "PGN importieren",
+        "fr": "Importer le PGN",
+        "ru": "Импортировать в PGN",
+        "hi": "PGN आयात करें",
+        "pt": "Importar PGN"
+      },
+      "adaptations": {
+        "ru": {
+          "value": "Импорт PGN",
+          "reason": "Import an existing PGN file into saved games, not conversion into the PGN format."
+        }
+      }
     }
   }
 }

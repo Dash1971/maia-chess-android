@@ -469,5 +469,7 @@
   "recentResultColumn": "Ergebnis",
   "settingsDiagnostics": "Diagnose",
   "pgnImportProgress": "Partien werden importiert…",
-  "pgnCollectionImportSummary": "{imported, plural, one{{imported} Partie importiert} other{{imported} Partien importiert}} · {duplicates, plural, one{{duplicates} Duplikat übersprungen} other{{duplicates} Duplikate übersprungen}}"
+  "pgnCollectionImportSummary": "{imported, plural, one{{imported} Partie importiert} other{{imported} Partien importiert}} · {duplicates, plural, one{{duplicates} Duplikat übersprungen} other{{duplicates} Duplikate übersprungen}}",
+  "recentImportGames": "PGN importieren",
+  "pgnFirstGameOnly": "Nur die erste Partie wurde geöffnet. Um alle Partien zu importieren, wähle Neueste Partien → PGN importieren."
 }
