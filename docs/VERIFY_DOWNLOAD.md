@@ -1,15 +1,20 @@
 # Verify your download
 
-Download the APK and its matching `.sha256` file from the same official GitHub
-release. Verify the actual filename and checksum recorded on that release:
+Download the APK and checksum file from the same official GitHub release.
+Stable supplies an APK `.sha256` file; Preview may use a combined `SHA256SUMS.txt`.
+For a Stable APK:
 
 ```sh
 sha256sum -c Mobile-Maia-vVERSION.apk.sha256
 apksigner verify --print-certs Mobile-Maia-vVERSION.apk
 ```
 
-On macOS, use `shasum -a 256 -c` for the first command. Substitute the filenames
-on the selected release; Preview asset names may differ. `apksigner` is supplied
+For Preview's combined checksum list, compute `sha256sum APK_FILENAME.apk` and
+compare the full result with that APK's row in `SHA256SUMS.txt`. The list also
+includes other assets, so checking the whole list requires downloading those too.
+On macOS, use `shasum -a 256 -c` for the Stable check, or
+`shasum -a 256 APK_FILENAME.apk` for the Preview comparison. Substitute the
+actual release filenames in the checksum and `apksigner` commands. `apksigner` is supplied
 by Android SDK build-tools. A matching checksum checks the file; the signer
 checks continuity with this project's official key.
 
