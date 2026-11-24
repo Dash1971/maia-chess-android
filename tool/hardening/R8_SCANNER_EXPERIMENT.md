@@ -1,5 +1,7 @@
 # R8 scanner experiment
 
+> **Historical experiment.** Current release source enables R8 minification with guarded ONNX/JNI keep rules. The experimental gates below describe the original investigation, not an open proposal or authority to bypass current [release checks](RELEASE_CHECKS.md).
+
 This branch tests whether Android release minification can remove Flutter's
 unused Google Play Core deferred-component references without changing Mobile
 Maia's behavior. It is not release authorization.

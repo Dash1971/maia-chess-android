@@ -5,7 +5,7 @@ channels; see the [decision](decisions/2026-11-22-electronic-board-support.md).
 Custom-position continuation remains Chessnut-only; Grand Kingdom support is
 for untimed games from the standard starting position.
 
-Preview 2.5 feature. Physical Chessnut acceptance is pending owner testing with the published Preview build.
+Shipped in Stable 2.5.0 and later. The owner reported physical Chessnut continuation tests passed on 27 October 2026; see the [recorded acceptance](https://github.com/Dash1971/maia-chess-android/blob/7a0f69c141c66e39be1183b3ad46f26158ff9299/docs/BUILD_CHANNELS.md#stable-25-preparation).
 
 The existing continuation dialog keeps side, Maia rating and phone time-control
 choices, and adds **Use electronic board** (off on each opening). Selecting it
@@ -26,10 +26,7 @@ it continues the same position untimed, without requiring a physical board.
 
 ## Supported scope
 
-This continuation flow currently supports Chessnut only, including Dev. Pegasus
-and Grand Kingdom adapters do not have verified arbitrary-position setup and
-motor-state recovery, so they are not offered here. Existing native/Dart channel
-gates remain unchanged. This does not enable new board models in Preview/Stable.
+This continuation flow currently supports Chessnut only, including Dev. Grand Kingdom is limited to untimed games from the standard starting position; it is not offered for custom-position continuation. Pegasus remains withdrawn from 2.6 source/Preview. Older published APKs retain their original policy.
 
 ## Ownership and storage
 
@@ -57,13 +54,6 @@ connection reuse, cancellation, retry, FEN/history/clock preservation, setup wai
 phone fallback, localization/layout, and existing board reset/reconnect behavior.
 These use controlled transports, not physical Bluetooth hardware.
 
-Publication requires the normal automated Preview Android/reproduction, signing,
-upgrade and download gates. The requester explicitly authorized publishing this
-Preview for physical testing. Physical Chessnut acceptance remains pending: connect from analysis, reuse a home connection,
-place a custom position, verify mismatch LEDs, start for either side, disconnect
-and reconnect during setup/play, cancel, and switch to phone play. Check an
-existing saved game and ordinary home-board play as regressions.
+The owner-reported physical acceptance covers the Chessnut continuation flow. Future changes still require the applicable release checks and affected hardware scenarios. This does not add arbitrary-position continuation for Grand Kingdom or revive Pegasus.
 
-No new dependency, permission, network service, asset or build helper is added.
-No Stable build-tooling companion applies; this feature travels with a future
-explicitly authorized Preview-to-Stable promotion.
+No new network service is required by continuation. Physical-board support and release status are recorded in [channel status](BUILD_CHANNELS.md).

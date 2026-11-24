@@ -1,12 +1,12 @@
 # Build channels and promotion status
 
-Updated 22 November 2026. Published artifacts and the pending source changes are
-separate; this PR does not build or publish a release.
+Updated 24 November 2026. Stable 2.6 is a draft candidate; the published
+Stable release remains 2.5.1. Published artifacts and pending source are separate.
 
 | Channel | Published release | Package / model | Pending source scope |
 | --- | --- | --- | --- |
 | Stable | [2.5.1 / code 83](https://github.com/Dash1971/maia-chess-android/releases/tag/v2.5.1) | `com.dash1971.maia_chess`, blue icon, 79M | Draft 2.6.0 / code 84 promotion, including Grand Kingdom, PGN transfer and Pegasus withdrawal. |
-| Preview | [2.6.0-beta.10 / code 2610](https://github.com/Dash1971/maia-chess-android-preview/releases/tag/v2.6.0-beta.10) | `com.dash1971.maia_chess.preview`, gold icon, 79M | Beta.11 follow-up for testing before Stable approval. |
+| Preview | [Current published Preview and Dev status](https://github.com/Dash1971/maia-chess-android-preview/blob/main/docs/BUILD_CHANNELS.md) | Gold icon; 79M | Preview owns its current version, testing scope and release history. |
 | Dev | [2.6.0-alpha.2-dev](https://github.com/Dash1971/maia-chess-android-preview-dev/releases) | `com.dash1971.maia_chess.preview.dev`, red icon, 5M | Uses canonical Preview source; Pegasus is withdrawn from future builds. Automatic diagnostics remain Dev-only. |
 
 ## Current source policy

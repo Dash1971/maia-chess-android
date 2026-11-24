@@ -1,6 +1,8 @@
 # Board preferences
 
-Preview #178 adds the approved inline Board card immediately after Appearance.
+**Status:** shipped in Stable 2.5.0 and later, and in Preview. This page describes the feature; dated qualification remains in the release records.
+
+The inline Board card appears immediately after Appearance.
 `boardPreferencesV1` stores named JSON fields and drag target identifiers, never
 indices. Missing or invalid fields fall back independently to the existing defaults:
 coordinates, destination dots, last-move highlighting, animation and magnification
@@ -24,12 +26,8 @@ games/captures. Cancelling either reset or the target chooser changes nothing.
 Verification covers malformed/legacy storage, restart-style controller recreation,
 serialized writes, failure recovery, independent mappings, target cancellation,
 retained Review selection and all ten languages at 200% text in 320×640 and
-640×320 layouts. Actual Android restart/input checks must also pass before the
-Stable release is considered ready; prior Preview checks do not qualify the
-Stable APK. See [promotion preparation](stable-2.5-preparation.md).
+640×320 layouts. Release qualification is recorded in the [Stable 2.5.0 release notes](https://github.com/Dash1971/maia-chess-android/blob/main/docs/release-notes/v2.5.0.md).
 
-This is Preview feature work. No shared build, CI, release or cleanup helper changes
-are part of #178, so no Stable tooling port applies. Stable has not been promoted.
 
 ## Board and piece designs (#177)
 
@@ -76,15 +74,10 @@ synthetic ZIPs, not Android builds. Build wrappers do not duplicate these gates.
 On the review Mac, the source check took 0.039 seconds and its 14 regression tests
 0.23 seconds. These are development checks: no app code or runtime cost is added.
 
-Stable main `5f6743eed5491d2e8413fe0dfd1f8ef612d0aa84` was rechecked during this
-review. It still uses hosted Chessground and has neither this feature manifest nor
-the filtered local package. This feature-specific CI/APK gate cannot run there
-without promoting the artwork feature, so no standalone Stable port applies.
-Carry the checker, its tests and both gate integrations together when promoting
-this feature; do not port it conditionally with a silent missing-manifest bypass.
-Shared workspace/toolchain helpers and channel release requirements are unchanged.
 
-### Draft measurement
+<a id="draft-measurement"></a>
+
+### Recorded design measurements
 
 The first ARM64 Android integration APK contains exactly 792 approved asset files,
 6,622,164 bytes, all stored without further ZIP compression. The original hosted
