@@ -265,6 +265,8 @@ deleted automatically. The stopped test app and synthetic records remain on
 the emulator for inspection. This checks code/data compatibility; it does not
 validate the production signing key or actual phone/Bluetooth behavior.
 
+<a id="stable-25-feature-qualification"></a>
+
 ## Changed-feature Stable qualification
 
 After explicit build authorization, run the new integration suites on the

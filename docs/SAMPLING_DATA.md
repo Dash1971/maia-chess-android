@@ -160,7 +160,11 @@ Small interleaved 1+0 measurements showed no observable recording slowdown in
 that emulator; this is not a guarantee for physical phones. The maintainer
 reviewed the setting and help screenshots before authorizing publication.
 
-## Readable reports (proposed in #128)
+<a id="readable-reports-proposed-in-128"></a>
+
+## Readable reports
+
+Implemented through [Preview #128](https://github.com/Dash1971/maia-chess-android-preview/issues/128).
 
 The settings export row opens **Save…** or **Share…**. Both initially select a
 self-contained **Readable report (HTML)**. **Full research data (JSONL)** keeps

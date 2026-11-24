@@ -75,6 +75,8 @@ On the review Mac, the source check took 0.039 seconds and its 14 regression tes
 0.23 seconds. These are development checks: no app code or runtime cost is added.
 
 
+<a id="draft-measurement"></a>
+
 ### Recorded design measurements
 
 The first ARM64 Android integration APK contains exactly 792 approved asset files,
