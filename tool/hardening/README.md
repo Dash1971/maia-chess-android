@@ -7,15 +7,18 @@ not add runtime dependencies or network access to the app.
 
 ## Standard checks
 
+Prepare the complete pinned Python environment with
+[Release test setup](../../docs/RELEASE_TEST_SETUP.md), inside the task-owned
+bulk directory from [Build workspace](../../docs/BUILD_WORKSPACE.md). Reuse that
+environment for the commands below; do not create another `/tmp` release venv.
+
 Use the Flutter version and commit pinned in `.github/workflows/checks.yml`.
 
 ```sh
 flutter pub get --enforce-lockfile
 flutter analyze
 flutter test --reporter expanded
-python3 -m venv /tmp/maia-release-venv
-/tmp/maia-release-venv/bin/pip install -r tool/hardening/requirements.txt -r tool/requirements-release.txt
-/tmp/maia-release-venv/bin/python -m unittest discover -s tool -p '*_test.py'
+/absolute/task/bulk/release-test-venv/bin/python -m unittest discover -s tool -p '*_test.py'
 ```
 
 The added tests cover Top-P sampling, malformed checkpoint metadata, PGN byte
@@ -34,11 +37,9 @@ tests exercise app configuration, not the model’s calibrated playing strength.
 ## Independent chess oracle
 
 ```sh
-python3 -m venv /tmp/maia-chess-oracle-venv
-/tmp/maia-chess-oracle-venv/bin/pip install -r tool/hardening/requirements.txt
-/tmp/maia-chess-oracle-venv/bin/python tool/hardening/generate_chess_corpus.py \
-  --positions 3000 --seed 20260909 --output /tmp/maia-chess-oracle.json
-MAIA_CHESS_CORPUS=/tmp/maia-chess-oracle.json \
+/absolute/task/bulk/release-test-venv/bin/python tool/hardening/generate_chess_corpus.py \
+  --positions 3000 --seed 20260909 --output /absolute/task/bulk/maia-chess-oracle.json
+MAIA_CHESS_CORPUS=/absolute/task/bulk/maia-chess-oracle.json \
   flutter test test/chess_oracle_test.dart --reporter expanded
 ```
 
@@ -125,9 +126,9 @@ four export/merge cycles. The ordinary CI suite uses 32 checked-in games;
 release hardening can run a larger corpus with a different seed:
 
 ```sh
-/tmp/maia-chess-oracle-venv/bin/python tool/hardening/generate_variation_corpus.py \
-  --cases 512 --seed 20260911 --output /tmp/maia-variation-oracle.json
-MAIA_VARIATION_CORPUS=/tmp/maia-variation-oracle.json \
+/absolute/task/bulk/release-test-venv/bin/python tool/hardening/generate_variation_corpus.py \
+  --cases 512 --seed 20260911 --output /absolute/task/bulk/maia-variation-oracle.json
+MAIA_VARIATION_CORPUS=/absolute/task/bulk/maia-variation-oracle.json \
   flutter test test/variation_oracle_test.dart --reporter expanded
 ```
 
@@ -186,7 +187,7 @@ packaging/signature/payload verification and an emulator saved-game upgrade.
 They replace the one-off Mac scripts with configurable SDK/APK paths, a
 sanitized checked-in PGN, JSON pass/fail results and failure diagnostics. The
 manual CI release-build job also runs packaging verification and retains its
-APK/log/report artifacts for 14 days.
+APK/log/report artifacts as described in [CI artifact retention](../../docs/CI_ARTIFACTS.md).
 
 ## Feedback and Maia probability regressions
 

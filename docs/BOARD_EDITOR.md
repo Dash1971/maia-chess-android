@@ -1,5 +1,7 @@
 # Board editor
 
+**Status:** shipped in Stable 2.5.0 and later, and in Preview. This page describes the feature; dated qualification remains in the release records.
+
 The existing editor is retained in Stable 2.6. Camera and screenshot recognition
 are not included. The original Preview work is recorded in
 [Preview #189](https://github.com/Dash1971/maia-chess-android-preview/issues/189).
@@ -8,8 +10,8 @@ The interaction/layout reference is Lichess mobile v0.30.1, commit
 `243b19b532c86101a389072becce60e51c71bbd0`, files:
 `lib/src/view/board_editor/board_editor_screen.dart` and
 `lib/src/model/board_editor/board_editor_controller.dart`. The requester's three
-reference images are attached to issue #189. The renderer remains the filtered,
-unchanged Chessground 10.1.1 supplied by #190.
+reference images are attached to issue [#189](https://github.com/Dash1971/maia-chess-android-preview/issues/189). The renderer remains the filtered,
+unchanged Chessground 10.1.1 supplied by [#190](https://github.com/Dash1971/maia-chess-android-preview/issues/190).
 
 The portrait editor puts black and white graphical palettes above/below the board
 and swaps their order on flip. Each has hand/move, six pieces and erase. Selected
@@ -32,10 +34,10 @@ or duplicate kings remain editable, while Analysis and Continue validate through
 Dartchess and the existing AnalysisSession validator. Only a valid Analysis result
 replaces the parent analysis. Continue uses the existing side/rating/time-control
 dialog and GamePage callback, leaving the editor/parent unchanged if cancelled.
-No e-board adapter, connection owner or synchronization policy is replaced. The
-inspected base has no separate transport in BoardEditorPage; existing continuation
-connection setup remains the same flow and is not a delivery of #182. Issue #39
-was closed as not planned; this change does not reintroduce physical-board editing.
+No e-board adapter, connection owner or synchronization policy is replaced. For Chessnut connection and setup from a chosen position, see
+[Continue from here on an electronic board](CONTINUATION_ELECTRONIC_BOARD.md).
+[Physical-board editing (#39)](https://github.com/Dash1971/maia-chess-android-preview/issues/39)
+was closed as not planned.
 
 The menu contains Starting position, Load FEN, Continue from here and Clear board.
 The toolbar has menu, flip, Analysis and position settings. Sharing uses Android's

@@ -56,11 +56,11 @@ and feature requests.
 F-Droid updates become available after its separate reproducible-build process
 completes.
 
-A progressive web app (PWA) version is being developed at
-[mobilemaia.org](https://mobilemaia.org/). You can already
-[try Mobile Maia in your browser](https://mobilemaia.org/play/) using the
-smaller Maia-3 5M model. The current browser edition is not yet an installable
-or offline PWA.
+[Play Mobile Maia in your browser](https://mobilemaia.org/play/) with the
+smaller Maia-3 5M model. The browser edition supports installation and optional
+**Save for offline use** in Settings. Wait for its ready confirmation before
+disconnecting; browser storage can be cleared or evicted. See the
+[browser guide](https://github.com/Dash1971/mobilemaia.org#readme).
 
 ## Contents
 
@@ -364,8 +364,8 @@ Tap or drag pieces on the Lichess Chessground board. Maia-3 runs on-device and
 selects moves for the chosen rating instead of behaving like a deliberately
 weakened tactical engine. The live view shows both players, clocks, material
 imbalance, the move strip, turn status, and game controls. The screen stays
-awake during an active game, and the current position is checkpointed for
-recovery after process death, restart, or an app update.
+awake during an active game and checkpoints the position locally. After an unclean exit, the app opens Home instead of automatically resuming the interrupted
+game. Open the saved entry in Recent games manually to continue.
 
 ### Game sounds and touch feedback
 
@@ -540,10 +540,7 @@ per-engine handle lifecycle addressed that crash; choosing Light also keeps a
 small NNUE in the app so analysis and full-game review work immediately and
 entirely offline, without a separate download or setup. Bundling a full NNUE
 for everyone would increase the app's download and storage footprint. Light
-remains the default and offline fallback. An explicitly opt-in full Stockfish 19
-NNUE is a separate proposal, subject to quality, device-performance, storage,
-file-integrity, privacy, reproducibility, and F-Droid checks
-([Preview issue #52](https://github.com/Dash1971/maia-chess-android-preview/issues/52)).
+remains the default and offline fallback. The [full-NNUE proposal](https://github.com/Dash1971/maia-chess-android-preview/issues/52) was closed as not planned to retain the app’s offline-only scope.
 
 ### Load, edit, continue, and clear positions
 
@@ -743,11 +740,6 @@ For context on the Android side, see F-Droid's
 Official Android downloads and update options are available through GitHub,
 F-Droid, Obtainium, and Zapstore, as described below.
 
-A progressive web app (PWA) version is being developed at
-[mobilemaia.org](https://mobilemaia.org/), offering a browser-based way to try
-Mobile Maia without an app-store installation. You can already
-[play the browser edition with Maia-3 5M](https://mobilemaia.org/play/);
-it is not yet an installable or offline PWA.
 
 ### What about forks published in app stores?
 
@@ -806,6 +798,9 @@ should follow the [Zapstore post-release step](docs/RELEASING.md#publish-the-ver
 
 ## Support and contributing
 
+Start with [Contributing](CONTRIBUTING.md), [Security](SECURITY.md),
+[Privacy](PRIVACY.md) and the [documentation index](docs/README.md).
+
 - **Stable bugs:** [Search or open an issue in this repository](https://github.com/Dash1971/maia-chess-android/issues).
 - **Preview bugs and feature requests:** [Search or open an issue in the Preview repository](https://github.com/Dash1971/maia-chess-android-preview/issues).
 
@@ -823,7 +818,9 @@ promotion to Stable. Use the pinned toolchain and follow the
 
 ## Build
 
-Requirements: **Flutter 3.47.5** (pinned in `.fvmrc`), JDK 17, Android SDK 36,
+See [Reproducible builds](REPRODUCIBLE_BUILDS.md) for source pins and APK comparison.
+
+Requirements: **the Flutter version and revision pinned in the checked-out `.fvmrc` and CI**, JDK 17, Android SDK 36,
 Python 3, and Git LFS. Use the locked dependencies. A GitHub source ZIP contains
 an LFS pointer rather than the 316 MB Maia model, so clone with Git LFS:
 
@@ -848,21 +845,13 @@ Further documentation:
 - [Testing guide](tool/hardening/README.md): additional regression tests.
 - [Release procedure](docs/RELEASING.md) and [release verification](tool/hardening/RELEASE_CHECKS.md): signing, qualification, and publication.
 
-The official signing certificate SHA-256 digest is:
-
-```text
-cd6c07c4efacf52bcccb83009b522c1dcad4a171197505a486f0a58edb6f172e
-```
+See [Verify your download](docs/VERIFY_DOWNLOAD.md) for checksum/signature commands, the official certificate digest and installation troubleshooting.
 
 ## Re-export Maia-3
 
-The checked-in ONNX model was exported from the official Maia-3 79M checkpoint.
-The exporter verifies ONNX Runtime outputs against PyTorch before succeeding.
-
-```sh
-python -m pip install /path/to/maia3 onnx onnxruntime
-python tool/export_maia3_onnx.py --model maia3-79m --output assets/models/maia3-79m.onnx
-```
+Use the pinned checkpoints, source revision, dependencies and verification steps
+in [Model provenance](MODEL_PROVENANCE.md). Model re-export is separate from an
+ordinary app build; it is not needed to use the checked-in LFS assets.
 
 ## Electronic-board support
 

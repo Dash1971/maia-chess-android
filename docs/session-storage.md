@@ -107,7 +107,7 @@ downgrades or preservation of metadata by old app versions.
 | Direct preference migration, repeated migration, backups/tombstones and unsupported future generations | `test/recent_game_history_test.dart`, `test/session_repository_test.dart` |
 | Detached payloads, failed writes/opens, recovery and a 1,000-game archive | `test/recent_game_history_test.dart`, `test/storage_failure_test.dart` |
 | New game, resume and Continue from here; storage transition/error handling | `test/game_start_history_test.dart` |
-| Date rendering and unknown dates in all five languages | `test/recent_game_history_ui_test.dart`, `test/storage_localization_test.dart` |
+| Date rendering and unknown dates in all supported languages | `test/recent_game_history_ui_test.dart`, `test/storage_localization_test.dart` |
 | Existing reset, takeback, game/clock and navigation behavior | Full `flutter test` suite |
 
 All tests above run in normal PR CI. When changing this contract, update its

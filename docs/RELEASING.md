@@ -166,14 +166,14 @@ a nonexistent second line. Never put a password in command arguments or logs.
 Do not change signature schemes or rotate the key without a separate reviewed
 compatibility plan. Verify the existing certificate and 16 KB alignment.
 
-Install the release-only Python tools in a temporary environment:
+Prepare the complete pinned operator environment using
+[Release test setup](RELEASE_TEST_SETUP.md), inside the owned bulk directory.
+Then run the qualification gate with that environment:
 
 ```sh
-python3 -m venv /tmp/maia-release-gate
-/tmp/maia-release-gate/bin/pip install -r tool/requirements-release.txt
 cp tool/release-evidence.example.json /path/to/evidence/evidence.json
 # Fill in the manifest using actual files and the inspected upstream state.
-/tmp/maia-release-gate/bin/python tool/qualify_release.py \
+/absolute/task/bulk/release-test-venv/bin/python tool/qualify_release.py \
   --evidence /path/to/evidence/evidence.json \
   --sdk-root /path/to/android-sdk --output /path/to/evidence/qualification.json
 ```

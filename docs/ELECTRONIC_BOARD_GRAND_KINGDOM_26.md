@@ -6,7 +6,7 @@ with identical Dart/native support policy in both source repositories.
 [support decision](decisions/2026-11-22-electronic-board-support.md). Dated
 historical channel descriptions below do not override that decision.
 
-Preview testing started in [Preview 2.6.0-beta.3](https://github.com/Dash1971/maia-chess-android-preview/releases/tag/v2.6.0-beta.3), updated 15 November 2026.
+Preview testing started in [Preview 2.6.0-beta.1](https://github.com/Dash1971/maia-chess-android-preview/releases/tag/v2.6.0-beta.1), updated 15 November 2026.
 Tracks [Preview #27](https://github.com/Dash1971/maia-chess-android-preview/issues/27).
 
 ## Stable 2.6 promotion — 22 November 2026

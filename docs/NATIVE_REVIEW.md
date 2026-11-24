@@ -1,6 +1,6 @@
 # Native chess-player review
 
-Please review the wording in your language while using the Mobile Maia Preview app. All nine translations are provisional. We need natural chess language as well as ordinary grammatical correctness.
+Please review the wording in your language while using the Mobile Maia Preview app. Native-speaker review is still requested for the non-English catalogs; structural CI checks are not linguistic approval. We need natural chess language as well as ordinary grammatical correctness.
 
 ## Files to edit
 
@@ -16,7 +16,7 @@ Please review the wording in your language while using the Mobile Maia Preview a
 | Korean | [app_ko.arb](../lib/l10n/app_ko.arb) |
 | Spanish | [app_es.arb](../lib/l10n/app_es.arb) |
 
-Use [app_en.arb](../lib/l10n/app_en.arb) for the English meaning and `@message` translator notes. Each language has 296 messages. ARB is JSON: change text on the right of the colon, keep the IDs on the left, and retain quotation marks and commas. An ARB-aware editor or any UTF-8 text editor is fine.
+Use [app_en.arb](../lib/l10n/app_en.arb) for the English meaning and `@message` translator notes. ARB is JSON: change text on the right of the colon, keep the IDs on the left, and retain quotation marks and commas. An ARB-aware editor or any UTF-8 text editor is fine.
 
 Keep placeholders such as `{rating}`, `{count}` and `{side}` unchanged, including capitalization. Preserve ICU plural/select expressions and their branch names. Translate the wording inside branches; ask the maintainer if the syntax is unclear. Keep PGN/FEN/SAN/UCI, URLs, product names and move notation intact. Edit ARB, not generated Dart or Android XML.
 

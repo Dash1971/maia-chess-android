@@ -1,7 +1,8 @@
 # Optional Maia score (#186)
 
-The requester replaced the original left-hand bar with text and then requested
-that the text use the existing Analysis Board / Game Review title area. Each Maia
+**Status:** shipped in Stable 2.5.0 and later, and in Preview. This page describes the feature; dated qualification remains in the release records.
+
+The optional score appears in the existing Analysis Board / Game Review title area. Each Maia
 has a compact line beside the title: rating, white/black disc and the favoured
 side's rounded expected score. Engine colours match the move-probability rows;
 accessible labels name the rating and side. Equal rounded scores show `= 50%`,
@@ -74,8 +75,7 @@ Preview 79M bridge, both ratings, typed gameplay compatibility, header details a
 native preference reload. These checks do not replace full exact-source Preview
 release qualification.
 
-No shared build, CI, verification or cleanup helper changes. This Preview feature
-has no Stable companion tooling port and does not promote or publish a channel.
+The feature is included in Stable 2.5.0 and later; publication checks remain channel-specific.
 
 ## Score reliability research
 

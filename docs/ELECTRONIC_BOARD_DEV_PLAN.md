@@ -1,5 +1,7 @@
 # Electronic-board development cycle
 
+> **Historical plan, superseded.** This October plan describes the original Dev prototypes. See the [22 November support decision](https://github.com/Dash1971/maia-chess-android-preview/blob/main/docs/decisions/2026-11-22-electronic-board-support.md), the current [board guide](ELECTRONIC_BOARD_DEV.md) and [channel status](BUILD_CHANNELS.md); do not infer current board support from the plan below.
+
 Agreed direction, 2026-10-07: use the isolated Dev application first. Keep Stable
 publication and existing Preview promotion separate. Deliver reviewable changes
 in stages; one board need not wait for an unrelated board's hardware validation.
