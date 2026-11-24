@@ -260,26 +260,35 @@ and a research link, available in all ten languages.
   <img src="docs/screenshots/20261027_v1_stable_2_5_engine_help.png" width="38%" alt="Stable 2.5 consolidated engine help, scrolled to recommendations and its research link">
 </p>
 
-*Stable 2.5 engine help, scrolled near the end.*
+*Older illustrative capture: Stable 2.5 engine help, scrolled near the end.
+See the updated research links below.*
 
-The new default is **Temperature 1.0 / Top-P 0.95 with Max variety in opening
+The current default is **Temperature 1.0 / Top-P 0.95 with Max variety in opening
 on**. This keeps unfiltered opening choices, then excludes a small tail of
 unlikely moves from move 6. The selected rating remains a model input, rather
 than a guarantee of measured playing strength.
 
-Our earlier 79M research at rating inputs of 1600 found approximately **64%
-e4, 25% d4 and 11% other first moves** at 1.0/1.0. In a separate 1,200-game
-comparison, 1.0/0.95 gained about **71 Elo** against 1.0/1.0, with **67 opening
-families rather than 85** in equal 2,000-opening samples. These are historical
-measurements, not a new strength claim for 2.5's combined opening override.
-Version 2.4 chose 1.0/1.0 throughout; 2.5 balances opening variety with later
-play through the override.
+The [updated visual settings guide](https://github.com/Dash1971/mobile-maia-research/blob/main/guides/choosing-maia-settings/README.md)
+explains the evidence for this combination. The
+[18 October 2026 opening-variety study](https://github.com/Dash1971/mobile-maia-research/blob/main/studies/opening-variety-2026-10-18/REPORT.md)
+tested Maia-3 79M with move history off across **3,000 full games, 5,400 opening
+samples and 180 move-quality positions** at rating inputs 600, 1600 and 2400.
+
+At 1600, the combined setting scored **60.7% in 600 games** against 1.0/1.0
+throughout (95% score interval: 56.8–64.6%). In equal 1,000-opening samples,
+it retained **70 broad opening families**, matching full sampling, compared
+with **59** for Top-P 0.95 throughout. These are results for the tested matchup
+and coarse opening labels; they do not establish a calibrated human Elo,
+equivalent later variations or improved human-move prediction. The comparison
+at 600 was inconclusive.
 
 The older **0.5 / 0.9** settings came from our
 [Maia2](https://github.com/Dash1971/maia2-local-stack) and
 [Maia3](https://github.com/Dash1971/maia3-local-stack) local stacks, which used
-opening books. Mobile Maia has no opening book.
-[See the visual report, results and reproducible data](https://github.com/Dash1971/mobile-maia-research/blob/main/studies/maia3-sampling/REPORT.md).
+opening books. Mobile Maia has no opening book. The
+[earlier sampling study](https://github.com/Dash1971/mobile-maia-research/blob/main/studies/maia3-sampling/REPORT.md)
+preserves the historical measurements before the combined opening override
+was tested.
 
 ### Max variety in opening
 
