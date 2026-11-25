@@ -1,6 +1,7 @@
 # Opt-in Maia sampling data
 
-This feature implements Preview issue #122. It is off by default, entirely
+Included in Stable 2.4 and later; see the [release notes](release-notes/v2.4.0.md).
+Originally tracked in [Preview #122](https://github.com/Dash1971/maia-chess-android-preview/issues/122). It is off by default, entirely
 local, and separate from Copy diagnostics. It observes actual Maia **play**
 requests; analysis-board probability displays and Stockfish are not captured.
 Turning it off stops new captures and retains existing data. Requests already
@@ -277,7 +278,7 @@ probabilities are unchanged. No extra inference or network access is performed.
 
 The Sampling data row shows the saved-decision count (or storage error). Its
 three-dot menu offers Save/Share and the existing HTML/JSONL picker; the adjacent
-delete icon opens the confirmation from #134. Both buttons retain 48-pixel touch
+delete icon opens the confirmation from [Preview #134](https://github.com/Dash1971/maia-chess-android-preview/issues/134). Both buttons retain 48-pixel touch
 targets, localized accessible tooltips and the existing busy-state guards.
 The recording switch and its help remain separate. These layout changes do not
 change capture files, limits, preference keys or the sampler.

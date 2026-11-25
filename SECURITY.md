@@ -11,4 +11,5 @@ Ordinary bugs belong in the issue tracker.
 
 Security fixes target the latest published Stable release. Preview reports are also welcome through [Preview private reporting](https://github.com/Dash1971/maia-chess-android-preview/security/advisories/new); identify the channel so the issue can be checked in both.
 
+The signing-certificate digest is maintained in one place to avoid stale copies.
 For the official APK signer and file checks, see [Verify your download](docs/VERIFY_DOWNLOAD.md).

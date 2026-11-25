@@ -2,7 +2,7 @@
 
 Stable 2.6 draft: this behavior is promoted from Preview. The recorded tests,
 renders and APK qualification below describe Preview, not a newly qualified
-Stable build. Stable checks and changed screenshots remain pending.
+Stable build. Shared-screen screenshots are recorded separately; exact-source Stable checks remain pending.
 
 Scrolling the move list, stepping through moves, or holding Back/Forward keeps
 the engine analysis in view. The board, analysis header, and navigation controls
@@ -76,7 +76,7 @@ empty-position, repeated-hold, engine-stability and rotation regressions.
 Viewports include portrait phones/tablets and landscape 873 × 393, 1024 × 600,
 1280 × 800, 1024 × 768, and 800 × 600 at normal and 200% text. Host tests establish
 Flutter layout and gesture routing; physical tablet touch acceptance remains
-outstanding under #29. The original feature PR used no Android builds, Actions or LFS downloads; the published beta.9 qualification below is separate.
+outstanding under [Preview #29](https://github.com/Dash1971/maia-chess-android-preview/issues/29). The original feature PR used no Android builds, Actions or LFS downloads; the published beta.9 qualification below is separate.
 No shared build/CI/verification/cleanup helpers changed; Stable receives this
 app layout through the normal 2.6 promotion.
 
@@ -90,11 +90,11 @@ flutter test --no-pub test/analysis_nested_scroll_test.dart
 
 ## Earlier released behavior
 
-Beta.7 used a single continuous pane; beta.8 delivered #246's coordinated nested
+Beta.7 used a single continuous pane; beta.8 delivered [Preview #246](https://github.com/Dash1971/maia-chess-android-preview/issues/246)'s coordinated nested
 scrolling. Their release evidence qualifies those earlier sources. This follow-up
 removes the behavior that lets move scrolling or reveal animations hide engine
 analysis, and is published with separate beta.9 release qualification recorded below.
 
 ## Preview beta.9 Android qualification
 
-[Published beta.9](https://github.com/Dash1971/maia-chess-android-preview/blob/e162a61e995452b748e5f85d710c6f7dab2ab24a/docs/releases/preview-2.6.0-beta.9.md) delivers #249. Actual production-signed ARM64 APK checks verify independent engine/move panes during scrolling, stepping and endpoint holds, normal/large text, graph requests, rotation and short-window control access. Normal-font profiles show all four engine rows; constrained large text retains independent header scrolling. Earlier illustrations are host renders. Physical touch/tablet acceptance under #29 and Stable promotion remain separate.
+[Published beta.9](https://github.com/Dash1971/maia-chess-android-preview/blob/e162a61e995452b748e5f85d710c6f7dab2ab24a/docs/releases/preview-2.6.0-beta.9.md) delivers [Preview #249](https://github.com/Dash1971/maia-chess-android-preview/issues/249). Actual production-signed ARM64 APK checks verify independent engine/move panes during scrolling, stepping and endpoint holds, normal/large text, graph requests, rotation and short-window control access. Normal-font profiles show all four engine rows; constrained large text retains independent header scrolling. Earlier illustrations are host renders. Physical touch/tablet acceptance under [Preview #29](https://github.com/Dash1971/maia-chess-android-preview/issues/29) and Stable promotion remain separate.

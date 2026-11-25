@@ -41,7 +41,7 @@ back to those defaults without resetting valid aid fields. Confirmed reset
 restores both designs as well as the aids. All 25 fixed Lichess boards and 16
 verified piece sets are available offline. The System-colored board option is
 deferred: dynamic board/highlight contrast and a readable fallback need a distinct
-review, so the draft exposes no placeholder System choice.
+review, so there is no placeholder System choice.
 
 Play, Review/imported-PGN analysis, the board editor, editor piece icons and the
 library's promotion chooser use the same chosen assets. Non-board SAN notation
@@ -64,7 +64,7 @@ Run `python3 tool/check_board_style_assets.py --apk <candidate.apk> --output <re
 to compare every packaged Chessground asset against that exact allowlist and its
 hashes and record actual compressed/uncompressed asset size. A selector-only
 check does not establish packaging. Compare qualified release APK sizes before
-marking the draft ready; a debug integration APK does not establish release size.
+qualifying a release; a debug integration APK does not establish release size.
 
 The source allowlist check runs automatically in every GitHub Checks test job.
 The existing release APK verifier also checks packaged artwork and bundled licence

@@ -2,7 +2,7 @@
 
 Stable 2.6 draft: this behavior is promoted from Preview. The recorded tests,
 renders and APK qualification below describe Preview, not a newly qualified
-Stable build. Stable checks and changed screenshots remain pending.
+Stable build. Shared-screen screenshots are recorded separately; exact-source Stable checks remain pending.
 
 Published in Preview 2.6.0-beta.4, based on the layouts reviewed on November 15, 2026, tracked in
 [Preview #29](https://github.com/Dash1971/maia-chess-android-preview/issues/29).
@@ -113,40 +113,38 @@ provisional where native review has not occurred.
 
 The signed APK checks covered phone/tablet and constrained window sizes,
 three-button Android system insets, rotation during drags/promotion/premoves,
-restoration and disconnected-board phone handoff. Before declaring #29 fully
-delivered, confirm gesture navigation and actual Android split-screen behavior,
+restoration and disconnected-board phone handoff. Further physical-device coverage tracked in [Preview #29](https://github.com/Dash1971/maia-chess-android-preview/issues/29) includes gesture navigation and actual Android split-screen behavior,
 comfortable finger input on a physical phone, and tablet-owner feedback.
 Preview qualification does not establish those remaining acceptance outcomes.
 
-The original feature PR did not build or publish an APK. Release #232 qualifies
+The original feature PR did not build or publish an APK. Release [Preview #232](https://github.com/Dash1971/maia-chess-android-preview/issues/232) qualifies
 and publishes the frozen beta.4 source, including Android emulator and signed
-upgrade checks; its evidence records actual results and cleanup. No Stable companion applies: this is a Preview
-2.6 product feature, and shared build, CI, verification-tool, and cleanup helpers
-are unchanged.
+upgrade checks; its evidence records actual results and cleanup. Stable receives this behavior through the 2.6 promotion. Shared build, CI,
+verification-tool and cleanup helpers are unchanged.
 
 ## Published Android verification
 
-The production-signed beta.4 APK was tested on phone, tablet, constrained and large-text emulator profiles, including system insets, rotation, tap/drag/promotion/premoves, Analysis controls/graph, Settings persistence and compact-history opening/selection/PGN export. See the release evidence for screenshots, geometry, source/APK hashes, initial System UI ANR diagnostics and the successful unchanged-source native rerun. These are emulator results; comfortable finger input and tablet feedback remain open under #29.
+The production-signed beta.4 APK was tested on phone, tablet, constrained and large-text emulator profiles, including system insets, rotation, tap/drag/promotion/premoves, Analysis controls/graph, Settings persistence and compact-history opening/selection/PGN export. See the release evidence for screenshots, geometry, source/APK hashes, initial System UI ANR diagnostics and the successful unchanged-source native rerun. These are emulator results; comfortable finger input and tablet feedback remain open under [Preview #29](https://github.com/Dash1971/maia-chess-android-preview/issues/29).
 
 ## Preview beta.7 Android qualification
 
-[Published beta.7](https://github.com/Dash1971/maia-chess-android-preview/blob/e162a61e995452b748e5f85d710c6f7dab2ab24a/docs/releases/preview-2.6.0-beta.7.md) delivers #242/#243 and
+[Published beta.7](https://github.com/Dash1971/maia-chess-android-preview/blob/e162a61e995452b748e5f85d710c6f7dab2ab24a/docs/releases/preview-2.6.0-beta.7.md) delivers [Preview #242](https://github.com/Dash1971/maia-chess-android-preview/issues/242)/[Preview #243](https://github.com/Dash1971/maia-chess-android-preview/issues/243) and
 records actual production-signed ARM64 APK checks for continuous Analysis
 scrolling, graph/navigation, tablet/resized/large-text/short-window layouts
 and Recent games columns/selection/delete/export flows. Earlier renders remain
 host-test illustrations. Physical touch/tablet and actual OS split-screen
-acceptance under #29 remain separate; Stable promotion is separate.
+acceptance under [Preview #29](https://github.com/Dash1971/maia-chess-android-preview/issues/29) remain separate; Stable promotion is separate.
 
 ## Preview beta.8 Android qualification
 
-[Published beta.8](https://github.com/Dash1971/maia-chess-android-preview/blob/e162a61e995452b748e5f85d710c6f7dab2ab24a/docs/releases/preview-2.6.0-beta.8.md) delivers #246 and records
+[Published beta.8](https://github.com/Dash1971/maia-chess-android-preview/blob/e162a61e995452b748e5f85d710c6f7dab2ab24a/docs/releases/preview-2.6.0-beta.8.md) delivers [Preview #246](https://github.com/Dash1971/maia-chess-android-preview/issues/246) and records
 actual production-signed ARM64 APK checks for coordinated deep reverse-drag
 header restoration and first/last/repeated endpoint holds in portrait/landscape,
 normal/large text, graph-tab requests, rotation and short-window access. The
 header can collapse while navigating. Earlier illustrations remain host renders;
 beta.7 evidence applies to its earlier source. Physical touch/tablet acceptance
-under #29 and Stable promotion remain separate.
+under [Preview #29](https://github.com/Dash1971/maia-chess-android-preview/issues/29) and Stable promotion remain separate.
 
 ## Preview beta.9 Android qualification
 
-[Published beta.9](https://github.com/Dash1971/maia-chess-android-preview/blob/e162a61e995452b748e5f85d710c6f7dab2ab24a/docs/releases/preview-2.6.0-beta.9.md) delivers #249. Actual production-signed ARM64 APK checks verify independent engine/move panes during scrolling, stepping and endpoint holds, normal/large text, graph requests, rotation and short-window control access. Normal-font profiles show all four engine rows; constrained large text retains independent header scrolling. Earlier illustrations are host renders. Physical touch/tablet acceptance under #29 and Stable promotion remain separate.
+[Published beta.9](https://github.com/Dash1971/maia-chess-android-preview/blob/e162a61e995452b748e5f85d710c6f7dab2ab24a/docs/releases/preview-2.6.0-beta.9.md) delivers [Preview #249](https://github.com/Dash1971/maia-chess-android-preview/issues/249). Actual production-signed ARM64 APK checks verify independent engine/move panes during scrolling, stepping and endpoint holds, normal/large text, graph requests, rotation and short-window control access. Normal-font profiles show all four engine rows; constrained large text retains independent header scrolling. Earlier illustrations are host renders. Physical touch/tablet acceptance under [Preview #29](https://github.com/Dash1971/maia-chess-android-preview/issues/29) and Stable promotion remain separate.

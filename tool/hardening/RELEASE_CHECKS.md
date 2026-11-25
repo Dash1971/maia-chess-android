@@ -70,8 +70,8 @@ candidate source, run that unmodified block through the pinned official
 F-Droid buildserver's source scan and unsigned build. Stop if either fails or
 the recipe needs a local-only correction. Retain the metadata diff, commands,
 logs, source SHA, and pass result. Repeat after any release-source change.
-The repository-local `fdroid/` file is a review copy, not the bot's canonical
-input. After publication, separately verify the public developer APK against
+See [the canonical-metadata rule](../../docs/RELEASING.md#2-test-and-independently-reproduce-the-apk).
+After publication, separately verify the public developer APK against
 the F-Droid unsigned build and allowed signer.
 
 Before the final merge/tag, audit the entire tracked release tree, including

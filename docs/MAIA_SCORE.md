@@ -48,7 +48,7 @@ Temperature, Top-P, human timing and Stockfish quality do not set the percentage
 
 ## Verified model and references
 
-- Preview ONNX: 316,034,244 bytes, SHA-256
+- Bundled 79M ONNX: 316,034,244 bytes, SHA-256
   `3454b03ae78baa64a87b345fdb1a457265d912caec531039b074f07eda0d8010`.
 - `tool/export_maia3_onnx.py` names the model's second returned tensor
   `value_logits`, alongside `move_logits` and `ponder`.
@@ -71,9 +71,8 @@ bundled model offline, with no Stockfish-to-percentage conversion.
 Unit/widget tests cover normalization, perspective, corrupt responses, persistence,
 reset, rating/position invalidation and unchanged geometry in all ten languages
 at 200% text. `integration_test/maia_score_android_test.dart` checks the actual
-Preview 79M bridge, both ratings, typed gameplay compatibility, header details and
-native preference reload. These checks do not replace full exact-source Preview
-release qualification.
+79M bridge, both ratings, typed gameplay compatibility, header details and
+native preference reload. These checks supplement each channel's exact-source release qualification.
 
 The feature is included in Stable 2.5.0 and later; publication checks remain channel-specific.
 

@@ -13,15 +13,36 @@ asynchronous engine/storage work consistent across those parts.
 | `lib/src/session_model.dart` / repository/store parts | Saved-game/checkpoint serialization and recovery. |
 | `lib/src/pgn_analysis.dart` | Portable PGN evaluation/NAG annotations, restoration and analysis-free exports. |
 | `lib/src/chessnut.dart` / electronic-board parts | Connection ownership, board snapshots and game handoff. |
-| `android/app/src/main/kotlin/com/dash1971/maia_chess/MainActivity.kt` | Android platform channels for Maia/ONNX, document actions and sound. |
-| `android/app/src/main/kotlin/com/dash1971/maia_chess/ChessnutBridge.kt` | Bluetooth discovery, connection and device I/O. |
-| `android/app/src/main/kotlin/com/dash1971/maia_chess/ElectronicBoardProtocol.kt` | Board-family protocol/policy helpers. |
-| `android/app/src/main/kotlin/com/dash1971/maia_chess/PgnDocuments.kt` | Scoped Android PGN document I/O. |
 
-Dart requests native Maia inference over a platform channel; ONNX runs locally.
-Stockfish uses the pinned engine package. Bluetooth, PGN/sampling document
-operations and game sounds cross their dedicated Android bridge paths. Keep
-stale-result rejection and cancellation at the owning controller/session.
+## Android bridges
+
+All Kotlin files are under `android/app/src/main/kotlin/com/dash1971/maia_chess/`.
+
+| File | Responsibility |
+| --- | --- |
+| [MainActivity.kt](../android/app/src/main/kotlin/com/dash1971/maia_chess/MainActivity.kt) | Activity lifecycle, MaiaEngine/ONNX inference, engine channel and document-method routing. |
+| [ChessnutBridge.kt](../android/app/src/main/kotlin/com/dash1971/maia_chess/ChessnutBridge.kt) | Bluetooth discovery, permissions, connections, board I/O and events for supported boards. |
+| [ElectronicBoardProtocol.kt](../android/app/src/main/kotlin/com/dash1971/maia_chess/ElectronicBoardProtocol.kt) | Board-family protocol parsing and channel support policy. |
+| [PgnDocuments.kt](../android/app/src/main/kotlin/com/dash1971/maia_chess/PgnDocuments.kt) | PGN picker, scoped content-URI read/write and sharing. |
+| [SamplingDocuments.kt](../android/app/src/main/kotlin/com/dash1971/maia_chess/SamplingDocuments.kt) | Sampling report/JSONL save and share requests. |
+| [SamplingDocumentSnapshot.kt](../android/app/src/main/kotlin/com/dash1971/maia_chess/SamplingDocumentSnapshot.kt) | Temporary export snapshots surviving Activity recreation. |
+| [SamplingShareFiles.kt](../android/app/src/main/kotlin/com/dash1971/maia_chess/SamplingShareFiles.kt) | Bounded temporary sampling share-file retention. |
+| [SessionRecoveryPolicy.kt](../android/app/src/main/kotlin/com/dash1971/maia_chess/SessionRecoveryPolicy.kt) | Interpret Android process-exit reasons for recovery. |
+| [SoundEffectBridge.kt](../android/app/src/main/kotlin/com/dash1971/maia_chess/SoundEffectBridge.kt) | SoundPool lifecycle and game sound-effect requests. |
+| [DevDiagnostics.kt](../android/app/src/main/kotlin/com/dash1971/maia_chess/DevDiagnostics.kt) | Dev-only diagnostic method handling and local export. |
+| [DevTraceStore.kt](../android/app/src/main/kotlin/com/dash1971/maia_chess/DevTraceStore.kt) | Dev-only bounded local trace storage. |
+
+| Platform channel | Use |
+| --- | --- |
+| `maia_chess/engine` | Maia inference, PGN/sampling documents, recovery and diagnostics. |
+| `maia_chess/chessnut` | Electronic-board commands. |
+| `maia_chess/chessnut/events` | Electronic-board discovery, connection and position events. |
+| `maia_chess/sound_effect` | Game sound effects. |
+
+Stockfish runs through the pinned engine package. ONNX inference remains local.
+Reject stale results at the owning controller/session; preserve lifecycle and
+cancellation across asynchronous bridge calls. Dev diagnostic handlers remain
+disabled outside Dev even though their source is present.
 
 The [storage contract](session-storage.md) is authoritative before changing
 saved games or recovery. [Native board protocol](ELECTRONIC_BOARD_NATIVE_PROTOCOL.md)

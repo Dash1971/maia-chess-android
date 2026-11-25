@@ -92,6 +92,19 @@ and capture provenance, and check that the feature text uses the same labels.
 Do not retain an old Settings image merely because the underlying feature still
 exists. Keep accurate older game examples explicitly identified as such.
 
+Before source freeze, reconcile release-facing status in README, USER_GUIDE,
+release notes, BUILD_CHANNELS, PGN_ANALYSIS and the preparation record. Replace
+proposal/PR narration with the behavior of the version being released; remove
+draft-only text from the release body. Keep the published-download version and
+actual distribution status accurate until publication succeeds. Preserve dated
+evidence and mark it historical instead of rewriting its outcomes. All edits
+must be included in the frozen commit, before qualification.
+
+When merging the release PR, remove `[skip ci]` from its title and final merge
+message so the main push is checked. While builds/Actions remain unauthorized,
+keep the PR a draft with CI skipped. Removing a skip marker is not release
+approval; the exact-source manual qualification below is still required.
+
 Inspect the entire tracked tree for
 unintended archives, credentials, and private material, including research files.
 Never replace a published tag or APK; corrections need a new version/code.

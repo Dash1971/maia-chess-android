@@ -30,7 +30,7 @@ further hardware testing welcome. Pegasus stays withdrawn. Automatic diagnostics
 remain Dev-only. Camera/image recognition, its model and entry points stay absent.
 
 The release-driver improvements are already merged in Stable main (#85) and
-Preview (#270/#271). Preserve shared helpers and each channel's gates. The
+Preview ([Preview #270](https://github.com/Dash1971/maia-chess-android-preview/issues/270)/[Preview #271](https://github.com/Dash1971/maia-chess-android-preview/issues/271)). Preserve shared helpers and each channel's gates. The
 classification host fixture now takes the same four-argument Review callback as
 the promoted feature; this API adjustment now applies to Stable too. No new shared
 build/CI/cleanup behavior is introduced by the app promotion.
@@ -55,6 +55,43 @@ identified Stable 2.5 examples remain. This is not Stable APK qualification.
 The [user guide](USER_GUIDE.md) now holds detailed feature/install instructions;
 README is a short overview. [Documentation preparation](verification/stable-26-documentation-2026-11-25.md)
 records #87–#89, preserved links, extracted Zapstore/history guidance and cleanup.
+
+## Documentation review follow-up — 25 November
+
+The guide no longer describes the removed image-import placeholder or absent
+screenshots. Chessnut Pro testing coverage matches the README. Grand Kingdom and
+wide-layout workflows have their own sections; defaults are centralized and
+feature headings are peers. The architecture map identifies all eleven Kotlin
+files and the actual platform channels. Approved store/release wording is unchanged.
+
+The Android PGN-provider evidence is explicitly Preview beta.11 evidence, not a
+Stable pass. Pegasus is withdrawn in every column of the current support table;
+[Preview companion #278](https://github.com/Dash1971/maia-chess-android-preview/pull/278)
+corrects its matching table. Both PRs remain unmerged drafts. No application or
+shared operator-helper behavior changes. The expanded link test targets Stable's
+maintained documentation and website compatibility; its scanner also passes over
+Preview's maintained Markdown. Preview does not have this Stable manual/website
+contract, so no copy of the Stable-specific test or release-freeze instructions
+applies there. The existing eleven shared helpers remain identical.
+
+[Website #6](https://github.com/Dash1971/mobilemaia.org/pull/6) points directly to
+the user guide and privacy policy. Keep it a draft until the target pages exist
+on Stable main; it does not deploy or update the browser app. Related Stable
+issues are [#15](https://github.com/Dash1971/maia-chess-android/issues/15),
+[#74](https://github.com/Dash1971/maia-chess-android/issues/74) and
+[#77](https://github.com/Dash1971/maia-chess-android/issues/77).
+
+Remaining unambiguous historical verification, preparation and dependency-audit
+paths are deliberately retained with the history index. Further mass renaming is
+declined for this release to preserve existing references. Historical records are
+not current checklists. SECURITY links to the single maintained signing digest
+in VERIFY_DOWNLOAD instead of duplicating it. The F-Droid review-copy rule has
+one authority in RELEASING, linked from the detailed checks.
+
+Draft/published status is accurate for the current unmerged candidate. The
+release procedure now requires reconciling release-facing wording before source
+freeze and removing the CI-skip marker from the final merge title/message only
+when merging is authorized. It does not mark 2.6 published or enable Actions now.
 
 ## Verification and remaining gates
 

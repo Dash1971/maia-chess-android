@@ -54,7 +54,6 @@ adaptations. Remaining new labels are translated in all ten languages and still
 need native-speaker review. The metadata sheet owns its controllers through the
 route's reverse transition, preventing disposed-controller errors on dismissal.
 
-The Stable 2.6 draft preserves the manual editor and its validation while removing
-the disabled camera placeholder. No shared build/CI/cleanup helper is changed by
-the editor work. Stable release qualification remains separate from Preview
-evidence and draft PR verification.
+Stable 2.6 keeps the manual editor and removes the disabled camera placeholder.
+See the [release procedure](RELEASING.md) for Stable qualification; earlier
+Preview evidence applies only to its recorded artifacts.

@@ -1,11 +1,8 @@
 # PGN import and export
 
-Stable 2.6 draft: this behavior is promoted from Preview. The recorded tests,
-renders and APK qualification below describe Preview, not a newly qualified
-Stable build. Stable checks and changed screenshots remain pending.
-
-Implementation for [#225](https://github.com/Dash1971/maia-chess-android-preview/issues/225),
-published in [Preview 2.6.0-beta.3](https://github.com/Dash1971/maia-chess-android-preview/releases/tag/v2.6.0-beta.3). Stable promotion remains separate.
+Included in the Stable 2.6 source candidate; published in Preview beta.13.
+Stable 2.5.1 remains published. The Android results below qualify the recorded
+Preview APKs; exact-source Stable qualification remains pending.
 
 Long-press a game, or choose Select games from the Recent Games menu. Select one
 or more games, or use Select all. **Export games** opens the existing **Save PGN
@@ -159,7 +156,13 @@ collection behavior are historical, superseded by this follow-up.
 Host regression coverage includes a collection over 2 MiB, the 5 MiB boundary,
 UTF-8, fake boundaries inside comments/variations, invalid later games, atomic
 failure, active-game preservation and imported-record open/delete after restart.
-Android document-provider checks remain pending the beta.11 build phase.
+Preview beta.11 production-signed APK checks passed for Android document save/open,
+content-URI import, paste/share, cancellation, export/re-import duplicate checking,
+invalid/oversized input, retained selection, interrupted-import recovery and a
+10,000-game near-5-MiB import with progress and Recent games after restart.
+See [Preview qualification](https://github.com/Dash1971/maia-chess-android-preview/blob/main/docs/releases/preview-2.6.0-beta.11.md).
+These are ARM64 emulator results, not universal provider/OEM coverage or Stable
+APK qualification. Stable's exact-source checks remain pending.
 
 ## Interrupted imports and large collections
 

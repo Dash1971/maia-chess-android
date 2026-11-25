@@ -162,7 +162,7 @@ If a mismatch recurs on a level, calibrated board:
 | --- | --- | --- | --- |
 | Chessnut | Allowed | Allowed | Allowed |
 | Grand Kingdom | Supported | Supported | Supported in Stable 2.6; unknown packaging channels blocked |
-| DGT Pegasus | Blocked | Prototype, locked firmware unsupported | Blocked |
+| DGT Pegasus | Withdrawn | Withdrawn | Withdrawn |
 
 Dart event/candidate handling and native discovery, remembered-device connection,
 configuration, writes and motor methods enforce this boundary. Native motor
