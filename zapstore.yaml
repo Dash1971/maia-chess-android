@@ -5,19 +5,18 @@ match: '^Mobile-Maia-v[0-9]+\.[0-9]+\.[0-9]+\.apk$'
 name: Mobile Maia
 # Explicit Markdown: the Android store does not render Fastlane HTML.
 description: |
-  Mobile Maia is an offline chess app for Android using Maia-3 79M and Stockfish.
+  By Maia fans, for Maia fans. Mobile Maia is an offline chess app for Android using the latest Maia-3 79M engine and Stockfish.
 
   Choose a Maia rating from 600 to 2600 to play against and analyze human-like moves at different playing strengths.
 
-  **Features**
-
-  - Full-game analysis with evaluation graphs, accuracy scores and move annotations.
+  - Full-game analysis with evaluation graphs, accuracy scores and move annotations. (including brilliant moves!!)
   - Save analysis in PGN and restore it when reopening games.
-  - Import and export PGN collections up to 5 MiB, with duplicate checking.
-  - Choose whether to include analysis when saving, sharing or copying PGN.
+  - Import and export PGN collections, with or without analysis.
+  - Analysis board with opening names and multiple colored arrows to easily compare Stockfish and Maia analysis.
   - Edit positions, explore variations and continue playing from a chosen position.
-  - Adjust clocks, move variety and timing. Use takebacks and multiple premoves.
+  - Full set of Lichess time controls or choose a custom time control.
+  - Use takebacks, agree to draws, and stack chess.com style multiple premoves.
   - Phone and tablet layouts, ten languages, and customizable boards and themes.
-  - Untimed Bluetooth play with Chessnut Air, Go, Pro and Square Off Grand Kingdom.
+  - Bluetooth eboard play with Chessnut Air, Go, Pro and Square Off Grand Kingdom.
 
   Free and open source under AGPL-3.0-only. The Maia-3 79M model is included for offline use.
