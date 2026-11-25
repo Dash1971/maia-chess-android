@@ -67,7 +67,9 @@ files and the actual platform channels. Approved store/release wording is unchan
 The Android PGN-provider evidence is explicitly Preview beta.11 evidence, not a
 Stable pass. Pegasus is withdrawn in every column of the current support table;
 [Preview companion #278](https://github.com/Dash1971/maia-chess-android-preview/pull/278)
-corrects its matching table. Both PRs remain unmerged drafts. No application or workflow behavior changes.
+corrects its matching table and was merged on 25 November 2026 at
+`7765e015be6b8852a07af336b0d85aedeade2f56`. Stable #82 remains an unmerged
+draft. No application or workflow behavior changes.
 Both now automate the maintained-Markdown scan and its new-file discovery
 regression, with identical common helper definitions. Stable additionally keeps
 its website README-anchor compatibility test; Preview has no such website
