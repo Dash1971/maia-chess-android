@@ -1906,7 +1906,7 @@ void main() {
             ),
           ],
           onHome: () {},
-          onSessionChanged: (_, _, _) async {},
+          onSessionChanged: (_, _, _, _) async {},
           evaluator: (fen) async => fen == afterF3
               ? const StockfishReview(-250, 'e7e5')
               : const StockfishReview(0, 'e2e4'),
@@ -1964,7 +1964,7 @@ void main() {
           playerIsWhite: true,
           pgn: '[Result "*"]\n\n1. e4 e5 *',
           onHome: () {},
-          onSessionChanged: (_, _, variations) async {
+          onSessionChanged: (_, _, variations, _) async {
             savedTree = variations;
           },
           evaluator: (_) async => const StockfishReview(0, 'g1f3'),
@@ -2014,7 +2014,7 @@ void main() {
           initialTreeIsAuthoritative: true,
           initialCurrentFen: positions[1],
           onHome: () {},
-          onSessionChanged: (_, _, _) async {},
+          onSessionChanged: (_, _, _, _) async {},
           evaluator: (_) async => const StockfishReview(0, 'e2e4'),
           maiaEvaluator: (_, _) async => null,
         ),
@@ -2284,7 +2284,7 @@ void main() {
           ],
           initialCurrentFen: expectedHistory.last,
           onHome: () {},
-          onSessionChanged: (_, _, _) async {},
+          onSessionChanged: (_, _, _, _) async {},
           evaluator: (_) async => const StockfishReview(0, 'a2a3'),
           maiaEvaluator: (positions, _) async {
             histories.add(List.of(positions));
@@ -2968,7 +2968,7 @@ void main() {
             playerIsWhite: true,
             pgn: '[Result "*"]\n\n*',
             onHome: () {},
-            onSessionChanged: (_, _, variations) async {
+            onSessionChanged: (_, _, variations, _) async {
               saved = variations;
             },
             evaluator: (_) async => const StockfishReview(0, 'a2a3'),
@@ -3073,7 +3073,7 @@ void main() {
           ],
           onHome: () {},
           evaluator: (_) async => const StockfishReview(0, 'a2a3'),
-          onSessionChanged: (_, _, variations) async {
+          onSessionChanged: (_, _, variations, _) async {
             saved = variations;
           },
         ),
@@ -3113,7 +3113,7 @@ void main() {
           pgn: session.pgn,
           onHome: () {},
           evaluator: (_) async => const StockfishReview(0, 'a2a3'),
-          onSessionChanged: (_, _, variations) async {
+          onSessionChanged: (_, _, variations, _) async {
             saved = variations;
           },
         ),

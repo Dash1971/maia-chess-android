@@ -1,160 +1,64 @@
-# Mobile Maia release work
+# Mobile Maia Stable repository
 
-Before preparing, signing, tagging, or publishing a Stable release, read
-[`docs/RELEASING.md`](docs/RELEASING.md). That is the authoritative release
-procedure; follow its gates even for metadata-only releases.
+Read the workspace AGENTS.md as well as this file. This checkout is the Stable,
+blue-icon, unflavored `com.dash1971.maia_chess` app. Preview/Dev have separate
+identities and release procedures; tooling work does not authorize promotion.
 
-- Review upstream releases and security advisories at each Stable promotion;
-  the exact-source `dependencies` CI job must pass before publication. See
-  release-guide section 0 for coverage limits and upgrade decisions.
-- Freeze one full source commit, including accurate Fastlane metadata. A later
-  commit on `main` cannot repair an existing release tag.
-- Qualify that exact commit using GitHub CI and an independent Linux build with
-  the recipe inherited from **canonical F-Droid metadata**. The local `fdroid/`
-  directory is a review copy, not authority for the bot's recipe.
-- Run `tool/qualify_release.py` before publication. Do not turn missing evidence
-  into a pass, reuse evidence for another commit, or waive failed checks to
-  save time. Resolve failures or report the blocker to the user.
-- Never replace a published tag or APK. Fixes require a new version/code.
-- Keep signing secrets on the signing host. Preserve APK alignment when signing.
-- Report GitHub publication, F-Droid update detection, request/pipeline status,
-  and actual store publication separately. Never promise that a new tag alone
-  repairs an older failed F-Droid request.
-- A request to publish a Stable release includes the Zapstore update unless the
-  user explicitly limits the channels. Complete and verify the Zapstore step in
-  `docs/RELEASING.md` without waiting for a separate reminder or approval. A
-  build-only or PR-only request does not authorize publication.
-- Zapstore descriptions must use the explicit Markdown in `zapstore.yaml`, not
-  F-Droid's HTML. Run `tool/check_zapstore_metadata.py` with the release Python
-  environment. Verify Android-compatible formatting; the website rendering
-  HTML successfully is not evidence that the Android listing will look right.
-- Before replacing Zapstore app metadata, verify every proposed public image
-  with a full GET and image decode, and retain the current signed event and
-  working image references. Verify all actual media and rendered screenshots
-  immediately afterward. On failure, restore verified image references with a
-  metadata-only event immediately; pending release indexing is not a reason to
-  leave the live listing broken. Follow the media gate in docs/RELEASING.md.
-- Keep a per-channel release status record on GitHub. Do not call distribution
-  complete while Zapstore is unverified or F-Droid publication is pending. Own
-  the follow-up, record blockers and the next action, and report any user action
-  actually needed; do not make the user discover missing store updates.
-- Complete the post-release README/documentation pass in release-guide section 6:
-  current release links/notes, new-feature introductions, affected screenshots
-  and roadmap where appropriate. Prepare release/store content before freezing
-  source; later documentation does not change the published tag or APK. Do not
-  defer bulk cleanup until documentation merges.
-- Retain sanitized evidence on GitHub and clean up only this task's temporary
-  builds/containers. Preserve shared SDKs, caches, keys, and unrelated services.
+## Required references
 
-For historical context behind these rules, see the
-[F-Droid incident](docs/incidents/2026-10-03-fdroid-release.md) and
-[Zapstore delivery incident](docs/incidents/2026-10-27-zapstore-delivery.md).
-The current workflow is self-contained in `docs/RELEASING.md`; historical
-release investigation is not a routine publication prerequisite.
-Ordinary app changes still use the tests documented in `tool/hardening/README.md`.
+- [Contributing](CONTRIBUTING.md): setup, tests, translations and PR expectations.
+- [Documentation index](docs/README.md): user, architecture, design and records.
+- [Shared process](docs/SHARED_BUILD_PROCESS.md): ownership and counterpart review.
+  Read this before changing build, CI, verification or cleanup mechanics. Port
+  applicable changes with a linked companion, keep shared helpers identical,
+  test both and report merge states separately; explain intentional differences.
+- [Release procedure](docs/RELEASING.md): authoritative Stable gates, including
+  metadata-only releases. Read it before preparing, building, signing, tagging
+  or publishing a release. Do not waive missing or failed evidence. Preparation
+  and build requests do not authorize publication; never replace published
+  tags/APKs. Preserve canonical Linux and independent F-Droid reproduction,
+  exact-source security/model/native/upgrade checks and the established signer.
+- [Zapstore publication](docs/ZAPSTORE_PUBLISHING.md): the mandatory store step
+  when Stable publication is requested, unless explicitly excluded. Verify its
+  actual listing, media and advertised download; distinguish GitHub publication,
+  Zapstore verification, F-Droid detection/request/build and catalog publication.
+- [Operator setup](docs/RELEASE_TEST_SETUP.md): use the pinned complete Python
+  environment and existing bounded UI helpers; distinguish driver/environment
+  failures from app defects without turning unavailable evidence into a pass.
+- [Build workspace](docs/BUILD_WORKSPACE.md): authoritative disk budgets,
+  task-owned scratch, safe cleanup and evidence. Read it before builds or large
+  downloads. Reuse shared tools/caches; clean only task-owned bulk on every host
+  promptly, including on failure/cancellation, before task completion. Preserve
+  source, keys and others' active work; record removed paths and disk changes.
 
-## Translation terminology
+## Product and translation rules
 
-Mobile Maia follows Lichess as its baseline for clear, uncluttered chess UI/UX
-and free/open-source design philosophy. Shared terminology is part of that
-approach; Maia-specific capabilities retain their own meaning.
-
-Lichess is authoritative in **every supported language** where the chess concept
-or UI action has a direct equivalent. Read `docs/LICHESS_TERMINOLOGY.md` and use
-the pinned reference in `docs/lichess-terminology.json`. Preserve app-specific
-meaning and document context adaptations; do not blindly copy Lichess branding
-or change Mobile Maia's classification algorithms to match a translated label.
-Update related help/accessibility text as well as the visible label. Run
-`python3 tool/check_lichess_terminology.py`, the existing localization checks,
-and the localization widget tests after editing catalogs. New equivalent terms
-need a reference entry; unsupported upstream translations need a reasoned
-native-language fallback, not English.
-
-## Research publication
-
-Publish research reports, datasets and reproduction tools in the separate
-[Mobile Maia research repository](https://github.com/Dash1971/mobile-maia-research).
-Keep only brief decision summaries and links in app documentation. Do not add
-research bundles or datasets to application source or release distributions.
-
-## Shared build process
-
-Read `docs/SHARED_BUILD_PROCESS.md` when changing build, CI, verification or
-cleanup tooling. Assess the counterpart in Stable or Preview in the same task.
-Port applicable improvements with a linked companion PR; document a concrete
-reason for any intentional difference. Preserve channel-specific behavior and
-Stable's authoritative release gates. Shared tooling changes do not authorize
-an app promotion or publication.
-
-Before expensive qualification, follow `docs/RELEASE_TEST_SETUP.md` for the
-complete operator environment and host/emulator readiness checks. Reuse the
-checked-in bounded UI helper rather than rebuilding an ad hoc driver during
-publication. Distinguish driver/environment failures from app failures; retain
-diagnostics and rerun affected checks without waiving exact-source gates.
-
-## Release and workspace cleanup
-
-Read `docs/BUILD_WORKSPACE.md` before building or qualifying a release. Preserve
-the existing canonical Linux build and independent Linux reproduction process.
-Mac builds and ARM64 emulator checks remain supported without an additional
-authorization gate. Choose the host appropriate to the check and preserve all
-required qualification checks. The build wrappers enforce a minimum free-space
-check on both platforms.
-
-Keep bulk output in one task-owned scratch directory, outside the source
-checkout, created with `tool/build_workspace.py init`. Keep compact evidence
-separate. Reuse configured shared SDK/JDK/Flutter/Gradle/pub caches; do not
-clone toolchains or caches per release. Record the host, checkout, scratch,
-container and emulator ownership, disk budget and cleanup command before work.
-Check free space before large downloads and emulator creation as well as builds;
-reserve at least 10 GiB beyond expected growth and stop before that reserve is
-consumed. Mac builds require at least 25 GiB free at build start.
-
-Cleanup is part of release completion: immediately after verifying the actual
-published download and saving compact evidence, stop task-owned processes and
-run the documented cleanup command on every build/signing/test host. Do not
-defer bulk cleanup until a documentation PR merges. On failure or cancellation,
-retain diagnostics and clean abandoned bulk output before handoff; active work
-must have an explicit retention reason, owner and expiry. Never delete another
-chat's current build. Include before/after disk space, removed paths and any
-retained output with its reason/expiry in the release PR. Do not report a release
-task complete until cleanup is recorded or a concrete blocker is reported.
-
-Do not archive full model binaries per release. Remove model copies in generated
-output, APKs and scratch with that output. Preserve pinned Git LFS references
-and model checksums. Materialized models in a completed task-owned checkout can
-go when that checkout is safely retired; an active checkout or useful shared
-LFS cache is not disposable bulk output. The generic cleanup command protects
-tracked source assets rather than deleting them individually.
-
-After a verified publication, delete merged PR branches and temporary release-build
-branches once their source is preserved by a release tag and they have no unique
-unmerged commits. Do not delete active work, release tags or releases. Keep
-automatic deletion of merged branches enabled.
-
-Remove only task-owned build containers/checkouts, downloaded or reconstructed
-APKs, test virtual environments and emulator test data after retaining compact
-verification evidence and checking the published download. Stop task-owned
-emulators. Preserve shared SDK/Gradle caches, signing keys and other people's
-work. Record cleanup in the release PR, including anything intentionally retained.
-
-## Supported electronic boards
-
-Grand Kingdom is supported across Stable, Preview and Dev. Do not reintroduce
-a Preview/Dev-only support gate or experimental board labels. Hardware testing
-coverage is recorded separately. Grand Kingdom has passed user acceptance testing;
-do not revive superseded physical-acceptance checklists as release blockers.
-Preserve standard setup, assisted promotion,
+Grand Kingdom is supported across Stable, Preview and Dev and has **passed user
+acceptance testing**. Do not reintroduce experimental labels, channel gates or
+superseded physical-test blockers. Preserve standard setup, assisted promotion,
 current-session motor guards and phone recovery. Pegasus remains withdrawn.
+Automatic detailed diagnostics are Dev-only; preserve channel-specific features.
 
-## Documentation maintenance
+Lichess is the terminology baseline in every supported language for equivalent
+chess concepts. Read [the terminology guide](docs/l10n/LICHESS_TERMINOLOGY.md) and use
+its pinned reference. Preserve Maia-specific meaning, document adaptations,
+update help/accessibility and edit ARBs rather than generated Dart. Run the
+localization, terminology and relevant widget checks from Contributing. New
+equivalent terms need references; missing upstream terms need a reasoned native
+fallback rather than English. Do not change algorithms to match translated labels.
 
-After changing a feature or publishing a release, reconcile the affected living
-docs with the actual state: planned, implemented in source, published in Preview,
-or published in Stable. A merged PR is not a release. Keep genuine pending
-approvals and proposals explicit. Keep dated evidence as history, with an outcome
-banner or a link from current guidance; never turn an unperformed check into a pass.
-Use [the documentation index](docs/README.md) and the ownership rules in
-[SHARED_BUILD_PROCESS.md](docs/SHARED_BUILD_PROCESS.md). Preserve existing public
-anchors when moving guidance. Mandatory release and cleanup gates above remain
-in force; deduplication must not weaken them.
+## Documentation and research
+
+Keep living docs aligned with actual channel/version status. After a feature
+merges, replace stale proposal/PR narration with current behavior; a merge is not
+a publication. Keep real pending approvals explicit. Put dated verification,
+proposals and decisions in the history indexes and preserve their meaning and
+source/artifact limits. Do not rewrite an unperformed historical check as passed.
+Preserve public paths and anchors or leave forwarding links when moving detail.
+
+Publish research reports, datasets and reproduction tools in
+[Mobile Maia research](https://github.com/Dash1971/mobile-maia-research), keeping
+brief decisions/links in app docs. Do not add research bundles, private files,
+credentials or release archives to application source. Complete affected feature,
+README, release/store and screenshot documentation before source freeze; follow
+the release guide's final status and post-publication pass.

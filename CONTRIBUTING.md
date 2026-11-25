@@ -51,8 +51,8 @@ A debug run is not a release. APK publication follows this channel's
 
 ## Translations and pull requests
 
-Edit language ARBs, not generated Dart. Follow [localization review](docs/L10N_REVIEW.md),
-[native chess-player review](docs/NATIVE_REVIEW.md) and the pinned Lichess terminology.
+Edit language ARBs, not generated Dart. Follow [localization review](docs/l10n/L10N_REVIEW.md),
+[native chess-player review](docs/l10n/NATIVE_REVIEW.md) and the pinned Lichess terminology.
 Keep placeholders and ICU syntax; test changed layouts and request native review.
 
 Before opening a PR:

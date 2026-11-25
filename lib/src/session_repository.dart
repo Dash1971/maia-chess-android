@@ -826,6 +826,7 @@ class _RecentGamesPageState extends State<RecentGamesPage> {
   bool _busy = false;
   bool _updatingFiles = false;
   bool _exporting = false;
+  bool _includePgnAnalysis = true;
   final Set<String> _selected = {};
 
   @override
@@ -902,6 +903,7 @@ class _RecentGamesPageState extends State<RecentGamesPage> {
       final pgn = await RecentGamesPgn.export(
         ids,
         widget.readPgnForExport ?? ActiveSessionStore.readPgnForExport,
+        includeAnalysis: _includePgnAnalysis,
       );
       if (!mounted) return;
       await PgnFiles.export(
@@ -1072,6 +1074,11 @@ class _RecentGamesPageState extends State<RecentGamesPage> {
               icon: const Icon(Icons.ios_share_outlined),
               onSelected: (share) => unawaited(_exportSelected(share: share)),
               itemBuilder: (_) => [
+                PgnAnalysisExportOption<bool>(
+                  initialValue: _includePgnAnalysis,
+                  onChanged: (value) => _includePgnAnalysis = value,
+                ),
+                const PopupMenuDivider(),
                 PopupMenuItem(
                   value: false,
                   child: Text(l10n(context).savePgnFile),

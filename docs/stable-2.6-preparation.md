@@ -1,112 +1,84 @@
-# Stable 2.6 promotion draft
+# Stable 2.6 promotion preparation
 
-Prepared 22 November 2026. This draft proposes **2.6.0 / version code 84**. It does not build or publish an APK, run GitHub Actions, or update F-Droid/Zapstore. Stable 2.5.1 remains the published release.
+Updated **25 November 2026** for **2.6.0 / version code 84**.
+[Promotion #82](https://github.com/Dash1971/maia-chess-android/pull/82) is an unmerged
+draft. Published Stable remains **2.5.1**. Final Preview testing and release approval remain pending. This update performs no application builds,
+GitHub Actions, signing, tagging or publication.
 
-## Source and scope
+## Candidate source and scope
 
-- Original Stable base: `eac2e512e9a10cebc26f3c2f72675fae598a4908`. Updated against main at `af21c730f2b029b8068a1dc41c035ac9a4977207` after #81 merged on 22 November. The main merge changed no files in the promotion tree because its security changes were already included.
-- Preview promotion baseline: `e162a61e995452b748e5f85d710c6f7dab2ab24a`, the beta.10 publication/documentation head. Preview's exact APK source is `89097ac739fb83f08b14cc9c119d27c538870257`; its release evidence is not qualification of this Stable draft.
-- Promote the current app, localization, Android transport/document handling, and regression changes: adaptive layouts; independent engine/move panes; first/last holds; Recent games and Back behavior; matching 5 MiB PGN import/export and complete collection transfer; timing defaults; score visibility; interrupted-game/save recovery; same-open-Review analysis resume; Grand Kingdom assisted promotion and session-safe motor handling.
-- Enable Grand Kingdom in Dart and native Stable/unflavored policies. Keep unknown channels closed and withdraw DGT Pegasus from every channel. Preserve explicit setup, session guards, promotion confirmation and phone fallback.
-- Dev recording/export code remains gated by Dev in Dart and native code. Stable neither records nor exposes automatic Dev diagnostics.
-- Do not restore camera/image recognition or add its model, camera entry points, runtime or permissions.
+- Retain the existing Stable 2.6 promotion and [its documentation corrections](https://github.com/Dash1971/maia-chess-android/commit/6e19382e26773fae44ec35ec4944fa22a429a6f7).
+- Incorporate current Stable main `7a0f69c141c66e39be1183b3ad46f26158ff9299`, including merged shared release-driver improvements (#85) and the sampling documentation update (#86).
+- Promote the app behavior shipped in [Preview beta.13](https://github.com/Dash1971/maia-chess-android-preview/releases/tag/v2.6.0-beta.13), frozen APK source `f1b3c4fa94b2e8aef7aa75a0143ea43406f6495d`. Saved-analysis implementation and fixes come from [Preview #267](https://github.com/Dash1971/maia-chess-android-preview/pull/267), feature source `834a4c85844a0b8e8fe8457464f5f89fc7c1bf53`.
+- Completed White-perspective evaluations/mates and standard quality NAGs persist in PGN. Reopening restores graph/markings; explicit reanalysis replaces earlier scores and quality symbols on that line. Prose, clocks, variations and other positional annotations remain.
+- The existing export menu offers Include analysis for Save/Share/Copy and Recent games collections. Stripping affects only the exported copy and runs in a background worker. There is no new dialog, setting, database, dependency or permission.
+- Fully evaluated imports missing only their initial score restore the graph using one initial-position evaluation. Partial/malformed analysis remains readable without filling missing move scores. Existing generation/lifecycle checks reject stale work.
+- Retain the previously promoted adaptive layouts, independent engine/move panes, endpoint holds, compact Recent games, Back/list-position behavior, 5 MiB transfer/duplicates/progress, explicit import destinations, Home-save race fix, recovery, timing defaults and score controls.
 
-## Stable boundaries retained
+## Stable boundaries
 
-Preserve the unflavored `com.dash1971.maia_chess` package, Mobile Maia name, blue launcher artwork, established signer configuration, universal ABI set, exact 79M asset/hash and existing dependency lockfile. No Dev 5M model/default flavor or development signer is added.
+Preserve the unflavored `com.dash1971.maia_chess` package, Mobile Maia name, blue
+launcher, existing signing configuration, universal ABI set, exact 79M model and
+pinned dependency lockfile. No Preview/Dev identity, 5M shortcut or development
+signer is promoted. Stable native qualification still uses the full 79M numerical
+references.
 
-Keep Stable's release wrapper, source gate, dependency/audit job, canonical F-Droid reproduction/scans, combined qualification gate, legacy upgrade checks, explicit Zapstore Markdown, store publication procedure and store identities. Official Stable and Preview both use 79M. Stable Android qualification continues to require the full 79M numerical references.
+Grand Kingdom is **supported and has passed user acceptance testing**. Preserve
+standard-position/untimed setup, assisted promotion, current-session motor guards
+and phone recovery. Chessnut Air/Go are fully tested; Pro remains supported with
+further hardware testing welcome. Pegasus stays withdrawn. Automatic diagnostics
+remain Dev-only. Camera/image recognition, its model and entry points stay absent.
 
-The four mandatory workspace/cleanup helpers remain byte-identical to Preview. The Gradle 9.9.2 pin/checksum and verifier match current Preview and [Stable #81](https://github.com/Dash1971/maia-chess-android/pull/81), now merged into main. Those security files are no longer part of this promotion's diff against main. [#73](https://github.com/Dash1971/maia-chess-android/pull/73) is the older 9.9.1 pin. This promotion includes the later navigation behavior rather than independently applying the earlier, partial [#78](https://github.com/Dash1971/maia-chess-android/pull/78). No companion app promotion or publication is implied.
+The release-driver improvements are already merged in Stable main (#85) and
+Preview (#270/#271). Preserve shared helpers and each channel's gates. The
+classification host fixture now takes the same four-argument Review callback as
+the promoted feature; this API adjustment now applies to Stable too. No new shared
+build/CI/cleanup behavior is introduced by the app promotion.
 
-## Pre-build source review — 22 November 2026
+## Release material
 
-Review against Stable and current Preview found no additional app-code omissions
-or accidental behavior changes. Stable's 2.5.1 unsafe-position checks and their
-native/real-engine regressions remain in place. The independent analysis/move
-panes, endpoint holds, saved-game browsing position, selection cancellation,
-PGN transfer and Grand Kingdom session/promotion safeguards match the
-intended scope. Package, model, signing configuration and release gates remain
-unchanged outside the documented promotion adaptations.
+[Release notes](release-notes/v2.6.0.md), the version-84 Fastlane changelog, English
+store descriptions, Zapstore Markdown and README feature guidance must describe
+the same candidate. In particular, completed PGN evaluations/markings survive
+reopening; the older statement that all completed analysis is memory-only is
+superseded. Unfinished per-position analysis is still not a persistent report cache.
+Human timing defaults on for unset preferences, including upgrades; an explicitly
+saved off value stays off.
 
-Corrected stale guide text that still blocked Grand Kingdom, treated historical
-capture reports as a current release blocker, or described the manual editor as
-Preview-only. Historical dated release records remain intact. No app code or
-shared tooling changed during this review.
+Screenshot refresh is limited to Recent games, its import/collection-export menu
+and the Analysis Board export menu with Include analysis. These are unmodified
+captures from the published Preview beta.13 APK, with no visible Preview label.
+[Provenance](screenshots/20261125_v0_shared_2_6_provenance.md) records the APK/source,
+fixture data, device and image hashes. Home/About are excluded; other explicitly
+identified Stable 2.5 examples remain. This is not Stable APK qualification.
 
-All four files in #81 match this draft byte for byte. That focused security PR
-has now merged before this promotion; the updated promotion diff excludes its
-files. Its existing test and dependency jobs passed; Android was skipped. This
-promotion remains a draft and has not merged. Fresh Stable screenshots and
-exact-source runtime/release qualification remain pending; this source review
-does not replace them. Both the #81 merge and promotion update use CI-skip commit
-messages. No builds, Actions or LFS downloads were run.
+The [user guide](USER_GUIDE.md) now holds detailed feature/install instructions;
+README is a short overview. [Documentation preparation](verification/stable-26-documentation-2026-11-25.md)
+records #87–#89, preserved links, extracted Zapstore/history guidance and cleanup.
 
-## Prepared metadata and screenshots
+## Verification and remaining gates
 
-The draft includes [release notes](release-notes/v2.6.0.md), a version-84 Fastlane changelog, English store-description updates and matching Zapstore Markdown, plus README feature introductions. Download links continue to target the published release until publication.
+The promoted host suite passes 1,611 tests with one skipped; analyzer is clean.
+All ten catalogs pass localization/terminology checks (474 messages). The Python
+verification suite and new documentation link/fragment checks pass. Metadata and
+committed-source guards are checked with the final preparation commit. Existing Preview beta.13
+[qualification](https://github.com/Dash1971/maia-chess-android-preview/blob/main/docs/releases/preview-2.6.0-beta.13.md)
+includes real engine/model, upgrade, PGN persistence and transfer evidence; it is
+context for testing, not qualification of this Stable source.
 
-Existing Stable 2.5 screenshots remain identified by their actual version. Fresh Stable 2.6 screenshots for changed Home, landscape/Analysis controls, Recent games, timing defaults and Grand Kingdom setup are pending: the instruction not to build prevents new actual-APK captures in this task. Preview host illustrations remain labeled as such; they are not substituted for Stable screenshots. Refresh affected README/Fastlane media before the final source freeze.
+Before publication, follow [RELEASING.md](RELEASING.md):
 
-## Validation and publication boundary
+1. Obtain final testing approval; finish accurate metadata/media and freeze one full Stable source commit.
+2. Perform the fresh upstream/dependency review and exact-source Stable CI, Android build and required native/model checks.
+3. Independently reproduce with the current canonical F-Droid recipe and scans; require matching unsigned Linux APKs, then sign using the established Stable key.
+4. Verify signed 2.5.1 upgrade and game/settings/data preservation, changed-feature/runtime checks and the combined qualification gate.
+5. Publish and verify the immutable GitHub APK; complete Zapstore verification and separately track F-Droid detection, build/request and catalog publication.
+6. Retain compact evidence and clean all task-owned bulk promptly; finish the documentation/status pass.
 
-The initial source review checked identity/model/build-gate preservation, Preview parity with explicit Stable adaptations, channel policies, metadata/catalog/terminology consistency and the reviewed security pin. The review follow-up also ran the host Flutter regressions and analyzer listed below. Kotlin compilation, Android/runtime tests and release qualification remain pending; no APK build or Actions run was performed.
-
-Before publication, use [RELEASING.md](RELEASING.md): complete a fresh upstream/dependency review; confirm the canonical F-Droid recipe and version code; refresh changed screenshots; freeze the final source; run exact-source Stable CI/audit and independent Linux reproduction; verify full native/model/channel tests and signed Stable 2.5.1 upgrades/data retention; complete the combined gate and separately verify GitHub, F-Droid progress and Zapstore. Store publication and hardware/emulator evidence are distinct. Preview evidence remains useful context, not a replacement for these gates.
-
-[Preview beta.10 qualification](https://github.com/Dash1971/maia-chess-android-preview/blob/main/docs/releases/preview-2.6.0-beta.10.md) and the [Grand Kingdom acceptance record](ELECTRONIC_BOARD_GRAND_KINGDOM_26.md) retain the existing test scope and hardware feedback. Their dated untested scenarios remain recorded; they do not remove Grand Kingdom from the authorized Stable 2.6 scope.
-
-## Review follow-up and testing plan
-
-The follow-up adds matching 5 MiB UTF-8 import/export limits and complete
-collection import into Recent games. Single-game opening is unchanged. Whole
-collections are validated off-thread and staged before a single commit; failure
-must preserve the current game, recovery settings and existing records. Imported
-names/dates/annotations are retained, including after reopening and saving.
-PGN transfer does not copy app settings or live clock/motor session checkpoints.
-
-Individual-game and aggregate export-size errors are distinct. Bluetooth,
-permission and status messages are board-neutral in every language. The timing
-notes explicitly cover upgrades without a saved preference; saved off remains
-off. Selection-toolbar deletion and unfinished-game confirmation are intentional.
-
-Pegasus has been removed from Stable and all Preview/Dev flavors. The
-[support decision](decisions/2026-11-22-electronic-board-support.md) records the
-unresolved initialization permission separately from the GPL protocol reference.
-README tables show Air/Go fully tested, Pro supported but not fully tested,
-Grand Kingdom supported and partially tested, and Pegasus unsupported. Protocol
-attribution and the invitation for owners/manufacturers are included.
-
-The [Preview companion #261](https://github.com/Dash1971/maia-chess-android-preview/pull/261) carries the same changes for beta.11 testing (1,507 host tests passed, one skipped; 130 explicit Preview-flavor focused tests passed). Stable
-release approval remains pending that testing and its own exact-source release
-qualification. This task performs no Android build, Actions run or LFS download.
-
-## Initial review follow-up host verification
-
-Stable: 1,507 host tests passed, one skipped; the additional Dev board-policy suite passed 41 tests. Flutter analyze reports no issues. Localization/terminology, source gates, metadata consistency and unchanged workflow structure checks pass. Native policy regressions are updated but not compiled: the current Mac host has no JDK. These checks do not qualify an Android release.
-
-## Duplicate/progress follow-up
-
-Collection import now skips identical PGNs already saved or repeated in the file, keeps different annotations/metadata, and reports both counts. Progress feedback covers the operation. Startup cleanup removes only abandoned import staging and preserves live imports and normal checkpoints. The complete Recent games read/decode operation runs in a worker. See the [10,000-game host measurements](verification/pgn-collection-import-2026-11-22.md). Fastlane and matching Zapstore text now say Chessnut Pro is not fully tested. Preview has no store listing to port; both app sources, regressions, README/PGN guide and mandatory shared helpers stay aligned through Preview #261.
-
-## Final collection hardening host checks
-
-The updated full host suite passed **1,526 tests, one skipped**, in each repository. New regressions cover exact-content duplicates, metadata/annotation differences, readable backups, all-duplicate retry without writes, abandoned/live staging, progress transitions and ten-language compact/large-text feedback. The 10,000-game near-5-MiB fixture and repeat import pass in both repositories. Final localized checks also run under the official Preview flavor. The [measurement report](verification/pgn-collection-import-2026-11-22.md) records fixture scope, timings and pending device checks. No Android builds, Actions or LFS downloads.
-
-## Export/re-import correction
-
-Host regressions reproduced duplicate records after exporting/reimporting app-generated and imported PGNs. Duplicate keys now normalize supported content through the export serializer. Changed annotations and metadata stay separate; lossy serialization uses conservative original-text comparison. Ten new round-trip regressions and updated README/PGN guidance accompany the shared fix in Stable #82 and Preview #261. No Android builds, Actions or LFS downloads.
-
-Verification of the round-trip correction: 85 focused import/export checks passed in Stable, and all ten new regressions passed under the official Preview flavor. The complete remaining Stable host suite passed 1,535 tests with one skipped. The identical 10,000-game assertions passed separately in the instrumented diagnostic after a combined run exceeded the scale timeout on a loaded Mac. Both analyzers pass. These checks preserve the no-Android-build/no-Actions/no-LFS boundary and do not replace release qualification.
-
-## Parsing progress and delayed feedback
-
-Validation now reports progress from its worker after each complete game validates. The bar advances continuously through validation (first half) and duplicate checking/staged writes (second half). The visible dialog and dimming appear only after 300 ms, while the existing input/Back guard starts immediately; quick success or failure cancels delayed feedback. Failure and source disposal leave no late dialog or timer. Single-game opening, 5 MiB limits and duplicate rules are unchanged.
-
-Verification: 95 focused PGN regressions pass in Stable and 95 under the official Preview flavor, including ten new parsing/delay checks and all ten localized compact/large-text cases. Both analyzers are clean. The updated standalone 10,000-game / 5,240,000-byte regression passes, including intermediate ordered parsing updates (2,345 reports on this run), import/re-import and Recent games. No Android builds, Actions or LFS downloads. Shared app/test changes match the companion PR; mandatory workspace helpers and release identities/gates remain unchanged.
-
-## Supported Grand Kingdom policy
-
-Grand Kingdom is supported across Stable 2.6, Preview and Dev. The Dart and native policy and corresponding regressions now match in both source repositories. Current README/release/store wording and board controls use supported-device language; Grand Kingdom has passed user acceptance testing, as recorded in the acceptance notes. Standard-position/untimed setup, assisted promotion, current-session motor guards and phone recovery are unchanged. Historical published records are retained. No Android builds, Actions or LFS downloads.
-
-Verification: 108 board/discovery/promotion/wording host tests pass in each repository; three additional six-test runtime suites pass per repository, covering all four actual flavor configurations in total. Both analyzers are clean; 12 localization-checker tests pass in each repository and all 470 messages across ten catalogs satisfy the contracts. Native policy and native regression source are aligned; native/Android compilation remains pending. The stale scanned-position comment is also aligned. No Android builds, Actions or LFS downloads.
+Earlier source reviews and host runs are retained in Git history and the linked
+[PGN transfer](verification/pgn-import-entry-points-2026-11-23.md),
+[collection scale](verification/pgn-collection-import-2026-11-22.md) and
+[Grand Kingdom acceptance](ELECTRONIC_BOARD_GRAND_KINGDOM_26.md) records. Their older
+candidate hashes, CI-skip statements and pending work describe those dated tasks;
+they are not a current release qualification result or a reason to reopen passed
+Grand Kingdom acceptance.

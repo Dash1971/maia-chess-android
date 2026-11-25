@@ -174,6 +174,7 @@ class ReviewPage extends StatefulWidget {
     String currentFen,
     bool flipped,
     List<RecordedVariation> variations,
+    String pgn,
   )?
   onSessionChanged;
 
@@ -188,6 +189,9 @@ class _ReviewPageState extends State<ReviewPage>
 
   int _ply = 0;
   bool _showGraph = false;
+  bool _includePgnAnalysis = true;
+  List<String>? _analysisRootComments;
+  List<Map<String, dynamic>>? _analysisMainlineNotes;
   bool _engineEnabled = true;
   final Map<int, StockfishReview> _reviews = {};
   final Set<int> _loading = {};
@@ -202,6 +206,7 @@ class _ReviewPageState extends State<ReviewPage>
   int _fullAnalysisGeneration = 0;
   MoveClassificationJob? _classificationJob;
   List<StockfishReview>? _graphScores;
+  bool _pgnNeedsInitialScore = false;
   List<String> _graphPositions = const [];
   List<String> _graphMoves = const [];
   List<ClassifiedMove> _graphClassifications = const [];
@@ -325,6 +330,9 @@ class _ReviewPageState extends State<ReviewPage>
         if (!mounted || !_foreground || !_engineEnabled) return;
         if (_fullAnalysisRunning && generation == _fullAnalysisGeneration) {
           unawaited(_continueFullAnalysis());
+        }
+        if (_pgnNeedsInitialScore && !_fullAnalysisRunning) {
+          _restorePgnAnalysis();
         }
         if (_inVariation) {
           unawaited(_analyzeVariation());
@@ -516,6 +524,7 @@ class _ReviewPageState extends State<ReviewPage>
         _restoreCurrentFen(initialFen);
       });
     }
+    _restorePgnAnalysis();
     unawaited(_analyzePosition(0));
     unawaited(_analyzeConfiguredMaiaPosition(0));
   }
@@ -567,7 +576,15 @@ class _ReviewPageState extends State<ReviewPage>
       _sessionNotificationScheduled = false;
       if (!mounted) return;
       unawaited(
-        callback(_currentFen, _flipped, List.unmodifiable(_variations)),
+        callback(
+          _currentFen,
+          _flipped,
+          List.unmodifiable(_variations),
+          _exportReviewPgn(),
+        ).catchError((Object error, StackTrace stack) {
+          unawaited(AppDiagnostics.recordEvent('analysis-pgn-save-failed'));
+          _showAnalysisSaveFailed();
+        }),
       );
     });
   }
@@ -1656,6 +1673,7 @@ class _ReviewPageState extends State<ReviewPage>
     _pendingFullScores = null;
     _fullAnalysisClassifying = false;
     _graphScores = null;
+    _pgnNeedsInitialScore = false;
     _graphPositions = const [];
     _graphMoves = const [];
     _graphClassifications = const [];
@@ -1675,6 +1693,142 @@ class _ReviewPageState extends State<ReviewPage>
       if (unchanged) return;
     }
     _invalidateGraphAnalysisState();
+    _restorePgnAnalysis();
+  }
+
+  void _showAnalysisSaveFailed() {
+    if (!mounted) return;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(l10n(context).analysisSaveFailed)));
+  }
+
+  void _restorePgnAnalysis() {
+    try {
+      final line = _computerAnalysisLine;
+      final saved = PgnAnalysisAnnotations.read(
+        _exportReviewPgn(),
+        uciMoves: line.uciMoves,
+      );
+      _graphScores = saved.scores;
+      _graphClassifications = saved.classifications;
+      _graphPositions = line.positions;
+      _graphMoves = line.uciMoves;
+      _pgnNeedsInitialScore = saved.moveScores != null;
+      if (_pgnNeedsInitialScore && _engineEnabled && _foreground) {
+        unawaited(
+          _restorePgnInitialScore(
+            saved.moveScores!,
+            line,
+            _fullAnalysisGeneration,
+          ),
+        );
+      }
+    } on FormatException {
+      // A malformed annotation must never prevent opening the underlying game.
+    } on ArgumentError {
+      // Legacy/imported note data is optional.
+    }
+  }
+
+  Future<void> _restorePgnInitialScore(
+    List<StockfishReview> moveScores,
+    ComputerAnalysisLine line,
+    int generation,
+  ) async {
+    bool current() =>
+        mounted &&
+        _foreground &&
+        _engineEnabled &&
+        _pgnNeedsInitialScore &&
+        !_fullAnalysisRunning &&
+        generation == _fullAnalysisGeneration;
+    try {
+      // Let init/resume start its normal selected-position request first.
+      await Future<void>.value();
+      if (!current()) return;
+      final sameStart = line.positions.first == widget.positions.first;
+      if (sameStart) await _pendingAnalyses[0];
+      if (!current()) return;
+      final initial =
+          (sameStart ? _reviews[0] : null) ??
+          await (widget.evaluator?.call(line.positions.first) ??
+              _stockfish.evaluate(
+                line.positions.first,
+                scope: _batchScope,
+                background: true,
+                gameAnalysisQuality: widget.gameAnalysisQuality,
+              ));
+      if (!current()) return;
+      setState(() {
+        _graphScores = [initial, ...moveScores];
+        _pgnNeedsInitialScore = false;
+        _analysisError = null;
+      });
+    } on AnalysisCancelled {
+      // Lifecycle/engine changes retry on resume; line edits or explicit
+      // reanalysis invalidate this result using the existing generation.
+    } catch (error, stack) {
+      if (!current()) return;
+      unawaited(AppDiagnostics.record('pgn-initial-evaluation', error, stack));
+      setState(() => _analysisError = _ReviewAnalysisStatus.failed);
+    }
+  }
+
+  void _savePgnAnalysis(
+    List<StockfishReview> scores,
+    List<ClassifiedMove> marks,
+  ) {
+    try {
+      final line = _computerAnalysisLine;
+      final annotated = PgnAnalysisAnnotations.write(
+        _exportReviewPgn(),
+        scores: scores,
+        positions: line.positions,
+        uciMoves: line.uciMoves,
+        classifications: marks,
+      );
+      final parsed = dc.PgnGame.parsePgn(
+        annotated,
+        initHeaders: dc.PgnGame.emptyHeaders,
+      );
+      final notes = [
+        for (final node in parsed.moves.mainline().take(line.uciMoves.length))
+          <String, dynamic>{
+            if (node.comments != null) 'comments': node.comments,
+            if (node.startingComments != null)
+              'startingComments': node.startingComments,
+            if (node.nags != null) 'nags': node.nags,
+          },
+      ];
+      final root = _rootMainline;
+      setState(() {
+        _analysisRootComments = parsed.comments;
+        if (root == null) {
+          _analysisMainlineNotes = notes;
+        } else {
+          final updated = RecordedVariation(
+            basePly: root.basePly,
+            baseFen: root.baseFen,
+            sanMoves: root.sanMoves,
+            children: root.children,
+            annotations: notes,
+          );
+          _variations[_variations.indexOf(root)] = updated;
+          if (identical(_openedVariation, root)) {
+            _openedVariation = updated;
+          }
+        }
+      });
+      _notifySessionChanged();
+    } catch (_) {
+      unawaited(AppDiagnostics.recordEvent('analysis-pgn-save-failed'));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n(context).analysisSaveFailed)),
+        );
+      }
+    }
   }
 
   Future<void> _analyzeFullGame() async {
@@ -1684,6 +1838,7 @@ class _ReviewPageState extends State<ReviewPage>
       _pendingFullScores = [];
       _fullAnalysisClassifying = false;
       _graphScores = null;
+      _pgnNeedsInitialScore = false;
       _graphPositions = const [];
       _graphMoves = const [];
       _graphClassifications = const [];
@@ -1762,6 +1917,7 @@ class _ReviewPageState extends State<ReviewPage>
       _graphMoves = List.unmodifiable(line.uciMoves);
       _fullAnalysisClassifying = true;
     });
+    _savePgnAnalysis(scores, const []);
     try {
       var materialCache = <String, int>{};
       if (widget.evaluator == null && widget.classifier == null) {
@@ -1829,6 +1985,7 @@ class _ReviewPageState extends State<ReviewPage>
       }
       if (!mounted || generation != _fullAnalysisGeneration) return;
       setState(() => _graphClassifications = classifications);
+      _savePgnAnalysis(scores, classifications);
     } on MoveClassificationCancelled {
       // Stop, navigation, or a changed graph already owns the visible state.
     } catch (error, stackTrace) {
@@ -3038,10 +3195,18 @@ class _ReviewPageState extends State<ReviewPage>
     _rootMainline == null ? widget.sanMoves : const [],
     _variations,
     mainPositions: _rootMainline == null ? widget.positions : null,
+    mainAnnotations: _rootMainline == null ? _analysisMainlineNotes : null,
+    startingComments: _analysisRootComments,
   );
 
   Future<void> _copyPgn() async {
-    await Clipboard.setData(ClipboardData(text: _exportReviewPgn()));
+    await Clipboard.setData(
+      ClipboardData(
+        text: _includePgnAnalysis
+            ? _exportReviewPgn()
+            : await PgnFiles._withoutAnalysis(_exportReviewPgn()),
+      ),
+    );
     if (mounted) {
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text(l10n(context).pgnCopied)));
@@ -3096,6 +3261,7 @@ class _ReviewPageState extends State<ReviewPage>
       }
       return;
     }
+    if (_pgnNeedsInitialScore) _restorePgnAnalysis();
     if (_inVariation) {
       unawaited(_analyzeVariation());
     } else {
@@ -3523,16 +3689,30 @@ class _ReviewPageState extends State<ReviewPage>
             if (value == 'fen') await _copyFen();
             if (value == 'save') {
               if (context.mounted) {
-                await PgnFiles.export(context, _exportReviewPgn());
+                await PgnFiles.export(
+                  context,
+                  _exportReviewPgn(),
+                  includeAnalysis: _includePgnAnalysis,
+                );
               }
             }
             if (value == 'share') {
               if (context.mounted) {
-                await PgnFiles.export(context, _exportReviewPgn(), share: true);
+                await PgnFiles.export(
+                  context,
+                  _exportReviewPgn(),
+                  share: true,
+                  includeAnalysis: _includePgnAnalysis,
+                );
               }
             }
           },
           itemBuilder: (_) => [
+            PgnAnalysisExportOption<String>(
+              initialValue: _includePgnAnalysis,
+              onChanged: (value) => _includePgnAnalysis = value,
+            ),
+            const PopupMenuDivider(),
             PopupMenuItem(
               value: 'save',
               child: ListTile(

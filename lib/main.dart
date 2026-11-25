@@ -33,6 +33,7 @@ part 'src/engine_queue.dart';
 part 'src/session_repository.dart';
 part 'src/session_history.dart';
 part 'src/pgn_files.dart';
+part 'src/pgn_analysis.dart';
 
 part 'src/maia_queue.dart';
 part 'src/sampling_capture.dart';

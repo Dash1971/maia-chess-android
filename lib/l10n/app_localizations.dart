@@ -2949,6 +2949,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Only the first game was opened. To import all games, use Recent games → Import PGN.'**
   String get pgnFirstGameOnly;
+
+  /// Checkbox inside existing PGN Save/Share/Copy menus. Include saved evaluation comments and the six !/? move-quality symbols. Ordinary comments, clocks and variations remain in either export.
+  ///
+  /// In en, this message translates to:
+  /// **'Include analysis'**
+  String get includeAnalysisAnnotations;
+
+  /// Completed computer analysis could not be saved into the PGN; the existing saved game is preserved.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save analysis. The game is unchanged.'**
+  String get analysisSaveFailed;
 }
 
 class _AppLocalizationsDelegate

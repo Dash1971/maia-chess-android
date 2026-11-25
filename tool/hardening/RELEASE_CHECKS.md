@@ -156,7 +156,7 @@ variation fix, for example:
 
 ```sh
 python3 tool/verify_release_apk.py /path/to/corrected.apk \
-  --compare /path/to/beta17.apk \
+  --compare /path/to/previous.apk \
   --package com.dash1971.maia_chess \
   --allow-change lib/arm64-v8a/libapp.so \
   --output release-checks/code-change.json
@@ -284,7 +284,7 @@ candidate Stable source/APK as well as `integration_test/review_android_test.dar
 
 Use the unflavored Stable build (no `--flavor preview`/`dev`), retain the source
 SHA and logs, and separately verify the actual signed Stable APK and upgrade
-from the published 2.4.0 APK. Check appearance/system-color fallback and
+from the previous published Stable APK. Check appearance/system-color fallback and
 pure-black panels on that APK. Prior Preview tests do not qualify Stable.
 These feature checks supplement the existing release gates above.
 
@@ -298,19 +298,9 @@ deliberately feed the checkers corrupted/changed artifacts, missing notes,
 altered clocks, duplicate lines and unsuitable emulator properties so a broken
 checker cannot silently report success for those cases.
 
-The existing **Checks** workflow has a `build_android` input. Bind every release
-build to the exact intended source commit:
-
-```sh
-release_sha=$(git rev-parse YOUR_BRANCH)
-gh workflow run checks.yml --ref YOUR_BRANCH \
-  -f build_android=true \
-  -f expected_source_sha="$release_sha"
-```
-
-Confirm the completed run's `headSha` equals `release_sha`. The Android job
-also refuses to build when the checked-out commit differs from the supplied
-full SHA.
+Use the exact-source workflow dispatch and source-SHA verification in
+[release-guide section 1](../../docs/RELEASING.md#1-prepare-and-freeze-the-source).
+The Android job refuses a checkout that differs from the supplied full SHA.
 
 That job builds the unsigned APK, runs packaging verification, and uploads the
 build log/JSON diagnostics even after failure. Successful runs also retain the

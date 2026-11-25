@@ -11,6 +11,7 @@ asynchronous engine/storage work consistent across those parts.
 | `lib/src/analysis_board.dart` / `lib/src/review.dart` | Position/variation analysis and full-game review. |
 | `lib/src/board_editor.dart` | Manual placement/FEN editing and confirmed continuation. |
 | `lib/src/session_model.dart` / repository/store parts | Saved-game/checkpoint serialization and recovery. |
+| `lib/src/pgn_analysis.dart` | Portable PGN evaluation/NAG annotations, restoration and analysis-free exports. |
 | `lib/src/chessnut.dart` / electronic-board parts | Connection ownership, board snapshots and game handoff. |
 | `android/app/src/main/kotlin/com/dash1971/maia_chess/MainActivity.kt` | Android platform channels for Maia/ONNX, document actions and sound. |
 | `android/app/src/main/kotlin/com/dash1971/maia_chess/ChessnutBridge.kt` | Bluetooth discovery, connection and device I/O. |

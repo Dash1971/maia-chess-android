@@ -200,3 +200,15 @@ origin of those five records. Dates and annotations remain part of import
 identity; otherwise identical games with different dates are kept.
 
 See the [host verification record](verification/pgn-import-entry-points-2026-11-23.md).
+
+## Optional saved analysis — Stable 2.6 candidate
+
+The [saved-analysis feature](PGN_ANALYSIS.md) is included in the unmerged Stable
+2.6 promotion and already ships in Preview beta.13. **Include analysis**, checked
+by default above Save/Share in the selected-games export menu, controls saved
+evaluations and move-quality symbols in the exported copy. Unchecking removes
+those from each selected game before the combined 5 MiB check. Prose, clocks,
+variations and other positional annotations remain; stored games are unchanged.
+The single-game Save/Share/Copy menu offers the same option, with stripping in a
+background worker. Different annotations remain part of duplicate identity.
+Published Stable 2.5.1 does not gain this behavior until 2.6 is released.

@@ -138,7 +138,7 @@ void main() {
                 pgn: '*',
                 onHome: () {},
                 onSessionChanged: action == 'graph-invalidation'
-                    ? (_, _, _) async {}
+                    ? (_, _, _, _) async {}
                     : null,
                 evaluator: (_) async => reviews.first,
                 maiaEvaluator: (_, _) async => null,

@@ -1,10 +1,9 @@
 2.6.0
 
-- Grand Kingdom support with assisted Maia promotion.
-- Larger landscape boards and independent analysis/move panes.
-- Clearer Recent games; Back preserves your browsing position.
-- Import/export PGN collections (5 MiB each).
-- Safer interrupted-game and damaged-save recovery.
-- Resume unfinished analysis when returning to the same Review.
-- Human move timing defaults on when unset; saved off stays off.
-- Retired Pegasus prototype removed.
+- Grand Kingdom support with assisted promotion.
+- Save analysis in PGN; restore graphs and move markings on reopen.
+- Include analysis option for Save, Share and Copy.
+- Larger landscape boards; independent analysis/move panes.
+- Improved Recent games, Back behavior and 5 MiB PGN collection transfer.
+- Safer saves and recovery.
+- Human move timing defaults on; explicitly saved off stays off.

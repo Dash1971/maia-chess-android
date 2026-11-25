@@ -98,6 +98,22 @@ They cannot make already released older apps safe downgrade targets. Support
 upgrades and restoration of supported old formats; do not promise arbitrary
 downgrades or preservation of metadata by old app versions.
 
+## Saved analysis in the Stable 2.6 candidate
+
+Completed full-game evaluations and quality NAGs are stored in the same PGN and
+game/session identity. Root comments and main-line move annotations survive the
+Review callback and existing save/export paths; no analysis database or sidecar
+is introduced. Reopening reconstructs the graph from annotations. An import
+missing only the initial score can obtain that score without rewriting its
+existing annotations or running full analysis. Partial analysis work is not a
+persistent per-position cache.
+
+Analysis-free Save/Share/Copy changes only the outgoing copy, not the record.
+Evaluation and move-symbol changes remain part of PGN duplicate identity. See
+[PGN analysis behavior](PGN_ANALYSIS.md). Regressions cover existing-record
+persistence/restoration, classification cancellation, storage failure and
+unchanged source during large background-copy exports.
+
 ## Required regression coverage
 
 | Contract | Checked-in tests |

@@ -1728,4 +1728,11 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get pgnFirstGameOnly =>
       'Apenas a primeira partida foi aberta. Para importar todas as partidas, use Partidas recentes → Importar PGN.';
+
+  @override
+  String get includeAnalysisAnnotations => 'Incluir análise';
+
+  @override
+  String get analysisSaveFailed =>
+      'Não foi possível salvar a análise. A partida não foi alterada.';
 }

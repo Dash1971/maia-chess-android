@@ -471,5 +471,7 @@
   "pgnImportProgress": "Importando partidas…",
   "pgnCollectionImportSummary": "{imported, plural, one{{imported} partida importada} other{{imported} partidas importadas}} · {duplicates, plural, one{{duplicates} duplicata ignorada} other{{duplicates} duplicatas ignoradas}}",
   "recentImportGames": "Importar PGN",
-  "pgnFirstGameOnly": "Apenas a primeira partida foi aberta. Para importar todas as partidas, use Partidas recentes → Importar PGN."
+  "pgnFirstGameOnly": "Apenas a primeira partida foi aberta. Para importar todas as partidas, use Partidas recentes → Importar PGN.",
+  "includeAnalysisAnnotations": "Incluir análise",
+  "analysisSaveFailed": "Não foi possível salvar a análise. A partida não foi alterada."
 }

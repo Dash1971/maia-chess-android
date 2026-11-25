@@ -672,26 +672,33 @@ class _AnalysisBoardPageState extends State<AnalysisBoardPage> {
     );
   }
 
+  String? _persistedPgn;
+
   Future<void> _saveAnalysisState(
     String currentFen,
     bool flipped,
-    List<RecordedVariation> variations,
-  ) => ActiveSessionStore.save({
-    'type': 'analysis',
-    'treeIsAuthoritative': true,
-    'session': _session.toJson(),
-    'variations': variations.map((item) => item.toJson()).toList(),
-    'currentFen': currentFen,
-    'flipped': flipped,
-    'maiaElo': widget.maiaElo,
-    'maiaUseMoveHistory': widget.useMoveHistory,
-    'historyPrefix': _revision == 0 ? widget.historyPrefix : const <String>[],
-    if (widget.secondMaiaElo != null) 'secondMaiaElo': widget.secondMaiaElo,
-  });
+    List<RecordedVariation> variations, [
+    String? pgn,
+  ]) {
+    if (pgn != null) _persistedPgn = pgn;
+    return ActiveSessionStore.save({
+      'type': 'analysis',
+      'treeIsAuthoritative': true,
+      'session': {..._session.toJson(), 'pgn': _persistedPgn ?? _session.pgn},
+      'variations': variations.map((item) => item.toJson()).toList(),
+      'currentFen': currentFen,
+      'flipped': flipped,
+      'maiaElo': widget.maiaElo,
+      'maiaUseMoveHistory': widget.useMoveHistory,
+      'historyPrefix': _revision == 0 ? widget.historyPrefix : const <String>[],
+      if (widget.secondMaiaElo != null) 'secondMaiaElo': widget.secondMaiaElo,
+    });
+  }
 
   void _replace(AnalysisSession session) {
     setState(() {
       _session = session;
+      _persistedPgn = null;
       _initialVariations = PgnVariationExporter.parseTree(session.pgn);
       _initialCurrentFen = session.positions.first;
       _initialFlipped = false;

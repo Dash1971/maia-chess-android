@@ -200,6 +200,7 @@ class _GamePageState extends State<GamePage>
   final List<ClockSnapshot?> _clockHistory = [];
   final List<Map<String, dynamic>> _mainlineAnnotations = [];
   List<String>? _pgnComments;
+  bool _includePgnAnalysis = true;
   int _gameGeneration = 0;
   bool _reviewOpen = false;
   List<RecordedVariation>? _reviewVariationSnapshot;
@@ -597,13 +598,14 @@ class _GamePageState extends State<GamePage>
                     gameAnalysisQuality: _gameAnalysisQuality,
                     initialCurrentFen: saved['currentFen'] as String?,
                     initialFlipped: saved['flipped'] as bool? ?? false,
-                    onSessionChanged: (fen, flipped, updated) =>
+                    onSessionChanged: (fen, flipped, updated, pgn) =>
                         _handleReviewSessionChanged(
                           session,
                           saved['playerIsWhite'] as bool? ?? true,
                           fen,
                           flipped,
                           updated,
+                          pgn,
                         ),
                     onHome: _started ? _goHome : ActiveSessionStore.clear,
                     returnToGame: _started && !_gameFinished,
@@ -1000,12 +1002,13 @@ class _GamePageState extends State<GamePage>
     bool playerIsWhite,
     String currentFen,
     bool flipped,
-    List<RecordedVariation> variations,
-  ) => ActiveSessionStore.save({
+    List<RecordedVariation> variations, [
+    String? pgn,
+  ]) => ActiveSessionStore.save({
     'type': 'review',
     'treeIsAuthoritative': true,
     if (_started) 'activeGame': _gameSnapshot(),
-    'session': session.toJson(),
+    'session': {...session.toJson(), 'pgn': pgn ?? session.pgn},
     'variations': variations.map((item) => item.toJson()).toList(),
     'currentFen': currentFen,
     'flipped': flipped,
@@ -1021,8 +1024,15 @@ class _GamePageState extends State<GamePage>
     bool playerIsWhite,
     String currentFen,
     bool flipped,
-    List<RecordedVariation> variations,
-  ) {
+    List<RecordedVariation> variations, [
+    String? pgn,
+  ]) {
+    if (pgn != null) {
+      _pgnComments = dc.PgnGame.parsePgn(
+        pgn,
+        initHeaders: dc.PgnGame.emptyHeaders,
+      ).comments;
+    }
     final previous = _reviewVariationSnapshot;
     var variationsChanged =
         previous == null || previous.length != variations.length;
@@ -1062,6 +1072,7 @@ class _GamePageState extends State<GamePage>
       currentFen,
       flipped,
       variations,
+      pgn,
     );
   }
 
@@ -4075,7 +4086,13 @@ class _GamePageState extends State<GamePage>
   }
 
   Future<void> _copyPgn() async {
-    await Clipboard.setData(ClipboardData(text: _exportPgn()));
+    await Clipboard.setData(
+      ClipboardData(
+        text: _includePgnAnalysis
+            ? _exportPgn()
+            : await PgnFiles._withoutAnalysis(_exportPgn()),
+      ),
+    );
     if (mounted) {
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text(l10n(context).pgnCopied)));
@@ -4277,13 +4294,14 @@ class _GamePageState extends State<GamePage>
           initialCurrentFen: session.positions.last,
           title: l10n(context).analysisBoard,
           returnToGame: !_gameFinished,
-          onSessionChanged: (fen, flipped, variations) =>
+          onSessionChanged: (fen, flipped, variations, pgn) =>
               _handleReviewSessionChanged(
                 session,
                 _playerIsWhite,
                 fen,
                 flipped,
                 variations,
+                pgn,
               ),
           onHome: _goHome,
         ),
@@ -4393,16 +4411,30 @@ class _GamePageState extends State<GamePage>
               if (value == 'fen') await _copyCurrentFen();
               if (value == 'save') {
                 if (context.mounted) {
-                  await PgnFiles.export(context, _exportPgn());
+                  await PgnFiles.export(
+                    context,
+                    _exportPgn(),
+                    includeAnalysis: _includePgnAnalysis,
+                  );
                 }
               }
               if (value == 'share') {
                 if (context.mounted) {
-                  await PgnFiles.export(context, _exportPgn(), share: true);
+                  await PgnFiles.export(
+                    context,
+                    _exportPgn(),
+                    share: true,
+                    includeAnalysis: _includePgnAnalysis,
+                  );
                 }
               }
             },
             itemBuilder: (_) => [
+              PgnAnalysisExportOption<String>(
+                initialValue: _includePgnAnalysis,
+                onChanged: (value) => _includePgnAnalysis = value,
+              ),
+              const PopupMenuDivider(),
               PopupMenuItem(
                 value: 'save',
                 child: ListTile(

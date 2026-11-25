@@ -1586,4 +1586,10 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String get pgnFirstGameOnly =>
       '最初の対局のみを開きました。すべての対局をインポートするには、最近の対局 → PGN をインポートを選んでください。';
+
+  @override
+  String get includeAnalysisAnnotations => '解析を含める';
+
+  @override
+  String get analysisSaveFailed => '解析を保存できませんでした。対局は変更されていません。';
 }

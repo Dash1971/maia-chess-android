@@ -89,7 +89,7 @@ void main() {
               sanMoves: game.sanMoves,
               pgn: game.pgn,
               initialCurrentFen: game.positions[initialPly],
-              onSessionChanged: editable ? (_, _, _) async {} : null,
+              onSessionChanged: editable ? (_, _, _, _) async {} : null,
               playerIsWhite: true,
               maiaElo: 1600,
               secondMaiaElo: 2600,

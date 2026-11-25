@@ -1725,4 +1725,11 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get pgnFirstGameOnly =>
       'Nur die erste Partie wurde geöffnet. Um alle Partien zu importieren, wähle Neueste Partien → PGN importieren.';
+
+  @override
+  String get includeAnalysisAnnotations => 'Analyse einschließen';
+
+  @override
+  String get analysisSaveFailed =>
+      'Die Analyse konnte nicht gespeichert werden. Die Partie ist unverändert.';
 }

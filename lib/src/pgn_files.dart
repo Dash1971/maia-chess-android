@@ -23,8 +23,11 @@ class PgnFiles {
     String pgn, {
     bool share = false,
     String? failureMessage,
+    bool includeAnalysis = true,
   }) async {
     try {
+      if (!includeAnalysis) pgn = await _withoutAnalysis(pgn);
+      if (!context.mounted) return;
       final saved = await maiaEngineChannel.invokeMethod<Object>(
         share ? 'sharePgn' : 'savePgnFile',
         {'pgn': pgn, if (share) 'shareTitle': l10n(context).sharePgn},
@@ -44,6 +47,9 @@ class PgnFiles {
       }
     }
   }
+
+  static Future<String> _withoutAnalysis(String pgn) =>
+      Isolate.run(() => PgnAnalysisAnnotations.withoutAnalysis(pgn));
 
   static Future<AnalysisSession?> importText(
     BuildContext context,
@@ -371,8 +377,9 @@ class RecentGamesPgn {
 
   static Future<String> export(
     List<String> orderedIds,
-    Future<String?> Function(String id) readPgn,
-  ) async {
+    Future<String?> Function(String id) readPgn, {
+    bool includeAnalysis = true,
+  }) async {
     if (orderedIds.isEmpty || orderedIds.toSet().length != orderedIds.length) {
       throw const FormatException(
         'Expected a nonempty selection of unique games.',
@@ -391,7 +398,9 @@ class RecentGamesPgn {
           utf8.encode(source).length > AnalysisSession.maxPgnBytes) {
         throw const PgnExportGameTooLarge();
       }
-      final game = await Isolate.run(() => _singleGame(source));
+      final game = await Isolate.run(
+        () => _singleGame(source, includeAnalysis: includeAnalysis),
+      );
       final gameBytes = utf8.encode(game).length;
       if (gameBytes > maxBytes) throw const PgnExportGameTooLarge();
       bytes += gameBytes;
@@ -401,12 +410,13 @@ class RecentGamesPgn {
     return output.toString();
   }
 
-  static String _singleGame(String source) {
+  static String _singleGame(String source, {bool includeAnalysis = true}) {
     final text = source.trim();
     _validateSingleGame(text);
     // Existing parser checks tokens, starting position and every variation,
     // preserving supported headers, comments, NAGs, clocks and branch structure.
-    return '${AnalysisSession.fromPgn(text).pgn}\n\n';
+    final normalized = AnalysisSession.fromPgn(text).pgn;
+    return '${includeAnalysis ? normalized : PgnAnalysisAnnotations.withoutAnalysis(normalized)}\n\n';
   }
 
   static void _validateSingleGame(String text) {

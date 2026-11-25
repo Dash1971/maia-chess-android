@@ -1698,4 +1698,11 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get pgnFirstGameOnly =>
       'Only the first game was opened. To import all games, use Recent games → Import PGN.';
+
+  @override
+  String get includeAnalysisAnnotations => 'Include analysis';
+
+  @override
+  String get analysisSaveFailed =>
+      'Could not save analysis. The game is unchanged.';
 }
