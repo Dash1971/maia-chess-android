@@ -1,4 +1,4 @@
-"""Stable documentation paths and public website fragment compatibility."""
+"""Repository Markdown links and public fragment compatibility."""
 
 from pathlib import Path
 import re
