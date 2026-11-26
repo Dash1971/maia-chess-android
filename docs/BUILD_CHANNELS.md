@@ -9,6 +9,14 @@ and publication records; use the release links for the actual published versions
 | Preview | [Current Preview and Dev status](https://github.com/Dash1971/maia-chess-android-preview/blob/main/docs/BUILD_CHANNELS.md) | Gold icon; 79M | Preview owns its current version, testing scope and release history. |
 | Dev | [Dev releases](https://github.com/Dash1971/maia-chess-android-preview-dev/releases) | `com.dash1971.maia_chess.preview.dev`, red icon, 5M | Canonical Preview source, separate Dev procedure; automatic detailed diagnostics remain Dev-only. |
 
+## Stable 2.6.0 distribution — November 26, 2026
+
+- [GitHub 2.6.0](https://github.com/Dash1971/maia-chess-android/releases/tag/v2.6.0): published; the public APK was downloaded and verified on two hosts.
+- [Zapstore](https://zapstore.dev/apps/com.dash1971.maia_chess): 2.6.0 published; signed events, website, screenshots and advertised APK verified.
+- [F-Droid](https://f-droid.org/packages/com.dash1971.maia_chess/): local official update detection finds code 84 and the published APK passes official binary comparison. The public catalog still lists 2.5.1 / code 83 at 07:20 UTC; upstream build/catalog publication is pending.
+
+See the [qualification and distribution record](release-notes/v2.6.0-verification.md).
+
 ## Current source policy
 
 Chessnut and Grand Kingdom are the only supported board families. Pegasus is

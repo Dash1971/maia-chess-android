@@ -46,7 +46,7 @@ record version-specific changes.
 
 ## Mobile Maia 2.6
 
-Mobile Maia 2.6 brings the features tested in Preview beta.13 to Stable.
+[Stable 2.6.0](https://github.com/Dash1971/maia-chess-android/releases/tag/v2.6.0) is published on GitHub and Zapstore. F-Droid’s catalog update is pending as of November 26, 2026. It brings the features tested in Preview beta.13 to Stable.
 
 - Grand Kingdom support, including assisted Maia promotion; passed user acceptance testing.
 - Saved PGN evaluations and move markings, restored when reopening games.
