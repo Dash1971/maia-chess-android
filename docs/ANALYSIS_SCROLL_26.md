@@ -1,8 +1,8 @@
 # Fixed engine analysis and independent moves for 2.6
 
-Stable 2.6 draft: this behavior is promoted from Preview. The recorded tests,
-renders and APK qualification below describe Preview, not a newly qualified
-Stable build. Shared-screen screenshots are recorded separately; exact-source Stable checks remain pending.
+Included in Mobile Maia 2.6. Dated tests, renders and APK qualification below
+refer to their recorded Preview artifacts. Stable has separate exact-source
+qualification under [the release procedure](RELEASING.md).
 
 Scrolling the move list, stepping through moves, or holding Back/Forward keeps
 the engine analysis in view. The board, analysis header, and navigation controls

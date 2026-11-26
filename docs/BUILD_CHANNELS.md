@@ -1,13 +1,13 @@
 # Build channels and promotion status
 
-Updated 25 November 2026. Stable 2.6 is a draft candidate; the published
-Stable release remains 2.5.1. Published artifacts and pending source are separate.
+This checkout is Stable **2.6.0 / code 84**. Channels have separate packages
+and publication records; use the release links for the actual published versions.
 
-| Channel | Published release | Package / model | Pending source scope |
+| Channel | Published release | Package / model | Source policy |
 | --- | --- | --- | --- |
-| Stable | [2.5.1 / code 83](https://github.com/Dash1971/maia-chess-android/releases/tag/v2.5.1) | `com.dash1971.maia_chess`, blue icon, 79M | Draft 2.6.0 / code 84 promotion, including Grand Kingdom, PGN transfer and Pegasus withdrawal. |
-| Preview | [Current published Preview and Dev status](https://github.com/Dash1971/maia-chess-android-preview/blob/main/docs/BUILD_CHANNELS.md) | Gold icon; 79M | Preview owns its current version, testing scope and release history. |
-| Dev | [2.6.0-alpha.2-dev](https://github.com/Dash1971/maia-chess-android-preview-dev/releases) | `com.dash1971.maia_chess.preview.dev`, red icon, 5M | Uses canonical Preview source; Pegasus is withdrawn from future builds. Automatic diagnostics remain Dev-only. |
+| Stable | [Published Stable releases](https://github.com/Dash1971/maia-chess-android/releases/latest) | `com.dash1971.maia_chess`, blue icon, 79M | 2.6.0 / code 84; full Stable release procedure. |
+| Preview | [Current Preview and Dev status](https://github.com/Dash1971/maia-chess-android-preview/blob/main/docs/BUILD_CHANNELS.md) | Gold icon; 79M | Preview owns its current version, testing scope and release history. |
+| Dev | [Dev releases](https://github.com/Dash1971/maia-chess-android-preview-dev/releases) | `com.dash1971.maia_chess.preview.dev`, red icon, 5M | Canonical Preview source, separate Dev procedure; automatic detailed diagnostics remain Dev-only. |
 
 ## Current source policy
 
@@ -37,19 +37,17 @@ their existing routing.
 - [Stable release procedure](https://github.com/Dash1971/maia-chess-android/blob/main/docs/RELEASING.md): exact-source qualification, canonical F-Droid reproduction, signed upgrade checks and separate GitHub/F-Droid/Zapstore delivery status.
 - [Preview/Dev release procedure](https://github.com/Dash1971/maia-chess-android-preview/blob/main/docs/RELEASING.md): preserve each channel's model, identity, native/upgrade checks and release gates.
 
-Stable release approval remains pending final Preview testing and Stable's
-own exact-source qualification. No Android build, Actions run or LFS download is part of
-this follow-up. Older published APKs/tags remain unchanged.
+Source promotion does not publish an APK. Stable publication requires its own
+exact-source CI, independent Linux/F-Droid reproduction, signed-upgrade and
+store checks. Earlier published APKs and tags are immutable.
 
-## Saved analysis promotion for Stable 2.6
+## Saved analysis in Mobile Maia 2.6
 
-The unmerged Stable 2.6 candidate includes the saved-analysis behavior shipped in
-Preview beta.13: PGN evaluations/markings, graph restoration, initial-score-only
-recovery for compatible imports, and Include analysis in existing export menus.
-It uses existing game records and preserves Stable's identity, universal ABIs,
-79M model and full release gates. See [promotion preparation](stable-2.6-preparation.md)
-and [feature behavior](PGN_ANALYSIS.md). Stable 2.5.1 is still published; this
-source update does not publish 2.6 or run application builds/Actions.
+Mobile Maia 2.6 includes PGN evaluations/markings, graph restoration,
+initial-score-only recovery for compatible imports, and Include analysis in
+existing export menus. It uses existing game records and preserves Stable's
+identity, universal ABIs and 79M model. See [feature behavior](PGN_ANALYSIS.md)
+and the dated [preparation record](stable-2.6-preparation.md).
 
 ## Historical channel records
 

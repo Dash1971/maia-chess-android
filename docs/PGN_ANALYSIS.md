@@ -1,9 +1,8 @@
 # Saved analysis in PGN
 
-Prepared for [Stable 2.6 promotion #82](https://github.com/Dash1971/maia-chess-android/pull/82).
-This feature ships in [Preview beta.13](https://github.com/Dash1971/maia-chess-android-preview/releases/tag/v2.6.0-beta.13)
-and is included in this unmerged Stable candidate. Published Stable 2.5.1 is
-unchanged. Scope and implementation originated in [Preview #61](https://github.com/Dash1971/maia-chess-android-preview/issues/61)
+Mobile Maia 2.6 saves evaluations and move-quality annotations in PGN. This
+behavior was introduced in [Preview beta.13](https://github.com/Dash1971/maia-chess-android-preview/releases/tag/v2.6.0-beta.13).
+Scope and implementation originated in [Preview #61](https://github.com/Dash1971/maia-chess-android-preview/issues/61)
 and [#267](https://github.com/Dash1971/maia-chess-android-preview/pull/267).
 
 Run Computer analysis as usual. Once every position has been evaluated, Mobile
@@ -85,4 +84,4 @@ after reanalysis/disposal and responsive Copy PGN on both screens with a PGN ove
 2 MiB. The Copy tests detect the original synchronous stripping behavior.
 
 Host checks do not replace installed Android save/share and upgrade testing before
-publication. This preparation update runs no application builds or GitHub Actions.
+publication. Installed checks and exact-source qualification are recorded with each release.

@@ -1,9 +1,11 @@
 # Stable 2.6 promotion preparation
 
-Updated **25 November 2026** for **2.6.0 / version code 84**.
-[Promotion #82](https://github.com/Dash1971/maia-chess-android/pull/82) is an unmerged
-draft. Published Stable remains **2.5.1**. Final Preview testing and release approval remain pending. This update performs no application builds,
-GitHub Actions, signing, tagging or publication.
+Pre-freeze snapshot, **26 November 2026**, for **2.6.0 / version code 84**.
+Preview testing is complete and promotion/publication is authorized. At this
+checkpoint Stable 2.5.1 remains published and exact-source qualification has not
+yet run. This dated record is not a live publication dashboard; subsequent
+results and distribution status belong to [the release](https://github.com/Dash1971/maia-chess-android/releases/tag/v2.6.0)
+and [promotion #82](https://github.com/Dash1971/maia-chess-android/pull/82).
 
 ## Candidate source and scope
 
@@ -91,7 +93,8 @@ not current checklists. SECURITY links to the single maintained signing digest
 in VERIFY_DOWNLOAD instead of duplicating it. The F-Droid review-copy rule has
 one authority in RELEASING, linked from the detailed checks.
 
-Draft/published status is accurate for the current unmerged candidate. The
+The preceding review followed the then-unmerged candidate on 25 November.
+Publication was authorized on 26 November after Preview testing concluded. The
 release procedure now requires reconciling release-facing wording before source
 freeze and removing the CI-skip marker from the final merge title/message only
 when merging is authorized. It does not mark 2.6 published or enable Actions now.
@@ -108,7 +111,7 @@ context for testing, not qualification of this Stable source.
 
 Before publication, follow [RELEASING.md](RELEASING.md):
 
-1. Obtain final testing approval; finish accurate metadata/media and freeze one full Stable source commit.
+1. Testing approval was given on 26 November; finish the final source review and freeze one full Stable commit.
 2. Perform the fresh upstream/dependency review and exact-source Stable CI, Android build and required native/model checks.
 3. Independently reproduce with the current canonical F-Droid recipe and scans; require matching unsigned Linux APKs, then sign using the established Stable key.
 4. Verify signed 2.5.1 upgrade and game/settings/data preservation, changed-feature/runtime checks and the combined qualification gate.

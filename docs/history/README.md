@@ -52,3 +52,5 @@ remain unperformed. Current instructions are in [the docs index](../README.md).
 - [dependency-review-2.5.0.md](../dependency-review-2.5.0.md)
 
 - [Stable 2.6 documentation preparation — 2026-11-25](../verification/stable-26-documentation-2026-11-25.md)
+
+- [Stable 2.6 dependency review — 26 November 2026](../dependency-review-2.6.0.md)

@@ -24,7 +24,7 @@ explains installation and optional offline saving.
 
 ## Contents
 
-[Features](#feature-guide) · [2.6 candidate](#planned-mobile-maia-26) ·
+[Features](#feature-guide) · [Mobile Maia 2.6](#mobile-maia-26) ·
 [User guide](docs/USER_GUIDE.md) · [Electronic boards](#electronic-board-support) ·
 [Contributing](#support-and-contributing) · [Build](#build) ·
 [Credits](#credits-and-attributions) · [Documentation](docs/README.md)
@@ -42,11 +42,11 @@ with screenshots. [Privacy and permissions](PRIVACY.md) explains local storage,
 Bluetooth and Android backup; [release notes](docs/release-notes/README.md)
 record version-specific changes.
 
-## Planned Mobile Maia 2.6
+<a id="planned-mobile-maia-26"></a>
 
-[Promotion #82](https://github.com/Dash1971/maia-chess-android/pull/82) includes
-Preview beta.13's changes. **Stable 2.5.1 remains the current download**;
-2.6 has not been built or published.
+## Mobile Maia 2.6
+
+Mobile Maia 2.6 brings the features tested in Preview beta.13 to Stable.
 
 - Grand Kingdom support, including assisted Maia promotion; passed user acceptance testing.
 - Saved PGN evaluations and move markings, restored when reopening games.
@@ -56,10 +56,9 @@ Preview beta.13's changes. **Stable 2.5.1 remains the current download**;
 - Recent games imports complete PGN collections; Analysis Board opens the first game. Import and export both allow 5 MiB, with duplicate checking and progress for longer imports.
 - Save/recovery fixes, unfinished analysis resume, and human timing enabled when unset while preserving an explicit off choice.
 
-See the [draft release notes](docs/release-notes/v2.6.0.md),
-[preparation status](docs/stable-2.6-preparation.md) and
-[PGN analysis guide](docs/PGN_ANALYSIS.md). Final approval and Stable qualification
-remain pending. Automatic Dev diagnostics and camera recognition are excluded;
+See the [release notes](docs/release-notes/v2.6.0.md),
+[user guide](docs/USER_GUIDE.md) and [PGN analysis guide](docs/PGN_ANALYSIS.md).
+Published downloads are listed on the [release page](https://github.com/Dash1971/maia-chess-android/releases/latest). Automatic Dev diagnostics and camera recognition are excluded;
 Pegasus remains withdrawn.
 
 ## Why the 79M model?
@@ -97,7 +96,7 @@ Re-export is separate from ordinary app builds.
 
 ## Electronic-board support
 
-Stable 2.6 candidate and current Preview/Dev support:
+Mobile Maia 2.6 electronic-board support:
 
 | Board | Support | Hardware testing | Notes |
 | --- | --- | --- | --- |

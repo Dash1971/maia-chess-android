@@ -1,9 +1,8 @@
 # Mobile Maia user guide
 
-This guide describes the **Stable 2.6 candidate** in [promotion #82](https://github.com/Dash1971/maia-chess-android/pull/82).
-Stable 2.5.1 remains the published release. Saved PGN analysis, the new Recent
-games layout and collection transfer already ship in Preview beta.13; they
-become Stable features when 2.6 is published.
+This guide covers Mobile Maia 2.6. See the [release notes](release-notes/v2.6.0.md)
+for version changes and the [release page](https://github.com/Dash1971/maia-chess-android/releases/latest)
+for published downloads.
 
 Recent games and export-menu images are actual, unmodified beta.13 captures
 with no visible Preview branding; see [capture provenance](screenshots/20261125_v0_shared_2_6_provenance.md).

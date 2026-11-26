@@ -1,8 +1,7 @@
 # PGN import and export
 
-Included in the Stable 2.6 source candidate; published in Preview beta.13.
-Stable 2.5.1 remains published. The Android results below qualify the recorded
-Preview APKs; exact-source Stable qualification remains pending.
+Mobile Maia 2.6 imports and exports PGN collections. The Android results below
+qualify their recorded Preview APKs; Stable has separate exact-source qualification.
 
 Long-press a game, or choose Select games from the Recent Games menu. Select one
 or more games, or use Select all. **Export games** opens the existing **Save PGN

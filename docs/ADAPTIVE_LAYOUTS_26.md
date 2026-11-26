@@ -1,8 +1,8 @@
 # Adaptive layouts for 2.6
 
-Stable 2.6 draft: this behavior is promoted from Preview. The recorded tests,
-renders and APK qualification below describe Preview, not a newly qualified
-Stable build. Shared-screen screenshots are recorded separately; exact-source Stable checks remain pending.
+Included in Mobile Maia 2.6. Dated tests, renders and APK qualification below
+refer to their recorded Preview artifacts. Stable has separate exact-source
+qualification under [the release procedure](RELEASING.md).
 
 Published in Preview 2.6.0-beta.4, based on the layouts reviewed on November 15, 2026, tracked in
 [Preview #29](https://github.com/Dash1971/maia-chess-android-preview/issues/29).
