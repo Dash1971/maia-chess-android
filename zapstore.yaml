@@ -3,6 +3,7 @@ pubkey: npub1d4pz7ycxrkp99nwmq2x9p25n6druw3m4m28ykujvr54zmrcrltyqwnjah2
 release_filter: '^v[0-9]+\.[0-9]+\.[0-9]+$'
 match: '^Mobile-Maia-v[0-9]+\.[0-9]+\.[0-9]+\.apk$'
 name: Mobile Maia
+license: AGPL-3.0-only
 # Explicit Markdown: the Android store does not render Fastlane HTML.
 description: |
   By Maia fans, for Maia fans. Mobile Maia is an offline chess app for Android using the latest Maia-3 79M engine and Stockfish.

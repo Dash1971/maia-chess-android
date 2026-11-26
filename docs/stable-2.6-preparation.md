@@ -7,6 +7,8 @@ yet run. This dated record is not a live publication dashboard; subsequent
 results and distribution status belong to [the release](https://github.com/Dash1971/maia-chess-android/releases/tag/v2.6.0)
 and [promotion #82](https://github.com/Dash1971/maia-chess-android/pull/82).
 
+The completed [qualification and distribution record](release-notes/v2.6.0-verification.md) supersedes this snapshot for current release status.
+
 ## Candidate source and scope
 
 - Retain the existing Stable 2.6 promotion and [its documentation corrections](https://github.com/Dash1971/maia-chess-android/commit/6e19382e26773fae44ec35ec4944fa22a429a6f7).

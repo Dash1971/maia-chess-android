@@ -15,4 +15,4 @@ a new release. Use [channel status](../BUILD_CHANNELS.md) for current publicatio
 - [v2.4.0](v2.4.0.md)
 - [v2.5.0](v2.5.0.md)
 - [v2.5.1](v2.5.1.md)
-- [v2.6.0](v2.6.0.md) — Stable 2.6 candidate; not a published release.
+- [v2.6.0](v2.6.0.md) — published November 26, 2026; [qualification and distribution](v2.6.0-verification.md).
