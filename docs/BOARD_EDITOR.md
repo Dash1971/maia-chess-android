@@ -55,7 +55,7 @@ need native-speaker review. The metadata sheet owns its controllers through the
 route's reverse transition, preventing disposed-controller errors on dismissal.
 
 Stable 2.6 keeps the manual editor and removes the disabled camera placeholder.
-See the [release procedure](RELEASING.md) for Stable qualification; earlier
+See the [channel release procedure](RELEASING.md) for publication checks; earlier
 Preview evidence applies only to its recorded artifacts.
 
 ## Image scanning status

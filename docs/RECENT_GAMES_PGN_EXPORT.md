@@ -130,10 +130,10 @@ Historical beta.3 signed-APK qualification covered small Select all, cancel/retr
 ## Collection import follow-up — 22 November 2026
 
 Recent games file import, Android Open with and shared collection attachments
-use the validated collection parser. Analysis Board uses its first-game-only
-parser instead. It recognizes game boundaries outside comments,
-headers and variations, validates every game off the UI thread, and rejects
-invalid later games instead of silently importing only the first one.
+use the validated collection parser. It recognizes boundaries outside comments,
+headers and variations, validates every game off the UI thread and rejects an
+invalid later game. Analysis Board uses its first-game-only parser, so a later
+invalid game does not block the first valid game opening.
 
 New records are staged privately, then published by one directory rename into
 Recent games. A failed write does not expose a partial collection. Existing
