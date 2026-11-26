@@ -1,6 +1,6 @@
 # Opt-in Maia sampling data
 
-Included in Stable 2.4 and later; see the [release notes](release-notes/v2.4.0.md).
+Included in Stable 2.4 and later; see the [Stable 2.4 release notes](https://github.com/Dash1971/maia-chess-android/blob/main/docs/release-notes/v2.4.0.md).
 Originally tracked in [Preview #122](https://github.com/Dash1971/maia-chess-android-preview/issues/122). It is off by default, entirely
 local, and separate from Copy diagnostics. It observes actual Maia **play**
 requests; analysis-board probability displays and Stockfish are not captured.

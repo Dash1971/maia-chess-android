@@ -29,7 +29,11 @@ retained Review selection and all ten languages at 200% text in 320×640 and
 640×320 layouts. Release qualification is recorded in the [Stable 2.5.0 release notes](https://github.com/Dash1971/maia-chess-android/blob/main/docs/release-notes/v2.5.0.md).
 
 
-## Board and piece designs (#177)
+<a id="board-and-piece-designs-177"></a>
+
+## Board and piece designs
+
+Original feature: [Preview #177](https://github.com/Dash1971/maia-chess-android-preview/issues/177).
 
 The approved inline card adds separate Board and Piece set rows. Each opens a
 scrollable visual grid with selected-state text/checkmark/semantics and a larger

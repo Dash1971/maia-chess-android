@@ -92,13 +92,22 @@ and capture provenance, and check that the feature text uses the same labels.
 Do not retain an old Settings image merely because the underlying feature still
 exists. Keep accurate older game examples explicitly identified as such.
 
-Before source freeze, reconcile release-facing status in README, USER_GUIDE,
-release notes, BUILD_CHANNELS, PGN_ANALYSIS and the preparation record. Replace
-proposal/PR narration with the behavior of the version being released; remove
-draft-only text from the release body. Keep the published-download version and
-actual distribution status accurate until publication succeeds. Preserve dated
-evidence and mark it historical instead of rewriting its outcomes. All edits
-must be included in the frozen commit, before qualification.
+Review every repository-maintained living Markdown page before source freeze,
+including feature guides and shared operator docs. Use the search below as a
+review list, not an automatic word ban:
+
+```sh
+git grep -n -i -E 'candidate|draft|unmerged|pending|not published|this (source )?PR' -- '*.md' ':!third_party/**'
+```
+
+For the version being released, replace stale proposal/PR narration with current
+behavior and synchronize affected counterparts using [shared documentation
+ownership](SHARED_BUILD_PROCESS.md#documentation-paths-and-promotion-sync).
+Dated records retain their original outcomes; add a dated status note when needed.
+Future proposals and genuine pending approvals or store publication remain explicit.
+Keep the published-download version and actual distribution status accurate until
+publication succeeds. Include release-facing edits in the frozen commit before
+qualification, then repeat this review after publication for status changes.
 
 When merging the release PR, remove `[skip ci]` from its title and final merge
 message so the main push is checked. While builds/Actions remain unauthorized,
@@ -220,8 +229,10 @@ handwritten success reports as a substitute for actual checks.
 ## 4. Stage, publish, and verify the public download
 
 Create a draft release targeted at the qualified SHA. Upload the signed APK as
-`Mobile-Maia-v<version>.apk`, its SHA-256, sanitized qualification evidence, full
-candidate recipe, and release notes. Compare GitHub's uploaded asset digest
+`Mobile-Maia-v<version>.apk`, `SHA256SUMS.txt` listing the APK and evidence hashes,
+sanitized qualification evidence, the full candidate recipe, and release notes.
+Use the same checksum asset name as [Verify your download](VERIFY_DOWNLOAD.md).
+Compare GitHub's uploaded asset digest
 against the verified signed APK. Inspect the draft's source target and contents.
 
 Publish only after all gates pass. Prefer staging assets before making the tag
@@ -315,7 +326,8 @@ automated, its publisher must require this gate before creating a public release
 
 ## 6. Finish the post-release documentation pass
 
-After publication, check the README, release notes and user-facing documentation
+After publication, repeat the all-living-doc status review from section 1.
+Check the README, release notes and user-facing documentation
 against the shipped version. Update the current version/download links, link the
 published release notes, complete introductions for new features, and refresh any
 remaining screenshots affected by the release. Reconcile roadmap items where

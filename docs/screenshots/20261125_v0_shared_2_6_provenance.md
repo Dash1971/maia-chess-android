@@ -1,5 +1,10 @@
 # Shared 2.6 screenshots — 25 November 2026
 
+> **Status update, 26 November 2026:** Stable 2.6.0 is released; see
+> [qualification](https://github.com/Dash1971/maia-chess-android/blob/main/docs/release-notes/v2.6.0-verification.md). The original capture record below is unchanged.
+> These remain Preview beta.13 captures of shared UI. The current README has
+> a Stable 2.2 hero image and links to the guide for the detailed gallery.
+
 These are unmodified Android screencaps from the **published Preview beta.13 APK**,
 used for shared UI in the unmerged Stable 2.6 candidate. They are not captures
 from a Stable 2.6 APK and do not qualify the Stable APK. No builds, Actions or LFS

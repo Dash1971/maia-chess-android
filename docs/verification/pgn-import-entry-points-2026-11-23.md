@@ -97,3 +97,7 @@ verification suite discovers this file automatically; workflow files are unchang
 These are local Python/XML checks. No Android builds, Actions or LFS downloads
 were run for this follow-up. Installed cold/warm PGN opening remains part of
 exact-source release qualification. Stable #82 and Preview #265 remain drafts.
+
+Status update, 26 November 2026: Stable #82 and Preview #265 have merged.
+Stable 2.6.0 is released; see [its separate qualification](https://github.com/Dash1971/maia-chess-android/blob/main/docs/release-notes/v2.6.0-verification.md).
+The checks and source limits recorded above are unchanged.

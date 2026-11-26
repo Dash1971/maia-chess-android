@@ -227,7 +227,6 @@ game. Open the saved entry in Recent games manually to continue.
 
 ## Game sounds and touch feedback
 
-
 Optional **Game sounds** distinguish moves, captures, invalid moves,
 and game end. **Touch feedback** adds touch cues for moves, checks, errors,
 and game end. Both run on the phone without a network connection. Phone
@@ -269,8 +268,7 @@ confirmation.
 
 ## Chessnut electronic-board play
 
-Chessnut support has been confirmed with both Chessnut Go and
-Chessnut Air. It enters physical moves over Bluetooth and lights Maia's reply
+Chessnut boards send physical moves over Bluetooth and light Maia's reply
 on the board. Mobile Maia compares the complete sensed position, treats
 temporary piece lifts and partial castling as unfinished, and lights mismatched
 squares when correction is needed. Optional board sounds distinguish check,
@@ -367,8 +365,8 @@ promotion state so a fresh touch works immediately. The bundled Lichess CC0 open
 dataset supplies offline ECO codes, detailed variation names, and
 transposition-aware matching. Long names remain on one line; an information
 button appears only when the name is truncated, opening the full name without
-pushing the engine panel down. Home returns directly from post-game analysis
-after the app resumes or restores its screen. Interactive Stockfish analysis first returns a
+pushing the engine panel down. Home returns directly from post-game analysis,
+including after the app resumes or restores its screen. Interactive Stockfish analysis first returns a
 quick result and then refines the same selected position.
 
 ## Why Stockfish 19 Light?
@@ -521,7 +519,7 @@ their annotations. Comments, clocks, variations and other positional annotations
 are kept either way. Collection export has no Copy action.
 
 **Recent games** contains completed games and unfinished games explicitly saved
-with Home. Each entry now identifies the player side and Maia rating (for
+with Home. Each entry identifies the player side and Maia rating (for
 example, **Player — Maia 1600**) and shows the actual result (**1-0**, **0-1**,
 or **1/2-1/2**) or **Incomplete**, plus the original played date. Opening or
 analyzing a record changes neither its date nor its chronological position.
@@ -541,8 +539,7 @@ game and explains where to import the full collection.
 Matching PGNs already saved or repeated within the file are skipped, including
 formatting changes made by our exporter; differently
 annotated or identified copies are kept. Longer imports show progress during validation, duplicate checking and saving; quick imports finish without a dialog. Completion reports imported and skipped counts. Interrupted staging is cleaned
-on the next startup. A Home-transition autosave race that could create duplicate
-saved games is also fixed. See the
+on the next startup. Home-transition autosaving retains the original saved-game identity. See the
 [import/export guide](RECENT_GAMES_PGN_EXPORT.md) for the exact rules. PGN transfers games and annotations, not
 app settings or live electronic-board session state.
 
@@ -567,6 +564,9 @@ Bluetooth address or board name, chess position, or PGN.
 
 ## Availability and forks
 
+Official Android downloads are available through GitHub, F-Droid and Zapstore.
+Obtainium can install and update the GitHub release.
+
 ## Will Mobile Maia be available on Google Play or iPhone?
 
 No. I will not publish Mobile Maia on Google Play or develop an official iPhone
@@ -578,10 +578,6 @@ approach I have chosen for Mobile Maia.
 
 For context on the Android side, see F-Droid's
 [An Open Letter Opposing Android Developer Verification](https://f-droid.org/en/2026/02/24/open-letter-opposing-developer-verification.html).
-
-Official Android downloads and update options are available through GitHub,
-F-Droid, Obtainium, and Zapstore, as described below.
-
 
 ## What about forks published in app stores?
 
@@ -595,6 +591,12 @@ independent fork, who maintains it, and where users should go for support.
 Do not present your fork as an official Mobile Maia release or imply that it
 is affiliated with, endorsed by, or maintained by this project.
 
+## Download directly from GitHub
+
+Open the [latest Stable release](https://github.com/Dash1971/maia-chess-android/releases/latest),
+download its APK and checksum file, and follow [Verify your download](VERIFY_DOWNLOAD.md)
+before installing.
+
 ## Install and update with F-Droid
 
 Mobile Maia is available from the official F-Droid repository. Install the
@@ -605,6 +607,8 @@ on your Android device. F-Droid can install the app and notify you when future
 updates are available.
 
 The package page also provides a direct APK download for manual installation.
+F-Droid updates can lag GitHub; check its listed version and the
+[current Stable distribution status](BUILD_CHANNELS.md).
 
 ## Install and update with Obtainium
 

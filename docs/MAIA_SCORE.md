@@ -1,4 +1,8 @@
-# Optional Maia score (#186)
+# Optional Maia score
+
+<a id="optional-maia-score-186"></a>
+
+Original feature: [Preview #186](https://github.com/Dash1971/maia-chess-android-preview/issues/186).
 
 **Status:** shipped in Stable 2.5.0 and later, and in Preview. This page describes the feature; dated qualification remains in the release records.
 

@@ -1,7 +1,9 @@
 # PGN import and export
 
-Mobile Maia 2.6 imports and exports PGN collections. The Android results below
-qualify their recorded Preview APKs; Stable has separate exact-source qualification.
+Released in Stable 2.6.0 and Preview 2.6. Recent games imports and exports
+collections; Analysis Board opens the first game. Both directions allow 5 MiB.
+See [saved analysis](PGN_ANALYSIS.md) for optional evaluation/quality annotations
+and [Stable qualification](https://github.com/Dash1971/maia-chess-android/blob/main/docs/release-notes/v2.6.0-verification.md) for the released APK checks.
 
 Long-press a game, or choose Select games from the Recent Games menu. Select one
 or more games, or use Select all. **Export games** opens the existing **Save PGN
@@ -128,10 +130,10 @@ Historical beta.3 signed-APK qualification covered small Select all, cancel/retr
 ## Collection import follow-up — 22 November 2026
 
 Recent games file import, Android Open with and shared collection attachments
-use the validated collection parser. Analysis Board uses its first-game-only
-parser instead. It recognizes game boundaries outside comments,
-headers and variations, validates every game off the UI thread, and rejects
-invalid later games instead of silently importing only the first one.
+use the validated collection parser. It recognizes boundaries outside comments,
+headers and variations, validates every game off the UI thread and rejects an
+invalid later game. Analysis Board uses its first-game-only parser, so a later
+invalid game does not block the first valid game opening.
 
 New records are staged privately, then published by one directory rename into
 Recent games. A failed write does not expose a partial collection. Existing
@@ -161,7 +163,8 @@ invalid/oversized input, retained selection, interrupted-import recovery and a
 10,000-game near-5-MiB import with progress and Recent games after restart.
 See [Preview qualification](https://github.com/Dash1971/maia-chess-android-preview/blob/main/docs/releases/preview-2.6.0-beta.11.md).
 These are ARM64 emulator results, not universal provider/OEM coverage or Stable
-APK qualification. Stable's exact-source checks remain pending.
+APK qualification. [Stable 2.6.0 qualification](https://github.com/Dash1971/maia-chess-android/blob/main/docs/release-notes/v2.6.0-verification.md) records
+the separate Stable checks.
 
 ## Interrupted imports and large collections
 
@@ -203,14 +206,17 @@ identity; otherwise identical games with different dates are kept.
 
 See the [host verification record](verification/pgn-import-entry-points-2026-11-23.md).
 
-## Optional saved analysis — Stable 2.6 candidate
+<a id="optional-saved-analysis--stable-26-candidate"></a>
+<a id="optional-analysis-annotations--preview-beta13"></a>
 
-The [saved-analysis feature](PGN_ANALYSIS.md) is included in the unmerged Stable
-2.6 promotion and already ships in Preview beta.13. **Include analysis**, checked
+## Optional saved analysis
+
+The [saved-analysis feature](PGN_ANALYSIS.md) ships in Stable 2.6.0 and Preview
+beta.13. **Include analysis**, checked
 by default above Save/Share in the selected-games export menu, controls saved
 evaluations and move-quality symbols in the exported copy. Unchecking removes
 those from each selected game before the combined 5 MiB check. Prose, clocks,
 variations and other positional annotations remain; stored games are unchanged.
 The single-game Save/Share/Copy menu offers the same option, with stripping in a
 background worker. Different annotations remain part of duplicate identity.
-Published Stable 2.5.1 does not gain this behavior until 2.6 is released.
+Older Stable versions do not gain this behavior without updating to 2.6.0 or later.

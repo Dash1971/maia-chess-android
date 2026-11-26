@@ -24,7 +24,7 @@ takebacks are silent. Phone sounds and haptics are also suppressed throughout
 Chessnut games so they do not duplicate the physical board's independent
 **Board sounds** setting.
 
-The **Game sounds** and **Haptic feedback** preferences are independent,
+The **Game sounds** and **Touch feedback** preferences are independent,
 stored locally, and available under **Settings → Game settings**. Fresh installs
 default to sounds off and haptics on; existing choices are preserved. Audio and
 haptic failures are non-fatal on unsupported or muted devices.

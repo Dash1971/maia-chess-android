@@ -11,7 +11,7 @@ or publish another channel.
 | Stable releases and distribution status | Stable `docs/RELEASING.md`, Stable release pages and their distribution evidence | Link to Stable; do not claim that Preview publication updates Stable, F-Droid or Zapstore. |
 | Preview/Dev releases and planned work | Preview `docs/RELEASING.md`, release pages and roadmap | Link to Preview; keep published Stable behavior distinct. |
 | Build storage, operator setup and counterpart rules | Shared files below, maintained together | Keep complete synchronized local copies so a checked-out release remains usable. |
-| Feature behavior | The checked-out channel/version | Share equivalent detail; document Preview-only differences until promoted and published. |
+| Feature behavior | Stable owns released behavior; Preview owns upcoming changes | Keep equivalent local copies synchronized at promotion; document channel/version differences explicitly. |
 | Historical qualification, proposals and decisions | The dated source record | Link to its immutable source or retained record; do not rewrite it as current acceptance. |
 
 ## Counterpart review
@@ -33,6 +33,7 @@ The following operator files are shared verbatim:
 - `tool/android_release_ui.py`
 - `tool/hardening/android_release/FastDump.java`
 - `docs/RELEASE_TEST_SETUP.md`
+- `tool/pgn_android_manifest_test.py`
 - `tool/build_workspace.py`
 - `tool/build_workspace_test.py`
 - `docs/BUILD_WORKSPACE.md`
@@ -42,10 +43,24 @@ Compare these files before submitting a change. Apply common safeguards to the
 existing wrappers; do not replace a channel's wrapper with another channel's.
 Both CI suites discover the shared Python tests through `*_test.py`.
 
-The feature-specific `tool/pgn_android_manifest_test.py` belongs with the 2.6
-PGN document-routing behavior. Preview and the Stable 2.6 candidate include it;
-the Stable 2.5 line does not. Carry it with that promotion, not as a standalone
-change to Stable 2.5's intent policy.
+The shared PGN manifest regression covers the 2.6 document-routing policy in
+both repositories. It runs through normal Python test discovery.
+
+## Documentation paths and promotion sync
+
+Before freezing a promotion, compare every affected feature page with its
+counterpart. Synchronize current behavior, storage/recovery contracts, architecture,
+credits and limits in both repositories. Retain separate channel identities,
+Dev-only behavior and artifact-specific qualification. After publication, update
+release-status wording and link the actual release evidence in both copies.
+
+Stable groups localization docs and older verification records in subfolders and
+names its continuation guide `ELECTRONIC_BOARD_CONTINUATION.md`. Preview keeps
+its existing paths. These layout differences are intentional; retain forwarding
+stubs and public anchors, and adjust links when copying shared content.
+
+Repository homepage/topics were deferred outside the earlier cleanup scope,
+not rejected as a project policy. They remain optional and unchanged.
 
 Stable retains its dependency/security, canonical F-Droid and Zapstore gates.
 Preview retains full exact-source qualification; Dev retains its lighter

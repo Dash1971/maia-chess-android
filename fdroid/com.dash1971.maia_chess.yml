@@ -1,4 +1,5 @@
-# Review copy only: proposed 2.5.0; v2.5.0 does not exist yet.
+# Review copy through 2.5.1 / code 83, retained until canonical code 84 is merged and verified.
+# Stable 2.6.0 qualification/recipe: docs/release-notes/v2.6.0-verification.md.
 # Canonical F-Droid metadata, not this file, controls automatic updates.
 Categories:
   - Board Game

@@ -1,5 +1,8 @@
 # Fixed engine analysis and independent moves for 2.6
 
+Released in Stable 2.6.0 and Preview 2.6. See [Stable qualification](https://github.com/Dash1971/maia-chess-android/blob/main/docs/release-notes/v2.6.0-verification.md);
+the dated beta.9 section below records its original Preview checks.
+
 Included in Mobile Maia 2.6. Dated tests, renders and APK qualification below
 refer to their recorded Preview artifacts. Stable has separate exact-source
 qualification under [the release procedure](RELEASING.md).
@@ -97,4 +100,4 @@ analysis, and is published with separate beta.9 release qualification recorded b
 
 ## Preview beta.9 Android qualification
 
-[Published beta.9](https://github.com/Dash1971/maia-chess-android-preview/blob/e162a61e995452b748e5f85d710c6f7dab2ab24a/docs/releases/preview-2.6.0-beta.9.md) delivers [Preview #249](https://github.com/Dash1971/maia-chess-android-preview/issues/249). Actual production-signed ARM64 APK checks verify independent engine/move panes during scrolling, stepping and endpoint holds, normal/large text, graph requests, rotation and short-window control access. Normal-font profiles show all four engine rows; constrained large text retains independent header scrolling. Earlier illustrations are host renders. Physical touch/tablet acceptance under [Preview #29](https://github.com/Dash1971/maia-chess-android-preview/issues/29) and Stable promotion remain separate.
+[Published beta.9](https://github.com/Dash1971/maia-chess-android-preview/blob/e162a61e995452b748e5f85d710c6f7dab2ab24a/docs/releases/preview-2.6.0-beta.9.md) delivers [Preview #249](https://github.com/Dash1971/maia-chess-android-preview/issues/249). Actual production-signed ARM64 APK checks verify independent engine/move panes during scrolling, stepping and endpoint holds, normal/large text, graph requests, rotation and short-window control access. Normal-font profiles show all four engine rows; constrained large text retains independent header scrolling. Earlier illustrations are host renders. Physical touch/tablet acceptance under [Preview #29](https://github.com/Dash1971/maia-chess-android-preview/issues/29) remain recorded coverage limits.
