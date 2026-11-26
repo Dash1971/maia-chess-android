@@ -6,8 +6,8 @@ connection is needed to play or analyze. Choose a Maia rating from 600 to 2600,
 explore human move probabilities, and review complete games without daily limits.
 
 <p align="center">
-  <img src="docs/screenshots/20261027_v1_stable_2_5_analysis_score.png" width="360" alt="Analysis Board showing colored Stockfish and Maia move arrows, engine lines and human move probabilities">
-  <br><sub>Stockfish and Maia analysis. Screenshot from Stable 2.5.</sub>
+  <img src="docs/screenshots/20261003_v1_stable_2_2_analysis_board.png" width="360" alt="Analysis Board showing colored Stockfish and Maia move arrows, engine lines and human move probabilities">
+  <br><sub>Stockfish and Maia analysis. Screenshot from Stable 2.2.</sub>
 </p>
 
 ## Download and install
