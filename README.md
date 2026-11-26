@@ -50,7 +50,7 @@ record version-specific changes.
 
 ## Mobile Maia 2.6
 
-[Stable 2.6.0](https://github.com/Dash1971/maia-chess-android/releases/tag/v2.6.0) is published on GitHub and Zapstore. F-Droid’s catalog update is pending as of November 26, 2026. It brings the features tested in Preview beta.13 to Stable.
+[Stable 2.6.0](https://github.com/Dash1971/maia-chess-android/releases/tag/v2.6.0) is published on GitHub and Zapstore. F-Droid’s catalog update is pending as of November 26, 2026. Stable 2.6.0 brings the features tested in Preview beta.13 to Stable.
 
 - Grand Kingdom support, including assisted Maia promotion; passed user acceptance testing.
 - Saved PGN evaluations and move markings, restored when reopening games.
@@ -113,7 +113,7 @@ Mobile Maia 2.6 electronic-board support:
 The [support decision](docs/decisions/2026-11-22-electronic-board-support.md)
 records the Pegasus withdrawal. The uncertainty concerns initialization
 permission, not the GPL-licensed MoveAPiece protocol code. Older Dev APKs may
-contain the retired prototype; no published APK is changed by this source PR.
+contain the retired prototype. Stable 2.6.0 excludes it.
 
 Board owners and manufacturers are welcome to
 [contact us through an issue](https://github.com/Dash1971/maia-chess-android/issues/new)

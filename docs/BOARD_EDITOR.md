@@ -57,3 +57,9 @@ route's reverse transition, preventing disposed-controller errors on dismissal.
 Stable 2.6 keeps the manual editor and removes the disabled camera placeholder.
 See the [release procedure](RELEASING.md) for Stable qualification; earlier
 Preview evidence applies only to its recorded artifacts.
+
+## Image scanning status
+
+Camera/image recognition is not included in Stable 2.6 or current Preview.
+Open Board Scanner is a 2.7 candidate pending F-Droid licensing clarification;
+see the [Preview roadmap](https://github.com/Dash1971/maia-chess-android-preview#roadmap).

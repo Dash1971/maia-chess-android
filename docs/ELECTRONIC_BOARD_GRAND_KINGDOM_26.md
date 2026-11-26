@@ -1,5 +1,8 @@
 # Grand Kingdom support and testing
 
+**Released in Stable 2.6.0 on 26 November 2026.** See
+[Stable qualification and publication](https://github.com/Dash1971/maia-chess-android/blob/main/docs/release-notes/v2.6.0-verification.md).
+
 Current policy: Grand Kingdom is supported in Stable 2.6, Preview and Dev,
 with identical Dart/native support policy in both source repositories.
 **Passed user acceptance testing.** Pegasus has been withdrawn from all channels; see the
@@ -9,7 +12,12 @@ historical channel descriptions below do not override that decision.
 Preview testing started in [Preview 2.6.0-beta.1](https://github.com/Dash1971/maia-chess-android-preview/releases/tag/v2.6.0-beta.1), updated 15 November 2026.
 Tracks [Preview #27](https://github.com/Dash1971/maia-chess-android-preview/issues/27).
 
-## Stable 2.6 promotion — 22 November 2026
+<a id="stable-26-promotion--22-november-2026"></a>
+
+## Stable 2.6 promotion — 22 November 2026 (historical)
+
+> This section records the draft status on 22 November. Stable 2.6.0 has since
+> been qualified and published as linked above; the original record follows.
 
 Grand Kingdom support is included in the Stable 2.6 promotion draft, following
 successful Preview testing. Both Dart and native policies permit Stable and
@@ -256,7 +264,9 @@ automatically replay movement commands.
 
 [Preview #27](https://github.com/Dash1971/maia-chess-android-preview/issues/27) is
 closed as delivered. [Stable #15](https://github.com/Dash1971/maia-chess-android/issues/15)
-tracks delivery to Stable, not an outstanding physical user-acceptance gate.
+is the closed delivery and hardware-feedback record. New reports belong in
+the tracker for the channel being used: [Stable](https://github.com/Dash1971/maia-chess-android/issues/new)
+or [Preview](https://github.com/Dash1971/maia-chess-android-preview/issues/new).
 Before publishing, follow the applicable channel's [release procedure](RELEASING.md),
 including exact-source Linux reproduction, real 79M native checks and signed
 upgrade/data retention. Dev publication, if requested later, uses its separate

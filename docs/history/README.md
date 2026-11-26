@@ -27,6 +27,7 @@ remain unperformed. Current instructions are in [the docs index](../README.md).
 - [release-notes/v2.5.0.md](../release-notes/v2.5.0.md)
 - [release-notes/v2.5.1.md](../release-notes/v2.5.1.md)
 - [release-notes/v2.6.0.md](../release-notes/v2.6.0.md)
+- [Stable 2.6.0 qualification and publication](../release-notes/v2.6.0-verification.md)
 - [stable-2.4-preparation.md](../stable-2.4-preparation.md)
 - [stable-2.5-preparation.md](../stable-2.5-preparation.md)
 - [stable-2.6-preparation.md](../stable-2.6-preparation.md)

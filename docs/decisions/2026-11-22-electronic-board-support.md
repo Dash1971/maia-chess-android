@@ -1,5 +1,9 @@
 # Electronic-board support decision — 22 November 2026
 
+> **Status update, 26 November 2026:** this policy ships in Stable 2.6.0.
+> [Qualification and publication](https://github.com/Dash1971/maia-chess-android/blob/main/docs/release-notes/v2.6.0-verification.md)
+> record the separate release checks. The dated decision below is preserved.
+
 ## Decision
 
 DGT Pegasus is not supported in Mobile Maia. Remove its prototype implementation

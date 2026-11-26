@@ -10,7 +10,7 @@ description: |
 
   Choose a Maia rating from 600 to 2600 to play against and analyze human-like moves at different playing strengths.
 
-  - Full-game analysis with evaluation graphs, accuracy scores and move annotations. (including brilliant moves!!)
+  - Full-game analysis with evaluation graphs, accuracy scores and move annotations (including brilliant moves!!).
   - Save analysis in PGN and restore it when reopening games.
   - Import and export PGN collections, with or without analysis.
   - Analysis board with opening names and multiple colored arrows to easily compare Stockfish and Maia analysis.
@@ -18,6 +18,6 @@ description: |
   - Full set of Lichess time controls or choose a custom time control.
   - Use takebacks, agree to draws, and stack chess.com style multiple premoves.
   - Phone and tablet layouts, ten languages, and customizable boards and themes.
-  - Bluetooth eboard play with Chessnut Air, Go, Pro and Square Off Grand Kingdom.
+  - Bluetooth eboard play with Chessnut Air, Go, Pro and Square Off Grand Kingdom. Chessnut Pro is supported but not fully tested.
 
   Free and open source under AGPL-3.0-only. The Maia-3 79M model is included for offline use.

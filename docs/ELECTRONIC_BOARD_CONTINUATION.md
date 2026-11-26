@@ -1,4 +1,8 @@
-# Continue from here on an electronic board (#182)
+# Continue from here on an electronic board
+
+<a id="continue-from-here-on-an-electronic-board-182"></a>
+
+Original feature: [Preview #182](https://github.com/Dash1971/maia-chess-android-preview/issues/182).
 
 Current support policy, 22 November 2026: Pegasus has been withdrawn from all
 channels; see the [decision](decisions/2026-11-22-electronic-board-support.md).
