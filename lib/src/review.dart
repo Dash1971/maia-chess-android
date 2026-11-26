@@ -174,6 +174,7 @@ class ReviewPage extends StatefulWidget {
     String currentFen,
     bool flipped,
     List<RecordedVariation> variations,
+    String pgn,
   )?
   onSessionChanged;
 
@@ -188,18 +189,24 @@ class _ReviewPageState extends State<ReviewPage>
 
   int _ply = 0;
   bool _showGraph = false;
+  bool _includePgnAnalysis = true;
+  List<String>? _analysisRootComments;
+  List<Map<String, dynamic>>? _analysisMainlineNotes;
   bool _engineEnabled = true;
   final Map<int, StockfishReview> _reviews = {};
   final Set<int> _loading = {};
   final Map<int, Future<void>> _pendingAnalyses = {};
   _ReviewAnalysisStatus? _analysisError;
   bool _flipped = false;
-  bool _fullAnalysisRunning = false;
+  final _adaptiveReviewBoardKey = GlobalKey();
+  List<StockfishReview>? _pendingFullScores;
+  bool get _fullAnalysisRunning => _pendingFullScores != null;
   bool _fullAnalysisClassifying = false;
-  int _fullAnalysisCompleted = 0;
+  int get _fullAnalysisCompleted => _pendingFullScores?.length ?? 0;
   int _fullAnalysisGeneration = 0;
   MoveClassificationJob? _classificationJob;
   List<StockfishReview>? _graphScores;
+  bool _pgnNeedsInitialScore = false;
   List<String> _graphPositions = const [];
   List<String> _graphMoves = const [];
   List<ClassifiedMove> _graphClassifications = const [];
@@ -235,12 +242,22 @@ class _ReviewPageState extends State<ReviewPage>
   bool _sessionNotificationScheduled = false;
   final Set<String> _collapsedVariationKeys = {};
   final ScrollController _moveListScrollController = ScrollController();
+  final ScrollController _landscapeMovesController = ScrollController();
+  final ScrollController _landscapeGraphController = ScrollController();
+  final GlobalKey _landscapeMovesViewportKey = GlobalKey(
+    debugLabel: 'analysis-landscape-move-viewport',
+  );
+  bool? _notationLandscape;
   final GlobalKey _moveListViewportKey = GlobalKey(
     debugLabel: 'analysis-move-viewport',
   );
   final GlobalKey _selectedMoveContextKey = GlobalKey(
     debugLabel: 'analysis-selected-move',
   );
+  final GlobalKey _firstMoveContextKey = GlobalKey(
+    debugLabel: 'analysis-first-move',
+  );
+  bool _endpointRevealRequested = false;
   String? _lastRevealedMoveToken;
   bool _moveRevealScheduled = false;
   final MaiaInferenceScope _maiaInferenceScope = MaiaInferenceScope();
@@ -297,17 +314,26 @@ class _ReviewPageState extends State<ReviewPage>
   }
 
   void _updateAnalysisActivity() {
-    _foreground = _appForeground && _routeVisible;
+    final visible = _appForeground && _routeVisible;
+    if (_foreground == visible) return;
+    _foreground = visible;
     if (!_foreground) {
       _cancelSelectedWork();
       _stockfish.cancel(_batchScope);
       _cancelClassificationJob();
+      // Discard the in-flight result but retain finished positions until the
+      // same review becomes visible again.
       _fullAnalysisGeneration++;
-      _fullAnalysisRunning = false;
-      _fullAnalysisClassifying = false;
     } else if (_engineEnabled) {
+      final generation = _fullAnalysisGeneration;
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) return;
+        if (!mounted || !_foreground || !_engineEnabled) return;
+        if (_fullAnalysisRunning && generation == _fullAnalysisGeneration) {
+          unawaited(_continueFullAnalysis());
+        }
+        if (_pgnNeedsInitialScore && !_fullAnalysisRunning) {
+          _restorePgnAnalysis();
+        }
         if (_inVariation) {
           unawaited(_analyzeVariation());
         } else {
@@ -494,9 +520,11 @@ class _ReviewPageState extends State<ReviewPage>
     final initialFen = widget.initialCurrentFen;
     if (initialFen != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) _restoreCurrentFen(initialFen);
+        if (!mounted) return;
+        _restoreCurrentFen(initialFen);
       });
     }
+    _restorePgnAnalysis();
     unawaited(_analyzePosition(0));
     unawaited(_analyzeConfiguredMaiaPosition(0));
   }
@@ -504,6 +532,11 @@ class _ReviewPageState extends State<ReviewPage>
   @override
   void didUpdateWidget(covariant ReviewPage oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (oldWidget.gameAnalysisQuality != widget.gameAnalysisQuality ||
+        !listEquals(oldWidget.positions, widget.positions) ||
+        !listEquals(oldWidget.uciMoves, widget.uciMoves)) {
+      _invalidateGraphAnalysisState();
+    }
     if (oldWidget.maiaInferenceEvaluator != widget.maiaInferenceEvaluator ||
         oldWidget.useMoveHistory != widget.useMoveHistory ||
         oldWidget.maiaElo != widget.maiaElo ||
@@ -543,7 +576,15 @@ class _ReviewPageState extends State<ReviewPage>
       _sessionNotificationScheduled = false;
       if (!mounted) return;
       unawaited(
-        callback(_currentFen, _flipped, List.unmodifiable(_variations)),
+        callback(
+          _currentFen,
+          _flipped,
+          List.unmodifiable(_variations),
+          _exportReviewPgn(),
+        ).catchError((Object error, StackTrace stack) {
+          unawaited(AppDiagnostics.recordEvent('analysis-pgn-save-failed'));
+          _showAnalysisSaveFailed();
+        }),
       );
     });
   }
@@ -560,6 +601,8 @@ class _ReviewPageState extends State<ReviewPage>
     _secondMaiaInferenceScope.invalidate();
     _boardController.dispose();
     _moveListScrollController.dispose();
+    _landscapeMovesController.dispose();
+    _landscapeGraphController.dispose();
     super.dispose();
   }
 
@@ -1627,10 +1670,10 @@ class _ReviewPageState extends State<ReviewPage>
   void _invalidateGraphAnalysisState() {
     _cancelClassificationJob();
     _fullAnalysisGeneration++;
-    _fullAnalysisRunning = false;
+    _pendingFullScores = null;
     _fullAnalysisClassifying = false;
-    _fullAnalysisCompleted = 0;
     _graphScores = null;
+    _pgnNeedsInitialScore = false;
     _graphPositions = const [];
     _graphMoves = const [];
     _graphClassifications = const [];
@@ -1650,33 +1693,174 @@ class _ReviewPageState extends State<ReviewPage>
       if (unchanged) return;
     }
     _invalidateGraphAnalysisState();
+    _restorePgnAnalysis();
+  }
+
+  void _showAnalysisSaveFailed() {
+    if (!mounted) return;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(l10n(context).analysisSaveFailed)));
+  }
+
+  void _restorePgnAnalysis() {
+    try {
+      final line = _computerAnalysisLine;
+      final saved = PgnAnalysisAnnotations.read(
+        _exportReviewPgn(),
+        uciMoves: line.uciMoves,
+      );
+      _graphScores = saved.scores;
+      _graphClassifications = saved.classifications;
+      _graphPositions = line.positions;
+      _graphMoves = line.uciMoves;
+      _pgnNeedsInitialScore = saved.moveScores != null;
+      if (_pgnNeedsInitialScore && _engineEnabled && _foreground) {
+        unawaited(
+          _restorePgnInitialScore(
+            saved.moveScores!,
+            line,
+            _fullAnalysisGeneration,
+          ),
+        );
+      }
+    } on FormatException {
+      // A malformed annotation must never prevent opening the underlying game.
+    } on ArgumentError {
+      // Legacy/imported note data is optional.
+    }
+  }
+
+  Future<void> _restorePgnInitialScore(
+    List<StockfishReview> moveScores,
+    ComputerAnalysisLine line,
+    int generation,
+  ) async {
+    bool current() =>
+        mounted &&
+        _foreground &&
+        _engineEnabled &&
+        _pgnNeedsInitialScore &&
+        !_fullAnalysisRunning &&
+        generation == _fullAnalysisGeneration;
+    try {
+      // Let init/resume start its normal selected-position request first.
+      await Future<void>.value();
+      if (!current()) return;
+      final sameStart = line.positions.first == widget.positions.first;
+      if (sameStart) await _pendingAnalyses[0];
+      if (!current()) return;
+      final initial =
+          (sameStart ? _reviews[0] : null) ??
+          await (widget.evaluator?.call(line.positions.first) ??
+              _stockfish.evaluate(
+                line.positions.first,
+                scope: _batchScope,
+                background: true,
+                gameAnalysisQuality: widget.gameAnalysisQuality,
+              ));
+      if (!current()) return;
+      setState(() {
+        _graphScores = [initial, ...moveScores];
+        _pgnNeedsInitialScore = false;
+        _analysisError = null;
+      });
+    } on AnalysisCancelled {
+      // Lifecycle/engine changes retry on resume; line edits or explicit
+      // reanalysis invalidate this result using the existing generation.
+    } catch (error, stack) {
+      if (!current()) return;
+      unawaited(AppDiagnostics.record('pgn-initial-evaluation', error, stack));
+      setState(() => _analysisError = _ReviewAnalysisStatus.failed);
+    }
+  }
+
+  void _savePgnAnalysis(
+    List<StockfishReview> scores,
+    List<ClassifiedMove> marks,
+  ) {
+    try {
+      final line = _computerAnalysisLine;
+      final annotated = PgnAnalysisAnnotations.write(
+        _exportReviewPgn(),
+        scores: scores,
+        positions: line.positions,
+        uciMoves: line.uciMoves,
+        classifications: marks,
+      );
+      final parsed = dc.PgnGame.parsePgn(
+        annotated,
+        initHeaders: dc.PgnGame.emptyHeaders,
+      );
+      final notes = [
+        for (final node in parsed.moves.mainline().take(line.uciMoves.length))
+          <String, dynamic>{
+            if (node.comments != null) 'comments': node.comments,
+            if (node.startingComments != null)
+              'startingComments': node.startingComments,
+            if (node.nags != null) 'nags': node.nags,
+          },
+      ];
+      final root = _rootMainline;
+      setState(() {
+        _analysisRootComments = parsed.comments;
+        if (root == null) {
+          _analysisMainlineNotes = notes;
+        } else {
+          final updated = RecordedVariation(
+            basePly: root.basePly,
+            baseFen: root.baseFen,
+            sanMoves: root.sanMoves,
+            children: root.children,
+            annotations: notes,
+          );
+          _variations[_variations.indexOf(root)] = updated;
+          if (identical(_openedVariation, root)) {
+            _openedVariation = updated;
+          }
+        }
+      });
+      _notifySessionChanged();
+    } catch (_) {
+      unawaited(AppDiagnostics.recordEvent('analysis-pgn-save-failed'));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n(context).analysisSaveFailed)),
+        );
+      }
+    }
   }
 
   Future<void> _analyzeFullGame() async {
     if (!_engineEnabled || !_foreground || _fullAnalysisRunning) return;
-    final line = _computerAnalysisLine;
-    final positions = line.positions;
-    final quality = widget.gameAnalysisQuality;
-    final generation = ++_fullAnalysisGeneration;
     _cancelClassificationJob();
     setState(() {
-      _fullAnalysisRunning = true;
+      _pendingFullScores = [];
       _fullAnalysisClassifying = false;
-      _fullAnalysisCompleted = 0;
       _graphScores = null;
+      _pgnNeedsInitialScore = false;
       _graphPositions = const [];
       _graphMoves = const [];
       _graphClassifications = const [];
       _analysisError = null;
     });
+    final quality = widget.gameAnalysisQuality;
     unawaited(
       AppDiagnostics.recordEvent(
         'stockfish-full-analysis-start quality=${quality.name} '
         'depth=${quality.depth} moveTimeMs=${quality.moveTimeMs} '
-        'positions=${positions.length}',
+        'positions=${_computerAnalysisLine.positions.length}',
       ),
     );
-    final scores = <StockfishReview>[];
+    await _continueFullAnalysis();
+  }
+
+  Future<void> _continueFullAnalysis() async {
+    final scores = _pendingFullScores!;
+    final generation = ++_fullAnalysisGeneration;
+    final line = _computerAnalysisLine;
+    final positions = line.positions;
+    final quality = widget.gameAnalysisQuality;
     final analysisSession = Object();
     final evaluate =
         widget.evaluator ??
@@ -1687,7 +1871,7 @@ class _ReviewPageState extends State<ReviewPage>
           gameAnalysisQuality: quality,
           analysisSession: analysisSession,
         );
-    for (var i = 0; i < positions.length; i++) {
+    for (var i = scores.length; i < positions.length; i++) {
       if (!mounted || generation != _fullAnalysisGeneration) return;
       try {
         final matchesFixedMainline =
@@ -1700,7 +1884,7 @@ class _ReviewPageState extends State<ReviewPage>
             ? (_reviews[i] ?? await evaluate(positions[i]))
             : await evaluate(positions[i]);
         if (!mounted || generation != _fullAnalysisGeneration) return;
-        scores.add(review);
+        setState(() => scores.add(review));
         if (i < widget.positions.length &&
             positions[i] == widget.positions[i]) {
           _reviews[i] = review;
@@ -1713,13 +1897,12 @@ class _ReviewPageState extends State<ReviewPage>
         _analysisError = _ReviewAnalysisStatus.failed;
         break;
       }
-      if (mounted) setState(() => _fullAnalysisCompleted = i + 1);
     }
     if (!mounted || generation != _fullAnalysisGeneration) return;
     if (scores.length != positions.length) {
       setState(() {
         _analysisError ??= _ReviewAnalysisStatus.failed;
-        _fullAnalysisRunning = false;
+        _pendingFullScores = null;
       });
       return;
     }
@@ -1734,6 +1917,7 @@ class _ReviewPageState extends State<ReviewPage>
       _graphMoves = List.unmodifiable(line.uciMoves);
       _fullAnalysisClassifying = true;
     });
+    _savePgnAnalysis(scores, const []);
     try {
       var materialCache = <String, int>{};
       if (widget.evaluator == null && widget.classifier == null) {
@@ -1801,6 +1985,7 @@ class _ReviewPageState extends State<ReviewPage>
       }
       if (!mounted || generation != _fullAnalysisGeneration) return;
       setState(() => _graphClassifications = classifications);
+      _savePgnAnalysis(scores, classifications);
     } on MoveClassificationCancelled {
       // Stop, navigation, or a changed graph already owns the visible state.
     } catch (error, stackTrace) {
@@ -1812,7 +1997,7 @@ class _ReviewPageState extends State<ReviewPage>
     }
     if (!mounted || generation != _fullAnalysisGeneration) return;
     setState(() {
-      _fullAnalysisRunning = false;
+      _pendingFullScores = null;
       _fullAnalysisClassifying = false;
     });
   }
@@ -1823,7 +2008,7 @@ class _ReviewPageState extends State<ReviewPage>
     _cancelClassificationJob();
     setState(() {
       _fullAnalysisGeneration++;
-      _fullAnalysisRunning = false;
+      _pendingFullScores = null;
       _fullAnalysisClassifying = false;
       _analysisError = _ReviewAnalysisStatus.stopped;
     });
@@ -2322,7 +2507,9 @@ class _ReviewPageState extends State<ReviewPage>
   /// Reuses the existing toolbar; score visibility never changes body geometry.
   Widget _analysisTitle() {
     final title = widget.title ?? l10n(context).gameReview;
-    if (MaiaScoreScope.maybeOf(context)?.enabled != true) return Text(title);
+    if (!_engineEnabled || MaiaScoreScope.maybeOf(context)?.enabled != true) {
+      return Text(title);
+    }
     final game = chess.Chess.fromFEN(_currentFen);
     final strings = l10n(context);
     ({String label, String value, bool? white}) score(
@@ -2433,8 +2620,7 @@ class _ReviewPageState extends State<ReviewPage>
         // otherwise the rating itself can appear/disappear near the breakpoint.
         final ratingWidth = rows
             .map(
-              (row) =>
-                  width('M${displayNumber(context, row.elo)}', scoreStyle),
+              (row) => width('M${displayNumber(context, row.elo)}', scoreStyle),
             )
             .reduce(max)
             .ceilToDouble();
@@ -2505,7 +2691,8 @@ class _ReviewPageState extends State<ReviewPage>
                                         ),
                                       ),
                                     ),
-                                  if (ratingsFit) const SizedBox(width: ratingGap),
+                                  if (ratingsFit)
+                                    const SizedBox(width: ratingGap),
                                   SizedBox(
                                     key: ValueKey('${rows[i].key}-marker-slot'),
                                     width: markerWidth,
@@ -2516,7 +2703,9 @@ class _ReviewPageState extends State<ReviewPage>
                                       child: rows[i].score.white == null
                                           ? null
                                           : Container(
-                                              key: ValueKey('${rows[i].key}-disc'),
+                                              key: ValueKey(
+                                                '${rows[i].key}-disc',
+                                              ),
                                               width: 9,
                                               height: 9,
                                               decoration: BoxDecoration(
@@ -2623,41 +2812,53 @@ class _ReviewPageState extends State<ReviewPage>
     return _ply == 0 ? null : 'main:$_ply';
   }
 
-  void _scheduleSelectedMoveReveal(String token) {
+  void _scheduleSelectedMoveReveal() {
     if (_moveRevealScheduled) return;
     _moveRevealScheduled = true;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _moveRevealScheduled = false;
-      if (!mounted || _showGraph || _selectedMoveToken != token) return;
-      final selectedContext = _selectedMoveContextKey.currentContext;
-      final viewportContext = _moveListViewportKey.currentContext;
+      if (!mounted || _showGraph) return;
+      // Coalesce rapid navigation requests to the position actually rendered.
+      final token = _selectedMoveToken;
+      final selectedContext =
+          (token == null ? _firstMoveContextKey : _selectedMoveContextKey)
+              .currentContext;
+      final landscape = _useBoardSidebar(context);
+      final controller = landscape
+          ? _landscapeMovesController
+          : _moveListScrollController;
+      final viewportContext =
+          (landscape ? _landscapeMovesViewportKey : _moveListViewportKey)
+              .currentContext;
       if (selectedContext == null ||
           viewportContext == null ||
-          !_moveListScrollController.hasClients) {
+          !controller.hasClients) {
         return;
       }
       final selectedBox = selectedContext.findRenderObject();
       final viewportBox = viewportContext.findRenderObject();
       if (selectedBox is! RenderBox || viewportBox is! RenderBox) return;
 
+      final visibleHeight = viewportBox.size.height;
       final selectedTop = selectedBox
           .localToGlobal(Offset.zero, ancestor: viewportBox)
           .dy;
       final selectedBottom = selectedTop + selectedBox.size.height;
-      final position = _moveListScrollController.position;
+      final position = controller.position;
       final current = position.pixels;
       const margin = 4.0;
       var target = current;
       if (selectedTop < margin) {
         target += selectedTop - margin;
-      } else if (selectedBottom > viewportBox.size.height - margin) {
-        target += selectedBottom - (viewportBox.size.height - margin);
+      } else if (selectedBottom > visibleHeight - margin) {
+        target += selectedBottom - (visibleHeight - margin);
       }
       target = target.clamp(position.minScrollExtent, position.maxScrollExtent);
       _lastRevealedMoveToken = token;
+      _endpointRevealRequested = false;
       if ((target - current).abs() < 0.5) return;
       unawaited(
-        _moveListScrollController.animateTo(
+        controller.animateTo(
           target,
           duration: const Duration(milliseconds: 180),
           curve: Curves.easeOutCubic,
@@ -2739,7 +2940,7 @@ class _ReviewPageState extends State<ReviewPage>
     ),
   );
 
-  Widget _movesNotation() {
+  Widget _movesNotation({bool scrollable = true}) {
     final rootMainline = _rootMainline;
     final mainlineMoves = rootMainline?.sanMoves ?? widget.sanMoves;
     final variationsByBase = <int, List<RecordedVariation>>{};
@@ -2813,11 +3014,27 @@ class _ReviewPageState extends State<ReviewPage>
         rows.add(_variationLine(variation));
       }
     }
+    final landscape = _useBoardSidebar(context);
     final selectedMoveToken = _selectedMoveToken;
-    if (selectedMoveToken != null &&
-        selectedMoveToken != _lastRevealedMoveToken) {
-      _scheduleSelectedMoveReveal(selectedMoveToken);
+    final changedLayout = _notationLandscape != landscape;
+    _notationLandscape = landscape;
+    final moveController = landscape
+        ? _landscapeMovesController
+        : _moveListScrollController;
+    if (_endpointRevealRequested ||
+        (selectedMoveToken != null &&
+            (changedLayout ||
+                selectedMoveToken != _lastRevealedMoveToken ||
+                !moveController.hasClients))) {
+      _scheduleSelectedMoveReveal();
     }
+    final content = Semantics(
+      key: const ValueKey('analysis-move-scroll'),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: Column(children: rows),
+      ),
+    );
     return Container(
       key: const ValueKey('analysis-move-list'),
       decoration: BoxDecoration(
@@ -2826,17 +3043,17 @@ class _ReviewPageState extends State<ReviewPage>
         borderRadius: BorderRadius.circular(6),
       ),
       clipBehavior: Clip.antiAlias,
-      child: SingleChildScrollView(
-        key: _moveListViewportKey,
-        controller: _moveListScrollController,
-        child: Semantics(
-          key: const ValueKey('analysis-move-scroll'),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 4),
-            child: Column(children: rows),
-          ),
-        ),
-      ),
+      child: scrollable
+          ? SingleChildScrollView(
+              key: landscape
+                  ? _landscapeMovesViewportKey
+                  : _moveListViewportKey,
+              controller: landscape
+                  ? _landscapeMovesController
+                  : _moveListScrollController,
+              child: content,
+            )
+          : content,
     );
   }
 
@@ -2844,21 +3061,26 @@ class _ReviewPageState extends State<ReviewPage>
     required RecordedVariation? rootMainline,
     required List<String> moves,
     required int index,
-  }) => _notationMove(
-    key: ValueKey('mainline-move-$index'),
-    san: moves[index],
-    classification: _classificationAt(index + 1),
-    selected: rootMainline != null
-        ? identical(_openedVariation, rootMainline) &&
-              _variationIndex == index + 1
-        : !_inVariation && _ply == index + 1,
-    onTap: rootMainline != null
-        ? () => _openVariation(rootMainline, index + 1)
-        : () => setState(() => _showMainPly(index + 1)),
-    onLongPress: rootMainline != null
-        ? () => _showMoveActions(rootMainline, index + 1, variation: false)
-        : null,
-  );
+  }) {
+    final move = _notationMove(
+      key: ValueKey('mainline-move-$index'),
+      san: moves[index],
+      classification: _classificationAt(index + 1),
+      selected: rootMainline != null
+          ? identical(_openedVariation, rootMainline) &&
+                _variationIndex == index + 1
+          : !_inVariation && _ply == index + 1,
+      onTap: rootMainline != null
+          ? () => _openVariation(rootMainline, index + 1)
+          : () => setState(() => _showMainPly(index + 1)),
+      onLongPress: rootMainline != null
+          ? () => _showMoveActions(rootMainline, index + 1, variation: false)
+          : null,
+    );
+    return index == 0
+        ? KeyedSubtree(key: _firstMoveContextKey, child: move)
+        : move;
+  }
 
   bool get _inSideVariation =>
       _inVariation &&
@@ -2928,6 +3150,12 @@ class _ReviewPageState extends State<ReviewPage>
   }
 
   void _jumpToStart() {
+    _endpointRevealRequested = true;
+    if (_atAnalysisStart) {
+      // A repeated hold only reveals the list; do not restart analysis.
+      setState(() {});
+      return;
+    }
     final root = _rootMainline;
     if (root != null) {
       _openVariation(root, 0);
@@ -2937,6 +3165,11 @@ class _ReviewPageState extends State<ReviewPage>
   }
 
   void _jumpToEnd() {
+    _endpointRevealRequested = true;
+    if (_atAnalysisEnd) {
+      setState(() {});
+      return;
+    }
     final root = _rootMainline;
     if (root != null) {
       _openVariation(root, root.sanMoves.length);
@@ -2962,10 +3195,18 @@ class _ReviewPageState extends State<ReviewPage>
     _rootMainline == null ? widget.sanMoves : const [],
     _variations,
     mainPositions: _rootMainline == null ? widget.positions : null,
+    mainAnnotations: _rootMainline == null ? _analysisMainlineNotes : null,
+    startingComments: _analysisRootComments,
   );
 
   Future<void> _copyPgn() async {
-    await Clipboard.setData(ClipboardData(text: _exportReviewPgn()));
+    await Clipboard.setData(
+      ClipboardData(
+        text: _includePgnAnalysis
+            ? _exportReviewPgn()
+            : await PgnFiles._withoutAnalysis(_exportReviewPgn()),
+      ),
+    );
     if (mounted) {
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text(l10n(context).pgnCopied)));
@@ -3000,7 +3241,7 @@ class _ReviewPageState extends State<ReviewPage>
         _showGraph = false;
         _cancelClassificationJob();
         _fullAnalysisGeneration++;
-        _fullAnalysisRunning = false;
+        _pendingFullScores = null;
         _fullAnalysisClassifying = false;
       }
     });
@@ -3020,6 +3261,7 @@ class _ReviewPageState extends State<ReviewPage>
       }
       return;
     }
+    if (_pgnNeedsInitialScore) _restorePgnAnalysis();
     if (_inVariation) {
       unawaited(_analyzeVariation());
     } else {
@@ -3112,15 +3354,17 @@ class _ReviewPageState extends State<ReviewPage>
     }
   }
 
-  Widget _analysisControls() {
+  Widget _analysisControls({bool withTabs = false}) {
+    final canRevealMainline =
+        _maximumPly > 0 || (_rootMainline?.sanMoves.isNotEmpty ?? false);
     return MoveHistoryNavigator(
       key: const ValueKey('analysis-controls'),
       previousKey: const ValueKey('previous-move-button'),
       nextKey: const ValueKey('next-move-button'),
       canGoBack: !_atAnalysisStart,
       canGoForward: !_atAnalysisEnd,
-      canHoldPrevious: _inSideVariation || !_atAnalysisStart,
-      canHoldNext: _inSideVariation || !_atAnalysisEnd,
+      canHoldPrevious: _inSideVariation || canRevealMainline,
+      canHoldNext: _inSideVariation || canRevealMainline,
       onFirst: _inSideVariation ? _returnToMainline : _jumpToStart,
       onPrevious: () => _step(-1),
       onNext: () => _step(1),
@@ -3135,6 +3379,18 @@ class _ReviewPageState extends State<ReviewPage>
           ? 84
           : 56,
       headerActions: [
+        if (withTabs) ...[
+          _analysisTab(
+            graph: false,
+            icon: Icons.account_tree_outlined,
+            tooltip: l10n(context).moves,
+          ),
+          _analysisTab(
+            graph: true,
+            icon: Icons.area_chart_outlined,
+            tooltip: l10n(context).computerAnalysis,
+          ),
+        ],
         IconButton(
           key: const ValueKey('analysis-actions-menu'),
           onPressed: _hasAnalysisMenu ? _showAnalysisMenu : null,
@@ -3169,15 +3425,17 @@ class _ReviewPageState extends State<ReviewPage>
                       : Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
                 const SizedBox(width: 2),
-                Text(
-                  'SF',
-                  maxLines: 1,
-                  softWrap: false,
-                  style: TextStyle(
-                    color: _engineEnabled
-                        ? Theme.of(context).colorScheme.primary
-                        : Theme.of(context).colorScheme.onSurfaceVariant,
-                    fontWeight: FontWeight.w700,
+                Flexible(
+                  child: Text(
+                    'SF',
+                    maxLines: 1,
+                    softWrap: false,
+                    style: TextStyle(
+                      color: _engineEnabled
+                          ? Theme.of(context).colorScheme.primary
+                          : Theme.of(context).colorScheme.onSurfaceVariant,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ),
               ],
@@ -3188,77 +3446,89 @@ class _ReviewPageState extends State<ReviewPage>
     );
   }
 
-  Widget _analysisTabBar() {
+  Widget _analysisTab({
+    required bool graph,
+    required IconData icon,
+    required String tooltip,
+  }) {
     final colors = Theme.of(context).colorScheme;
-    Widget tab({
-      required bool graph,
-      required IconData icon,
-      required String tooltip,
-    }) {
-      final selected = _showGraph == graph;
-      return Expanded(
-        child: Tooltip(
-          message: tooltip,
-          child: Semantics(
-            button: true,
-            selected: selected,
-            label: tooltip,
-            child: InkWell(
-              key: ValueKey(graph ? 'graph-tab' : 'moves-tab'),
-              onTap: graph && !_engineEnabled
-                  ? null
-                  : () => setState(() => _showGraph = graph),
-              child: Container(
-                height: 48,
-                decoration: BoxDecoration(
-                  border: Border(
-                    bottom: BorderSide(
-                      color: selected ? colors.primary : Colors.transparent,
-                      width: 2,
-                    ),
-                  ),
-                ),
-                child: Icon(
-                  icon,
-                  size: 21,
-                  color: graph && !_engineEnabled
-                      ? colors.onSurface.withValues(alpha: 0.28)
-                      : selected
-                      ? colors.primary
-                      : colors.onSurfaceVariant,
+    final selected = _showGraph == graph;
+    return Tooltip(
+      message: tooltip,
+      child: Semantics(
+        button: true,
+        selected: selected,
+        label: tooltip,
+        child: InkWell(
+          key: ValueKey(graph ? 'graph-tab' : 'moves-tab'),
+          onTap: graph && !_engineEnabled
+              ? null
+              : () => setState(() => _showGraph = graph),
+          child: Container(
+            height: 48,
+            decoration: BoxDecoration(
+              border: Border(
+                bottom: BorderSide(
+                  color: selected ? colors.primary : Colors.transparent,
+                  width: 2,
                 ),
               ),
             ),
+            child: Icon(
+              icon,
+              size: 21,
+              color: graph && !_engineEnabled
+                  ? colors.onSurface.withValues(alpha: .28)
+                  : selected
+                  ? colors.primary
+                  : colors.onSurfaceVariant,
+            ),
           ),
         ),
-      );
-    }
-
-    return Material(
-      color: colors.surface,
-      child: Row(
-        children: [
-          tab(
-            graph: false,
-            icon: Icons.account_tree_outlined,
-            tooltip: l10n(context).moves,
-          ),
-          tab(
-            graph: true,
-            icon: Icons.area_chart_outlined,
-            tooltip: l10n(context).computerAnalysis,
-          ),
-        ],
       ),
     );
   }
 
-  Widget _movesTab() => _movesNotation();
+  Widget _analysisTabBar() => Material(
+    color: Theme.of(context).colorScheme.surface,
+    child: Row(
+      children: [
+        Expanded(
+          child: _analysisTab(
+            graph: false,
+            icon: Icons.account_tree_outlined,
+            tooltip: l10n(context).moves,
+          ),
+        ),
+        Expanded(
+          child: _analysisTab(
+            graph: true,
+            icon: Icons.area_chart_outlined,
+            tooltip: l10n(context).computerAnalysis,
+          ),
+        ),
+      ],
+    ),
+  );
 
-  Widget _graphTab() {
+  Widget _movesTab({bool scrollable = true}) =>
+      _movesNotation(scrollable: scrollable);
+
+  Widget _graphTab({bool scrollable = true}) {
+    final content = _graphContent();
+    return scrollable
+        ? SingleChildScrollView(
+            key: const ValueKey('analysis-graph-viewport'),
+            controller: _landscapeGraphController,
+            child: content,
+          )
+        : content;
+  }
+
+  Widget _graphContent() {
     final scores = _graphScores;
     if (scores != null) {
-      return SingleChildScrollView(
+      return Padding(
         padding: const EdgeInsets.all(8),
         child: Column(
           children: [
@@ -3315,59 +3585,57 @@ class _ReviewPageState extends State<ReviewPage>
       );
     }
     final total = _computerAnalysisLine.positions.length;
-    return SingleChildScrollView(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (_fullAnalysisRunning) ...[
-              LinearProgressIndicator(
-                value: _fullAnalysisClassifying
-                    ? null
-                    : total == 0
-                    ? null
-                    : _fullAnalysisCompleted / total,
-              ),
-              const SizedBox(height: 10),
-              Text(
-                _fullAnalysisClassifying
-                    ? l10n(context).classifyingMoves
-                    : l10n(context)
-                          .analysisProgress(_fullAnalysisCompleted, total),
-              ),
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (_fullAnalysisRunning) ...[
+            LinearProgressIndicator(
+              value: _fullAnalysisClassifying
+                  ? null
+                  : total == 0
+                  ? null
+                  : _fullAnalysisCompleted / total,
+            ),
+            const SizedBox(height: 10),
+            Text(
+              _fullAnalysisClassifying
+                  ? l10n(context).classifyingMoves
+                  : l10n(context)
+                        .analysisProgress(_fullAnalysisCompleted, total),
+            ),
+            const SizedBox(height: 8),
+            TextButton.icon(
+              key: const ValueKey('cancel-computer-analysis'),
+              onPressed: _cancelFullAnalysis,
+              icon: const Icon(Icons.stop_circle_outlined),
+              label: Text(l10n(context).stopAnalysis),
+            ),
+          ] else ...[
+            Text(
+              l10n(context).analysisExplanation,
+              textAlign: TextAlign.center,
+            ),
+            if (_analysisError != null) ...[
               const SizedBox(height: 8),
-              TextButton.icon(
-                key: const ValueKey('cancel-computer-analysis'),
-                onPressed: _cancelFullAnalysis,
-                icon: const Icon(Icons.stop_circle_outlined),
-                label: Text(l10n(context).stopAnalysis),
-              ),
-            ] else ...[
               Text(
-                l10n(context).analysisExplanation,
+                _analysisError == _ReviewAnalysisStatus.stopped
+                    ? l10n(context).analysisStopped
+                    : l10n(context).analysisFailed,
                 textAlign: TextAlign.center,
-              ),
-              if (_analysisError != null) ...[
-                const SizedBox(height: 8),
-                Text(
-                  _analysisError == _ReviewAnalysisStatus.stopped
-                      ? l10n(context).analysisStopped
-                      : l10n(context).analysisFailed,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: Theme.of(context).colorScheme.error),
-                ),
-              ],
-              const SizedBox(height: 12),
-              FilledButton.icon(
-                key: const ValueKey('run-computer-analysis'),
-                onPressed: _analyzeFullGame,
-                icon: const Icon(Icons.analytics_outlined),
-                label: Text(l10n(context).runAnalysis),
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
               ),
             ],
+            const SizedBox(height: 12),
+            FilledButton.icon(
+              key: const ValueKey('run-computer-analysis'),
+              onPressed: _analyzeFullGame,
+              icon: const Icon(Icons.analytics_outlined),
+              label: Text(l10n(context).runAnalysis),
+            ),
           ],
-        ),
+        ],
       ),
     );
   }
@@ -3389,90 +3657,100 @@ class _ReviewPageState extends State<ReviewPage>
         ? _agreementArrows
         : const <ReviewAgreementArrow>[];
     final boardAnnotation = _engineEnabled ? _currentBoardAnnotation : null;
-    return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        leading: IconButton(
-          onPressed: () async {
-            if (widget.returnToGame) {
-              Navigator.of(context).pop();
-              return;
+    final sidebar = _useBoardSidebar(context);
+    final analysisAppBar = AppBar(
+      automaticallyImplyLeading: false,
+      leading: IconButton(
+        onPressed: () async {
+          if (widget.returnToGame) {
+            Navigator.of(context).pop();
+            return;
+          }
+          await widget.onHome();
+          if (context.mounted) {
+            Navigator.of(context).popUntil((route) => route.isFirst);
+          }
+        },
+        icon: Icon(
+          widget.returnToGame ? Icons.arrow_back : Icons.home_outlined,
+        ),
+        tooltip: (widget.returnToGame
+            ? l10n(context).backToGame
+            : l10n(context).home),
+      ),
+      title: _analysisTitle(),
+      actions: [
+        PopupMenuButton<String>(
+          key: const ValueKey('analysis-share-menu'),
+          tooltip: l10n(context).shareAndExport,
+          icon: const Icon(Icons.more_vert),
+          onSelected: (value) async {
+            if (value == 'pgn') await _copyPgn();
+            if (value == 'fen') await _copyFen();
+            if (value == 'save') {
+              if (context.mounted) {
+                await PgnFiles.export(
+                  context,
+                  _exportReviewPgn(),
+                  includeAnalysis: _includePgnAnalysis,
+                );
+              }
             }
-            await widget.onHome();
-            if (context.mounted) {
-              Navigator.of(context).popUntil((route) => route.isFirst);
+            if (value == 'share') {
+              if (context.mounted) {
+                await PgnFiles.export(
+                  context,
+                  _exportReviewPgn(),
+                  share: true,
+                  includeAnalysis: _includePgnAnalysis,
+                );
+              }
             }
           },
-          icon: Icon(
-            widget.returnToGame ? Icons.arrow_back : Icons.home_outlined,
-          ),
-          tooltip: (widget.returnToGame
-              ? l10n(context).backToGame
-              : l10n(context).home),
+          itemBuilder: (_) => [
+            PgnAnalysisExportOption<String>(
+              initialValue: _includePgnAnalysis,
+              onChanged: (value) => _includePgnAnalysis = value,
+            ),
+            const PopupMenuDivider(),
+            PopupMenuItem(
+              value: 'save',
+              child: ListTile(
+                leading: Icon(Icons.save_alt),
+                title: Text(l10n(context).savePgnFile),
+              ),
+            ),
+            PopupMenuItem(
+              value: 'share',
+              child: ListTile(
+                leading: Icon(Icons.share_outlined),
+                title: Text(l10n(context).sharePgn),
+              ),
+            ),
+            PopupMenuItem(
+              value: 'pgn',
+              child: ListTile(
+                leading: Icon(Icons.description_outlined),
+                title: Text(l10n(context).copyPgn),
+              ),
+            ),
+            PopupMenuItem(
+              value: 'fen',
+              child: ListTile(
+                leading: Icon(Icons.content_copy),
+                title: Text(l10n(context).copyFen),
+              ),
+            ),
+          ],
         ),
-        title: _analysisTitle(),
-        actions: [
-          PopupMenuButton<String>(
-            key: const ValueKey('analysis-share-menu'),
-            tooltip: l10n(context).shareAndExport,
-            icon: const Icon(Icons.more_vert),
-            onSelected: (value) async {
-              if (value == 'pgn') await _copyPgn();
-              if (value == 'fen') await _copyFen();
-              if (value == 'save') {
-                if (context.mounted) {
-                  await PgnFiles.export(context, _exportReviewPgn());
-                }
-              }
-              if (value == 'share') {
-                if (context.mounted) {
-                  await PgnFiles.export(
-                    context,
-                    _exportReviewPgn(),
-                    share: true,
-                  );
-                }
-              }
-            },
-            itemBuilder: (_) => [
-              PopupMenuItem(
-                value: 'save',
-                child: ListTile(
-                  leading: Icon(Icons.save_alt),
-                  title: Text(l10n(context).savePgnFile),
-                ),
-              ),
-              PopupMenuItem(
-                value: 'share',
-                child: ListTile(
-                  leading: Icon(Icons.share_outlined),
-                  title: Text(l10n(context).sharePgn),
-                ),
-              ),
-              PopupMenuItem(
-                value: 'pgn',
-                child: ListTile(
-                  leading: Icon(Icons.description_outlined),
-                  title: Text(l10n(context).copyPgn),
-                ),
-              ),
-              PopupMenuItem(
-                value: 'fen',
-                child: ListTile(
-                  leading: Icon(Icons.content_copy),
-                  title: Text(l10n(context).copyFen),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
+      ],
+    );
+    return Scaffold(
+      appBar: sidebar ? null : analysisAppBar,
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
-            final landscape =
-                constraints.maxWidth > constraints.maxHeight &&
-                constraints.maxWidth >= 600;
+            final landscape = sidebar;
             final textScale = MediaQuery.textScalerOf(context).scale(16) / 16;
             final boardGutter =
                 max(24.0, MediaQuery.textScalerOf(context).scale(24)) + 8;
@@ -3483,6 +3761,7 @@ class _ReviewPageState extends State<ReviewPage>
                       20
                 : 0.0;
             Widget board(double size) => SizedBox(
+              key: _adaptiveReviewBoardKey,
               width: size + boardGutter,
               height: size,
               child: Row(
@@ -3535,69 +3814,111 @@ class _ReviewPageState extends State<ReviewPage>
             );
             Widget details() => LayoutBuilder(
               builder: (context, available) {
-                final header = <Widget>[
-                  ReviewOpeningName(name: openingName),
-                  if (_engineEnabled)
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(12, 2, 12, 4),
-                      child: _engineLinesPanel(),
+                final rowMetrics = TextPainter(
+                  text: TextSpan(
+                    text: 'Mg',
+                    style: DefaultTextStyle.of(context).style.merge(
+                      const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
-                  _analysisTabBar(),
-                ];
+                  ),
+                  textDirection: Directionality.of(context),
+                  textScaler: MediaQuery.textScalerOf(context),
+                  locale: Localizations.maybeLocaleOf(context),
+                )..layout();
+                final moveMinimum = max(56.0, rowMetrics.height + 24);
+                rowMetrics.dispose();
+                final actionWidth =
+                    MediaQuery.textScalerOf(context).scale(1) > 1.3
+                    ? 84.0
+                    : 56.0;
+                final actionCount = landscape ? 5 : 3;
+                final controlsHeight =
+                    available.maxWidth >= actionWidth * actionCount + 152
+                    ? 56.0
+                    : 108.0;
+                final tabsHeight = landscape ? 0.0 : 48.0;
+                final headerMaximum = max(
+                  0.0,
+                  available.maxHeight -
+                      controlsHeight -
+                      tabsHeight -
+                      min(moveMinimum, available.maxHeight * .4),
+                );
+                final header = ConstrainedBox(
+                  constraints: BoxConstraints(maxHeight: headerMaximum),
+                  child: SingleChildScrollView(
+                    key: const ValueKey('analysis-header-viewport'),
+                    primary: false,
+                    child: Column(
+                      children: [
+                        ReviewOpeningName(name: openingName),
+                        if (_engineEnabled)
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(12, 2, 12, 4),
+                            child: _engineLinesPanel(),
+                          ),
+                      ],
+                    ),
+                  ),
+                );
                 final panel = SizedBox(
                   key: const ValueKey('analysis-tab-panel'),
                   width: double.infinity,
                   child: _showGraph ? _graphTab() : _movesTab(),
                 );
-                if (available.maxHeight < engineHeight + 188) {
+                // Engine output and notation have separate, bounded viewports.
+                // Move gestures and reveal animations cannot scroll the header.
+                if (available.maxHeight < controlsHeight + 32) {
                   return Column(
                     children: [
-                      Expanded(
+                      Expanded(child: panel),
+                      SizedBox(
+                        height: min(controlsHeight, available.maxHeight * .65),
                         child: SingleChildScrollView(
-                          child: Column(
-                            children: [
-                              ...header,
-                              SizedBox(height: 220, child: panel),
-                            ],
-                          ),
+                          child: _analysisControls(withTabs: landscape),
                         ),
                       ),
-                      _analysisControls(),
                     ],
                   );
                 }
                 return Column(
                   children: [
-                    // Wrapped probabilities can exceed the minimum estimate.
-                    // Reserve a usable move row even when large text makes
-                    // the controls wrap to two rows (108px + 56px for moves).
-                    // The header scrolls instead of squeezing the move list.
-                    ConstrainedBox(
-                      constraints: BoxConstraints(
-                        maxHeight: available.maxHeight - 164,
-                      ),
-                      child: SingleChildScrollView(
-                        child: Column(children: header),
-                      ),
-                    ),
+                    header,
+                    if (!landscape) _analysisTabBar(),
                     Expanded(child: panel),
-                    _analysisControls(),
+                    _analysisControls(withTabs: landscape),
                   ],
                 );
               },
             );
             if (landscape) {
+              // A 4:3 tablet or resized window needs room for the analysis
+              // content as well as the board. Phones remain height-limited.
+              final paneMinimum = max(
+                _sidebarMinimum(context),
+                min(360.0, constraints.maxWidth * .45),
+              );
               final size = min(
                 constraints.maxHeight - 16,
-                constraints.maxWidth * 0.48 - boardGutter,
-              ).clamp(80.0, 560.0);
+                constraints.maxWidth - paneMinimum - boardGutter - 24,
+              ).clamp(80.0, double.infinity);
               return Padding(
                 padding: const EdgeInsets.all(8),
                 child: Row(
                   children: [
                     board(size),
                     const SizedBox(width: 8),
-                    Expanded(child: details()),
+                    Expanded(
+                      child: Column(
+                        children: [
+                          SizedBox(height: 56, child: analysisAppBar),
+                          Expanded(child: details()),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
               );

@@ -10,6 +10,7 @@ import 'package:maia_chess/main.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'fixtures/electronic_board.dart';
+import 'fixtures/immediate_maia_preferences.dart';
 
 Map<String, Object?> savedGame({
   String pgn = '1. e4 e5 *',
@@ -65,7 +66,7 @@ Future<void> disposeGame(
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   setUp(() {
-    SharedPreferences.setMockInitialValues({});
+    setImmediateMaiaPreferences({});
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(maiaEngineChannel, (_) async => null);
   });

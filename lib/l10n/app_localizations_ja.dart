@@ -25,7 +25,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get cancelPremoves => 'プリムーブを取り消す';
 
   @override
-  String get chessnutExperimental => 'Chessnut（試験的機能）';
+  String get chessnutBoard => 'Chessnut';
 
   @override
   String get connectChessnut => 'Chessnutに接続';
@@ -229,7 +229,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get start => '開始';
 
   @override
-  String get chessnutStatus => 'Chessnutの状態';
+  String get chessnutStatus => 'ボードの状態';
 
   @override
   String get leaveCurrentGame => '対局から離れますか？';
@@ -752,7 +752,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get couldNotConnectChessnut => 'Chessnutに接続できませんでした。';
 
   @override
-  String get chessnutAndroidOnly => 'Chessnutへの接続機能はAndroidで利用できます。';
+  String get chessnutAndroidOnly => '電子ボードはAndroidで利用できます。';
 
   @override
   String get chessnutIsDisconnected => 'Chessnutは未接続です。';
@@ -988,12 +988,10 @@ class AppLocalizationsJa extends AppLocalizations {
   String get chessnutBluetoothUnavailable => 'この端末ではBluetoothを利用できません。';
 
   @override
-  String get chessnutPermissionPending =>
-      'Bluetoothの権限を許可してからChessnutに再接続してください。';
+  String get chessnutPermissionPending => 'Bluetoothの権限を許可してからボードに再接続してください。';
 
   @override
-  String get chessnutBluetoothDisabled =>
-      'BluetoothをオンにしてからChessnutに再接続してください。';
+  String get chessnutBluetoothDisabled => 'Bluetoothをオンにしてからボードに再接続してください。';
 
   @override
   String get whiteShort => '白';
@@ -1027,7 +1025,7 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get electronicBoardExperimental => '電子チェス盤（試験的機能）';
+  String get electronicBoard => '電子チェス盤';
 
   @override
   String get connectBoard => 'チェス盤に接続';
@@ -1056,10 +1054,6 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get boardReady => 'チェス盤の準備ができました';
-
-  @override
-  String get boardExperimentalNotice =>
-      '新しいチェス盤への対応は試験段階です。両方の画面で指し手を確認し、接続の問題をご報告ください。';
 
   @override
   String get boardGameRestriction => '電子チェス盤での対局は持ち時間無制限です。';
@@ -1103,12 +1097,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get boardReconnect => 'チェス盤に再接続';
 
   @override
-  String get boardLockedPegasus =>
-      'Pegasusはロックされています。このDev版にはメーカーの初期化キーが含まれていません。';
-
-  @override
-  String get boardMotorRecovery =>
-      'スマートフォンで続けてください。この試験的な接続機能では、チェス盤のモーターの状態を安全に復元できません。';
+  String get boardMotorRecovery => 'スマートフォンで続けてください。チェス盤のモーターの状態を安全に復元できません。';
 
   @override
   String get boardConfirmPosition => 'チェス盤の局面を確認';
@@ -1457,9 +1446,6 @@ class AppLocalizationsJa extends AppLocalizations {
   String get editorPositionSettings => '局面の設定';
 
   @override
-  String get editorImageImportUnavailable => '画像から局面を読み込む（準備中）';
-
-  @override
   String get editorShareFen => 'FENを共有';
 
   @override
@@ -1530,4 +1516,80 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String get sessionRecovery =>
       'クラッシュの原因となった可能性があるセッションを再開せず、ホームを開きました。保存済みの対局と設定は保持されています。';
+
+  @override
+  String get saveDevDiagnostics => 'Devの診断情報を保存…';
+
+  @override
+  String get devDiagnosticsHelp =>
+      'Devは最近のアプリ動作と、Grand Kingdomの指し手・ボード通信の詳細をこの端末に記録します。古いデータは自動で削除されます。写真やBluetoothアドレスは記録しません。自動送信は行いません。共有したい場合のみエクスポートしてください。';
+
+  @override
+  String get devDiagnosticsExportFailed => 'Devの診断情報を保存できませんでした。';
+
+  @override
+  String get boardPromotionTitle => 'Maiaの昇格を確認';
+
+  @override
+  String boardPromotionMove(String square, String piece) {
+    return '$square：$piece。ポーンを交換してください。';
+  }
+
+  @override
+  String get boardPromotionHelp =>
+      'モーターが停止するまで待ってください。ポーンを指定された駒に交換し、盤上の全ての駒が画面と一致することを確認してください。移動が未完了か不確かな場合は、アプリ内で対局を続けてください。';
+
+  @override
+  String get boardPromotionReplaced => 'モーターは停止し、ポーンを交換しました。全ての駒が画面と一致しています。';
+
+  @override
+  String get recentExportGames => '対局をエクスポートする';
+
+  @override
+  String get recentExportTooLarge =>
+      '選択した対局は5 MBのエクスポート上限を超えています。対局数を減らして、もう一度お試しください。';
+
+  @override
+  String pgnCollectionImported(int count) {
+    return '最近の対局に$count局追加しました。';
+  }
+
+  @override
+  String get recentExportGameTooLarge => '選択した対局が1局あたりの上限5 MBを超えています。';
+
+  @override
+  String get recentExportFailed => '選択した対局をエクスポートできませんでした。保存済みの対局は変更されていません。';
+
+  @override
+  String get recentDateColumn => '日付';
+
+  @override
+  String get recentGameColumn => '対局';
+
+  @override
+  String get recentResultColumn => '結果';
+
+  @override
+  String get settingsDiagnostics => '診断';
+
+  @override
+  String get pgnImportProgress => '棋譜をインポート中…';
+
+  @override
+  String pgnCollectionImportSummary(int imported, int duplicates) {
+    return '$imported件の棋譜をインポート · 重複$duplicates件をスキップ';
+  }
+
+  @override
+  String get recentImportGames => 'PGN をインポート';
+
+  @override
+  String get pgnFirstGameOnly =>
+      '最初の対局のみを開きました。すべての対局をインポートするには、最近の対局 → PGN をインポートを選んでください。';
+
+  @override
+  String get includeAnalysisAnnotations => '解析を含める';
+
+  @override
+  String get analysisSaveFailed => '解析を保存できませんでした。対局は変更されていません。';
 }

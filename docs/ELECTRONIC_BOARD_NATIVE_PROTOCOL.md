@@ -1,20 +1,63 @@
-# Native electronic board protocol evidence (Dev only)
+# Native electronic-board protocol evidence
 
-Reviewed sources, 2026-10-07:
+## Current references
 
-- [MoveAPiece](https://github.com/egdels/moveapiece/tree/560b862be18485ecebe98cfe2f26965e10315a2d), GPL-3.0-or-later: PegasusUuids, PegasusCommands, PegasusFrameParser, BoardState, FieldUpdate, ChessnutFrameParser. Independent implementation of wire facts; no upstream implementation copied.
-- [square-off-remote](https://github.com/greghope667/square-off-remote/tree/c64fc4d99d70071707ebd1acd16442eb3d0a6083), GPL-3.0-or-later: communicator.py and squareoff.py. The reference explicitly targets Grand Kingdom. Other Square Off products are unsupported.
+- [MoveAPiece](https://github.com/egdels/moveapiece/tree/560b862be18485ecebe98cfe2f26965e10315a2d), GPLv3: Chessnut frame handling. Wire facts were independently implemented; the separate Pegasus prototype has been removed.
+- [square-off-remote](https://github.com/greghope667/square-off-remote/tree/c64fc4d99d70071707ebd1acd16442eb3d0a6083), GPL-3.0-or-later: `communicator.py` and `squareoff.py`, explicitly targeting Grand Kingdom.
 
-Chessnut retains the existing write/data/confirm UUIDs and commands. Dev reassembles framed `01 24` 38-byte board reports, preserving wire bytes for the existing Dart decoder, and recognizes confirm `0f 01 02` as NEW GAME. Known confirmation/data frames are bounded to 256 bytes of buffered input with a 1.5-second fragment expiration; all partial state is cleared when a GATT session ends. Legacy unframed 32-byte reports remain accepted. Physical button debounce and reset authorization belong to Dart.
+Pegasus is not supported in any channel. The
+[support decision](decisions/2026-11-22-electronic-board-support.md) records the
+initialization-permission uncertainty and links the upstream inquiry. Its GPL
+protocol-reference license is distinct from initialization permission. No
+initialization key, Pegasus decoder, occupancy inference or LED adapter remains.
 
-Pegasus and Grand Kingdom both use Nordic UART service `6e400001-b5a3-f393-e0a9-e50e24dcca9e`, write `...0002...`, notify `...0003...`. Therefore GATT UUIDs alone cannot identify the model. Advertised model hints plus expected service and characteristic properties select the experimental adapter; Dart must verify decoded profile responses before accepting usable input.
+## Chessnut
 
-Pegasus incoming stream has high-bit message type and two 7-bit bytes specifying total length including the three-byte header. Dump `86` is exactly 64 occupancy bytes; update `8e` is square index and occupancy. Index zero is a8 and 63 is h1; valid occupancy is 0/1. Locked `7f` values and rejected `a5` developer-key state must be reported unavailable, never interpreted as positions. Native sends `5a` key-state request, `44` updates and `42` dump. Connecting an already-ready Pegasus refreshes `5a` and `42`, so a reset Dart decoder can receive a full dump before consuming field updates. This GATT-dependent refresh branch requires Android/hardware acceptance; pure host tests cover framing and policy rather than Android callback execution. **No manufacturer application initialization key is included:** upstream permission is described as non-commercial and is not suitable for introducing a new restriction into Mobile Maia's FOSS distribution. Consequently locked Pegasus firmware remains unavailable pending a compatible unrestricted initialization path. LEDs use `60 length 05 02 00 05 indices...00`; off `60 02 00 00`. Each LED frame shows the first thirteen unique requested square indices (20 bytes) for the default ATT payload. Remaining mismatches are shown as the reconciled occupancy changes and the app updates guidance. Physical LED acceptance remains unverified.
+The existing write/data/confirm UUIDs and commands are retained. Framed `01 24`
+38-byte board reports preserve wire bytes for the Dart decoder; confirmation
+`0f 01 02` represents NEW GAME. Known frames are bounded to 256 buffered bytes,
+with a 1.5-second fragment expiration and reset at the end of a GATT session.
+Legacy unframed 32-byte reports remain accepted. Dart owns physical-button
+confirmation and debounce. Chessnut-specific sounds and LED commands remain
+under the Chessnut transport.
 
-Square Off outgoing commands are ASCII `x` + payload + `z`, payload at most sixteen characters. CONNECTED initializes communication. Explicit start writes RSTVAR followed by GAMEWHITE/GAMEBLACK/LIVE; RSTVAR is game-variable reset, **not evidence of physical setup or motor cancellation**. Moves are exactly four UCI characters; OK/ERR acknowledges input. Inbound reference decodes ASCII then strips whitespace; it provides no inbound x/z framing evidence. Native never automatically starts a game or resends a movement. A pending motor operation requires a subsequent physical move that Dart has verified legal in the current logical position and explicitly acknowledged, or explicit user reconciliation through confirmPosition. Uncorrelated inbound OK does not clear uncertainty: it may acknowledge a handshake or earlier command. The reference GAMEWHITE/GAMEBLACK flow does not await a motor OK; accepted subsequent physical input supplies advancement evidence. There is no sourced physical stop opcode. Disconnect/timeout invalidates queued writes; Dart must require manual reconciliation/phone continuation after uncertain movement, and explicit physical setup acknowledgement before sending moves.
+## Grand Kingdom
 
-Channel extensions retain the existing Chessnut channel names. Dev connect modes are `remembered`, `discover`, `reconnect`; reconnect can specify persisted opaque `boardId` and refuses discovery fallback. Discovery collects at most 32 deduplicated addresses for three seconds, then auto-connects one candidate or emits opaque scan-bound chooser IDs. Device addresses stay exclusively in private Android preferences; events and diagnostic snapshots contain no address. A verified profile gets a random persisted boardId and new connectionSession per connection. Motor methods require the exact connectionSession. All Dev events include snapshots of connectionSession, boardKind and known boardId; queued deliveries from earlier sessions are discarded. Reconnect requires the explicit saved boardId and never silently substitutes the locally remembered board. confirmPosition requires the current Square Off session and only clears local movement uncertainty after explicit physical reconciliation; it sends no BLE command.
+Nordic UART service `6e400001-b5a3-f393-e0a9-e50e24dcca9e` uses write `...0002...`
+and notify `...0003...`. Advertised model hints and expected characteristics
+select Grand Kingdom; another product using the same UUID is not sufficient.
 
-Limits: 15-second connection/configuration deadline, five-second write callback deadline, 32 queued writes, 100ms write gap, stale GATT callbacks and delayed queue advancement guarded by source identity. Notifications for experimental profiles are delivered as boardData (at most 1024 bytes per callback) to bounded Dart parsers. Late advertisements and chooser tokens from replaced/cancelled scans are rejected. The non-Chessnut adapters are guarded by BuildConfig.FLAVOR == dev, with matching Dart policy. Preview shares the newer Chessnut discovery/lifecycle behavior but cannot discover, connect to, configure or command Grand Kingdom/Pegasus. Non-Dev flavors, including the production flavor, reject these prototypes. See BUILD_CHANNELS.md for the current publication and promotion boundary.
+Outgoing commands are ASCII `x` + payload + `z`, with payload at most sixteen
+characters. CONNECTED initializes communication. Explicit start writes RSTVAR
+followed by GAMEWHITE/GAMEBLACK/LIVE. RSTVAR resets game variables; it is not a
+physical setup or motor-cancellation command. Moves use exactly four UCI
+coordinates. The full promotion move stays in chess/storage while only the
+coordinate prefix is sent for motor movement; physical replacement requires
+explicit confirmation.
 
-Validation: native helper host checks passed on isolated Linux JDK 21 with official JetBrains Kotlin 2.2.0. Checks cover duplicate advertisements, capacity, opaque tokens and stale selection, motor session binding, command rejection, full setup LED guidance capped to default ATT20, all 37 split points of the 38-byte Chessnut report, coalesced reports, partial frame reset/expiration, corruption recovery, oversized input and fragmented/coalesced NEW GAME/battery confirmations. Source/diff review is also clean. Android bridge compilation remains part of the root-owned Dev build. No hardware was available; native BLE pairing, notification fragmentation, physical input, LEDs, NEW GAME buttons, motor acknowledgements and cancellation are **not certified**. Root-owned Dev integration checks and model/firmware/Android-specific tester acceptance remain required.
+The inbound reference strips whitespace and does not establish x/z delimiters.
+The decoder accepts bounded fragments, exact coordinate moves and known control
+messages; metadata never becomes a move. Native code does not automatically
+start a game or resend movement. A pending motor operation requires a legal
+subsequent physical move explicitly acknowledged by Dart, or explicit position
+confirmation. An uncorrelated OK does not establish physical completion and
+cannot confirm a promotion. There is no sourced motor-stop opcode.
+
+Disconnect/timeout invalidates queued writes. Interrupted movement requires
+phone continuation and fresh standard setup; arbitrary-position restoration and
+automatic replay are not supported. See the
+[Grand Kingdom acceptance record](ELECTRONIC_BOARD_GRAND_KINGDOM_26.md).
+
+## Session and channel safeguards
+
+Discovery holds at most 32 deduplicated candidates for three seconds and emits
+opaque, scan-bound selection IDs. Addresses remain in private Android
+preferences. Each connection has a new session token; stale deliveries cannot
+change the current game. Motor writes require the exact live, ready Grand
+Kingdom session. Unknown/retired native kinds are ignored before they can fall
+back to the legacy Chessnut path. Both channels keep their existing Grand
+Kingdom flavor boundaries; Dev no longer enables additional board families.
+
+Dart and pure Kotlin regressions cover discovery, framing, session guards and
+legacy phone recovery. Hardware, Android callbacks and physical motor/LED
+behavior still require the normal device/release checks.

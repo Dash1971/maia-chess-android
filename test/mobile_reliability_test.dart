@@ -12,7 +12,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maia_chess/main.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'fixtures/immediate_maia_preferences.dart';
 
 class ManualStopwatch extends Stopwatch {
   int milliseconds = 0;
@@ -36,7 +36,7 @@ void main() {
     }
   });
   setUp(() {
-    SharedPreferences.setMockInitialValues({});
+    setImmediateMaiaPreferences({});
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(maiaEngineChannel, (_) async => null);
   });
@@ -276,7 +276,7 @@ void main() {
     expect(restored['uciMoves'], ['e2e4', 'e7e5']);
   });
 
-  testWidgets('covering review with another page pauses full-game analysis', (
+  testWidgets('covered review resumes its analysis only when the app is visible', (
     tester,
   ) async {
     final session = AnalysisSession.fromPgn('1. e4 e5 *');
@@ -292,9 +292,10 @@ void main() {
           pgn: session.pgn,
           playerIsWhite: true,
           onHome: () {},
+          classifier: ({required scores, required positions, required uciMoves}) async => [],
           evaluator: (_) {
             if (++calls == 2) return gate.future;
-            return Future.value(const StockfishReview(0, 'e2e4'));
+            return Future.value(StockfishReview(calls, 'e2e4'));
           },
         ),
       ),
@@ -305,8 +306,9 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('run-computer-analysis')));
     await tester.pump();
     expect(calls, 2);
+    final navigator = Navigator.of(tester.element(find.byType(ReviewPage)));
     unawaited(
-      Navigator.of(tester.element(find.byType(ReviewPage))).push(
+      navigator.push(
         MaterialPageRoute<void>(
           builder: (_) => const Scaffold(body: Text('Editor')),
         ),
@@ -316,6 +318,19 @@ void main() {
     gate.complete(const StockfishReview(0, 'e7e5'));
     await tester.pumpAndSettle();
     expect(calls, 2);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+    navigator.pop();
+    await tester.pumpAndSettle();
+    expect(calls, 2);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await tester.pump();
+    await tester.pumpAndSettle();
+    final graph = tester.widget<AnalysisGraph>(find.byType(AnalysisGraph));
+    expect(graph.scores.map((s) => s.evaluation), [1, 3, 4]);
   });
 
   for (final (name, size, scale) in [

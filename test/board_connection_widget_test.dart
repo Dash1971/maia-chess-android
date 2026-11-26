@@ -7,7 +7,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maia_chess/main.dart';
 import 'package:maia_chess/l10n/app_localizations.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+
+import 'fixtures/immediate_maia_preferences.dart';
 
 class DiscoveryBoard implements DiscoverableBoardTransport {
   final controller = StreamController<ElectronicBoardEvent>.broadcast(
@@ -35,11 +36,11 @@ class DiscoveryBoard implements DiscoverableBoardTransport {
     ),
   );
   void candidates() => controller.add(
-    const ElectronicBoardEvent(
+    ElectronicBoardEvent(
       type: 'candidates',
       candidates: [
-        BoardCandidate('board-one', 'First board', BoardKind.chessnut),
-        BoardCandidate('board-two', 'Second board', BoardKind.pegasus),
+        const BoardCandidate('board-one', 'First board', BoardKind.chessnut),
+        const BoardCandidate('board-two', 'Second board', BoardKind.squareOff),
       ],
     ),
   );
@@ -128,20 +129,10 @@ class MotorCheckpointRepository extends SessionRepository {
 }
 
 void main() {
-  group(
-    'Dev prototype board flows',
-    devBoardTests,
-    skip: appFlavor != 'dev'
-        ? 'Run with --flavor dev; Stable rejection is tested separately.'
-        : false,
-  );
-}
-
-void devBoardTests() {
   TestWidgetsFlutterBinding.ensureInitialized();
   late DiscoveryBoard board;
   setUp(() {
-    SharedPreferences.setMockInitialValues({});
+    setImmediateMaiaPreferences({});
     board = DiscoveryBoard();
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(maiaEngineChannel, (_) async => null);
@@ -209,8 +200,8 @@ void devBoardTests() {
         'Chessnut',
       );
       expect(
-        electronicBoardDisplayName(t, BoardKind.pegasus, null),
-        'DGT Pegasus',
+        electronicBoardDisplayName(t, null, 'DGT Pegasus'),
+        t.chessboardDeviceName,
       );
       expect(
         electronicBoardDisplayName(t, BoardKind.squareOff, null),
@@ -279,9 +270,9 @@ void devBoardTests() {
       await tester.pumpAndSettle();
       expect(message('Chessnut connected'), findsOneWidget);
       for (final entry in [
-        (BoardKind.pegasus, 'pegasus', 'DGT Pegasus'),
         (BoardKind.squareOff, 'square-off', 'Square Off Grand Kingdom'),
       ]) {
+        if (!BoardChannelPolicy.supports(appFlavor, entry.$1)) continue;
         status(
           ElectronicBoardConnectionState.ready,
           kind: entry.$1,
@@ -545,31 +536,6 @@ void devBoardTests() {
     expect((await ActiveSessionStore.load())!['pgn'], contains('Qh4#'));
     await dispose(tester);
   });
-
-  testWidgets(
-    'Pegasus occupancy needs explicit piece identity confirmation before start',
-    (tester) async {
-      await launch(tester);
-      await enable(tester);
-      board.status(BoardKind.pegasus);
-      board.bytes(BoardKind.pegasus, [
-        0x86,
-        0,
-        67,
-        ...List.generate(64, (i) => i < 16 || i >= 48 ? 1 : 0),
-      ]);
-      await tester.pump(const Duration(milliseconds: 400));
-      await tester.pumpAndSettle();
-      expect(start(tester).onPressed, isNull);
-      expect(find.byKey(const ValueKey('board-confirm-setup')), findsOneWidget);
-      await tester.tap(find.byKey(const ValueKey('board-confirm-setup')));
-      await tester.pumpAndSettle();
-      expect(start(tester).onPressed, isNotNull);
-      expect(board.starts, isEmpty);
-      expect(board.motorMoves, isEmpty);
-      await dispose(tester);
-    },
-  );
 
   testWidgets(
     'Square Off requires manual setup and uncorrelated OK cannot finish a motor move',

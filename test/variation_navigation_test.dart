@@ -488,7 +488,8 @@ void main() {
               session.positions[4],
             );
             expect(tester.widget<InkResponse>(_next).onTap, isNull);
-            expect(tester.widget<InkResponse>(_next).onLongPress, isNull);
+            // Endpoint holds remain available to re-reveal the move list.
+            expect(tester.widget<InkResponse>(_next).onLongPress, isNotNull);
             await tester.longPress(_back);
             await tester.pumpAndSettle();
             expect(
@@ -639,7 +640,8 @@ void main() {
         session.positions.last,
       );
       expect(tester.widget<InkResponse>(_next).onTap, isNull);
-      expect(tester.widget<InkResponse>(_next).onLongPress, isNull);
+      // Endpoint holds remain available to re-reveal the move list.
+      expect(tester.widget<InkResponse>(_next).onLongPress, isNotNull);
     },
   );
 

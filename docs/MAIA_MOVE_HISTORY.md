@@ -1,4 +1,8 @@
-# Maia move-history input (Preview and Dev)
+# Maia move-history input
+
+<a id="maia-move-history-input-preview-and-dev"></a>
+
+**Status:** shipped in Stable 2.5.0 and later, and in Preview. This page describes the feature; dated qualification remains in the release records.
 
 This opt-in setting changes the positions supplied to Maia. It does not change
 model weights, Temperature/Top-P, rating preferences, clocks or Stockfish review.
@@ -62,9 +66,4 @@ The regular Flutter suite covers existing play, storage, variations, sampling,
 analysis, clocks and electronic-board flows. These tests run without changing
 app model assets or downloading research data during CI.
 
-Before promoting this experiment, qualify the exact Dev APK and check the 5M
-model on a device: fresh game, resume, takeback, both Maia rows, variation
-switching, Continue from here, and history-on/off latency and memory. Repeat
-model/device qualification with the 79M build before Preview promotion. Host
-encoding parity alone does not establish mobile performance or playing behavior.
-Do not generalize the published 79M research findings to the 5M model.
+Current release checks cover the model and channel being published. The shipped option remains off by default; the 79M research does not establish the same behavior for Dev’s 5M model.

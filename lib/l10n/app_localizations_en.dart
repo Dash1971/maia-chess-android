@@ -25,7 +25,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get cancelPremoves => 'Cancel premoves';
 
   @override
-  String get chessnutExperimental => 'Chessnut (experimental)';
+  String get chessnutBoard => 'Chessnut';
 
   @override
   String get connectChessnut => 'Connect Chessnut';
@@ -232,7 +232,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get start => 'START';
 
   @override
-  String get chessnutStatus => 'Chessnut status';
+  String get chessnutStatus => 'Board status';
 
   @override
   String get leaveCurrentGame => 'Leave current game?';
@@ -813,7 +813,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get couldNotConnectChessnut => 'Could not connect Chessnut.';
 
   @override
-  String get chessnutAndroidOnly => 'Chessnut support is available on Android.';
+  String get chessnutAndroidOnly =>
+      'Electronic-board support is available on Android.';
 
   @override
   String get chessnutIsDisconnected => 'Chessnut is disconnected.';
@@ -1056,11 +1057,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get chessnutPermissionPending =>
-      'Allow Bluetooth permissions, then reconnect Chessnut.';
+      'Allow Bluetooth permissions, then reconnect your board.';
 
   @override
   String get chessnutBluetoothDisabled =>
-      'Turn on Bluetooth, then reconnect Chessnut.';
+      'Turn on Bluetooth, then reconnect your board.';
 
   @override
   String get whiteShort => 'W';
@@ -1095,7 +1096,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get electronicBoardExperimental => 'Electronic board (experimental)';
+  String get electronicBoard => 'Electronic board';
 
   @override
   String get connectBoard => 'Connect board';
@@ -1125,10 +1126,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get boardReady => 'Board ready';
-
-  @override
-  String get boardExperimentalNotice =>
-      'New board support is experimental. Please verify moves on both screens and report connection problems.';
 
   @override
   String get boardGameRestriction =>
@@ -1178,12 +1175,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get boardReconnect => 'Reconnect board';
 
   @override
-  String get boardLockedPegasus =>
-      'Pegasus is locked. This Dev build does not include its manufacturer initialization key.';
-
-  @override
   String get boardMotorRecovery =>
-      'Continue on your phone. This experimental adapter cannot safely restore the board’s motor state.';
+      'Continue on your phone. The board’s motor state cannot be safely restored.';
 
   @override
   String get boardConfirmPosition => 'Confirm the physical position';
@@ -1544,10 +1537,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get editorPositionSettings => 'Position settings';
 
   @override
-  String get editorImageImportUnavailable =>
-      'Import position from image (not yet available)';
-
-  @override
   String get editorShareFen => 'Share FEN';
 
   @override
@@ -1618,4 +1607,102 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get sessionRecovery =>
       'Mobile Maia opened Home to avoid reopening a session that may have caused a crash. Your saved games and settings have been kept.';
+
+  @override
+  String get saveDevDiagnostics => 'Save Dev diagnostics…';
+
+  @override
+  String get devDiagnosticsHelp =>
+      'Dev records recent app events and detailed Grand Kingdom moves and board messages on this device. Older data is removed automatically. Photos and Bluetooth addresses are not recorded. Nothing is uploaded automatically. Export only if you want to share it.';
+
+  @override
+  String get devDiagnosticsExportFailed => 'Could not save Dev diagnostics.';
+
+  @override
+  String get boardPromotionTitle => 'Confirm Maia promotion';
+
+  @override
+  String boardPromotionMove(String square, String piece) {
+    return '$square: $piece. Replace the pawn.';
+  }
+
+  @override
+  String get boardPromotionHelp =>
+      'Wait until the motors have stopped. Replace the pawn with the indicated piece and check the entire physical position against the screen. If the move is incomplete or uncertain, continue in the app instead.';
+
+  @override
+  String get boardPromotionReplaced =>
+      'The motors are stopped, I replaced the pawn, and every piece matches.';
+
+  @override
+  String get recentExportGames => 'Export games';
+
+  @override
+  String get recentExportTooLarge =>
+      'Selected games exceed the 5 MB export limit. Select fewer games and try again.';
+
+  @override
+  String pgnCollectionImported(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count games added to Recent games.',
+      one: '$count game added to Recent games.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get recentExportGameTooLarge =>
+      'A selected game exceeds the 5 MB limit per game.';
+
+  @override
+  String get recentExportFailed =>
+      'Could not export the selected games. Saved games were not changed.';
+
+  @override
+  String get recentDateColumn => 'Date';
+
+  @override
+  String get recentGameColumn => 'Game';
+
+  @override
+  String get recentResultColumn => 'Result';
+
+  @override
+  String get settingsDiagnostics => 'Diagnostics';
+
+  @override
+  String get pgnImportProgress => 'Importing games…';
+
+  @override
+  String pgnCollectionImportSummary(int imported, int duplicates) {
+    String _temp0 = intl.Intl.pluralLogic(
+      imported,
+      locale: localeName,
+      other: '$imported games imported',
+      one: '$imported game imported',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      duplicates,
+      locale: localeName,
+      other: '$duplicates duplicates skipped',
+      one: '$duplicates duplicate skipped',
+    );
+    return '$_temp0 · $_temp1';
+  }
+
+  @override
+  String get recentImportGames => 'Import PGN';
+
+  @override
+  String get pgnFirstGameOnly =>
+      'Only the first game was opened. To import all games, use Recent games → Import PGN.';
+
+  @override
+  String get includeAnalysisAnnotations => 'Include analysis';
+
+  @override
+  String get analysisSaveFailed =>
+      'Could not save analysis. The game is unchanged.';
 }

@@ -113,8 +113,14 @@ class ActiveSessionStore {
     await _allowAutomaticRestore();
   }
 
-  static Future<List<RecentSession>> recent() async =>
-      _usingRepository ? (await repository).recent() : [];
+  static Future<List<RecentSession>> recent() async {
+    if (!_usingRepository) return [];
+    final prefs = await SharedPreferences.getInstance();
+    return (await repository).recent(
+      restoreBlocked: prefs.getBool(_restoreBlocked) == true,
+    );
+  }
+
   static Future<Map<String, dynamic>?> open(String id) async {
     final saved = await (await repository).open(id);
     await _allowAutomaticRestore();
@@ -124,6 +130,15 @@ class ActiveSessionStore {
   static Future<void> delete(String id) async => (await repository).delete(id);
   static Future<void> deleteMany(Iterable<String> ids) async =>
       (await repository).deleteMany(ids);
+
+  static Future<String?> readPgnForExport(String id) async =>
+      (await repository).readPgnForExport(id);
+
+  static Future<PgnImportResult> importCollection(
+    PgnCollection collection, {
+    void Function(PgnImportProgress)? onProgress,
+  }) async =>
+      (await repository).importCollection(collection, onProgress: onProgress);
 
   static Future<Map<String, dynamic>?> load() async {
     if (_usingRepository) {

@@ -1,0 +1,10 @@
+2.6.0
+
+- Grand Kingdom support with assisted promotion.
+- Save analysis in PGN and restore it on reopen.
+- Include or omit analysis when exporting.
+- PGN collection import/export up to 5 MiB, with duplicate checking.
+- Larger landscape boards and improved layouts.
+- Cleaner Recent games and Back navigation.
+- Human move timing on by default.
+- Save, recovery and translation fixes.

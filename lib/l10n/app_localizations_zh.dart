@@ -25,7 +25,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get cancelPremoves => '取消预走棋';
 
   @override
-  String get chessnutExperimental => 'Chessnut（实验性）';
+  String get chessnutBoard => 'Chessnut';
 
   @override
   String get connectChessnut => '连接 Chessnut';
@@ -227,7 +227,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get start => '初始局面';
 
   @override
-  String get chessnutStatus => 'Chessnut 状态';
+  String get chessnutStatus => '棋盘状态';
 
   @override
   String get leaveCurrentGame => '离开当前对局？';
@@ -747,7 +747,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get couldNotConnectChessnut => '无法连接 Chessnut。';
 
   @override
-  String get chessnutAndroidOnly => 'Android 版支持连接 Chessnut。';
+  String get chessnutAndroidOnly => '电子棋盘功能仅支持Android。';
 
   @override
   String get chessnutIsDisconnected => 'Chessnut 未连接。';
@@ -979,10 +979,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get chessnutBluetoothUnavailable => '此设备无法使用蓝牙。';
 
   @override
-  String get chessnutPermissionPending => '请授予蓝牙权限，然后重新连接 Chessnut。';
+  String get chessnutPermissionPending => '请允许蓝牙权限，然后重新连接棋盘。';
 
   @override
-  String get chessnutBluetoothDisabled => '请开启蓝牙，然后重新连接 Chessnut。';
+  String get chessnutBluetoothDisabled => '请开启蓝牙，然后重新连接棋盘。';
 
   @override
   String get whiteShort => '白';
@@ -1016,7 +1016,7 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get electronicBoardExperimental => '电子棋盘（实验性功能）';
+  String get electronicBoard => '电子棋盘';
 
   @override
   String get connectBoard => '连接棋盘';
@@ -1044,9 +1044,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get boardReady => '棋盘已就绪';
-
-  @override
-  String get boardExperimentalNotice => '新棋盘支持仍处于实验阶段。请核对两个屏幕上的走法，并报告连接问题。';
 
   @override
   String get boardGameRestriction => '电子棋盘对局不限时。';
@@ -1089,10 +1086,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get boardReconnect => '重新连接棋盘';
 
   @override
-  String get boardLockedPegasus => 'Pegasus已锁定。此Dev版本未包含厂商的初始化密钥。';
-
-  @override
-  String get boardMotorRecovery => '请在手机上继续。此实验性连接功能无法安全恢复棋盘的电机状态。';
+  String get boardMotorRecovery => '请在手机上继续。无法安全恢复棋盘的电机状态。';
 
   @override
   String get boardConfirmPosition => '确认实体棋盘局面';
@@ -1436,9 +1430,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get editorPositionSettings => '局面设置';
 
   @override
-  String get editorImageImportUnavailable => '从图片导入局面（尚不可用）';
-
-  @override
   String get editorShareFen => '分享 FEN';
 
   @override
@@ -1507,4 +1498,78 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get sessionRecovery =>
       '为避免重新打开可能导致崩溃的会话，Mobile Maia 已返回主页。已保存的对局和设置均已保留。';
+
+  @override
+  String get saveDevDiagnostics => '保存Dev诊断信息…';
+
+  @override
+  String get devDiagnosticsHelp =>
+      'Dev会在此设备上记录最近的应用事件，以及Grand Kingdom走棋和棋盘通信的详细信息。旧数据会自动删除。不记录照片或蓝牙地址，也不会自动上传。仅在愿意分享时导出。';
+
+  @override
+  String get devDiagnosticsExportFailed => '无法保存Dev诊断信息。';
+
+  @override
+  String get boardPromotionTitle => '确认 Maia 升变';
+
+  @override
+  String boardPromotionMove(String square, String piece) {
+    return '$square：$piece。请替换兵。';
+  }
+
+  @override
+  String get boardPromotionHelp =>
+      '请等电机停止后，将兵替换为指定棋子，并检查实体棋盘上的所有棋子是否与屏幕一致。如果移动未完成或无法确认，请在应用中继续对局。';
+
+  @override
+  String get boardPromotionReplaced => '电机已停止，我已替换兵，所有棋子均与屏幕一致。';
+
+  @override
+  String get recentExportGames => '导出对局';
+
+  @override
+  String get recentExportTooLarge => '所选对局超出 5 MB 的导出上限。请选择更少的对局后重试。';
+
+  @override
+  String pgnCollectionImported(int count) {
+    return '已将$count局对局添加到最近的对局。';
+  }
+
+  @override
+  String get recentExportGameTooLarge => '所选对局超过了单局5 MB的限制。';
+
+  @override
+  String get recentExportFailed => '无法导出所选对局。已保存的对局未被更改。';
+
+  @override
+  String get recentDateColumn => '日期';
+
+  @override
+  String get recentGameColumn => '对局';
+
+  @override
+  String get recentResultColumn => '结果';
+
+  @override
+  String get settingsDiagnostics => '诊断';
+
+  @override
+  String get pgnImportProgress => '正在导入棋谱…';
+
+  @override
+  String pgnCollectionImportSummary(int imported, int duplicates) {
+    return '已导入 $imported 局 · 跳过 $duplicates 个重复项';
+  }
+
+  @override
+  String get recentImportGames => '导入 PGN';
+
+  @override
+  String get pgnFirstGameOnly => '仅打开了第一盘对局。要导入所有对局，请前往最近对局 → 导入 PGN。';
+
+  @override
+  String get includeAnalysisAnnotations => '包含分析';
+
+  @override
+  String get analysisSaveFailed => '无法保存分析。对局未更改。';
 }

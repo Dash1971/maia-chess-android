@@ -42,6 +42,9 @@ class RecentSession {
   }
 
   String get title {
+    if (data['importedPgn'] == true) {
+      return '${data['importedWhite'] ?? 'White'} — ${data['importedBlack'] ?? 'Black'}';
+    }
     final maia = 'Maia ${data['elo'] ?? 1600}';
     final playerIsWhite = data['playerIsWhite'];
     return playerIsWhite is! bool || playerIsWhite
@@ -51,6 +54,9 @@ class RecentSession {
 
   String localizedTitle(BuildContext context) {
     final strings = l10n(context);
+    if (data['importedPgn'] == true) {
+      return '${data['importedWhite'] ?? strings.white} — ${data['importedBlack'] ?? strings.black}';
+    }
     final rating = data['elo'];
     final displayRating = NumberFormat(
       '0',
@@ -152,9 +158,7 @@ Widget _recentResultSubtitle(
           if (index > 0)
             TextSpan(
               text: result,
-              style: TextStyle(
-                color: outcome.colorFor(Theme.of(context).brightness),
-              ),
+              style: TextStyle(color: _recentResultColor(context, game)),
             ),
           TextSpan(text: parts[index]),
         ],
@@ -164,10 +168,25 @@ Widget _recentResultSubtitle(
   );
 }
 
+Color? _recentResultColor(BuildContext context, RecentSession game) =>
+    game.isIncomplete
+    ? Theme.of(context).colorScheme.onSurfaceVariant
+    : game.outcome.colorFor(Theme.of(context).brightness);
+
+String _recentGameDate(BuildContext context, DateTime? date) => date == null
+    ? l10n(context).dateUnknown
+    : '${date.year.toString().padLeft(4, '0')}/'
+          '${date.month.toString().padLeft(2, '0')}/'
+          '${date.day.toString().padLeft(2, '0')}';
+
 /// App-private, transactional files. Each successful write retains the previous
 /// readable checkpoint. Archived games are separate files, not rewritten per move.
 class SessionRepository {
-  SessionRepository(this.directory);
+  SessionRepository(this.directory) : _inWorker = false;
+  SessionRepository._worker(this.directory) : _inWorker = true;
+  final bool _inWorker;
+  bool _cleanedImports = false;
+  static final _activeImports = <String>{};
   final Directory directory;
   Future<void> _tail = Future.value();
   String? _activeId;
@@ -210,6 +229,10 @@ class SessionRepository {
     final result = Completer<T>();
     _tail = _tail.then((_) async {
       try {
+        if (!_cleanedImports) {
+          await _cleanupAbandonedImports();
+          _cleanedImports = true;
+        }
         result.complete(await action());
       } catch (error, stack) {
         result.completeError(error, stack);
@@ -220,8 +243,14 @@ class SessionRepository {
 
   Future<Map<String, dynamic>?> _readFile(File file) async {
     try {
-      final source = await file.readAsString();
-      final decoded = await Isolate.run(() => jsonDecode(source));
+      // A pending write can end halfway through a UTF-8 character. Decode
+      // its bytes explicitly so it follows the malformed-JSON recovery path.
+      final source = file.path.endsWith('.pending')
+          ? utf8.decode(await file.readAsBytes())
+          : await file.readAsString();
+      final decoded = _inWorker
+          ? jsonDecode(source)
+          : await Isolate.run(() => jsonDecode(source));
       if (decoded is Map &&
           decoded.containsKey('version') &&
           decoded['version'] != 1) {
@@ -270,7 +299,9 @@ class SessionRepository {
     await _readFile(File('${file.path}.pending'));
     await file.parent.create(recursive: true);
     final payload = envelope;
-    final encoded = await Isolate.run(() => jsonEncode(payload));
+    final encoded = _inWorker
+        ? jsonEncode(payload)
+        : await Isolate.run(() => jsonEncode(payload));
     final temporary = File('${file.path}.pending');
     await temporary.writeAsString(encoded, flush: true);
     if (primary != null) {
@@ -281,11 +312,234 @@ class SessionRepository {
   }
 
   File get _active => File('${directory.path}/active.json');
+  static final _importId = RegExp(r'^(import-[0-9]+-[0-9]+)-[0-9]+$');
   File _archiveFile(String id) {
     if (!RegExp(r'^[0-9a-z-]+$').hasMatch(id)) {
       throw const FormatException('Invalid session identifier');
     }
-    return File('${directory.path}/games/$id.json');
+    final batch = _importId.firstMatch(id)?.group(1);
+    return File(
+      '${directory.path}/games/${batch == null ? '' : '$batch/'}$id.json',
+    );
+  }
+
+  /// Only abandoned import directories are disposable, never save checkpoints.
+  /// Repositories in the coordinating isolate share the active set, so another
+  /// instance there cannot clean a collection being prepared by the worker.
+  Future<void> _cleanupAbandonedImports() async {
+    if (!await directory.exists()) return;
+    await for (final entry in directory.list(followLinks: false)) {
+      if (entry is Directory &&
+          RegExp(r'^\.import-[0-9]+-[0-9]+\.pending$')
+              .hasMatch(entry.path.split('/').last) &&
+          !_activeImports.contains(entry.path)) {
+        await entry.delete(recursive: true);
+      }
+    }
+  }
+
+  static String? _storedPgn(Map<String, dynamic>? envelope) {
+    final data = envelope == null
+        ? null
+        : _recentGameData(envelope['data'], includeLive: true);
+    final session = data?['session'];
+    final pgn = data?['pgn'] ?? (session is Map ? session['pgn'] : null);
+    return pgn is String ? pgn : null;
+  }
+
+  static final _identityTag = RegExp(
+    r'\[([A-Za-z0-9][A-Za-z0-9_+#=:-]*)\s+"((?:[^"\\]|\\["\\])*)"\]',
+  );
+
+  /// Use the exporter's formatting, without replaying every saved game. Raw
+  /// fallback protects metadata or annotations the serializer would discard.
+  static String _pgnFingerprint(String pgn) {
+    final text = pgn.replaceAll('\r\n', '\n').replaceAll('\r', '\n').trim();
+    var identity = 'raw:$text';
+    try {
+      if (text.length <= AnalysisSession.maxPgnBytes) {
+        RecentGamesPgn._validateSingleGame(text);
+        AnalysisSession._validatePgnTokens(text);
+        final parsed = dc.PgnGame.parsePgn(
+          text,
+          initHeaders: dc.PgnGame.emptyHeaders,
+        );
+        final declared = <String, String>{};
+        var brace = false, lossless = true;
+        for (var i = 0; i < text.length; i++) {
+          final c = text[i];
+          if (brace) {
+            if (c == '}') brace = false;
+          } else if (c == '{') {
+            brace = true;
+          } else if (c == '[') {
+            final tag = _identityTag.matchAsPrefix(text, i);
+            if (tag == null || declared.containsKey(tag[1])) {
+              lossless = false;
+              break;
+            }
+            final key = tag[1]!;
+            final value = tag[2]!
+                .replaceAll(r'\"', '"')
+                .replaceAll(r'\\', r'\');
+            declared[key] = value;
+            if (parsed.headers[key] != value) {
+              lossless = false;
+              break;
+            }
+            i = tag.end - 1;
+          } else if (c == ';' || c == '%') {
+            // The serializer omits line comments and escape lines entirely.
+            lossless = false;
+            break;
+          }
+        }
+        if (lossless) identity = 'pgn:${parsed.makePgn().trim()}';
+      }
+    } on FormatException {
+      // Malformed legacy records must not become a valid-looking duplicate.
+    } on ArgumentError {
+      // Includes malformed legacy setup headers rejected by makePgn().
+    }
+    return crypto.sha256.convert(utf8.encode(identity)).toString();
+  }
+
+  /// Publish all new games with one directory rename. Validation, duplicate
+  /// checks and file writes run off the UI isolate, under this repository queue.
+  Future<PgnImportResult> importCollection(
+    PgnCollection collection, {
+    void Function(PgnImportProgress)? onProgress,
+  }) => _serial(() async {
+    final now = DateTime.now().toUtc();
+    final batch =
+        'import-${now.microsecondsSinceEpoch}-${Random.secure().nextInt(1 << 30)}';
+    final root = directory.path;
+    final staging = '$root/.$batch.pending';
+    final port = ReceivePort();
+    final updates = port.listen((message) {
+      if (message is List<int>) {
+        onProgress?.call(PgnImportProgress(message[0], message[1]));
+      }
+    });
+    final sender = port.sendPort;
+    _activeImports.add(staging);
+    try {
+      final result = await _runImportWorker(
+        root,
+        collection,
+        batch,
+        now,
+        sender,
+      );
+      onProgress?.call(const PgnImportProgress(1, 1));
+      return result;
+    } finally {
+      port.close();
+      await updates.cancel();
+      _activeImports.remove(staging);
+    }
+  });
+
+  static Future<PgnImportResult> _runImportWorker(
+    String root,
+    PgnCollection collection,
+    String batch,
+    DateTime now,
+    SendPort sender,
+  ) => Isolate.run(
+    () =>
+        SessionRepository._worker(Directory(root))
+            ._importCollection(collection, batch, now, sender),
+  );
+
+  Future<PgnImportResult> _importCollection(
+    PgnCollection collection,
+    String batch,
+    DateTime now,
+    SendPort progress,
+  ) async {
+    final staging = Directory('${directory.path}/.$batch.pending');
+    final destination = Directory('${directory.path}/games/$batch');
+    final existing = [...await _archiveNames(), _active.path];
+    final total = existing.length + 2 * collection.games.length;
+    var completed = 0;
+    final timer = Stopwatch()..start();
+    void report({bool force = false}) {
+      if (force || timer.elapsedMilliseconds >= 40) {
+        progress.send(<int>[completed, total]);
+        timer.reset();
+      }
+    }
+
+    report(force: true);
+    final seen = <String>{};
+    for (final file in existing) {
+      final pgn = _storedPgn(await _read(File(file)));
+      if (pgn != null) seen.add(_pgnFingerprint(pgn));
+      completed++;
+      report();
+    }
+    final selected = <int>[];
+    for (var i = 0; i < collection.games.length; i++) {
+      if (seen.add(_pgnFingerprint(collection.games[i]))) selected.add(i);
+      completed++;
+      report();
+    }
+    final duplicates = collection.games.length - selected.length;
+    completed += duplicates;
+    if (selected.isEmpty) {
+      progress.send(<int>[total, total]);
+      return PgnImportResult(0, duplicates);
+    }
+    try {
+      await staging.create(recursive: true);
+      for (final i in selected) {
+        final pgn = collection.games[i];
+        final headers = collection.headers[i];
+        final result = headers['Result'] ?? '*';
+        final maiaName = RegExp(r'^Maia-3 79M \(([0-9]{3,4})\)$');
+        final whiteMaia = maiaName.firstMatch(headers['White'] ?? '');
+        final blackMaia = maiaName.firstMatch(headers['Black'] ?? '');
+        final maia = whiteMaia ?? blackMaia;
+        final maiaRating = maia == null
+            ? null
+            : _decodeMaiaRating(int.tryParse(maia[1]!));
+        final data = <String, Object?>{
+          'schema': 1,
+          'type': 'game',
+          'pgn': pgn,
+          'recentState': result == '*' ? 'incomplete' : 'completed',
+          'clockPaused': true,
+          'importedPgn': true,
+          'importedWhite': ?headers['White'],
+          'importedBlack': ?headers['Black'],
+          if (maiaRating != null &&
+              (whiteMaia == null || blackMaia == null)) ...{
+            'playerIsWhite': blackMaia != null,
+            'elo': maiaRating,
+          },
+        };
+        final id =
+            '$batch-${(collection.games.length - i).toString().padLeft(8, '0')}';
+        await _write(
+          File('${staging.path}/$id.json'),
+          _withHistory({
+            'version': 1,
+            'id': id,
+            'updatedAt': now.toIso8601String(),
+            'data': data,
+          }),
+        );
+        completed++;
+        report();
+      }
+      await destination.parent.create(recursive: true);
+      await staging.rename(destination.path);
+      progress.send(<int>[total, total]);
+      return PgnImportResult(selected.length, duplicates);
+    } finally {
+      if (await staging.exists()) await staging.delete(recursive: true);
+    }
   }
 
   Future<bool> hasCheckpoint() =>
@@ -326,16 +580,23 @@ class SessionRepository {
     });
   }
 
-  static Map<String, dynamic>? _recentGameData(Object? value) {
+  static Map<String, dynamic>? _recentGameData(
+    Object? value, {
+    bool includeLive = true,
+  }) {
     if (value is! Map) return null;
     final data = Map<String, dynamic>.from(value);
     if (data['type'] == 'review') {
-      return _recentGameData(data['activeGame']);
+      return _recentGameData(data['activeGame'], includeLive: includeLive);
     }
     if (data['type'] != 'game') return null;
     final state = data['recentState'];
-    // Sessions written before recentState existed remain visible and are
-    // labelled from their PGN result. New live checkpoints stay recovery-only.
+    // Freeze the last saved clock when a live game becomes a manual recovery.
+    if (state == 'active') {
+      if (!includeLive) return null;
+      return {...data, 'recentState': 'incomplete', 'clockPaused': true};
+    }
+    // Older saves have no recentState and derive their label from the PGN.
     if (state == null || state == 'incomplete' || state == 'completed') {
       return data;
     }
@@ -384,11 +645,49 @@ class SessionRepository {
     await _deleteArchiveFiles(id);
   });
 
-  Future<List<RecentSession>> recent() => _serial(() async {
+  Future<Set<String>> _archiveNames() async {
+    final names = <String>{};
+    final archive = Directory('${directory.path}/games');
+    if (await archive.exists()) {
+      await for (final entity in archive.list()) {
+        if (entity is Directory &&
+            RegExp(r'^import-[0-9]+-[0-9]+$')
+                .hasMatch(entity.path.split('/').last)) {
+          await for (final file in entity.list(followLinks: false)) {
+            if (file is File &&
+                (file.path.endsWith('.json') ||
+                    file.path.endsWith('.json.previous'))) {
+              names.add(file.path.replaceFirst(RegExp(r'\.previous$'), ''));
+            }
+          }
+        }
+        if (entity is File &&
+            (entity.path.endsWith('.json') ||
+                entity.path.endsWith('.json.previous'))) {
+          names.add(entity.path.replaceFirst(RegExp(r'\.previous$'), ''));
+        }
+      }
+    }
+    return names;
+  }
+
+  Future<List<RecentSession>> recent({bool restoreBlocked = false}) =>
+      _serial(() => _runRecentWorker(directory.path, restoreBlocked));
+
+  static Future<List<RecentSession>> _runRecentWorker(
+    String root,
+    bool restoreBlocked,
+  ) => Isolate.run(
+    () =>
+        SessionRepository._worker(Directory(root))
+            ._recent(restoreBlocked: restoreBlocked),
+  );
+
+  Future<List<RecentSession>> _recent({required bool restoreBlocked}) async {
     final entries = <String, RecentSession>{};
-    void add(Map<String, dynamic>? envelope) {
+    void add(Map<String, dynamic>? envelope, {bool includeLive = false}) {
       if (envelope == null) return;
-      final data = _recentGameData(envelope['data']);
+      final data = _recentGameData(envelope['data'], includeLive: includeLive);
       if (data == null) return;
       final id = envelope['id'] as String;
       entries[id] = RecentSession(
@@ -402,21 +701,10 @@ class SessionRepository {
       );
     }
 
-    final archive = Directory('${directory.path}/games');
-    if (await archive.exists()) {
-      final names = <String>{};
-      await for (final entity in archive.list()) {
-        if (entity is File &&
-            (entity.path.endsWith('.json') ||
-                entity.path.endsWith('.json.previous'))) {
-          names.add(entity.path.replaceFirst(RegExp(r'\.previous$'), ''));
-        }
-      }
-      for (final name in names) {
-        add(await _read(File(name)));
-      }
+    for (final name in await _archiveNames()) {
+      add(await _read(File(name)));
     }
-    add(await _read(_active));
+    add(await _read(_active), includeLive: restoreBlocked);
     return entries.values.toList()..sort((a, b) {
       final day = (b.history.playedOn ?? '').compareTo(
         a.history.playedOn ?? '',
@@ -429,7 +717,7 @@ class SessionRepository {
       final time = aStart == null ? 0 : bStart!.compareTo(aStart);
       return time != 0 ? time : b.id.compareTo(a.id);
     });
-  });
+  }
 
   Future<Map<String, dynamic>?> open(String id) => _serial(() async {
     final archive = _archiveFile(id); // Validate the id before any writes.
@@ -446,6 +734,21 @@ class SessionRepository {
     await _archive();
     await _write(_active, _withHistory({...entry, 'data': data}));
     return Map<String, dynamic>.from(_detach(data) as Map);
+  });
+
+  /// Export must never call open(), which archives/replaces the active session.
+  Future<String?> readPgnForExport(String id) => _serial(() async {
+    final archive = _archiveFile(id);
+    final active = await _read(_active);
+    final entry =
+        active?['id'] == id && _recentGameData(active?['data']) != null
+        ? active
+        : await _read(archive);
+    if (entry == null || entry['id'] != id) return null;
+    final data = _recentGameData(entry['data']);
+    final session = data?['session'];
+    final pgn = data?['pgn'] ?? (session is Map ? session['pgn'] : null);
+    return pgn is String ? pgn : null;
   });
 
   Future<void> delete(String id) => _serial(() async {
@@ -503,12 +806,14 @@ class RecentGamesPage extends StatefulWidget {
     this.loadGames,
     this.openGame,
     this.deleteGames,
+    this.readPgnForExport,
     super.key,
   });
 
   final Future<List<RecentSession>> Function()? loadGames;
   final Future<Map<String, dynamic>?> Function(String id)? openGame;
   final Future<void> Function(Iterable<String> ids)? deleteGames;
+  final Future<String?> Function(String id)? readPgnForExport;
 
   @override
   State<RecentGamesPage> createState() => _RecentGamesPageState();
@@ -520,6 +825,8 @@ class _RecentGamesPageState extends State<RecentGamesPage> {
   bool _selecting = false;
   bool _busy = false;
   bool _updatingFiles = false;
+  bool _exporting = false;
+  bool _includePgnAnalysis = true;
   final Set<String> _selected = {};
 
   @override
@@ -552,6 +859,78 @@ class _RecentGamesPageState extends State<RecentGamesPage> {
       _selecting = true;
       if (!_selected.add(id)) _selected.remove(id);
     });
+  }
+
+  void _cancelSelection() {
+    if (_busy) return;
+    setState(() {
+      _selecting = false;
+      _selected.clear();
+    });
+  }
+
+  Future<void> _importGames() async {
+    if (_busy) return;
+    setState(() => _busy = true);
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    try {
+      await PgnFiles.open(context, destination: PgnDestination.recentGames);
+      if (mounted) await _reload();
+    } catch (error, stackTrace) {
+      unawaited(
+        AppDiagnostics.record('recent-games-import', error, stackTrace),
+      );
+      if (mounted) _showOperationError(l10n(context).couldNotOpenPgn);
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _exportSelected({required bool share}) async {
+    if (_busy || _selected.isEmpty) return;
+    // Selection order is irrelevant: use the exact displayed Recent Games order.
+    final ids = [
+      for (final game in _games ?? <RecentSession>[])
+        if (_selected.contains(game.id)) game.id,
+    ];
+    if (ids.isEmpty) return;
+    setState(() {
+      _busy = true;
+      _exporting = true;
+    });
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    try {
+      final pgn = await RecentGamesPgn.export(
+        ids,
+        widget.readPgnForExport ?? ActiveSessionStore.readPgnForExport,
+        includeAnalysis: _includePgnAnalysis,
+      );
+      if (!mounted) return;
+      await PgnFiles.export(
+        context,
+        pgn,
+        share: share,
+        failureMessage: l10n(context).recentExportFailed,
+      );
+    } catch (error, stackTrace) {
+      unawaited(
+        AppDiagnostics.record('recent-games-export', error, stackTrace),
+      );
+      if (mounted) {
+        _showOperationError(switch (error) {
+          PgnExportGameTooLarge() => l10n(context).recentExportGameTooLarge,
+          PgnExportTooLarge() => l10n(context).recentExportTooLarge,
+          _ => l10n(context).recentExportFailed,
+        });
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _busy = false;
+          _exporting = false;
+        });
+      }
+    }
   }
 
   Future<void> _deleteGames(List<RecentSession> games) async {
@@ -661,22 +1040,21 @@ class _RecentGamesPageState extends State<RecentGamesPage> {
     final games = _games;
     final page = Scaffold(
       appBar: AppBar(
-        bottom: _updatingFiles
+        bottom: _updatingFiles || _exporting
             ? PreferredSize(
                 preferredSize: const Size.fromHeight(2),
                 child: LinearProgressIndicator(
                   minHeight: 2,
-                  semanticsLabel: l10n(context).recentUpdating,
+                  semanticsLabel: _exporting
+                      ? l10n(context).recentExportGames
+                      : l10n(context).recentUpdating,
                 ),
               )
             : null,
         leading: _selecting
             ? IconButton(
                 tooltip: l10n(context).recentCancelSelection,
-                onPressed: () => setState(() {
-                  _selecting = false;
-                  _selected.clear();
-                }),
+                onPressed: _cancelSelection,
                 icon: const Icon(Icons.close),
               )
             : null,
@@ -684,21 +1062,45 @@ class _RecentGamesPageState extends State<RecentGamesPage> {
           _selecting
               ? l10n(context).recentSelectedCount(_selected.length)
               : l10n(context).recentGames,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
         ),
         actions: [
           if (_selecting && games != null) ...[
+            PopupMenuButton<bool>(
+              key: const ValueKey('export-selected-games'),
+              tooltip: l10n(context).recentExportGames,
+              enabled: _selected.isNotEmpty && !_busy,
+              icon: const Icon(Icons.ios_share_outlined),
+              onSelected: (share) => unawaited(_exportSelected(share: share)),
+              itemBuilder: (_) => [
+                PgnAnalysisExportOption<bool>(
+                  initialValue: _includePgnAnalysis,
+                  onChanged: (value) => _includePgnAnalysis = value,
+                ),
+                const PopupMenuDivider(),
+                PopupMenuItem(
+                  value: false,
+                  child: Text(l10n(context).savePgnFile),
+                ),
+                PopupMenuItem(value: true, child: Text(l10n(context).sharePgn)),
+              ],
+            ),
             IconButton(
               key: const ValueKey('select-all-games'),
               tooltip: _selected.length == games.length
                   ? l10n(context).recentClearSelection
                   : l10n(context).recentSelectAll,
-              onPressed: () => setState(() {
-                if (_selected.length == games.length) {
-                  _selected.clear();
-                } else {
-                  _selected.addAll(games.map((game) => game.id));
-                }
-              }),
+              onPressed: () {
+                if (_busy) return;
+                setState(() {
+                  if (_selected.length == games.length) {
+                    _selected.clear();
+                  } else {
+                    _selected.addAll(games.map((game) => game.id));
+                  }
+                });
+              },
               icon: const Icon(Icons.select_all),
             ),
             IconButton(
@@ -713,22 +1115,33 @@ class _RecentGamesPageState extends State<RecentGamesPage> {
                     ),
               icon: const Icon(Icons.delete_outline),
             ),
-          ] else if (games != null && games.isNotEmpty)
+          ] else
             PopupMenuButton<String>(
               key: const ValueKey('recent-games-menu'),
+              enabled: !_busy,
               onSelected: (action) {
+                if (_busy) return;
+                if (action == 'import') unawaited(_importGames());
                 if (action == 'select') setState(() => _selecting = true);
-                if (action == 'delete-all') unawaited(_deleteGames(games));
+                if (action == 'delete-all' && games != null) {
+                  unawaited(_deleteGames(games));
+                }
               },
               itemBuilder: (_) => [
                 PopupMenuItem(
-                  value: 'select',
-                  child: Text(l10n(context).recentSelectGames),
+                  value: 'import',
+                  child: Text(l10n(context).recentImportGames),
                 ),
-                PopupMenuItem(
-                  value: 'delete-all',
-                  child: Text(l10n(context).recentDeleteAll),
-                ),
+                if (games != null && games.isNotEmpty) ...[
+                  PopupMenuItem(
+                    value: 'select',
+                    child: Text(l10n(context).recentSelectGames),
+                  ),
+                  PopupMenuItem(
+                    value: 'delete-all',
+                    child: Text(l10n(context).recentDeleteAll),
+                  ),
+                ],
               ],
             ),
         ],
@@ -749,45 +1162,246 @@ class _RecentGamesPageState extends State<RecentGamesPage> {
               ),
             );
           }
-          return ListView.builder(
-            itemCount: games.length,
-            itemBuilder: (context, index) {
-              final game = games[index];
-              final date = game.history.playedDate;
-              return ListTile(
-                key: ValueKey('recent-game-${game.id}'),
-                selected: _selected.contains(game.id),
-                leading: _selecting
-                    ? Checkbox(
-                        value: _selected.contains(game.id),
-                        onChanged: (_) => _toggleSelection(game.id),
-                      )
-                    : null,
-                title: Text(game.localizedTitle(context)),
-                subtitle: _recentResultSubtitle(
-                  context,
-                  game,
-                  date == null
-                      ? l10n(context).dateUnknown
-                      : MaterialLocalizations.of(context)
-                            .formatCompactDate(date),
-                ),
-                onTap: () {
-                  if (_busy) return;
-                  if (_selecting) {
-                    _toggleSelection(game.id);
-                    return;
-                  }
-                  unawaited(_openGame(game));
-                },
-                onLongPress: () => _toggleSelection(game.id),
-                trailing: _selecting
-                    ? null
-                    : IconButton(
-                        icon: const Icon(Icons.delete_outline),
-                        tooltip: l10n(context).recentDeleteOne,
-                        onPressed: () => _deleteGames([game]),
+          return LayoutBuilder(
+            builder: (context, constraints) {
+              final strings = l10n(context);
+              final theme = Theme.of(context).textTheme;
+              final dateStyle = theme.bodySmall!.copyWith(
+                fontFeatures: const [ui.FontFeature.tabularFigures()],
+              );
+              final resultStyle = theme.bodyMedium!;
+              double textWidth(String text, TextStyle style) {
+                final painter = TextPainter(
+                  text: TextSpan(text: text, style: style),
+                  textDirection: Directionality.of(context),
+                  textScaler: MediaQuery.textScalerOf(context),
+                  maxLines: 1,
+                )..layout();
+                final width = painter.width.ceilToDouble() + 2;
+                painter.dispose();
+                return width;
+              }
+
+              final dateWidth = [
+                textWidth(strings.recentDateColumn, theme.labelMedium!),
+                textWidth('8888/88/88', dateStyle),
+                if (games.any((game) => game.history.playedDate == null))
+                  textWidth(strings.dateUnknown, dateStyle),
+              ].reduce(max);
+              final resultWidth = [
+                textWidth(strings.recentResultColumn, theme.labelMedium!),
+                for (final label in {
+                  strings.recentIncomplete,
+                  strings.recentCompleted,
+                  '1/2-1/2',
+                })
+                  textWidth(label, resultStyle),
+              ].reduce(max);
+              final minimumGameWidth = MediaQuery.textScalerOf(context)
+                  .scale(96);
+              if (min(constraints.maxWidth, 1100) <
+                  dateWidth +
+                      resultWidth +
+                      minimumGameWidth +
+                      56 +
+                      (_selecting ? 48 : 0)) {
+                return ListView.builder(
+                  key: const PageStorageKey('recent-games-list'),
+                  itemCount: games.length,
+                  itemBuilder: (context, index) {
+                    final game = games[index];
+                    final date = game.history.playedDate;
+                    return ListTile(
+                      key: ValueKey('recent-game-${game.id}'),
+                      selected: _selected.contains(game.id),
+                      leading: _selecting
+                          ? Checkbox(
+                              value: _selected.contains(game.id),
+                              onChanged: (_) => _toggleSelection(game.id),
+                            )
+                          : null,
+                      title: Text(game.localizedTitle(context)),
+                      subtitle: _recentResultSubtitle(
+                        context,
+                        game,
+                        _recentGameDate(context, date),
                       ),
+                      onTap: () {
+                        if (_busy) return;
+                        if (_selecting) {
+                          _toggleSelection(game.id);
+                          return;
+                        }
+                        unawaited(_openGame(game));
+                      },
+                      onLongPress: () => _toggleSelection(game.id),
+                    );
+                  },
+                );
+              }
+              return Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 1100),
+                  child: Column(
+                    children: [
+                      Padding(
+                        key: const ValueKey('recent-table-header'),
+                        padding: const EdgeInsetsDirectional.fromSTEB(
+                          12,
+                          8,
+                          12,
+                          8,
+                        ),
+                        child: DefaultTextStyle(
+                          style: Theme.of(context).textTheme.labelMedium!,
+                          child: Row(
+                            children: [
+                              if (_selecting) const SizedBox(width: 48),
+                              SizedBox(
+                                width: dateWidth,
+                                child: Semantics(
+                                  header: true,
+                                  child: Text(strings.recentDateColumn),
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Semantics(
+                                  header: true,
+                                  child: Text(
+                                    strings.recentGameColumn,
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              SizedBox(
+                                width: resultWidth,
+                                child: Semantics(
+                                  header: true,
+                                  child: Text(
+                                    strings.recentResultColumn,
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const Divider(height: 1),
+                      Expanded(
+                        child: ListView.builder(
+                          key: const PageStorageKey('recent-games-list'),
+                          itemCount: games.length,
+                          itemBuilder: (context, index) {
+                            final game = games[index];
+                            final played = game.history.playedDate;
+                            final date = _recentGameDate(context, played);
+                            final result = game.localizedResult(context);
+                            final description = switch (game.outcome) {
+                              RecentGameOutcome.win => strings.recentWinResult(
+                                result,
+                              ),
+                              RecentGameOutcome.loss =>
+                                strings.recentLossResult(result),
+                              RecentGameOutcome.draw =>
+                                strings.recentDrawResult(result),
+                              _ => result,
+                            };
+                            return Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                ListTile(
+                                  key: ValueKey('recent-game-${game.id}'),
+                                  minTileHeight: 52,
+                                  minVerticalPadding: 4,
+                                  horizontalTitleGap: 16,
+                                  contentPadding:
+                                      const EdgeInsetsDirectional.symmetric(
+                                        horizontal: 12,
+                                      ),
+                                  selected: _selected.contains(game.id),
+                                  leading: SizedBox(
+                                    width: dateWidth + (_selecting ? 48 : 0),
+                                    child: Row(
+                                      children: [
+                                        if (_selecting)
+                                          SizedBox(
+                                            width: 48,
+                                            child: Checkbox(
+                                              value: _selected.contains(
+                                                game.id,
+                                              ),
+                                              onChanged: (_) =>
+                                                  _toggleSelection(game.id),
+                                            ),
+                                          ),
+                                        Expanded(
+                                          child: Text(
+                                            date,
+                                            maxLines: 1,
+                                            softWrap: false,
+                                            style: dateStyle,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  title: Row(
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                          game.localizedTitle(context),
+                                          textAlign: TextAlign.center,
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .bodyMedium,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 16),
+                                      SizedBox(
+                                        width: resultWidth,
+                                        child: Text(
+                                          result,
+                                          textAlign: TextAlign.center,
+                                          maxLines: 1,
+                                          softWrap: false,
+                                          semanticsLabel: description,
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .bodyMedium
+                                              ?.copyWith(
+                                                color: _recentResultColor(
+                                                  context,
+                                                  game,
+                                                ),
+                                              ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  onTap: () {
+                                    if (_busy) return;
+                                    if (_selecting) {
+                                      _toggleSelection(game.id);
+                                    } else {
+                                      unawaited(_openGame(game));
+                                    }
+                                  },
+                                  onLongPress: () => _toggleSelection(game.id),
+                                ),
+                                const Divider(height: 1),
+                              ],
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               );
             },
           );
@@ -795,7 +1409,10 @@ class _RecentGamesPageState extends State<RecentGamesPage> {
       ),
     );
     return PopScope(
-      canPop: !_busy,
+      canPop: !_busy && !_selecting,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop && _selecting) _cancelSelection();
+      },
       child: AbsorbPointer(absorbing: _busy, child: page),
     );
   }

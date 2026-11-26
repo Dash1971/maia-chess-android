@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maia_chess/main.dart';
@@ -50,6 +52,46 @@ void main() {
       await tester.pumpAndSettle();
     },
   );
+
+  testWidgets('sharing a PGN keeps the interrupted game in Recent games', (
+    tester,
+  ) async {
+    final store = (await tester.runAsync(() async {
+      final dir = await Directory.systemTemp.createTemp('maia-import-');
+      final repo = SessionRepository(dir);
+      await repo.save({
+        'type': 'game',
+        'recentState': 'active',
+        'pgn': '1. d4 d5 *',
+      });
+      return repo;
+    }))!;
+    ActiveSessionStore.setTestRepository(store);
+    addTearDown(() async {
+      ActiveSessionStore.setTestRepository(null);
+      await store.directory.delete(recursive: true);
+    });
+    var pending = true;
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(maiaEngineChannel, (call) async {
+          if (call.method == 'getPendingPgn' && pending) {
+            pending = false;
+            return variationNavigationPgn;
+          }
+          return null;
+        });
+    await tester.pumpWidget(const MaterialApp(home: GamePage()));
+    await _waitForImport(tester);
+    // Read as a fresh launch would. The imported board can already be
+    // queueing its own autosave on the widget test clock.
+    final saved = (await tester.runAsync(
+      () => SessionRepository(store.directory).recent(),
+    ))!.single;
+    expect(saved.isIncomplete, isTrue);
+    expect(saved.data['uciMoves'], ['d2d4', 'd7d5']);
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pumpAndSettle();
+  });
 
   testWidgets(
     'pasted PGN uses the background parser and retains its variations',

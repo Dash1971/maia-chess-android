@@ -63,6 +63,17 @@ class LocalizationContractTest(unittest.TestCase):
         checker.write_review(self.root)
         self.assertIn('ja.temperature: empty/non-string message', checker.check(self.root))
 
+    def test_supported_board_brand_is_not_translated(self):
+        for lang in checker.LOCALES:
+            self.change(lang, lambda data: data.update(chessnutBoard='Chessnut',
+                **{'@chessnutBoard': {'description': 'Manufacturer name'}}))
+        checker.write_review(self.root)
+        self.assertEqual([], checker.check(self.root))
+        self.change('ja', lambda data: data.update(chessnutBoard='別の名前'))
+        checker.write_review(self.root)
+        self.assertIn('ja.chessnutBoard: missing canonical identifier Chessnut',
+                      checker.check(self.root))
+
     def test_duplicate_keys_fail(self):
         (self.root / 'lib/l10n/app_zh.arb').write_text('{"same":"a","same":"b"}')
         self.assertTrue(any('duplicate JSON key' in error for error in checker.check(self.root)))

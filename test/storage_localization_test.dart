@@ -62,17 +62,14 @@ void main() {
           tester.element(find.byType(RecentGamesPage)),
         )!;
         expect(find.text(strings.recentMaiaPlayer('500')), findsNWidgets(2));
-        expect(
-          find.text(
-            strings.recentGameSummary(
-              strings.recentIncomplete,
-              MaterialLocalizations.of(
-                tester.element(find.byType(RecentGamesPage)),
-              ).formatCompactDate(date),
-            ),
-          ),
-          findsNWidgets(2),
-        );
+        expect(find.text(strings.recentIncomplete), findsNWidgets(2));
+        for (final label in tester.widgetList<Text>(
+          find.text(strings.recentIncomplete),
+        )) {
+          expect(label.semanticsLabel, strings.recentIncomplete);
+          expect(label.textAlign, TextAlign.center);
+        }
+        expect(find.text('2026/09/05'), findsNWidgets(2));
         await tester.tap(find.byKey(const ValueKey('recent-games-menu')));
         await tester.pumpAndSettle();
         await tester.tap(find.text(strings.recentDeleteAll));
@@ -88,7 +85,9 @@ void main() {
         );
         expect(data, original);
         // The singular warning uses its own ICU branch and opens without rewriting data.
-        await tester.tap(find.byTooltip(strings.recentDeleteOne).first);
+        await tester.longPress(find.byKey(const ValueKey('recent-game-one')));
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const ValueKey('delete-selected-games')));
         await tester.pumpAndSettle();
         expect(find.text(strings.recentDeleteTitle(1)), findsOneWidget);
         expect(find.text(strings.recentDeleteWarning(1)), findsOneWidget);

@@ -215,9 +215,6 @@ class ChessnutPlatformTransport implements DiscoverableBoardTransport {
   @override
   Future<void> setLeds(Iterable<String> squares) => _sendCommand('setLeds', {
     'command': ChessnutProtocol.encodeLedCommand(squares),
-    'squares': [
-      for (final s in squares) (8 - int.parse(s[1])) * 8 + s.codeUnitAt(0) - 97,
-    ],
   });
 
   @override
@@ -264,6 +261,13 @@ class ChessnutEventDecoder {
     final boardKind = BoardKind.values
         .where((k) => k.name == event['boardKind'])
         .firstOrNull;
+    // Explicit unknown/retired kinds must not fall back to legacy Chessnut.
+    if (event['boardKind'] != null && boardKind == null) {
+      return const ElectronicBoardEvent(
+        type: 'unsupported',
+        diagnostic: 'errorSource=event-decode reason=unsupportedBoardKind',
+      );
+    }
     final boardId = event['boardId'] is String
         ? event['boardId'] as String
         : null;

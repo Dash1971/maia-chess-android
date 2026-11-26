@@ -263,6 +263,88 @@ void main() {
       expect(find.bySemanticsLabel('M2600 Black 70%'), findsOneWidget);
     },
   );
+  testWidgets(
+    'engine off hides both cached scores without changing the preference',
+    (tester) async {
+      final controller = MaiaScoreController();
+      addTearDown(controller.dispose);
+      await controller.select(true);
+      await tester.pumpWidget(app(controller));
+      await tester.pumpAndSettle();
+      expect(find.bySemanticsLabel('M1500 White 60%'), findsOneWidget);
+      expect(find.bySemanticsLabel('M2600 Black 70%'), findsOneWidget);
+
+      final toggle = find.byKey(const ValueKey('analysis-engine-toggle'));
+      await tester.tap(toggle);
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey('maia-score-details')), findsNothing);
+      expect(find.byKey(const ValueKey('maia-score-primary')), findsNothing);
+      expect(find.byKey(const ValueKey('maia-score-secondary')), findsNothing);
+      expect(controller.enabled, isTrue);
+      expect(
+        (await SharedPreferences.getInstance()).getBool(maiaScorePreferenceKey),
+        isTrue,
+      );
+
+      await tester.tap(toggle);
+      await tester.pumpAndSettle();
+      expect(find.bySemanticsLabel('M1500 White 60%'), findsOneWidget);
+      expect(find.bySemanticsLabel('M2600 Black 70%'), findsOneWidget);
+
+      // Re-enabling engines must still respect the independent Settings choice.
+      await tester.tap(toggle);
+      await tester.pumpAndSettle();
+      await controller.select(false);
+      await tester.tap(toggle);
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey('maia-score-details')), findsNothing);
+      expect(controller.enabled, isFalse);
+      expect(tester.takeException(), isNull);
+    },
+  );
+  testWidgets(
+    'late Maia results stay hidden while off and navigation restores current scores',
+    (tester) async {
+      final controller = MaiaScoreController();
+      addTearDown(controller.dispose);
+      await controller.select(true);
+      final pending = <int, Completer<MaiaInferenceResult?>>{};
+      final requests = <int>[];
+      await tester.pumpWidget(app(controller, infer: (history, elo) {
+        requests.add(history.length);
+        if (history.length == 1) {
+          return pending.putIfAbsent(elo, () => Completer()).future;
+        }
+        return Future.value(
+          elo == 1500 ? result(.1, .2, .7) : result(.2, .2, .6),
+        );
+      }));
+      await tester.pumpAndSettle();
+      expect(pending.keys, unorderedEquals([1500, 2600]));
+      final toggle = find.byKey(const ValueKey('analysis-engine-toggle'));
+      await tester.tap(toggle);
+      await tester.pumpAndSettle();
+      for (final request in pending.values) {
+        request.complete(result(.2, .4, .4));
+      }
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey('maia-score-details')), findsNothing);
+
+      await tester.tap(find.byKey(const ValueKey('next-move-button')));
+      await tester.pumpAndSettle();
+      expect(requests, everyElement(1));
+      expect(find.byKey(const ValueKey('maia-score-details')), findsNothing);
+
+      await tester.tap(toggle);
+      await tester.pumpAndSettle();
+      // Black is now to move: these must be the new position's results.
+      expect(find.bySemanticsLabel('M1500 Black 80%'), findsOneWidget);
+      expect(find.bySemanticsLabel('M2600 Black 70%'), findsOneWidget);
+      expect(find.bySemanticsLabel('M1500 White 60%'), findsNothing);
+      expect(controller.enabled, isTrue);
+      expect(tester.takeException(), isNull);
+    },
+  );
   for (final locale in AppLocalizations.supportedLocales) {
     for (final second in <int?>[null, 2600]) {
       testWidgets(
@@ -500,9 +582,13 @@ void main() {
           final engineRect = tester.getRect(
             find.byKey(const ValueKey('analysis-engine-lines')),
           );
-          final moveRect = tester.getRect(
-            find.byKey(const ValueKey('analysis-tab-panel')),
+          // A tall landscape header may initially cover the move body.
+          // Score visibility must leave its layout unchanged either way.
+          final panel = find.byKey(
+            const ValueKey('analysis-tab-panel'),
+            skipOffstage: false,
           );
+          final moveRect = tester.getRect(panel);
           await controller.select(true);
           await tester.pumpAndSettle();
           expect(tester.getRect(find.byType(cg.Chessboard)), boardRect);
@@ -511,7 +597,7 @@ void main() {
             engineRect,
           );
           expect(
-            tester.getRect(find.byKey(const ValueKey('analysis-tab-panel'))),
+            tester.getRect(panel),
             moveRect,
           );
           expect(tester.takeException(), isNull);

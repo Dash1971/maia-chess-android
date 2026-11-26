@@ -10,6 +10,7 @@ import 'package:maia_chess/l10n/app_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'fixtures/electronic_board.dart';
+import 'fixtures/immediate_maia_preferences.dart';
 
 const before = 'r3k2r/pppp1ppp/2n5/4P3/8/8/PPP2PPP/R3K2R b KQkq - 0 11';
 const target = 'r3k2r/ppp2ppp/2n5/3pP3/8/8/PPP2PPP/R3K2R w KQkq d6 0 12';
@@ -39,7 +40,11 @@ class ChoosingBoard extends SimulatedElectronicBoard
         candidates: [
           BoardCandidate('go', 'Chessnut Go', BoardKind.chessnut),
           BoardCandidate('air', 'Chessnut Air', BoardKind.chessnut),
-          BoardCandidate('prototype', 'DGT Pegasus', BoardKind.pegasus),
+          BoardCandidate(
+            'prototype',
+            'Square Off Grand Kingdom',
+            BoardKind.squareOff,
+          ),
         ],
       ),
     );
@@ -84,7 +89,7 @@ void main() {
   setUp(() async {
     board = SimulatedElectronicBoard();
     predictions = 0;
-    SharedPreferences.setMockInitialValues({
+    setImmediateMaiaPreferences({
       maiaPlaySidePreferenceKey: PlayerSide.black.name,
       maiaTimePresetPreferenceKey: TimePreset.custom.name,
       maiaCustomMinutesPreferenceKey: 12,

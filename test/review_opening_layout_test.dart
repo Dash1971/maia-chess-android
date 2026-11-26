@@ -192,18 +192,26 @@ void main() {
                   findsOneWidget,
                 );
                 expect(
-                  find.byTooltip('Next move').hitTestable(),
+                  find.byKey(const ValueKey('next-move-button')).hitTestable(),
                   findsOneWidget,
                 );
                 await tester.ensureVisible(
                   find.byKey(const ValueKey('analysis-engine-lines')),
                 );
                 await tester.ensureVisible(
-                  find.byKey(const ValueKey('analysis-tab-panel')),
+                  find.byKey(
+                    const ValueKey('analysis-tab-panel'),
+                    skipOffstage: false,
+                  ),
                 );
                 expect(
                   tester
-                      .getSize(find.byKey(const ValueKey('analysis-tab-panel')))
+                      .getSize(
+                        find.byKey(
+                          const ValueKey('analysis-tab-panel'),
+                          skipOffstage: false,
+                        ),
+                      )
                       .height,
                   greaterThanOrEqualTo(56),
                 );

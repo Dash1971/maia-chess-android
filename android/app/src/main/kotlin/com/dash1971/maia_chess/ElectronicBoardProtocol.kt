@@ -2,13 +2,19 @@ package com.dash1971.maia_chess
 
 import java.util.UUID
 
-/** All channels permit Chessnut; only Dev may discover or command prototype boards. */
+/** Supported families only: Chessnut and Grand Kingdom. */
 internal object BoardChannelPolicy {
     fun supports(flavor: String, kind: String): Boolean =
-        kind == "chessnut" || (flavor == "dev" && kind in setOf("pegasus", "squareOff"))
+        kind == "chessnut" ||
+            (flavor in setOf("", "stable", "preview", "dev") && kind == "squareOff")
+
+    fun permitsMotorCommand(flavor: String, kind: String, ready: Boolean,
+                            providedSession: String?, currentSession: String): Boolean =
+        supports(flavor, "squareOff") && kind == "squareOff" && ready &&
+            providedSession == currentSession
+
     fun discover(flavor: String, name: String): String? = when {
         name.contains("Chessnut", true) || name.contains("Smart Chess", true) -> "chessnut"
-        supports(flavor, "pegasus") && name.contains("Pegasus", true) -> "pegasus"
         supports(flavor, "squareOff") && name.equals("Square Off", true) -> "squareOff"
         else -> null
     }
@@ -39,14 +45,6 @@ internal class BoardDiscoveryWindow<T>(private val capacity: Int = 32) {
 }
 
 internal object ElectronicBoardProtocol {
-    /** NUS frame remains within the default ATT payload. Show remaining guidance after changes. */
-    fun pegasusLeds(squares: List<Int>): ByteArray {
-        require(squares.size <= 64 && squares.all { it in 0..63 })
-        val selected = squares.distinct().take(13)
-        return if (selected.isEmpty()) byteArrayOf(0x60, 0x02, 0, 0) else
-            (listOf(0x60, 5 + selected.size, 0x05, 0x02, 0, 0x05) + selected + 0)
-                .map { it.toByte() }.toByteArray()
-    }
     fun squareOffMove(uci: String, providedSession: String?, currentSession: String): ByteArray {
         require(providedSession == currentSession)
         require(Regex("[a-h][1-8][a-h][1-8]").matches(uci))

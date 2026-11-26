@@ -15,7 +15,7 @@ class PgnDocuments(private val activity: Activity, private val received: () -> U
     companion object {
         private const val OPEN = 2101
         private const val SAVE = 2102
-        private const val MAX_BYTES = 2 * 1024 * 1024
+        private const val MAX_BYTES = 5 * 1024 * 1024
         private const val MIME = "application/x-chess-pgn"
     }
     private val io = Executors.newSingleThreadExecutor()
@@ -36,7 +36,7 @@ class PgnDocuments(private val activity: Activity, private val received: () -> U
     private fun pick(request: Int, text: String?, reply: MethodChannel.Result) {
         if (result != null) { reply.error("document_busy", "A document picker is already open", null); return }
         if (text != null && text.toByteArray(Charsets.UTF_8).size > MAX_BYTES) {
-            reply.error("pgn_too_large", "PGN exceeds 2 MB", null); return
+            reply.error("pgn_too_large", "PGN export exceeds 5 MB", null); return
         }
         val intent = Intent(if (request == OPEN) Intent.ACTION_OPEN_DOCUMENT else Intent.ACTION_CREATE_DOCUMENT).apply {
             addCategory(Intent.CATEGORY_OPENABLE)
@@ -85,7 +85,7 @@ class PgnDocuments(private val activity: Activity, private val received: () -> U
             while (true) {
                 val count = stream.read(buffer)
                 if (count < 0) break
-                if (output.size() + count > MAX_BYTES) throw IOException("PGN exceeds 2 MB")
+                if (output.size() + count > MAX_BYTES) throw IOException("PGN exceeds 5 MB")
                 output.write(buffer, 0, count)
             }
             output.toString("UTF-8").removePrefix("\uFEFF")
@@ -105,7 +105,7 @@ class PgnDocuments(private val activity: Activity, private val received: () -> U
         io.execute {
             try {
                 val pgn = (uri?.let(::read) ?: text!!).removePrefix("\uFEFF")
-                if (pgn.toByteArray(Charsets.UTF_8).size > MAX_BYTES) throw IOException("PGN exceeds 2 MB")
+                if (pgn.toByteArray(Charsets.UTF_8).size > MAX_BYTES) throw IOException("PGN exceeds 5 MB")
                 activity.runOnUiThread { pending.addLast(PendingPgn(text = pgn)); received() }
             } catch (error: Exception) {
                 activity.runOnUiThread {
@@ -118,7 +118,7 @@ class PgnDocuments(private val activity: Activity, private val received: () -> U
 
     fun share(text: String, reply: MethodChannel.Result, chooserTitle: String = "Share PGN") {
         if (text.toByteArray(Charsets.UTF_8).size > MAX_BYTES) {
-            reply.error("pgn_too_large", "PGN exceeds 2 MB", null)
+            reply.error("pgn_too_large", "PGN export exceeds 5 MB", null)
             return
         }
         io.execute {
@@ -136,7 +136,12 @@ class PgnDocuments(private val activity: Activity, private val received: () -> U
                     clipData = android.content.ClipData.newRawUri("PGN", uri)
                 }
                 activity.runOnUiThread {
-                    try { activity.startActivity(Intent.createChooser(intent, chooserTitle)); reply.success(null) }
+                    // Sharing must not re-import into this app when it is the
+                    // only receiver: Android may auto-launch a sole target.
+                    val chooser = Intent.createChooser(intent, chooserTitle).apply {
+                        putExtra(Intent.EXTRA_EXCLUDE_COMPONENTS, arrayOf(activity.componentName))
+                    }
+                    try { activity.startActivity(chooser); reply.success(null) }
                     catch (error: Exception) { reply.error("share_failed", error.message, null) }
                 }
             } catch (error: Exception) {

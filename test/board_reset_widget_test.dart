@@ -8,9 +8,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maia_chess/main.dart';
 import 'package:maia_chess/l10n/app_localizations.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import 'fixtures/electronic_board.dart';
+import 'fixtures/immediate_maia_preferences.dart';
 import 'support/sampling_replay.dart' show readExport;
 
 class ResetBoard extends SimulatedElectronicBoard {
@@ -86,7 +86,7 @@ void main() {
   late ResetBoard board;
   late WidgetTester currentTester;
   setUp(() {
-    SharedPreferences.setMockInitialValues({});
+    setImmediateMaiaPreferences({});
     board = ResetBoard();
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(maiaEngineChannel, (_) async => null);
@@ -667,7 +667,7 @@ void main() {
       'reset keeps ${playerIsWhite ? "White" : "Black"}, rating and history; starts only after setup',
       (tester) async {
         // A contrary home preference must not change the restored player's side.
-        SharedPreferences.setMockInitialValues({
+        setImmediateMaiaPreferences({
           maiaPlaySidePreferenceKey: playerIsWhite ? 'black' : 'white',
         });
         var requests = 0;
@@ -760,7 +760,7 @@ void main() {
           topP: 0,
           maxOpeningVariety: variety,
         );
-        SharedPreferences.setMockInitialValues({
+        setImmediateMaiaPreferences({
           'temperatureV2': 0.5,
           'topPV2': 0.95,
           'maxOpeningVarietyV1': !variety,

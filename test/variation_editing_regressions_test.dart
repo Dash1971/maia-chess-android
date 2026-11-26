@@ -68,7 +68,7 @@ void main() {
                 onHome: () {},
                 evaluator: (_) async => const StockfishReview(0, ''),
                 maiaEvaluator: (_, _) async => null,
-                onSessionChanged: (fen, flipped, variations) async {
+                onSessionChanged: (fen, flipped, variations, _) async {
                   currentFen = fen;
                   tree = variations;
                 },

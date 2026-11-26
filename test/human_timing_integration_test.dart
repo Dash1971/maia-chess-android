@@ -38,6 +38,37 @@ void main() {
         .setMockMethodCallHandler(maiaEngineChannel, null);
   });
 
+  testWidgets(
+    'a new game without a timing preference actually uses human pauses',
+    (tester) async {
+      SharedPreferences.setMockInitialValues({});
+      final maia = ControlledMaia();
+      final random = LongPauseRandom();
+      await tester.pumpWidget(
+        MaterialApp(
+          home: GamePage(
+            startingFen: AnalysisSession.start().positions.first,
+            startingSide: PlayerSide.black,
+            startingTimePreset: TimePreset.bullet,
+            maiaEvaluator: maia.call,
+            clockFactory: () => ElapsedClock(0),
+            humanTimingRandom: random,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      maia.reply('e2e4');
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 2999));
+      expect(find.text('e4'), findsNothing);
+      await tester.pump(const Duration(milliseconds: 1));
+      await tester.pump();
+      expect(find.text('e4'), findsOneWidget);
+      expect(random.calls, 4);
+      await disposeGame(tester);
+    },
+  );
+
   // All records deliberately have 60s left, even in a longer/unlimited game.
   for (final (preset, minutes, increment, waitMillis) in [
     ('bullet', 1, 0, 1000),

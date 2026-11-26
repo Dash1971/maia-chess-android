@@ -25,7 +25,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get cancelPremoves => 'Cancelar movimientos anticipados';
 
   @override
-  String get chessnutExperimental => 'Chessnut (experimental)';
+  String get chessnutBoard => 'Chessnut';
 
   @override
   String get connectChessnut => 'Conectar Chessnut';
@@ -233,7 +233,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get start => 'INICIO';
 
   @override
-  String get chessnutStatus => 'Estado de Chessnut';
+  String get chessnutStatus => 'Estado del tablero';
 
   @override
   String get leaveCurrentGame => '¿Salir de la partida actual?';
@@ -825,7 +825,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get chessnutAndroidOnly =>
-      'La conexión con Chessnut está disponible en Android.';
+      'Los tableros electrónicos se pueden usar en Android.';
 
   @override
   String get chessnutIsDisconnected => 'Chessnut está desconectado.';
@@ -1074,11 +1074,11 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get chessnutPermissionPending =>
-      'Permite el acceso a Bluetooth y vuelve a conectar Chessnut.';
+      'Permite el acceso a Bluetooth y vuelve a conectar el tablero.';
 
   @override
   String get chessnutBluetoothDisabled =>
-      'Activa Bluetooth y vuelve a conectar Chessnut.';
+      'Activa Bluetooth y vuelve a conectar el tablero.';
 
   @override
   String get whiteShort => 'B';
@@ -1113,8 +1113,7 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get electronicBoardExperimental =>
-      'Tablero electrónico (experimental)';
+  String get electronicBoard => 'Tablero electrónico';
 
   @override
   String get connectBoard => 'Conectar tablero';
@@ -1144,10 +1143,6 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get boardReady => 'Tablero listo';
-
-  @override
-  String get boardExperimentalNotice =>
-      'La compatibilidad con nuevos tableros es experimental. Verifica las jugadas en ambas pantallas e informa de los problemas de conexión.';
 
   @override
   String get boardGameRestriction =>
@@ -1197,12 +1192,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get boardReconnect => 'Reconectar tablero';
 
   @override
-  String get boardLockedPegasus =>
-      'Pegasus está bloqueado. Esta versión Dev no incluye la clave de inicialización del fabricante.';
-
-  @override
   String get boardMotorRecovery =>
-      'Continúa en tu teléfono. Este adaptador experimental no puede restablecer con seguridad el estado del motor del tablero.';
+      'Continúa en tu teléfono. No se puede restablecer con seguridad el estado del motor del tablero.';
 
   @override
   String get boardConfirmPosition => 'Confirmar la posición del tablero físico';
@@ -1567,10 +1558,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get editorPositionSettings => 'Ajustes de la posición';
 
   @override
-  String get editorImageImportUnavailable =>
-      'Importar posición desde una imagen (aún no disponible)';
-
-  @override
   String get editorShareFen => 'Compartir FEN';
 
   @override
@@ -1642,4 +1629,103 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get sessionRecovery =>
       'Mobile Maia ha abierto la pantalla de inicio para evitar reabrir una sesión que podría haber causado un fallo. Tus partidas guardadas y ajustes se han conservado.';
+
+  @override
+  String get saveDevDiagnostics => 'Guardar diagnóstico de Dev…';
+
+  @override
+  String get devDiagnosticsHelp =>
+      'Dev registra en este dispositivo los eventos recientes de la aplicación y los detalles de las jugadas y mensajes del tablero Grand Kingdom. Los datos antiguos se eliminan automáticamente. No se registran fotos ni direcciones Bluetooth. No se sube nada automáticamente. Exporta los datos solo si quieres compartirlos.';
+
+  @override
+  String get devDiagnosticsExportFailed =>
+      'No se pudo guardar el diagnóstico de Dev.';
+
+  @override
+  String get boardPromotionTitle => 'Confirmar promoción de Maia';
+
+  @override
+  String boardPromotionMove(String square, String piece) {
+    return '$square: $piece. Sustituye el peón.';
+  }
+
+  @override
+  String get boardPromotionHelp =>
+      'Espera a que los motores se detengan. Sustituye el peón por la pieza indicada y comprueba que toda la posición física coincide con la pantalla. Si el movimiento está incompleto o no estás seguro, continúa la partida en la aplicación.';
+
+  @override
+  String get boardPromotionReplaced =>
+      'Los motores están parados, he sustituido el peón y todas las piezas coinciden.';
+
+  @override
+  String get recentExportGames => 'Exportar partidas';
+
+  @override
+  String get recentExportTooLarge =>
+      'Las partidas seleccionadas superan el límite de exportación de 5 MB. Selecciona menos partidas e inténtalo de nuevo.';
+
+  @override
+  String pgnCollectionImported(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Se añadieron $count partidas a Partidas recientes.',
+      one: 'Se añadió $count partida a Partidas recientes.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get recentExportGameTooLarge =>
+      'Una partida seleccionada supera el límite de 5 MB por partida.';
+
+  @override
+  String get recentExportFailed =>
+      'No se pudieron exportar las partidas seleccionadas. Las partidas guardadas no han cambiado.';
+
+  @override
+  String get recentDateColumn => 'Fecha';
+
+  @override
+  String get recentGameColumn => 'Partida';
+
+  @override
+  String get recentResultColumn => 'Resultado';
+
+  @override
+  String get settingsDiagnostics => 'Diagnóstico';
+
+  @override
+  String get pgnImportProgress => 'Importando partidas…';
+
+  @override
+  String pgnCollectionImportSummary(int imported, int duplicates) {
+    String _temp0 = intl.Intl.pluralLogic(
+      imported,
+      locale: localeName,
+      other: '$imported partidas importadas',
+      one: '$imported partida importada',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      duplicates,
+      locale: localeName,
+      other: '$duplicates duplicados omitidos',
+      one: '$duplicates duplicado omitido',
+    );
+    return '$_temp0 · $_temp1';
+  }
+
+  @override
+  String get recentImportGames => 'Importar PGN';
+
+  @override
+  String get pgnFirstGameOnly =>
+      'Solo se abrió la primera partida. Para importar todas las partidas, ve a Partidas recientes → Importar PGN.';
+
+  @override
+  String get includeAnalysisAnnotations => 'Incluir análisis';
+
+  @override
+  String get analysisSaveFailed =>
+      'No se pudo guardar el análisis. La partida no ha cambiado.';
 }

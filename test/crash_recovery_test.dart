@@ -48,6 +48,37 @@ void main() {
     expect(await ActiveSessionStore.beginAutomaticRestore(), isTrue);
   });
 
+  for (final openAnotherGame in [false, true]) {
+    test('interrupted game can be recovered after selecting another game: $openAnotherGame', () async {
+      final dir = await Directory.systemTemp.createTemp('maia-interrupted-');
+      addTearDown(() => dir.delete(recursive: true));
+      final store = SessionRepository(dir);
+      ActiveSessionStore.setTestRepository(store);
+      await store.save({'type': 'game', 'pgn': '1. d4 *'});
+      final other = (await store.recent()).single;
+      final start = DateTime.utc(2026, 11, 1);
+      await store.startNew(gameStartedAt: start);
+      const game = {
+        'type': 'game', 'recentState': 'active', 'pgn': '1. e4 e5 *',
+        'clockPaused': false, 'whiteMillis': 61000, 'blackMillis': 52000,
+      };
+      await store.save({'type': 'review', 'activeGame': game});
+      expect(await ActiveSessionStore.recent(), hasLength(1));
+      previousCrash = true;
+      expect(await ActiveSessionStore.beginAutomaticRestore(), isFalse);
+      final recovered = (await ActiveSessionStore.recent()).singleWhere((g) => g.id != other.id);
+      expect(recovered.history.startedAt, start);
+      expect(recovered.isIncomplete, isTrue);
+      expect(await ActiveSessionStore.readPgnForExport(recovered.id), game['pgn']);
+      expect((await store.load())!['type'], 'review');
+      if (openAnotherGame) await ActiveSessionStore.open(other.id);
+      expect(await ActiveSessionStore.open(recovered.id), {
+        ...game, 'recentState': 'incomplete', 'clockPaused': true,
+      });
+      expect(await ActiveSessionStore.recent(), hasLength(2));
+    });
+  }
+
   for (final source in [
     'native-crash',
     'interrupted-restore',

@@ -115,8 +115,10 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
+    await tester.longPress(find.byKey(const ValueKey('recent-game-first')));
+    await tester.pumpAndSettle();
     for (var attempt = 1; attempt <= 2; attempt++) {
-      await tester.tap(find.byTooltip('Delete saved game').first);
+      await tester.tap(find.byKey(const ValueKey('delete-selected-games')));
       await tester.pumpAndSettle();
       await tester.tap(find.widgetWithText(FilledButton, 'Delete'));
       await tester.pumpAndSettle();

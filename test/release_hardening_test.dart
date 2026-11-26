@@ -50,7 +50,7 @@ void main() {
   );
 
   test('pasted PGN size limits count UTF-8 bytes', () {
-    final source = '{${'♞' * 800000}} 1. e4 *';
+    final source = '{${'♞' * (AnalysisSession.maxPgnBytes ~/ 3 + 1)}} 1. e4 *';
     expect(() => AnalysisSession.fromPgn(source), throwsFormatException);
   });
 

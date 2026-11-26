@@ -25,8 +25,8 @@ IDENTICAL_ALLOWED = {
     'chessnutBattery': {'ja', 'zh', 'ko', 'es', 'de', 'fr', 'ru', 'hi', 'pt'},
     'recentGameSummary': {'ja', 'zh', 'ko', 'es', 'de', 'fr', 'ru', 'hi', 'pt'},
     'maiaProbabilitySemantics': {'ja', 'zh', 'ko', 'es', 'de', 'fr', 'ru', 'hi', 'pt'},
-    # “experimental” shares its spelling in Spanish, Portuguese and English.
-    'chessnutExperimental': {'es', 'pt'},
+    # The manufacturer name remains Chessnut in every language.
+    'chessnutBoard': {'ja', 'zh', 'ko', 'es', 'de', 'fr', 'ru', 'hi', 'pt'},
     # Native words/initials that share their spelling with English.
     'start': {'de'},
     'whiteShort': {'de'},
@@ -35,7 +35,7 @@ IDENTICAL_ALLOWED = {
     'positionNumber': {'fr'},
 }
 ARGUMENT = re.compile(r'\{([A-Za-z][A-Za-z0-9_]*)(?=\s*[,}])')
-CANONICAL_TOKENS = {'aboutLicence': ('AGPL-3.0-only',)}
+CANONICAL_TOKENS = {'aboutLicence': ('AGPL-3.0-only',), 'chessnutBoard': ('Chessnut',)}
 
 
 def unique_object(pairs):

@@ -144,11 +144,11 @@ abstract class AppLocalizations {
   /// **'Cancel premoves'**
   String get cancelPremoves;
 
-  /// Home / game setup: Chessnut (experimental)
+  /// Home / game setup: Chessnut supported-board label
   ///
   /// In en, this message translates to:
-  /// **'Chessnut (experimental)'**
-  String get chessnutExperimental;
+  /// **'Chessnut'**
+  String get chessnutBoard;
 
   /// Home / game setup: Connect Chessnut
   ///
@@ -540,10 +540,10 @@ abstract class AppLocalizations {
   /// **'START'**
   String get start;
 
-  /// Live game: Chessnut status
+  /// Electronic-board status tooltip.
   ///
   /// In en, this message translates to:
-  /// **'Chessnut status'**
+  /// **'Board status'**
   String get chessnutStatus;
 
   /// Live game: Leave current game?
@@ -1452,10 +1452,10 @@ abstract class AppLocalizations {
   /// **'Could not connect Chessnut.'**
   String get couldNotConnectChessnut;
 
-  /// Play screen: Chessnut support is available on Android.
+  /// Electronic-board connection recovery; applies to every supported board brand. Legacy message identifier retained for saved-session compatibility.
   ///
   /// In en, this message translates to:
-  /// **'Chessnut support is available on Android.'**
+  /// **'Electronic-board support is available on Android.'**
   String get chessnutAndroidOnly;
 
   /// Play screen: Chessnut is disconnected.
@@ -1864,22 +1864,22 @@ abstract class AppLocalizations {
   /// **'{percent}%{charging, select, yes{ ⚡} other{}}'**
   String chessnutBattery(String percent, String charging);
 
-  /// Actionable Chessnut connection failure; native diagnostic details are recorded separately.
+  /// Electronic-board connection recovery; applies to every supported board brand. Legacy message identifier retained for saved-session compatibility.
   ///
   /// In en, this message translates to:
   /// **'Bluetooth is unavailable on this device.'**
   String get chessnutBluetoothUnavailable;
 
-  /// Actionable Chessnut connection failure; native diagnostic details are recorded separately.
+  /// Electronic-board connection recovery; applies to every supported board brand. Legacy message identifier retained for saved-session compatibility.
   ///
   /// In en, this message translates to:
-  /// **'Allow Bluetooth permissions, then reconnect Chessnut.'**
+  /// **'Allow Bluetooth permissions, then reconnect your board.'**
   String get chessnutPermissionPending;
 
   /// Actionable Chessnut connection failure; native diagnostic details are recorded separately.
   ///
   /// In en, this message translates to:
-  /// **'Turn on Bluetooth, then reconnect Chessnut.'**
+  /// **'Turn on Bluetooth, then reconnect your board.'**
   String get chessnutBluetoothDisabled;
 
   /// Compact chess-side column header in classification summary. White/black initials or one-character labels; full localized side names remain in accessibility labels.
@@ -1930,71 +1930,65 @@ abstract class AppLocalizations {
   /// **'Draw ({result})'**
   String recentDrawResult(String result);
 
-  /// Electronic board Dev support: Experimental electronic-board settings section title; includes occupancy-only and motorized boards.
+  /// Supported electronic-board settings section title; Chessnut and Grand Kingdom.
   ///
   /// In en, this message translates to:
-  /// **'Electronic board (experimental)'**
-  String get electronicBoardExperimental;
+  /// **'Electronic board'**
+  String get electronicBoard;
 
-  /// Electronic board Dev support: Button that opens electronic-board scan and connection flow.
+  /// Electronic board support: Button that opens electronic-board scan and connection flow.
   ///
   /// In en, this message translates to:
   /// **'Connect board'**
   String get connectBoard;
 
-  /// Electronic board Dev support: Discovered-board picker title.
+  /// Electronic board support: Discovered-board picker title.
   ///
   /// In en, this message translates to:
   /// **'Choose a board'**
   String get chooseBoard;
 
-  /// Electronic board Dev support: Button to rescan and select a different board.
+  /// Electronic board support: Button to rescan and select a different board.
   ///
   /// In en, this message translates to:
   /// **'Choose another board'**
   String get chooseAnotherBoard;
 
-  /// Electronic board Dev support: Bluetooth board scan in progress.
+  /// Electronic board support: Bluetooth board scan in progress.
   ///
   /// In en, this message translates to:
   /// **'Searching for boards…'**
   String get boardSearching;
 
-  /// Electronic board Dev support: Bluetooth board connection in progress.
+  /// Electronic board support: Bluetooth board connection in progress.
   ///
   /// In en, this message translates to:
   /// **'Connecting to board…'**
   String get boardConnecting;
 
-  /// Electronic board Dev support: Board connection lost status.
+  /// Electronic board support: Board connection lost status.
   ///
   /// In en, this message translates to:
   /// **'Board disconnected'**
   String get boardDisconnected;
 
-  /// Electronic board Dev support: Connection failure recovery instruction; Bluetooth is a product/protocol name.
+  /// Electronic board support: Connection failure recovery instruction; Bluetooth is a product/protocol name.
   ///
   /// In en, this message translates to:
   /// **'Could not connect. Check Bluetooth and the board, then retry.'**
   String get boardConnectionError;
 
-  /// Electronic board Dev support: Physical standard initial-position setup instruction.
+  /// Electronic board support: Physical standard initial-position setup instruction.
   ///
   /// In en, this message translates to:
   /// **'Set up the standard starting position on your board.'**
   String get boardStartingPosition;
 
-  /// Electronic board Dev support: Physical board synchronization complete status.
+  /// Electronic board support: Physical board synchronization complete status.
   ///
   /// In en, this message translates to:
   /// **'Board ready'**
   String get boardReady;
-
-  /// Electronic board Dev support: Experimental support notice; compare the app screens and report connection issues.
-  ///
-  /// In en, this message translates to:
-  /// **'New board support is experimental. Please verify moves on both screens and report connection problems.'**
-  String get boardExperimentalNotice;
 
   /// Electronic board support: physical-board games have no clock.
   ///
@@ -2002,97 +1996,91 @@ abstract class AppLocalizations {
   /// **'Electronic-board games use unlimited time.'**
   String get boardGameRestriction;
 
-  /// Electronic board Dev support: User confirmation of physical standard initial-position setup.
+  /// Electronic board support: User confirmation of physical standard initial-position setup.
   ///
   /// In en, this message translates to:
   /// **'I have set up the starting position'**
   String get boardConfirmSetup;
 
-  /// Electronic board Dev support: Occupancy-only board limitation: it senses presence, not piece identity.
+  /// Electronic board support: Occupancy-only board limitation: it senses presence, not piece identity.
   ///
   /// In en, this message translates to:
   /// **'Check every piece before starting. This board cannot verify piece identity.'**
   String get boardConfirmSetupHelp;
 
-  /// Electronic board Dev support: Title of legal-move ambiguity picker.
+  /// Electronic board support: Title of legal-move ambiguity picker.
   ///
   /// In en, this message translates to:
   /// **'Confirm your board move'**
   String get boardChooseMove;
 
-  /// Electronic board Dev support: Occupancy-only ambiguity explanation; player chooses the move actually made.
+  /// Electronic board support: Occupancy-only ambiguity explanation; player chooses the move actually made.
   ///
   /// In en, this message translates to:
   /// **'The board cannot distinguish these moves. Choose the move you played.'**
   String get boardAmbiguousMove;
 
-  /// Electronic board Dev support: Board unavailable recovery: reconnect or continue with phone input.
+  /// Electronic board support: Board unavailable recovery: reconnect or continue with phone input.
   ///
   /// In en, this message translates to:
   /// **'This board is not ready. Reconnect, or continue on your phone.'**
   String get boardUnavailable;
 
-  /// Electronic board Dev support: Physical NEW GAME button second-press confirmation within 2.5 seconds; retain NEW GAME hardware marking.
+  /// Electronic board support: Physical NEW GAME button second-press confirmation within 2.5 seconds; retain NEW GAME hardware marking.
   ///
   /// In en, this message translates to:
   /// **'Press NEW GAME again within 2.5 seconds to confirm, or use the buttons below.'**
   String get boardNewGameConfirmInstruction;
 
-  /// Electronic board Dev support: Expired physical NEW GAME confirmation instruction; retain NEW GAME hardware marking.
+  /// Electronic board support: Expired physical NEW GAME confirmation instruction; retain NEW GAME hardware marking.
   ///
   /// In en, this message translates to:
   /// **'To confirm on the board, press NEW GAME twice within 2.5 seconds.'**
   String get boardNewGameConfirmationExpired;
 
-  /// Electronic board Dev support: Instruction to finish a physical move before proceeding.
+  /// Electronic board support: Instruction to finish a physical move before proceeding.
   ///
   /// In en, this message translates to:
   /// **'Complete the move on your board.'**
   String get boardPhysicalMove;
 
-  /// Electronic board Dev support: Instruction to restore physical board to the app position before proceeding.
+  /// Electronic board support: Instruction to restore physical board to the app position before proceeding.
   ///
   /// In en, this message translates to:
   /// **'Restore the position shown on screen before continuing.'**
   String get boardResetPhysical;
 
-  /// Electronic board Dev support: Empty supported Bluetooth board scan result and recovery instruction.
+  /// Electronic board support: Empty supported Bluetooth board scan result and recovery instruction.
   ///
   /// In en, this message translates to:
   /// **'No supported board found. Wake your board and try again.'**
   String get boardNoResults;
 
-  /// Electronic board Dev support: Disconnected status while waiting for player to select a board.
+  /// Electronic board support: Disconnected status while waiting for player to select a board.
   ///
   /// In en, this message translates to:
   /// **'Choose a board to connect.'**
   String get boardWaitingForSelection;
 
-  /// Electronic board Dev support: Button to reconnect selected physical board.
+  /// Electronic board support: Button to reconnect selected physical board.
   ///
   /// In en, this message translates to:
   /// **'Reconnect board'**
   String get boardReconnect;
 
-  /// Electronic board Dev support: Manufacturer initialization missing/locked state; Dev means the separate development build.
+  /// Electronic board support: Motorized-board safety recovery instruction; continue with phone input because firmware motor state cannot be restored.
   ///
   /// In en, this message translates to:
-  /// **'Pegasus is locked. This Dev build does not include its manufacturer initialization key.'**
-  String get boardLockedPegasus;
-
-  /// Electronic board Dev support: Motorized-board safety recovery instruction; continue with phone input because firmware motor state cannot be restored.
-  ///
-  /// In en, this message translates to:
-  /// **'Continue on your phone. This experimental adapter cannot safely restore the board’s motor state.'**
+  /// **'Continue on your phone. The board’s motor state cannot be safely restored.'**
   String get boardMotorRecovery;
 
-  /// Electronic board Dev support: Button to explicitly confirm physical-board setup matches the current logical position.
+  /// Electronic board support: Button to explicitly confirm physical-board setup matches the current logical position.
   ///
   /// In en, this message translates to:
   /// **'Confirm the physical position'**
   String get boardConfirmPosition;
 
-  /// Electronic board Dev support: Help for explicit physical-position confirmation, including piece identities.
+  /// Electronic board support: Help for explicit physical-position confirmation, including piece identities.
   ///
   /// In en, this message translates to:
   /// **'Check that every piece matches the position on screen.'**
@@ -2704,12 +2692,6 @@ abstract class AppLocalizations {
   /// **'Position settings'**
   String get editorPositionSettings;
 
-  /// Standard-chess board editor: Import position from image (not yet available). Tool labels must distinguish moving existing pieces, repeated placement and erasure. FEN counters are preserved; camera recognition is unavailable.
-  ///
-  /// In en, this message translates to:
-  /// **'Import position from image (not yet available)'**
-  String get editorImageImportUnavailable;
-
   /// Standard-chess board editor: Share FEN. Tool labels must distinguish moving existing pieces, repeated placement and erasure. FEN counters are preserved; camera recognition is unavailable.
   ///
   /// In en, this message translates to:
@@ -2847,6 +2829,138 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Mobile Maia opened Home to avoid reopening a session that may have caused a crash. Your saved games and settings have been kept.'**
   String get sessionRecovery;
+
+  /// Dev-only local diagnostic export. App-specific testing feature; automatic bounded recording, manual export, never telemetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Save Dev diagnostics…'**
+  String get saveDevDiagnostics;
+
+  /// Dev-only local diagnostic export. App-specific testing feature; automatic bounded recording, manual export, never telemetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Dev records recent app events and detailed Grand Kingdom moves and board messages on this device. Older data is removed automatically. Photos and Bluetooth addresses are not recorded. Nothing is uploaded automatically. Export only if you want to share it.'**
+  String get devDiagnosticsHelp;
+
+  /// Dev-only local diagnostic export. App-specific testing feature; automatic bounded recording, manual export, never telemetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save Dev diagnostics.'**
+  String get devDiagnosticsExportFailed;
+
+  /// Grand Kingdom assisted Maia promotion. The user, not a BLE write/OK, confirms stopped motors and physical piece replacement. Reuse existing localized piece names; no automatic replacement is implied.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm Maia promotion'**
+  String get boardPromotionTitle;
+
+  /// Grand Kingdom assisted Maia promotion. The user, not a BLE write/OK, confirms stopped motors and physical piece replacement. Reuse existing localized piece names; no automatic replacement is implied.
+  ///
+  /// In en, this message translates to:
+  /// **'{square}: {piece}. Replace the pawn.'**
+  String boardPromotionMove(String square, String piece);
+
+  /// Grand Kingdom assisted Maia promotion. The user, not a BLE write/OK, confirms stopped motors and physical piece replacement. Reuse existing localized piece names; no automatic replacement is implied.
+  ///
+  /// In en, this message translates to:
+  /// **'Wait until the motors have stopped. Replace the pawn with the indicated piece and check the entire physical position against the screen. If the move is incomplete or uncertain, continue in the app instead.'**
+  String get boardPromotionHelp;
+
+  /// Grand Kingdom assisted Maia promotion. The user, not a BLE write/OK, confirms stopped motors and physical piece replacement. Reuse existing localized piece names; no automatic replacement is implied.
+  ///
+  /// In en, this message translates to:
+  /// **'The motors are stopped, I replaced the pawn, and every piece matches.'**
+  String get boardPromotionReplaced;
+
+  /// Recent Games selection toolbar: export the selected games into one PGN file using Save or Share. Reuses pinned Lichess exportGames.
+  ///
+  /// In en, this message translates to:
+  /// **'Export games'**
+  String get recentExportGames;
+
+  /// Recent Games export exceeds the 5 MiB UTF-8 limit, shown as 5 MB. Nothing is saved/shared; keep selection and ask the user to select fewer games and retry. Import also allows 5 MiB.
+  ///
+  /// In en, this message translates to:
+  /// **'Selected games exceed the 5 MB export limit. Select fewer games and try again.'**
+  String get recentExportTooLarge;
+
+  /// A whole PGN collection was validated and added to Recent games without replacing the current game. Reuse the existing localized Recent games screen name.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} game added to Recent games.} other{{count} games added to Recent games.}}'**
+  String pgnCollectionImported(int count);
+
+  /// One selected PGN exceeds the 5 MiB individual-game parser limit, shown as 5 MB (or localized equivalent). This is distinct from the 5 MiB combined export limit. Nothing is saved/shared and saved games are unchanged.
+  ///
+  /// In en, this message translates to:
+  /// **'A selected game exceeds the 5 MB limit per game.'**
+  String get recentExportGameTooLarge;
+
+  /// Recent Games multi-game export error: one selected record could not be read/validated, or Android save/share failed. No selected game is silently omitted and stored games are not modified.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not export the selected games. Saved games were not changed.'**
+  String get recentExportFailed;
+
+  /// Adaptive layout: Recent games table column
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get recentDateColumn;
+
+  /// Adaptive layout: Recent games table column
+  ///
+  /// In en, this message translates to:
+  /// **'Game'**
+  String get recentGameColumn;
+
+  /// Adaptive layout: Recent games table column
+  ///
+  /// In en, this message translates to:
+  /// **'Result'**
+  String get recentResultColumn;
+
+  /// Adaptive layout: settings category for existing reset and diagnostic actions
+  ///
+  /// In en, this message translates to:
+  /// **'Diagnostics'**
+  String get settingsDiagnostics;
+
+  /// PGN collection import progress dialog; validation, duplicate checking and atomic writes. App-specific, with no direct pinned Lichess equivalent.
+  ///
+  /// In en, this message translates to:
+  /// **'Importing games…'**
+  String get pgnImportProgress;
+
+  /// Collection import completion: new records imported and identical PGNs skipped; games with different annotations or metadata remain separate. App-specific with no direct pinned Lichess equivalent.
+  ///
+  /// In en, this message translates to:
+  /// **'{imported, plural, one{{imported} game imported} other{{imported} games imported}} · {duplicates, plural, one{{duplicates} duplicate skipped} other{{duplicates} duplicates skipped}}'**
+  String pgnCollectionImportSummary(int imported, int duplicates);
+
+  /// Recent games menu: import every game from a PGN file. Uses pinned Lichess importPgn wording.
+  ///
+  /// In en, this message translates to:
+  /// **'Import PGN'**
+  String get recentImportGames;
+
+  /// Analysis Board opened only the first game of a multi-game PGN. Direct the user to the localized Recent games screen and Import PGN menu entry to import the whole collection.
+  ///
+  /// In en, this message translates to:
+  /// **'Only the first game was opened. To import all games, use Recent games → Import PGN.'**
+  String get pgnFirstGameOnly;
+
+  /// Checkbox inside existing PGN Save/Share/Copy menus. Include saved evaluation comments and the six !/? move-quality symbols. Ordinary comments, clocks and variations remain in either export.
+  ///
+  /// In en, this message translates to:
+  /// **'Include analysis'**
+  String get includeAnalysisAnnotations;
+
+  /// Completed computer analysis could not be saved into the PGN; the existing saved game is preserved.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save analysis. The game is unchanged.'**
+  String get analysisSaveFailed;
 }
 
 class _AppLocalizationsDelegate

@@ -25,7 +25,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get cancelPremoves => 'Vorauszüge abbrechen';
 
   @override
-  String get chessnutExperimental => 'Chessnut (experimentell)';
+  String get chessnutBoard => 'Chessnut';
 
   @override
   String get connectChessnut => 'Chessnut verbinden';
@@ -232,7 +232,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get start => 'START';
 
   @override
-  String get chessnutStatus => 'Chessnut-Status';
+  String get chessnutStatus => 'Brettstatus';
 
   @override
   String get leaveCurrentGame => 'Aktuelle Partie verlassen?';
@@ -822,7 +822,8 @@ class AppLocalizationsDe extends AppLocalizations {
       'Chessnut konnte nicht verbunden werden.';
 
   @override
-  String get chessnutAndroidOnly => 'Chessnut wird auf Android unterstützt.';
+  String get chessnutAndroidOnly =>
+      'Elektronische Schachbretter werden unter Android unterstützt.';
 
   @override
   String get chessnutIsDisconnected =>
@@ -1076,11 +1077,11 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get chessnutPermissionPending =>
-      'Erteile die Bluetooth-Berechtigungen und verbinde Chessnut dann erneut.';
+      'Erteile die Bluetooth-Berechtigungen und verbinde das Brett erneut.';
 
   @override
   String get chessnutBluetoothDisabled =>
-      'Aktiviere Bluetooth und verbinde Chessnut dann erneut.';
+      'Aktiviere Bluetooth und verbinde das Brett erneut.';
 
   @override
   String get whiteShort => 'W';
@@ -1115,8 +1116,7 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String get electronicBoardExperimental =>
-      'Elektronisches Schachbrett (experimentell)';
+  String get electronicBoard => 'Elektronisches Schachbrett';
 
   @override
   String get connectBoard => 'Brett verbinden';
@@ -1146,10 +1146,6 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get boardReady => 'Brett bereit';
-
-  @override
-  String get boardExperimentalNotice =>
-      'Die Unterstützung neuer Bretter ist experimentell. Prüfe die Züge auf beiden Bildschirmen und melde Verbindungsprobleme.';
 
   @override
   String get boardGameRestriction =>
@@ -1200,12 +1196,8 @@ class AppLocalizationsDe extends AppLocalizations {
   String get boardReconnect => 'Brett erneut verbinden';
 
   @override
-  String get boardLockedPegasus =>
-      'Pegasus ist gesperrt. Diese Dev-Version enthält keinen Initialisierungsschlüssel des Herstellers.';
-
-  @override
   String get boardMotorRecovery =>
-      'Spiele auf deinem Smartphone weiter. Dieser experimentelle Adapter kann den Motorzustand des Bretts nicht sicher wiederherstellen.';
+      'Spiele auf deinem Smartphone weiter. Der Motorzustand des Bretts kann nicht sicher wiederhergestellt werden.';
 
   @override
   String get boardConfirmPosition => 'Stellung auf dem Brett bestätigen';
@@ -1570,10 +1562,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get editorPositionSettings => 'Stellungseinstellungen';
 
   @override
-  String get editorImageImportUnavailable =>
-      'Stellung aus Bild importieren (noch nicht verfügbar)';
-
-  @override
   String get editorShareFen => 'FEN teilen';
 
   @override
@@ -1645,4 +1633,103 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get sessionRecovery =>
       'Mobile Maia hat die Startseite geöffnet, um eine möglicherweise für einen Absturz verantwortliche Sitzung nicht erneut zu öffnen. Deine gespeicherten Partien und Einstellungen bleiben erhalten.';
+
+  @override
+  String get saveDevDiagnostics => 'Dev-Diagnosedaten speichern…';
+
+  @override
+  String get devDiagnosticsHelp =>
+      'Dev zeichnet aktuelle App-Ereignisse sowie Züge und Brettnachrichten von Grand Kingdom detailliert auf diesem Gerät auf. Ältere Daten werden automatisch gelöscht. Fotos und Bluetooth-Adressen werden nicht erfasst. Nichts wird automatisch hochgeladen. Exportiere die Daten nur, wenn du sie teilen möchtest.';
+
+  @override
+  String get devDiagnosticsExportFailed =>
+      'Die Dev-Diagnosedaten konnten nicht gespeichert werden.';
+
+  @override
+  String get boardPromotionTitle => 'Maias Umwandlung bestätigen';
+
+  @override
+  String boardPromotionMove(String square, String piece) {
+    return '$square: $piece. Ersetze den Bauern.';
+  }
+
+  @override
+  String get boardPromotionHelp =>
+      'Warte, bis die Motoren stillstehen. Ersetze den Bauern durch die angegebene Figur und prüfe, ob die gesamte Stellung auf dem Brett mit dem Bildschirm übereinstimmt. Falls der Zug unvollständig oder unklar ist, spiele in der App weiter.';
+
+  @override
+  String get boardPromotionReplaced =>
+      'Die Motoren stehen still, ich habe den Bauern ersetzt und alle Figuren stimmen überein.';
+
+  @override
+  String get recentExportGames => 'Partien exportieren';
+
+  @override
+  String get recentExportTooLarge =>
+      'Die ausgewählten Partien überschreiten die Exportgrenze von 5 MB. Wähle weniger Partien und versuche es erneut.';
+
+  @override
+  String pgnCollectionImported(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Partien zu Letzte Partien hinzugefügt.',
+      one: '$count Partie zu Letzte Partien hinzugefügt.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get recentExportGameTooLarge =>
+      'Eine ausgewählte Partie überschreitet das Limit von 5 MB pro Partie.';
+
+  @override
+  String get recentExportFailed =>
+      'Die ausgewählten Partien konnten nicht exportiert werden. Gespeicherte Partien wurden nicht verändert.';
+
+  @override
+  String get recentDateColumn => 'Datum';
+
+  @override
+  String get recentGameColumn => 'Partie';
+
+  @override
+  String get recentResultColumn => 'Ergebnis';
+
+  @override
+  String get settingsDiagnostics => 'Diagnose';
+
+  @override
+  String get pgnImportProgress => 'Partien werden importiert…';
+
+  @override
+  String pgnCollectionImportSummary(int imported, int duplicates) {
+    String _temp0 = intl.Intl.pluralLogic(
+      imported,
+      locale: localeName,
+      other: '$imported Partien importiert',
+      one: '$imported Partie importiert',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      duplicates,
+      locale: localeName,
+      other: '$duplicates Duplikate übersprungen',
+      one: '$duplicates Duplikat übersprungen',
+    );
+    return '$_temp0 · $_temp1';
+  }
+
+  @override
+  String get recentImportGames => 'PGN importieren';
+
+  @override
+  String get pgnFirstGameOnly =>
+      'Nur die erste Partie wurde geöffnet. Um alle Partien zu importieren, wähle Neueste Partien → PGN importieren.';
+
+  @override
+  String get includeAnalysisAnnotations => 'Analyse einschließen';
+
+  @override
+  String get analysisSaveFailed =>
+      'Die Analyse konnte nicht gespeichert werden. Die Partie ist unverändert.';
 }

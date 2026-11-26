@@ -8,6 +8,22 @@ Mobile Maia's Android release build is reproducible when the same source
 revision, Flutter SDK, Java runtime, Android SDK, host operating-system family,
 and locked Dart dependencies are used.
 
+## Current source pins
+
+Use the pins in the **checked-out commit**, including when reproducing an older
+release. Current main selects Flutter 3.47.8 / Dart 3.13.7 and Gradle 9.9.2.
+The authoritative files are [`.fvmrc`](.fvmrc), the
+[Gradle wrapper](android/gradle/wrapper/gradle-wrapper.properties), and their
+reviewed guards in `tool/prepare_reproducible_flutter_sdk.py` and
+`tool/verify_gradle_wrapper.py`. JDK 17, Android SDK 36 and the pinned Flutter
+NDK remain required. See the [20 November Gradle review](docs/gradle-security-2026-11-20.md).
+
+The 3.47.5 and 9.8.1 discussion below records how the workarounds and original
+security pin were introduced. It does not override the current pins. Do not
+change an old release tag or substitute today's SDK when reproducing that tag.
+
+## Build mechanics
+
 Build with:
 
 ```sh
@@ -24,7 +40,7 @@ no useful source secrecy for this AGPL-licensed application, makes crash traces
 less useful, and uses randomized symbol mappings that prevent independent
 builds from matching.
 
-Flutter 3.47.5 does not forward its filesystem-root settings through the
+The pinned Flutter SDK still does not forward its filesystem-root settings through the
 Android Gradle task. The release script therefore adds the generated Dart
 plugin registrant to the generated package configuration under the stable URI
 `package:mobile_maia_generated/dart_plugin_registrant.dart`. This prevents an
@@ -58,7 +74,7 @@ commit and produce the same APK SHA-256 before signing. The developer signing
 key remains offline: the verified Linux artifact is downloaded and signed
 without rebuilding it.
 
-Flutter 3.47.5 discovers resolution-aware asset directories with an unsorted
+The pinned Flutter SDK still discovers resolution-aware asset directories with an unsorted
 filesystem listing. That can serialize identical image variants in a different
 order in `AssetManifest.bin`. The release script applies a narrowly guarded
 backport to the pinned Flutter checkout before building: it sorts the discovered
@@ -82,9 +98,13 @@ NDK, and Clang provenance. To verify a developer-signed APK, use
 signature, apply that signature to the independently built unsigned APK, and
 compare the reconstructed APK byte-for-byte with the published APK.
 
-## Gradle security pin
+<a id="gradle-security-pin"></a>
 
-The wrapper uses Gradle **9.8.1** and verifies the official distribution SHA-256.
+## Historical Gradle 9.8.1 security update
+
+This section records the original update. Current pins are listed above.
+
+That update selected Gradle **9.8.1** with verification of its official distribution SHA-256.
 CI and the local release script run `python3 tool/verify_gradle_wrapper.py`
 before using Gradle. This offline check prevents an accidental rollback to the
 vulnerable 9.3.1 pin even when advisory indexes have not caught up. When changing
@@ -94,7 +114,7 @@ only after upstream security and build compatibility review.
 Gradle 9.8.1 fixes GHSA-mvvg-497x-hmj8, GHSA-xwqc-3h47-hg64 and
 GHSA-j5m7-59rp-24f5. See the
 [upstream release notes](https://docs.gradle.org/9.8.1/release-notes.html).
-This update retains Flutter 3.47.5, AGP 9.1.0, Kotlin 2.4.20 and Java 17;
+That update retained Flutter 3.47.5, AGP 9.1.0, Kotlin 2.4.20 and Java 17;
 no app dependency, engine, model or version is changed. Final-release
 qualification must still use its exact source commit.
 
@@ -106,7 +126,7 @@ historical release tags or change already-published artifacts.
 
 ## Flutter 3.47.8 security pin — 2026-10-25
 
-Current builds use Flutter **3.47.8**, full revision `737ba8f885dc774b53b442759999a312c9461e4e`, with Dart **3.13.7**, to address [GHSA-frr6-h895-5pxp](https://github.com/dart-lang/sdk/security/advisories/GHSA-frr6-h895-5pxp). Earlier sections document the original 3.47.5 backport. Review of 3.47.8 confirms that the guarded asset-variant sorting backport and stable package-URI workaround are still required. The revision/source-shape guards remain strict and the old vulnerable SDK revision is rejected. Independent Linux equality and signature reconstruction remain required for releases; this pin update does not waive any qualification gate or authorize another channel’s publication.
+The 25 October update selected Flutter **3.47.8**, full revision `737ba8f885dc774b53b442759999a312c9461e4e`, with Dart **3.13.7**, to address [GHSA-frr6-h895-5pxp](https://github.com/dart-lang/sdk/security/advisories/GHSA-frr6-h895-5pxp). Earlier sections document the original 3.47.5 backport. Review of 3.47.8 confirms that the guarded asset-variant sorting backport and stable package-URI workaround are still required. The revision/source-shape guards remain strict and the old vulnerable SDK revision is rejected. Independent Linux equality and signature reconstruction remain required for releases; this pin update does not waive any qualification gate or authorize another channel’s publication.
 
 The `.fvmrc` version used by F-Droid/FVM, all Flutter installers in CI, and the
 SDK preparation helper must be updated together. The offline pin-consistency

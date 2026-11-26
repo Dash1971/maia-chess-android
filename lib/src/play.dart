@@ -157,7 +157,7 @@ class _GamePageState extends State<GamePage>
   bool _started = false;
   bool _engineThinking = false;
   String? _forcedResult;
-  bool _humanTiming = false;
+  bool _humanTiming = defaultHumanMoveTiming;
   bool _useMoveHistory = false;
   bool _gameUseMoveHistory = false;
   List<String> _gameHistoryPrefix = const [];
@@ -200,10 +200,16 @@ class _GamePageState extends State<GamePage>
   final List<ClockSnapshot?> _clockHistory = [];
   final List<Map<String, dynamic>> _mainlineAnnotations = [];
   List<String>? _pgnComments;
+  bool _includePgnAnalysis = true;
   int _gameGeneration = 0;
   bool _reviewOpen = false;
   List<RecordedVariation>? _reviewVariationSnapshot;
   bool _settingsOpen = false;
+  // Only retain the browsing position until this game returns Home.
+  PageStorageBucket? _recentGamesPosition;
+  bool _leavingGame = false;
+  bool _clearingGameSession = false;
+  final _adaptiveBoardKey = GlobalKey();
   bool _playEloChangedSinceLoad = false;
   bool _screenWakeLockEnabled = false;
   bool _boardFlipped = false;
@@ -218,6 +224,7 @@ class _GamePageState extends State<GamePage>
   Object? _drawOfferRequest;
   String? _lastDrawOfferFen;
   bool _savedAsIncomplete = false;
+  bool _importedPgn = false;
   int? _viewedPly;
   final ScrollController _liveMovesController = ScrollController();
   final Map<int, GlobalKey> _liveMoveKeys = {};
@@ -233,12 +240,8 @@ class _GamePageState extends State<GamePage>
   String? _selectedBoardId;
   String? _boardConnectionSession;
   final Set<String> _retiredBoardSessions = {};
-  final PegasusDecoder _pegasusDecoder = PegasusDecoder();
-  final OccupancyMoveResolver _occupancyResolver = OccupancyMoveResolver();
-  Set<String>? _physicalOccupancy;
   final SquareOffDecoder _squareOffDecoder = SquareOffDecoder();
   String? _deferredSquareOffMove;
-  Timer? _boardSettleTimer;
   BuildContext? _boardDialogContext;
   int _boardInteractionEpoch = 0;
   bool _boardSetupConfirmed = false;
@@ -257,6 +260,10 @@ class _GamePageState extends State<GamePage>
   bool _chessnutResetPending = false;
   bool _physicalMoveInProgress = false;
   String? _pendingPhysicalMaiaMove;
+  // Runtime evidence of a completed write, not proof of physical completion.
+  // Never restored: reconnect/restart must not re-enable or replay a command.
+  String? _motorMoveDelivered;
+  Object? _motorConfirmationAttempt;
   String? _lastChessnutIllegalPosition;
   bool _processingChessnutPosition = false;
   Map<String, String>? _queuedChessnutPosition;
@@ -415,6 +422,8 @@ class _GamePageState extends State<GamePage>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
+    DevDiagnostics.record('app.lifecycle', {'state': state.name});
+    _traceGrandKingdom('lifecycle-${state.name}');
     _feedbackForeground = state == AppLifecycleState.resumed;
     if (state == AppLifecycleState.paused) {
       unawaited(
@@ -589,13 +598,14 @@ class _GamePageState extends State<GamePage>
                     gameAnalysisQuality: _gameAnalysisQuality,
                     initialCurrentFen: saved['currentFen'] as String?,
                     initialFlipped: saved['flipped'] as bool? ?? false,
-                    onSessionChanged: (fen, flipped, updated) =>
+                    onSessionChanged: (fen, flipped, updated, pgn) =>
                         _handleReviewSessionChanged(
                           session,
                           saved['playerIsWhite'] as bool? ?? true,
                           fen,
                           flipped,
                           updated,
+                          pgn,
                         ),
                     onHome: _started ? _goHome : ActiveSessionStore.clear,
                     returnToGame: _started && !_gameFinished,
@@ -667,9 +677,12 @@ class _GamePageState extends State<GamePage>
       final savedBoard = saved['electronicBoard'];
       final isBoardSave =
           savedBoard == 'chessnut-go' ||
-          (appFlavor == 'dev' &&
-              (savedBoard == 'pegasus' || savedBoard == 'squareOff'));
-      final preset = isBoardSave ? TimePreset.unlimited : storedPreset;
+          (savedBoard == 'squareOff' &&
+              BoardChannelPolicy.supports(appFlavor, BoardKind.squareOff));
+      // Removed Dev adapters still restore their saved game on the phone,
+      // without reviving a physical connection or a stale board clock.
+      final wasPhysicalBoardSave = isBoardSave || savedBoard == 'pegasus';
+      final preset = wasPhysicalBoardSave ? TimePreset.unlimited : storedPreset;
       if (savedAt != null &&
           preset != TimePreset.unlimited &&
           saved['clockPaused'] != true &&
@@ -782,6 +795,7 @@ class _GamePageState extends State<GamePage>
             ? _resultText()
             : _PlayMessage.restore(saved['statusCode'] ?? saved['status']);
         _boardFlipped = saved['flipped'] as bool? ?? false;
+        _importedPgn = saved['importedPgn'] == true;
         _savedAsIncomplete =
             !_gameFinished &&
             (saved['recentState'] == 'incomplete' ||
@@ -789,12 +803,16 @@ class _GamePageState extends State<GamePage>
                     saved['forcedResult'] == null &&
                     !restored.game_over));
         _viewedPly = null;
-        // Board metadata describes how the game was played. Only an unfinished
-        // game needs physical move input when it is reopened.
-        _chessnutGameActive = !_gameFinished && isBoardSave;
-        _boardKind = savedBoard == 'pegasus'
-            ? BoardKind.pegasus
-            : savedBoard == 'squareOff'
+        // Unfinished games need board input. A terminal motor promotion also
+        // retains its physical checkpoint until explicit phone continuation.
+        final unfinishedMotorPromotion =
+            savedBoard == 'squareOff' &&
+            saved['pendingPhysicalMaiaMove'] is String &&
+            RegExp(r'^[a-h][27][a-h][18][qrbn]$')
+                .hasMatch(saved['pendingPhysicalMaiaMove'] as String);
+        _chessnutGameActive =
+            isBoardSave && (!_gameFinished || unfinishedMotorPromotion);
+        _boardKind = savedBoard == 'squareOff'
             ? BoardKind.squareOff
             : BoardKind.chessnut;
         _selectedBoardId = saved['electronicBoardId'] is String
@@ -912,7 +930,10 @@ class _GamePageState extends State<GamePage>
   }
 
   Future<void> _saveGameState({bool allowDuringStart = false}) async {
-    if (!_started || _reviewOpen || (_startingGame && !allowDuringStart)) {
+    if (!_started ||
+        _reviewOpen ||
+        _clearingGameSession ||
+        (_startingGame && !allowDuringStart)) {
       return;
     }
     _updateSamplingGame();
@@ -929,6 +950,11 @@ class _GamePageState extends State<GamePage>
             ? 'incomplete'
             : 'active'),
     'pgn': _exportPgn(),
+    if (_importedPgn) ...{
+      'importedPgn': true,
+      'importedWhite': _game.header['White'],
+      'importedBlack': _game.header['Black'],
+    },
     'positions': List<String>.of(_positionHistory),
     'uciMoves': List<String>.of(_uciMoves),
     'variations': _takebackVariations.map((item) => item.toJson()).toList(),
@@ -976,12 +1002,13 @@ class _GamePageState extends State<GamePage>
     bool playerIsWhite,
     String currentFen,
     bool flipped,
-    List<RecordedVariation> variations,
-  ) => ActiveSessionStore.save({
+    List<RecordedVariation> variations, [
+    String? pgn,
+  ]) => ActiveSessionStore.save({
     'type': 'review',
     'treeIsAuthoritative': true,
     if (_started) 'activeGame': _gameSnapshot(),
-    'session': session.toJson(),
+    'session': {...session.toJson(), 'pgn': pgn ?? session.pgn},
     'variations': variations.map((item) => item.toJson()).toList(),
     'currentFen': currentFen,
     'flipped': flipped,
@@ -997,8 +1024,15 @@ class _GamePageState extends State<GamePage>
     bool playerIsWhite,
     String currentFen,
     bool flipped,
-    List<RecordedVariation> variations,
-  ) {
+    List<RecordedVariation> variations, [
+    String? pgn,
+  ]) {
+    if (pgn != null) {
+      _pgnComments = dc.PgnGame.parsePgn(
+        pgn,
+        initHeaders: dc.PgnGame.emptyHeaders,
+      ).comments;
+    }
     final previous = _reviewVariationSnapshot;
     var variationsChanged =
         previous == null || previous.length != variations.length;
@@ -1038,6 +1072,7 @@ class _GamePageState extends State<GamePage>
       currentFen,
       flipped,
       variations,
+      pgn,
     );
   }
 
@@ -1097,7 +1132,7 @@ class _GamePageState extends State<GamePage>
     final humanTiming = _readValidatedPreference<bool>(
       preferences,
       'humanTiming',
-      fallback: false,
+      fallback: defaultHumanMoveTiming,
       decode: (value) => value is bool ? value : null,
     );
     final premovesEnabled = _readValidatedPreference<bool>(
@@ -1339,7 +1374,7 @@ class _GamePageState extends State<GamePage>
     _cancelGameFeedback();
     setState(() {
       _resettingSettings = true;
-      _humanTiming = false;
+      _humanTiming = defaultHumanMoveTiming;
       _useMoveHistory = false;
       _premovesEnabled = true;
       _premovePenalty = false;
@@ -1656,10 +1691,10 @@ class _GamePageState extends State<GamePage>
       final text = await maiaEngineChannel.invokeMethod<String>(
         'getPendingPgn',
       );
-      if (text != null) {
+      if (text != null && mounted) {
         consumed = true;
-        final session = await AnalysisSession.fromPgnAsync(text);
-        if (mounted) await _openImportedSession(session);
+        final session = await PgnFiles.importText(context, text);
+        if (mounted && session != null) await _openImportedSession(session);
       }
     } on MissingPluginException {
       /* No Android document bridge in host tests. */
@@ -1703,6 +1738,7 @@ class _GamePageState extends State<GamePage>
     if (!mounted) return;
     _reviewOpen = false;
     _clockTimer?.cancel();
+    _recentGamesPosition = null;
     setState(() {
       _started = false;
       _settingsOpen = false;
@@ -1726,15 +1762,22 @@ class _GamePageState extends State<GamePage>
     );
   }
 
-  Future<void> _showRecentGames() async {
+  Future<void> _showRecentGames({PageStorageBucket? position}) async {
     if (_startingGame) return;
+    final bucket = position ?? PageStorageBucket();
     final selected = await Navigator.of(context).push<Map<String, dynamic>>(
-      MaterialPageRoute(builder: (_) => const RecentGamesPage()),
+      MaterialPageRoute(
+        builder: (_) =>
+            PageStorage(bucket: bucket, child: const RecentGamesPage()),
+      ),
     );
-    if (selected != null && mounted) await _restoreActiveSession(selected);
+    if (selected != null && mounted) {
+      await _restoreActiveSession(selected);
+      if (mounted && _started) _recentGamesPosition = bucket;
+    }
   }
 
-  Future<void> _openAnalysisBoard() async {
+  Future<void> _openAnalysisBoard({String? initialFen}) async {
     if (_storageBlocked || _startingGame) return;
     try {
       await ActiveSessionStore.startNew();
@@ -1747,7 +1790,9 @@ class _GamePageState extends State<GamePage>
       MaterialPageRoute<void>(
         builder: (context) => AnalysisBoardPage(
           electronicBoardTransport: _boardLease.rawTransport,
-          initialSession: AnalysisSession.start(),
+          initialSession: initialFen == null
+              ? AnalysisSession.start()
+              : AnalysisSession.fromFen(initialFen),
           useMoveHistory: _useMoveHistory,
           maiaElo: _analysisElo,
           secondMaiaElo: _secondMaiaEnabled ? _secondMaiaElo : null,
@@ -2142,6 +2187,9 @@ class _GamePageState extends State<GamePage>
 
   Future<void> _handleChessnutPosition(Map<String, String> observed) async {
     if (!_useChessnutGo || !_chessnutReady) return;
+    // Grand Kingdom cannot sense the promoted piece's identity. A synthetic or
+    // late position event cannot substitute for the explicit replacement flow.
+    if (_pendingMotorPromotion != null) return;
     final generation = _gameGeneration;
     final epoch = _boardInteractionEpoch;
     final sourceFen = _game.fen;
@@ -2463,7 +2511,7 @@ class _GamePageState extends State<GamePage>
                 title: Text(
                   _chessnutDeviceName ??
                       (_genericBoards
-                          ? l10n(context).electronicBoardExperimental
+                          ? l10n(context).electronicBoard
                           : 'Chessnut'),
                 ),
                 subtitle: Text(_boardText(_chessnutMessage)),
@@ -2519,7 +2567,8 @@ class _GamePageState extends State<GamePage>
     if (action == 'sounds-off') await _setChessnutSoundsEnabled(false);
   }
 
-  double get _chessnutStatusHeight => _chessnutResetPending
+  double get _chessnutStatusHeight =>
+      _chessnutResetPending || _pendingMotorPromotion != null
       ? max(60, MediaQuery.textScalerOf(context).scale(12) * 3 + 16)
       : max(32, MediaQuery.textScalerOf(context).scale(12) + 12);
 
@@ -2577,7 +2626,11 @@ class _GamePageState extends State<GamePage>
                   Expanded(
                     child: Text(
                       message,
-                      maxLines: _chessnutResetPending ? 3 : 1,
+                      maxLines:
+                          _chessnutResetPending ||
+                              _pendingMotorPromotion != null
+                          ? 3
+                          : 1,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(fontSize: 12),
                     ),
@@ -2589,8 +2642,14 @@ class _GamePageState extends State<GamePage>
                     IconButton(
                       key: const ValueKey('board-confirm-motor'),
                       icon: const Icon(Icons.check, size: 18),
-                      tooltip: l10n(context).boardConfirmPosition,
-                      onPressed: _confirmMotorPosition,
+                      tooltip: _pendingMotorPromotion != null
+                          ? l10n(context).boardPromotionTitle
+                          : l10n(context).boardConfirmPosition,
+                      onPressed:
+                          _motorConfirmationAttempt == null &&
+                              _motorMoveDelivered == _pendingPhysicalMaiaMove
+                          ? _confirmMotorPosition
+                          : null,
                     ),
                   if (_chessnutReady && _chessnutBatteryPercent != null)
                     Text(
@@ -2888,6 +2947,7 @@ class _GamePageState extends State<GamePage>
         _drawOfferEvaluating = false;
         _lastDrawOfferFen = null;
         _savedAsIncomplete = false;
+        _importedPgn = false;
         _viewedPly = null;
         _chessnutGameActive = _useChessnutGo;
         _pendingPhysicalMaiaMove = null;
@@ -3590,40 +3650,48 @@ class _GamePageState extends State<GamePage>
   }
 
   Future<void> _goHome() async {
-    if (_startingGame) return;
-    _cancelBoardInteractions();
-    _boardSetupConfirmed = false;
-    _pauseGame();
-    _savedAsIncomplete = !_gameFinished;
-    _updateSamplingGame();
-    final snapshot = _gameSnapshot();
-    await ActiveSessionStore.save(snapshot);
-    await ActiveSessionStore.clear();
-    if (!mounted) return;
-    _gameGeneration++;
-    _gameInferenceScope.invalidate();
-    _clockTimer?.cancel();
-    _stopChessnutLedRefresh();
-    if (_chessnutGameActive) await _setChessnutLeds(const []);
-    setState(() {
-      _started = false;
-      _settingsOpen = false;
-      _engineThinking = false;
-      _drawOfferEvaluating = false;
-      _lastDrawOfferFen = null;
-      _chessnutGameActive = false;
-      _pendingPhysicalMaiaMove = null;
-      _chessnutTakebackRestoreActive = false;
-      _chessnutResetPending = false;
-      _lastChessnutIllegalPosition = null;
-      _timePreset = _useChessnutGo
-          ? TimePreset.unlimited
-          : _preferredTimePreset;
-      _customMinutes = _preferredCustomMinutes;
-      _customIncrement = _preferredCustomIncrement;
-      _status = _PlayMessage.chooseSettings;
-    });
-    _syncGameBoard(animate: false, resetPremove: true);
+    if (_startingGame || _clearingGameSession) return;
+    // A lifecycle autosave after clear() would create a new ID for this same
+    // game. Keep autosaves suspended until Home has stopped owning the game.
+    _clearingGameSession = true;
+    try {
+      _cancelBoardInteractions();
+      _boardSetupConfirmed = false;
+      _pauseGame();
+      _savedAsIncomplete = !_gameFinished;
+      _updateSamplingGame();
+      final snapshot = _gameSnapshot();
+      await ActiveSessionStore.save(snapshot);
+      await ActiveSessionStore.clear();
+      if (!mounted) return;
+      _gameGeneration++;
+      _gameInferenceScope.invalidate();
+      _clockTimer?.cancel();
+      _stopChessnutLedRefresh();
+      if (_chessnutGameActive) await _setChessnutLeds(const []);
+      setState(() {
+        _started = false;
+        _settingsOpen = false;
+        _engineThinking = false;
+        _drawOfferEvaluating = false;
+        _lastDrawOfferFen = null;
+        _chessnutGameActive = false;
+        _pendingPhysicalMaiaMove = null;
+        _chessnutTakebackRestoreActive = false;
+        _chessnutResetPending = false;
+        _lastChessnutIllegalPosition = null;
+        _timePreset = _useChessnutGo
+            ? TimePreset.unlimited
+            : _preferredTimePreset;
+        _customMinutes = _preferredCustomMinutes;
+        _customIncrement = _preferredCustomIncrement;
+        _status = _PlayMessage.chooseSettings;
+      });
+      _recentGamesPosition = null;
+      _syncGameBoard(animate: false, resetPremove: true);
+    } finally {
+      _clearingGameSession = false;
+    }
   }
 
   Future<bool> _confirmEraseCurrentGame() async =>
@@ -3646,15 +3714,27 @@ class _GamePageState extends State<GamePage>
       ) ??
       false;
 
-  Future<void> _requestHome() async {
-    if (_startingGame) return;
-    if (!_gameFinished) {
-      final confirmed = await _confirmEraseCurrentGame();
-      if (!confirmed || !mounted) return;
+  Future<void> _requestHome({bool returnToRecentGames = false}) async {
+    if (_startingGame || _leavingGame) return;
+    _leavingGame = true;
+    try {
+      if (!_gameFinished) {
+        final confirmed = await _confirmEraseCurrentGame();
+        if (!confirmed || !mounted) return;
+      }
+      if (!mounted) return;
+      final recentPosition = returnToRecentGames ? _recentGamesPosition : null;
+      await _goHome();
+      if (!mounted) return;
+      Navigator.of(context).popUntil((route) => route.isFirst);
+      if (recentPosition != null) {
+        unawaited(_showRecentGames(position: recentPosition));
+      }
+    } catch (error, stackTrace) {
+      _handleStorageFailure(error, stackTrace);
+    } finally {
+      _leavingGame = false;
     }
-    if (!mounted) return;
-    await _goHome();
-    if (mounted) Navigator.of(context).popUntil((route) => route.isFirst);
   }
 
   final _boardReset = BoardResetConfirmation();
@@ -3837,7 +3917,6 @@ class _GamePageState extends State<GamePage>
     if (_chessnutGameActive) {
       _boardSetupConfirmed = false;
       _cancelBoardInteractions();
-      _occupancyResolver.reset();
       _physicalMoveInProgress = false;
       _queuedChessnutPosition = null;
       _stopChessnutLedRefresh();
@@ -3854,9 +3933,11 @@ class _GamePageState extends State<GamePage>
         _forcedResult = null;
         _naturalGameOver = false;
         _savedAsIncomplete = false;
+        _importedPgn = false;
         _resultDialogShown = false;
         _viewedPly = null;
         _started = false;
+        _recentGamesPosition = null;
         _engineThinking = false;
         _drawOfferEvaluating = false;
         _lastDrawOfferFen = null;
@@ -4005,7 +4086,13 @@ class _GamePageState extends State<GamePage>
   }
 
   Future<void> _copyPgn() async {
-    await Clipboard.setData(ClipboardData(text: _exportPgn()));
+    await Clipboard.setData(
+      ClipboardData(
+        text: _includePgnAnalysis
+            ? _exportPgn()
+            : await PgnFiles._withoutAnalysis(_exportPgn()),
+      ),
+    );
     if (mounted) {
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text(l10n(context).pgnCopied)));
@@ -4097,6 +4184,7 @@ class _GamePageState extends State<GamePage>
   }
 
   void _scheduleGameConclusion({bool playFeedback = true}) {
+    if (_pendingMotorPromotion != null) return;
     if (_resetDialogOpen) {
       _resetDialogRevision.value++;
       return;
@@ -4206,13 +4294,14 @@ class _GamePageState extends State<GamePage>
           initialCurrentFen: session.positions.last,
           title: l10n(context).analysisBoard,
           returnToGame: !_gameFinished,
-          onSessionChanged: (fen, flipped, variations) =>
+          onSessionChanged: (fen, flipped, variations, pgn) =>
               _handleReviewSessionChanged(
                 session,
                 _playerIsWhite,
                 fen,
                 flipped,
                 variations,
+                pgn,
               ),
           onHome: _goHome,
         ),
@@ -4249,112 +4338,138 @@ class _GamePageState extends State<GamePage>
   @override
   Widget build(BuildContext context) {
     final showingSettings = !_started && _settingsOpen;
-    final page = Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        leading: showingSettings
-            ? IconButton(
-                key: const ValueKey('settings-back-button'),
-                onPressed: () => setState(() => _settingsOpen = false),
-                icon: const Icon(Icons.arrow_back),
-                tooltip: l10n(context).back,
-              )
-            : _started
-            ? IconButton(
-                key: const ValueKey('game-home-button'),
-                onPressed: _startingGame ? null : _requestHome,
-                icon: const Icon(Icons.home_outlined),
-                tooltip: l10n(context).home,
-              )
-            : null,
-        title: Text(
-          _started
-              ? ''
-              : showingSettings
-              ? l10n(context).settings
-              : 'Mobile Maia',
-        ),
-        actions: [
-          if (!_started && !showingSettings)
-            IconButton(
-              onPressed: _showAbout,
-              icon: const Icon(Icons.info_outline),
-              tooltip: l10n(context).about,
-            ),
-          if (_started) ...[
-            if (_chessnutGameActive)
-              IconButton(
-                key: const ValueKey('chessnut-status-button'),
-                onPressed: _showChessnutPanel,
-                icon: Icon(
-                  _chessnutReady
-                      ? Icons.bluetooth_connected
-                      : Icons.bluetooth_disabled,
-                ),
-                tooltip: l10n(context).chessnutStatus,
-              ),
-            IconButton(
-              key: const ValueKey('new-game-button'),
-              onPressed: _storageBlocked || _startingGame
-                  ? null
-                  : _requestNewGame,
-              icon: const Icon(Icons.refresh),
-              tooltip: _gameFinished
-                  ? l10n(context).newGame
-                  : l10n(context).resetGame,
-            ),
-            PopupMenuButton<String>(
-              key: const ValueKey('game-share-menu'),
-              tooltip: l10n(context).shareAndExport,
-              icon: const Icon(Icons.more_vert),
-              onSelected: (value) async {
-                if (value == 'pgn') await _copyPgn();
-                if (value == 'fen') await _copyCurrentFen();
-                if (value == 'save') {
-                  if (context.mounted) {
-                    await PgnFiles.export(context, _exportPgn());
-                  }
-                }
-                if (value == 'share') {
-                  if (context.mounted) {
-                    await PgnFiles.export(context, _exportPgn(), share: true);
-                  }
-                }
-              },
-              itemBuilder: (_) => [
-                PopupMenuItem(
-                  value: 'save',
-                  child: ListTile(
-                    leading: Icon(Icons.save_alt),
-                    title: Text(l10n(context).savePgnFile),
-                  ),
-                ),
-                PopupMenuItem(
-                  value: 'share',
-                  child: ListTile(
-                    leading: Icon(Icons.share_outlined),
-                    title: Text(l10n(context).sharePgn),
-                  ),
-                ),
-                PopupMenuItem(
-                  value: 'pgn',
-                  child: ListTile(
-                    leading: Icon(Icons.description_outlined),
-                    title: Text(l10n(context).copyPgn),
-                  ),
-                ),
-                PopupMenuItem(
-                  value: 'fen',
-                  child: ListTile(
-                    leading: Icon(Icons.content_copy),
-                    title: Text(l10n(context).copyFen),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ],
+    // The sidebar adds 8 dp above and below the board. Android system bars
+    // must leave room for that padding as well as the minimum 160 dp grid;
+    // otherwise use the full-size scrolling layout below.
+    final sidebar =
+        _started &&
+        _useBoardSidebar(context) &&
+        MediaQuery.sizeOf(context).height -
+                MediaQuery.paddingOf(context).vertical -
+                16 >=
+            160;
+    final wideHome = _useAdaptiveColumns(MediaQuery.sizeOf(context));
+    final gameAppBar = AppBar(
+      automaticallyImplyLeading: false,
+      leading: showingSettings
+          ? IconButton(
+              key: const ValueKey('settings-back-button'),
+              onPressed: () => setState(() => _settingsOpen = false),
+              icon: const Icon(Icons.arrow_back),
+              tooltip: l10n(context).back,
+            )
+          : _started
+          ? IconButton(
+              key: const ValueKey('game-home-button'),
+              onPressed: _startingGame ? null : _requestHome,
+              icon: const Icon(Icons.home_outlined),
+              tooltip: l10n(context).home,
+            )
+          : null,
+      title: Text(
+        _started
+            ? ''
+            : showingSettings
+            ? l10n(context).settings
+            : 'Mobile Maia',
       ),
+      actions: [
+        if (!_started && !showingSettings)
+          IconButton(
+            onPressed: _showAbout,
+            icon: const Icon(Icons.info_outline),
+            tooltip: l10n(context).about,
+          ),
+        if (_started) ...[
+          if (_chessnutGameActive)
+            IconButton(
+              key: const ValueKey('chessnut-status-button'),
+              onPressed: _showChessnutPanel,
+              icon: Icon(
+                _chessnutReady
+                    ? Icons.bluetooth_connected
+                    : Icons.bluetooth_disabled,
+              ),
+              tooltip: l10n(context).chessnutStatus,
+            ),
+          IconButton(
+            key: const ValueKey('new-game-button'),
+            onPressed: _storageBlocked || _startingGame
+                ? null
+                : _requestNewGame,
+            icon: const Icon(Icons.refresh),
+            tooltip: _gameFinished
+                ? l10n(context).newGame
+                : l10n(context).resetGame,
+          ),
+          PopupMenuButton<String>(
+            key: const ValueKey('game-share-menu'),
+            tooltip: l10n(context).shareAndExport,
+            icon: const Icon(Icons.more_vert),
+            onSelected: (value) async {
+              if (value == 'pgn') await _copyPgn();
+              if (value == 'fen') await _copyCurrentFen();
+              if (value == 'save') {
+                if (context.mounted) {
+                  await PgnFiles.export(
+                    context,
+                    _exportPgn(),
+                    includeAnalysis: _includePgnAnalysis,
+                  );
+                }
+              }
+              if (value == 'share') {
+                if (context.mounted) {
+                  await PgnFiles.export(
+                    context,
+                    _exportPgn(),
+                    share: true,
+                    includeAnalysis: _includePgnAnalysis,
+                  );
+                }
+              }
+            },
+            itemBuilder: (_) => [
+              PgnAnalysisExportOption<String>(
+                initialValue: _includePgnAnalysis,
+                onChanged: (value) => _includePgnAnalysis = value,
+              ),
+              const PopupMenuDivider(),
+              PopupMenuItem(
+                value: 'save',
+                child: ListTile(
+                  leading: Icon(Icons.save_alt),
+                  title: Text(l10n(context).savePgnFile),
+                ),
+              ),
+              PopupMenuItem(
+                value: 'share',
+                child: ListTile(
+                  leading: Icon(Icons.share_outlined),
+                  title: Text(l10n(context).sharePgn),
+                ),
+              ),
+              PopupMenuItem(
+                value: 'pgn',
+                child: ListTile(
+                  leading: Icon(Icons.description_outlined),
+                  title: Text(l10n(context).copyPgn),
+                ),
+              ),
+              PopupMenuItem(
+                value: 'fen',
+                child: ListTile(
+                  leading: Icon(Icons.content_copy),
+                  title: Text(l10n(context).copyFen),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ],
+    );
+    final page = Scaffold(
+      appBar: sidebar ? null : gameAppBar,
       persistentFooterButtons: _storageFailed ? [_storageWarning()] : null,
       body: SafeArea(
         child: LayoutBuilder(
@@ -4364,6 +4479,80 @@ class _GamePageState extends State<GamePage>
                 return AbsorbPointer(
                   absorbing: _resettingSettings,
                   child: _settingsView(),
+                );
+              }
+              if (wideHome) {
+                return Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 1100),
+                    child: Padding(
+                      padding: const EdgeInsets.all(8),
+                      child: Row(
+                        key: const ValueKey('adaptive-home'),
+                        children: [
+                          Expanded(
+                            flex: 3,
+                            child: SingleChildScrollView(
+                              child: _setupCard(
+                                includeShortcuts: false,
+                                compact: constraints.maxHeight < 500,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            flex: 2,
+                            child: SingleChildScrollView(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  OutlinedButton.icon(
+                                    style: OutlinedButton.styleFrom(
+                                      minimumSize: const Size.fromHeight(52),
+                                    ),
+                                    key: const ValueKey('home-analysis-board'),
+                                    onPressed:
+                                        _initialized &&
+                                            !_storageBlocked &&
+                                            !_startingGame
+                                        ? _openAnalysisBoard
+                                        : null,
+                                    icon: const Icon(Icons.analytics_outlined),
+                                    label: Text(l10n(context).analysisBoard),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  OutlinedButton.icon(
+                                    style: OutlinedButton.styleFrom(
+                                      minimumSize: const Size.fromHeight(52),
+                                    ),
+                                    onPressed: _showRecentGames,
+                                    icon: const Icon(Icons.history),
+                                    label: Text(l10n(context).recentGames),
+                                  ),
+                                  const SizedBox(height: 20),
+                                  Align(
+                                    alignment: AlignmentDirectional.centerStart,
+                                    child: OutlinedButton.icon(
+                                      style: OutlinedButton.styleFrom(
+                                        minimumSize: const Size(0, 48),
+                                      ),
+                                      key: const ValueKey(
+                                        'home-settings-button',
+                                      ),
+                                      onPressed: () =>
+                                          setState(() => _settingsOpen = true),
+                                      icon: const Icon(Icons.settings_outlined),
+                                      label: Text(l10n(context).settings),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                 );
               }
               return SingleChildScrollView(
@@ -4377,73 +4566,105 @@ class _GamePageState extends State<GamePage>
               );
             }
 
-            if (constraints.maxWidth > constraints.maxHeight &&
-                constraints.maxWidth >= 600) {
+            if (sidebar) {
               final rowHeight = max(
                 44.0,
                 MediaQuery.textScalerOf(context).scale(20) + 20,
               );
               final size = min(
-                constraints.maxHeight - 16 - rowHeight * 2,
-                constraints.maxWidth * 0.5,
-              ).clamp(80.0, 560.0);
+                constraints.maxHeight - 16,
+                constraints.maxWidth - _sidebarMinimum(context) - 28,
+              ).clamp(80.0, double.infinity);
+              Widget middle() => Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _liveMoveStrip(),
+                  if (_multiplePremoves &&
+                      _premovesEnabled &&
+                      !_chessnutGameActive)
+                    _premoveStrip(),
+                  if (_chessnutGameActive) ...[
+                    const SizedBox(height: 6),
+                    _chessnutStatusBanner(),
+                  ],
+                  if (_maiaFailed)
+                    TextButton(
+                      onPressed: () {
+                        _maiaFailed = false;
+                        _resumeGame();
+                      },
+                      child: Text(l10n(context).maiaErrorRetry),
+                    )
+                  else if (_engineThinking)
+                    Text(l10n(context).maiaIsThinking),
+                ],
+              );
               return Padding(
                 padding: const EdgeInsets.all(8),
                 child: Row(
+                  key: const ValueKey('adaptive-game'),
                   children: [
-                    SizedBox(
-                      width: max(size, 240.0),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          SizedBox(
+                    SizedBox(width: size, height: size, child: _board()),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: LayoutBuilder(
+                        builder: (context, panel) {
+                          final header = SizedBox(
+                            height: 56,
+                            child: gameAppBar,
+                          );
+                          final top = SizedBox(
                             height: rowHeight,
                             child: _playerInfoRow(
                               _topBoardColor,
                               _playerLabel(_topBoardColor),
                             ),
-                          ),
-                          SizedBox(width: size, height: size, child: _board()),
-                          SizedBox(
+                          );
+                          final bottom = SizedBox(
                             height: rowHeight,
                             child: _playerInfoRow(
                               _bottomBoardColor,
                               _playerLabel(_bottomBoardColor),
                             ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        children: [
-                          _liveMoveStrip(),
-                          if (_multiplePremoves &&
-                              _premovesEnabled &&
-                              !_chessnutGameActive)
-                            _premoveStrip(),
-                          if (_chessnutGameActive) ...[
-                            const SizedBox(height: 6),
-                            _chessnutStatusBanner(),
-                          ],
-                          const Spacer(),
-                          if (_maiaFailed)
-                            TextButton(
-                              onPressed: () {
-                                _maiaFailed = false;
-                                _resumeGame();
-                              },
-                              child: Text(l10n(context).maiaErrorRetry),
-                            )
-                          else if (_engineThinking)
-                            Text(
-                              l10n(context).maiaIsThinking,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          _liveGameControls(),
-                        ],
+                          );
+                          final minimumMiddle =
+                              40 +
+                              (_chessnutGameActive
+                                  ? _chessnutBannerHeight + 6
+                                  : 0) +
+                              (!_premoves.isEmpty ? 48 : 0);
+                          if (panel.maxHeight <
+                              56 + rowHeight * 2 + 56 + minimumMiddle) {
+                            final recoveryFirst =
+                                _chessnutGameActive &&
+                                (!_chessnutReady ||
+                                    _chessnutResetPending ||
+                                    _pendingMotorPromotion != null);
+                            return SingleChildScrollView(
+                              child: Column(
+                                children: [
+                                  header,
+                                  if (recoveryFirst) middle(),
+                                  top,
+                                  if (!recoveryFirst) middle(),
+                                  bottom,
+                                  _liveGameControls(),
+                                ],
+                              ),
+                            );
+                          }
+                          return Column(
+                            children: [
+                              header,
+                              top,
+                              Expanded(
+                                child: SingleChildScrollView(child: middle()),
+                              ),
+                              bottom,
+                              _liveGameControls(),
+                            ],
+                          );
+                        },
                       ),
                     ),
                   ],
@@ -4476,9 +4697,15 @@ class _GamePageState extends State<GamePage>
                     (_chessnutGameActive ? _chessnutBannerHeight + 6 : 0),
               ),
             );
-            final useScrollableLayout = availableBoardSize <= 80;
+            final constrainedLandscape =
+                constraints.maxWidth > constraints.maxHeight;
+            final useScrollableLayout =
+                availableBoardSize <= 80 ||
+                (constrainedLandscape && availableBoardSize < 160);
             final boardSize = useScrollableLayout
-                ? min(contentWidth, 81.0)
+                ? (constrainedLandscape
+                      ? contentWidth
+                      : min(contentWidth, 81.0))
                 : availableBoardSize;
             Widget portraitContent() => Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -4562,7 +4789,7 @@ class _GamePageState extends State<GamePage>
           },
         ),
       ),
-      bottomNavigationBar: !_started && !_settingsOpen
+      bottomNavigationBar: !_started && !_settingsOpen && !wideHome
           ? SafeArea(
               top: false,
               child: SizedBox(
@@ -4589,30 +4816,37 @@ class _GamePageState extends State<GamePage>
           : null,
     );
     return PopScope<void>(
-      canPop: !showingSettings,
-      onPopInvokedWithResult: (didPop, _) {
-        if (!didPop && showingSettings) {
+      canPop: !showingSettings && !_started,
+      onPopInvokedWithResult: (didPop, _) async {
+        if (didPop) return;
+        if (showingSettings) {
           setState(() => _settingsOpen = false);
+        } else if (_started) {
+          await _requestHome(returnToRecentGames: true);
         }
       },
       child: page,
     );
   }
 
-  Widget _setupCard() {
+  Widget _setupCard({bool includeShortcuts = true, bool compact = false}) {
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.symmetric(
+          horizontal: compact ? 8 : 16,
+          vertical: compact ? 4 : 16,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(
-              l10n(context).playMaia,
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700),
-            ),
-            const SizedBox(height: 16),
+            if (!compact)
+              Text(
+                l10n(context).playMaia,
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700),
+              ),
+            SizedBox(height: compact ? 0 : 16),
             Text(l10n(context).yourSide),
-            const SizedBox(height: 8),
+            SizedBox(height: compact ? 4 : 8),
             LayoutBuilder(
               builder: (context, constraints) {
                 final stackSides =
@@ -4655,7 +4889,7 @@ class _GamePageState extends State<GamePage>
                 );
               },
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: compact ? 0 : 16),
             Text(
               l10n(context).playRatingValue(
                 displayNumber(context, normalizeMaiaRating(_elo)),
@@ -4672,7 +4906,7 @@ class _GamePageState extends State<GamePage>
               onChangeEnd: (value) =>
                   _changePlayElo(value.round(), persist: true),
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: compact ? 4 : 12),
             DropdownButtonFormField<TimePreset>(
               key: ValueKey('time-preset-${_timePreset.name}'),
               isExpanded: true,
@@ -4705,7 +4939,7 @@ class _GamePageState extends State<GamePage>
                     },
             ),
             if (_timePreset == TimePreset.custom) ...[
-              const SizedBox(height: 8),
+              SizedBox(height: compact ? 4 : 8),
               Text(
                 l10n(context)
                     .minutesValue(displayNumber(context, _customMinutes)),
@@ -4740,7 +4974,7 @@ class _GamePageState extends State<GamePage>
                 onChangeEnd: (_) => unawaited(_persistTimeControl()),
               ),
             ],
-            const SizedBox(height: 6),
+            SizedBox(height: compact ? 0 : 6),
             SwitchListTile(
               key: const ValueKey('home-chessnut-toggle'),
               contentPadding: EdgeInsets.zero,
@@ -4750,8 +4984,8 @@ class _GamePageState extends State<GamePage>
               value: _useChessnutGo,
               title: Text(
                 _genericBoards
-                    ? l10n(context).electronicBoardExperimental
-                    : l10n(context).chessnutExperimental,
+                    ? l10n(context).electronicBoard
+                    : l10n(context).chessnutBoard,
               ),
               onChanged: (value) => unawaited(_setUseChessnutGo(value)),
             ),
@@ -4782,7 +5016,7 @@ class _GamePageState extends State<GamePage>
                   ],
                 ),
               ),
-              const SizedBox(height: 8),
+              SizedBox(height: compact ? 4 : 8),
               OutlinedButton.icon(
                 key: const ValueKey('chessnut-connect-button'),
                 onPressed:
@@ -4831,11 +5065,6 @@ class _GamePageState extends State<GamePage>
                       }
                     }),
                   ),
-                if (_boardKind != BoardKind.chessnut)
-                  Text(
-                    l10n(context).boardExperimentalNotice,
-                    style: Theme.of(context).textTheme.bodySmall,
-                  ),
               ],
               Padding(
                 padding: const EdgeInsets.only(top: 8),
@@ -4847,7 +5076,7 @@ class _GamePageState extends State<GamePage>
                 ),
               ),
             ],
-            const SizedBox(height: 10),
+            SizedBox(height: compact ? 4 : 10),
             FilledButton.icon(
               style: FilledButton.styleFrom(
                 minimumSize: const Size.fromHeight(52),
@@ -4862,26 +5091,29 @@ class _GamePageState extends State<GamePage>
               icon: const Icon(Icons.play_arrow),
               label: Text(l10n(context).startGame),
             ),
-            const SizedBox(height: 12),
-            OutlinedButton.icon(
-              style: OutlinedButton.styleFrom(
-                minimumSize: const Size.fromHeight(52),
+            if (includeShortcuts) ...[
+              SizedBox(height: compact ? 4 : 12),
+              OutlinedButton.icon(
+                key: const ValueKey('home-analysis-board'),
+                style: OutlinedButton.styleFrom(
+                  minimumSize: const Size.fromHeight(52),
+                ),
+                onPressed: _initialized && !_storageBlocked && !_startingGame
+                    ? _openAnalysisBoard
+                    : null,
+                icon: const Icon(Icons.analytics_outlined),
+                label: Text(l10n(context).analysisBoard),
               ),
-              onPressed: _initialized && !_storageBlocked && !_startingGame
-                  ? _openAnalysisBoard
-                  : null,
-              icon: const Icon(Icons.analytics_outlined),
-              label: Text(l10n(context).analysisBoard),
-            ),
-            const SizedBox(height: 12),
-            OutlinedButton.icon(
-              style: OutlinedButton.styleFrom(
-                minimumSize: const Size.fromHeight(52),
+              SizedBox(height: compact ? 4 : 12),
+              OutlinedButton.icon(
+                style: OutlinedButton.styleFrom(
+                  minimumSize: const Size.fromHeight(52),
+                ),
+                onPressed: _showRecentGames,
+                icon: const Icon(Icons.history),
+                label: Text(l10n(context).recentGames),
               ),
-              onPressed: _showRecentGames,
-              icon: const Icon(Icons.history),
-              label: Text(l10n(context).recentGames),
-            ),
+            ],
           ],
         ),
       ),
@@ -4895,498 +5127,497 @@ class _GamePageState extends State<GamePage>
     required List<Widget> children,
     Widget? trailing,
   }) {
-    return Card(
-      key: key,
-      clipBehavior: Clip.antiAlias,
-      child: Column(
-        children: [
-          ListTile(
-            leading: Icon(icon),
-            title: Semantics(
-              header: true,
-              child: Text(
-                title,
-                style: const TextStyle(fontWeight: FontWeight.w700),
-              ),
-            ),
-            trailing: trailing,
-          ),
-          const Divider(height: 1),
-          ...children,
-        ],
-      ),
-    );
-  }
-
-  Widget _settingsView() {
-    return SingleChildScrollView(
-      key: const ValueKey('settings-scroll-view'),
-      padding: const EdgeInsets.fromLTRB(12, 8, 12, 24),
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 680),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              if (AppLanguageSettings.maybeOf(context)
-                  case final language?) ...[
-                _settingsSection(
-                  title: l10n(context).language,
-                  icon: Icons.language,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
-                      child: DropdownButtonFormField<String>(
-                        key: ValueKey(
-                          'app-language-${language.selectedCode ?? 'system'}',
-                        ),
-                        isExpanded: true,
-                        // Native language names may wrap at large text sizes.
-                        itemHeight: null,
-                        isDense: false,
-                        initialValue: language.selectedCode ?? 'system',
-                        decoration: InputDecoration(
-                          labelText: l10n(context).language,
-                          border: const OutlineInputBorder(),
-                        ),
-                        items: [
-                          DropdownMenuItem(
-                            value: 'system',
-                            child: Text(l10n(context).systemDefault),
-                          ),
-                          for (final choice in sortedAppLanguageChoices())
-                            DropdownMenuItem(
-                              value: choice.key,
-                              child: Text(choice.value),
-                            ),
-                        ],
-                        onChanged: (value) => language.onChanged(
-                          value == 'system' ? null : value,
-                        ),
-                      ),
-                    ),
-                    if (language.persistenceFailed)
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-                        child: Semantics(
-                          liveRegion: true,
-                          child: Text(l10n(context).languagePreferenceError),
-                        ),
-                      ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-              ],
-              if (AppAppearanceSettings.maybeOf(context) != null) ...[
-                const AppearanceSettingsSection(),
-                const SizedBox(height: 8),
-              ],
-              const BoardSettingsSection(),
-              const SizedBox(height: 8),
-              _settingsSection(
-                key: const ValueKey('game-settings-section'),
-                title: l10n(context).gameSettings,
-                icon: Icons.sports_esports_outlined,
-                children: [
-                  SwitchListTile(
-                    key: const ValueKey('game-sounds-setting'),
-                    title: Text(l10n(context).gameSounds),
-                    subtitle: Text(l10n(context).movesCapturesErrorsAndGameEnd),
-                    value: _gameSoundsEnabled,
-                    onChanged: (value) =>
-                        unawaited(_setGameSoundsEnabled(value)),
-                  ),
-                  SwitchListTile(
-                    key: const ValueKey('game-haptics-setting'),
-                    title: Text(l10n(context).hapticFeedback),
-                    subtitle: Text(
-                      l10n(context).touchFeedbackForMovesChecksErrorsAndGameEnd,
-                    ),
-                    value: _gameHapticsEnabled,
-                    onChanged: (value) =>
-                        unawaited(_setGameHapticsEnabled(value)),
-                  ),
-                  SwitchListTile(
-                    key: const ValueKey('premoves-setting'),
-                    title: Text(l10n(context).premoves),
-                    subtitle: Text(l10n(context).queueAMoveWhileMaiaIsThinking),
-                    value: _premovesEnabled,
-                    onChanged: (value) {
-                      setState(() => _premovesEnabled = value);
-                      unawaited(_saveEnginePreferences());
-                    },
-                  ),
-                  SwitchListTile(
-                    key: const ValueKey('premove-penalty-setting'),
-                    contentPadding: const EdgeInsetsDirectional.only(
-                      start: 32,
-                      end: 24,
-                    ),
-                    title: Text(
-                      l10n(context).oneHundredMsPremovePenalty,
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
-                    subtitle: Text(
-                      l10n(context).use01SecondsPerPremoveInTimedGames,
-                    ),
-                    value: _premovePenalty,
-                    onChanged: _premovesEnabled
-                        ? (value) {
-                            setState(() => _premovePenalty = value);
-                            unawaited(_saveEnginePreferences());
-                          }
-                        : null,
-                  ),
-                  SwitchListTile(
-                    key: const ValueKey('multiple-premoves-setting'),
-                    contentPadding: const EdgeInsetsDirectional.only(
-                      start: 32,
-                      end: 24,
-                    ),
-                    title: Text(
-                      l10n(context).allowMultiplePremoves,
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
-                    subtitle: Text(
-                      l10n(context).queueASequenceAnIllegalMoveCancelsTheRest,
-                    ),
-                    value: _multiplePremoves,
-                    onChanged: _premovesEnabled
-                        ? (value) {
-                            setState(() => _multiplePremoves = value);
-                            unawaited(_saveEnginePreferences());
-                          }
-                        : null,
-                  ),
-                  SwitchListTile(
-                    key: const ValueKey('human-timing-setting'),
-                    value: _humanTiming,
-                    title: Text(l10n(context).humanMoveTiming),
-                    subtitle: Text(
-                      l10n(context).variableNaturalPausesBeforeMaiaMoves,
-                    ),
-                    onChanged: (value) {
-                      setState(() => _humanTiming = value);
-                      unawaited(_saveEnginePreferences());
-                    },
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              _settingsSection(
-                key: const ValueKey('engine-settings-section'),
-                title: l10n(context).engineSettings,
-                icon: Icons.memory_outlined,
-                trailing: IconButton(
-                  key: const ValueKey('sampling-help'),
-                  tooltip: l10n(context).aboutTemperatureAndTopP,
-                  onPressed: _showSamplingHelp,
-                  icon: const Icon(Icons.info_outline),
-                ),
-                children: [
-                  ListTile(
-                    key: const ValueKey('temperature-setting'),
-                    title: Text(
-                      l10n(context).temperatureValue(
-                        displayNumber(context, _temperature, decimalDigits: 2),
-                      ),
-                    ),
-                    subtitle: Slider(
-                      min: 0.00,
-                      max: 1.00,
-                      divisions: 20,
-                      value: _temperature,
-                      label: displayNumber(
-                        context,
-                        _temperature,
-                        decimalDigits: 2,
-                      ),
-                      onChanged: (value) => setState(() {
-                        _temperature = value;
-                        if (_temperature == 1.0 && _topP == 1.0) {
-                          _maxOpeningVariety = false;
-                        }
-                      }),
-                      onChangeEnd: (_) => unawaited(_saveEnginePreferences()),
-                    ),
-                  ),
-                  ListTile(
-                    key: const ValueKey('top-p-setting'),
-                    title: Text(
-                      _temperature == 0
-                          ? l10n(context).topPNotUsed
-                          : l10n(context).topPValue(
-                              displayNumber(context, _topP, decimalDigits: 2),
-                            ),
-                    ),
-                    trailing: _temperature == 0
-                        ? IconButton(
-                            key: const ValueKey('top-p-unused-help'),
-                            tooltip: l10n(context).topPNotUsedTitle,
-                            icon: const Icon(Icons.info_outline),
-                            onPressed: () => showDialog<void>(
-                              context: context,
-                              builder: (context) => AlertDialog(
-                                scrollable: true,
-                                title: Text(l10n(context).topPNotUsedTitle),
-                                content: Text(l10n(context).topPNotUsedHelp),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () =>
-                                        Navigator.of(context).pop(),
-                                    child: Text(l10n(context).close),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          )
-                        : null,
-                    subtitle: Slider(
-                      min: 0.00,
-                      max: 1.00,
-                      divisions: 20,
-                      value: _topP,
-                      label: displayNumber(context, _topP, decimalDigits: 2),
-                      onChanged: _temperature == 0
-                          ? null
-                          : (value) => setState(() {
-                              _topP = value;
-                              if (_temperature == 1.0 && _topP == 1.0) {
-                                _maxOpeningVariety = false;
-                              }
-                            }),
-                      onChangeEnd: (_) => unawaited(_saveEnginePreferences()),
-                    ),
-                  ),
-                  if (samplingSettingsNotices(
-                    l10n(context),
-                    temperature: _temperature,
-                    topP: _topP,
-                    openingVariety: _maxOpeningVariety,
-                  ).isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-                      child: Text(
-                        samplingSettingsNotices(
-                          l10n(context),
-                          temperature: _temperature,
-                          topP: _topP,
-                          openingVariety: _maxOpeningVariety,
-                        ).join('\n\n'),
-                        key: const ValueKey('sampling-recommendation-warning'),
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ),
-                  SettingsInfoSwitch(
-                    key: const ValueKey('opening-variety-setting'),
-                    value: _maxOpeningVariety,
-                    title: l10n(context).maxOpeningVariety,
-                    helpKey: const ValueKey('opening-variety-help'),
-                    onHelp: _showOpeningVarietyHelp,
-                    onChanged: _temperature == 1.0 && _topP == 1.0
-                        ? null
-                        : (value) {
-                            setState(() => _maxOpeningVariety = value);
-                            unawaited(_saveEnginePreferences());
-                          },
-                  ),
-                  SettingsInfoSwitch(
-                    key: const ValueKey('maia-history-setting'),
-                    value: _useMoveHistory,
-                    title: l10n(context).maiaHistorySetting,
-                    helpKey: const ValueKey('maia-history-help'),
-                    onHelp: _showMoveHistoryHelp,
-                    onChanged: (value) {
-                      setState(() => _useMoveHistory = value);
-                      unawaited(_saveEnginePreferences());
-                    },
-                  ),
-                  const SamplingCaptureSettings(),
-                ],
-              ),
-              const SizedBox(height: 8),
-              _settingsSection(
-                key: const ValueKey('analysis-settings-section'),
-                title: l10n(context).analysisSettings,
-                icon: Icons.analytics_outlined,
-                children: [
-                  ListTile(
-                    key: const ValueKey('analysis-rating-setting'),
-                    title: Text(
-                      l10n(context).analysisRatingValue(
-                        displayNumber(context, _analysisElo),
-                      ),
-                    ),
-                    subtitle: Slider(
-                      min: maiaMinimumRating.toDouble(),
-                      max: maiaMaximumRating.toDouble(),
-                      divisions: maiaRatingDivisions,
-                      value: _analysisElo.toDouble(),
-                      label: displayNumber(context, _analysisElo),
-                      onChanged: (value) =>
-                          setState(() => _analysisElo = value.round()),
-                      onChangeEnd: (_) => unawaited(_saveEnginePreferences()),
-                    ),
-                  ),
-                  SwitchListTile(
-                    key: const ValueKey('second-maia-engine-setting'),
-                    title: Text(l10n(context).addSecondMaiaEngine),
-                    subtitle: Text(
-                      l10n(context).compareAnotherMaiaRatingInAnalysisAndReview,
-                    ),
-                    value: _secondMaiaEnabled,
-                    onChanged: (value) {
-                      setState(() => _secondMaiaEnabled = value);
-                      unawaited(_saveEnginePreferences());
-                    },
-                  ),
-                  if (_secondMaiaEnabled)
-                    ListTile(
-                      key: const ValueKey('second-maia-rating-setting'),
-                      title: Text(
-                        l10n(context).secondAnalysisRatingValue(
-                          displayNumber(context, _secondMaiaElo),
-                        ),
-                      ),
-                      subtitle: Slider(
-                        min: maiaMinimumRating.toDouble(),
-                        max: maiaMaximumRating.toDouble(),
-                        divisions: maiaRatingDivisions,
-                        value: _secondMaiaElo.toDouble(),
-                        label: displayNumber(context, _secondMaiaElo),
-                        onChanged: (value) =>
-                            setState(() => _secondMaiaElo = value.round()),
-                        onChangeEnd: (_) => unawaited(_saveEnginePreferences()),
-                      ),
-                    ),
-                  const MaiaScoreSetting(),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Text(l10n(context).gameAnalysisQuality),
-                        const SizedBox(height: 8),
-                        Semantics(
-                          label: l10n(context).gameAnalysisQuality,
-                          child: DropdownButtonFormField<GameAnalysisQuality>(
-                            key: ValueKey(
-                              'game-analysis-quality-${_gameAnalysisQuality.name}',
-                            ),
-                            isExpanded: true,
-                            itemHeight: null,
-                            isDense: false,
-                            initialValue: _gameAnalysisQuality,
-                            decoration: const InputDecoration(
-                              border: OutlineInputBorder(),
-                              contentPadding: EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 4,
-                              ),
-                            ),
-                            items: GameAnalysisQuality.values
-                                .map(
-                                  (quality) => DropdownMenuItem(
-                                    value: quality,
-                                    child: Text(
-                                      localizedAnalysisQuality(
-                                        context,
-                                        quality,
-                                      ),
-                                    ),
-                                  ),
-                                )
-                                .toList(),
-                            onChanged: (value) {
-                              if (value == null) return;
-                              setState(() => _gameAnalysisQuality = value);
-                              unawaited(_saveEnginePreferences());
-                            },
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          localizedAnalysisQualityDescription(
-                            context,
-                            _gameAnalysisQuality,
-                          ),
-                          style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .onSurfaceVariant,
-                              ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              _settingsSection(
-                title: 'Chessnut',
-                icon: Icons.bluetooth_outlined,
-                children: [
-                  SwitchListTile(
-                    key: const ValueKey('chessnut-sounds-toggle'),
-                    value: _chessnutSoundsEnabled,
-                    title: Text(l10n(context).boardSounds),
-                    subtitle: Text(
-                      l10n(context)
-                          .beepForCheckCheckmateAndCompletedIllegalMoves,
-                    ),
-                    onChanged: (value) =>
-                        unawaited(_setChessnutSoundsEnabled(value)),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              ListenableBuilder(
-                listenable: SamplingCapture.instance,
-                builder: (context, _) => Align(
-                  alignment: Alignment.centerLeft,
-                  child: TextButton(
-                    key: const ValueKey('reset-settings-defaults'),
-                    onPressed:
-                        _resettingSettings || SamplingCapture.instance.busy
-                        ? null
-                        : _confirmResetSettings,
-                    child: Text(l10n(context).resetSettingsDefaults),
-                  ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+    return AdaptiveSettingsSection(
+      title: title,
+      icon: icon,
+      child: Card(
+        key: key,
+        clipBehavior: Clip.antiAlias,
+        child: Column(
+          children: [
+            ListTile(
+              leading: Icon(icon),
+              title: Semantics(
+                header: true,
                 child: Text(
-                  l10n(context).resetSettingsDefaultsScope,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
+                  title,
+                  style: const TextStyle(fontWeight: FontWeight.w700),
                 ),
               ),
-              OutlinedButton.icon(
-                key: const ValueKey('copy-diagnostics'),
-                style: OutlinedButton.styleFrom(
-                  minimumSize: const Size.fromHeight(52),
-                ),
-                onPressed: () async {
-                  await AppDiagnostics.copyToClipboard();
-                  if (!mounted) return;
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(l10n(context).diagnosticsCopied)),
-                  );
-                },
-                icon: const Icon(Icons.copy),
-                label: Text(l10n(context).copyDiagnostics),
-              ),
-            ],
-          ),
+              trailing: trailing,
+            ),
+            const Divider(height: 1),
+            ...children,
+          ],
         ),
       ),
     );
   }
+
+  Widget _settingsView() => AdaptiveSettingsView(
+    children: [
+      if (AppLanguageSettings.maybeOf(context) case final language?) ...[
+        _settingsSection(
+          title: l10n(context).language,
+          icon: Icons.language,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+              child: DropdownButtonFormField<String>(
+                key: ValueKey(
+                  'app-language-${language.selectedCode ?? 'system'}',
+                ),
+                isExpanded: true,
+                // Native language names may wrap at large text sizes.
+                itemHeight: null,
+                isDense: false,
+                initialValue: language.selectedCode ?? 'system',
+                decoration: InputDecoration(
+                  labelText: l10n(context).language,
+                  border: const OutlineInputBorder(),
+                ),
+                items: [
+                  DropdownMenuItem(
+                    value: 'system',
+                    child: Text(l10n(context).systemDefault),
+                  ),
+                  for (final choice in sortedAppLanguageChoices())
+                    DropdownMenuItem(
+                      value: choice.key,
+                      child: Text(choice.value),
+                    ),
+                ],
+                onChanged: (value) =>
+                    language.onChanged(value == 'system' ? null : value),
+              ),
+            ),
+            if (language.persistenceFailed)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                child: Semantics(
+                  liveRegion: true,
+                  child: Text(l10n(context).languagePreferenceError),
+                ),
+              ),
+          ],
+        ),
+        const SizedBox(height: 8),
+      ],
+      if (AppAppearanceSettings.maybeOf(context) != null) ...[
+        AdaptiveSettingsSection(
+          title: l10n(context).appearance,
+          icon: Icons.palette_outlined,
+          child: const AppearanceSettingsSection(),
+        ),
+        const SizedBox(height: 8),
+      ],
+      AdaptiveSettingsSection(
+        title: l10n(context).boardSettings,
+        icon: Icons.grid_on_outlined,
+        child: const BoardSettingsSection(),
+      ),
+      const SizedBox(height: 8),
+      _settingsSection(
+        key: const ValueKey('game-settings-section'),
+        title: l10n(context).gameSettings,
+        icon: Icons.sports_esports_outlined,
+        children: [
+          SwitchListTile(
+            key: const ValueKey('game-sounds-setting'),
+            title: Text(l10n(context).gameSounds),
+            subtitle: Text(l10n(context).movesCapturesErrorsAndGameEnd),
+            value: _gameSoundsEnabled,
+            onChanged: (value) => unawaited(_setGameSoundsEnabled(value)),
+          ),
+          SwitchListTile(
+            key: const ValueKey('game-haptics-setting'),
+            title: Text(l10n(context).hapticFeedback),
+            subtitle: Text(
+              l10n(context).touchFeedbackForMovesChecksErrorsAndGameEnd,
+            ),
+            value: _gameHapticsEnabled,
+            onChanged: (value) => unawaited(_setGameHapticsEnabled(value)),
+          ),
+          SwitchListTile(
+            key: const ValueKey('premoves-setting'),
+            title: Text(l10n(context).premoves),
+            subtitle: Text(l10n(context).queueAMoveWhileMaiaIsThinking),
+            value: _premovesEnabled,
+            onChanged: (value) {
+              setState(() => _premovesEnabled = value);
+              unawaited(_saveEnginePreferences());
+            },
+          ),
+          SwitchListTile(
+            key: const ValueKey('premove-penalty-setting'),
+            contentPadding: const EdgeInsetsDirectional.only(
+              start: 32,
+              end: 24,
+            ),
+            title: Text(
+              l10n(context).oneHundredMsPremovePenalty,
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+            subtitle: Text(l10n(context).use01SecondsPerPremoveInTimedGames),
+            value: _premovePenalty,
+            onChanged: _premovesEnabled
+                ? (value) {
+                    setState(() => _premovePenalty = value);
+                    unawaited(_saveEnginePreferences());
+                  }
+                : null,
+          ),
+          SwitchListTile(
+            key: const ValueKey('multiple-premoves-setting'),
+            contentPadding: const EdgeInsetsDirectional.only(
+              start: 32,
+              end: 24,
+            ),
+            title: Text(
+              l10n(context).allowMultiplePremoves,
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+            subtitle: Text(
+              l10n(context).queueASequenceAnIllegalMoveCancelsTheRest,
+            ),
+            value: _multiplePremoves,
+            onChanged: _premovesEnabled
+                ? (value) {
+                    setState(() => _multiplePremoves = value);
+                    unawaited(_saveEnginePreferences());
+                  }
+                : null,
+          ),
+          SwitchListTile(
+            key: const ValueKey('human-timing-setting'),
+            value: _humanTiming,
+            title: Text(l10n(context).humanMoveTiming),
+            subtitle: Text(l10n(context).variableNaturalPausesBeforeMaiaMoves),
+            onChanged: (value) {
+              setState(() => _humanTiming = value);
+              unawaited(_saveEnginePreferences());
+            },
+          ),
+        ],
+      ),
+      const SizedBox(height: 8),
+      _settingsSection(
+        key: const ValueKey('engine-settings-section'),
+        title: l10n(context).engineSettings,
+        icon: Icons.memory_outlined,
+        trailing: IconButton(
+          key: const ValueKey('sampling-help'),
+          tooltip: l10n(context).aboutTemperatureAndTopP,
+          onPressed: _showSamplingHelp,
+          icon: const Icon(Icons.info_outline),
+        ),
+        children: [
+          ListTile(
+            key: const ValueKey('temperature-setting'),
+            title: Text(
+              l10n(context).temperatureValue(
+                displayNumber(context, _temperature, decimalDigits: 2),
+              ),
+            ),
+            subtitle: Slider(
+              min: 0.00,
+              max: 1.00,
+              divisions: 20,
+              value: _temperature,
+              label: displayNumber(context, _temperature, decimalDigits: 2),
+              onChanged: (value) => setState(() {
+                _temperature = value;
+                if (_temperature == 1.0 && _topP == 1.0) {
+                  _maxOpeningVariety = false;
+                }
+              }),
+              onChangeEnd: (_) => unawaited(_saveEnginePreferences()),
+            ),
+          ),
+          ListTile(
+            key: const ValueKey('top-p-setting'),
+            title: Text(
+              _temperature == 0
+                  ? l10n(context).topPNotUsed
+                  : l10n(context).topPValue(
+                      displayNumber(context, _topP, decimalDigits: 2),
+                    ),
+            ),
+            trailing: _temperature == 0
+                ? IconButton(
+                    key: const ValueKey('top-p-unused-help'),
+                    tooltip: l10n(context).topPNotUsedTitle,
+                    icon: const Icon(Icons.info_outline),
+                    onPressed: () => showDialog<void>(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        scrollable: true,
+                        title: Text(l10n(context).topPNotUsedTitle),
+                        content: Text(l10n(context).topPNotUsedHelp),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.of(context).pop(),
+                            child: Text(l10n(context).close),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                : null,
+            subtitle: Slider(
+              min: 0.00,
+              max: 1.00,
+              divisions: 20,
+              value: _topP,
+              label: displayNumber(context, _topP, decimalDigits: 2),
+              onChanged: _temperature == 0
+                  ? null
+                  : (value) => setState(() {
+                      _topP = value;
+                      if (_temperature == 1.0 && _topP == 1.0) {
+                        _maxOpeningVariety = false;
+                      }
+                    }),
+              onChangeEnd: (_) => unawaited(_saveEnginePreferences()),
+            ),
+          ),
+          if (samplingSettingsNotices(
+            l10n(context),
+            temperature: _temperature,
+            topP: _topP,
+            openingVariety: _maxOpeningVariety,
+          ).isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+              child: Text(
+                samplingSettingsNotices(
+                  l10n(context),
+                  temperature: _temperature,
+                  topP: _topP,
+                  openingVariety: _maxOpeningVariety,
+                ).join('\n\n'),
+                key: const ValueKey('sampling-recommendation-warning'),
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ),
+          SettingsInfoSwitch(
+            key: const ValueKey('opening-variety-setting'),
+            value: _maxOpeningVariety,
+            title: l10n(context).maxOpeningVariety,
+            helpKey: const ValueKey('opening-variety-help'),
+            onHelp: _showOpeningVarietyHelp,
+            onChanged: _temperature == 1.0 && _topP == 1.0
+                ? null
+                : (value) {
+                    setState(() => _maxOpeningVariety = value);
+                    unawaited(_saveEnginePreferences());
+                  },
+          ),
+          SettingsInfoSwitch(
+            key: const ValueKey('maia-history-setting'),
+            value: _useMoveHistory,
+            title: l10n(context).maiaHistorySetting,
+            helpKey: const ValueKey('maia-history-help'),
+            onHelp: _showMoveHistoryHelp,
+            onChanged: (value) {
+              setState(() => _useMoveHistory = value);
+              unawaited(_saveEnginePreferences());
+            },
+          ),
+          const SamplingCaptureSettings(),
+        ],
+      ),
+      const SizedBox(height: 8),
+      _settingsSection(
+        key: const ValueKey('analysis-settings-section'),
+        title: l10n(context).analysisSettings,
+        icon: Icons.analytics_outlined,
+        children: [
+          ListTile(
+            key: const ValueKey('analysis-rating-setting'),
+            title: Text(
+              l10n(context)
+                  .analysisRatingValue(displayNumber(context, _analysisElo)),
+            ),
+            subtitle: Slider(
+              min: maiaMinimumRating.toDouble(),
+              max: maiaMaximumRating.toDouble(),
+              divisions: maiaRatingDivisions,
+              value: _analysisElo.toDouble(),
+              label: displayNumber(context, _analysisElo),
+              onChanged: (value) =>
+                  setState(() => _analysisElo = value.round()),
+              onChangeEnd: (_) => unawaited(_saveEnginePreferences()),
+            ),
+          ),
+          SwitchListTile(
+            key: const ValueKey('second-maia-engine-setting'),
+            title: Text(l10n(context).addSecondMaiaEngine),
+            subtitle: Text(
+              l10n(context).compareAnotherMaiaRatingInAnalysisAndReview,
+            ),
+            value: _secondMaiaEnabled,
+            onChanged: (value) {
+              setState(() => _secondMaiaEnabled = value);
+              unawaited(_saveEnginePreferences());
+            },
+          ),
+          if (_secondMaiaEnabled)
+            ListTile(
+              key: const ValueKey('second-maia-rating-setting'),
+              title: Text(
+                l10n(context).secondAnalysisRatingValue(
+                  displayNumber(context, _secondMaiaElo),
+                ),
+              ),
+              subtitle: Slider(
+                min: maiaMinimumRating.toDouble(),
+                max: maiaMaximumRating.toDouble(),
+                divisions: maiaRatingDivisions,
+                value: _secondMaiaElo.toDouble(),
+                label: displayNumber(context, _secondMaiaElo),
+                onChanged: (value) =>
+                    setState(() => _secondMaiaElo = value.round()),
+                onChangeEnd: (_) => unawaited(_saveEnginePreferences()),
+              ),
+            ),
+          const MaiaScoreSetting(),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(l10n(context).gameAnalysisQuality),
+                const SizedBox(height: 8),
+                Semantics(
+                  label: l10n(context).gameAnalysisQuality,
+                  child: DropdownButtonFormField<GameAnalysisQuality>(
+                    key: ValueKey(
+                      'game-analysis-quality-${_gameAnalysisQuality.name}',
+                    ),
+                    isExpanded: true,
+                    itemHeight: null,
+                    isDense: false,
+                    initialValue: _gameAnalysisQuality,
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      contentPadding: EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 4,
+                      ),
+                    ),
+                    items: GameAnalysisQuality.values
+                        .map(
+                          (quality) => DropdownMenuItem(
+                            value: quality,
+                            child: Text(
+                              localizedAnalysisQuality(context, quality),
+                            ),
+                          ),
+                        )
+                        .toList(),
+                    onChanged: (value) {
+                      if (value == null) return;
+                      setState(() => _gameAnalysisQuality = value);
+                      unawaited(_saveEnginePreferences());
+                    },
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  localizedAnalysisQualityDescription(
+                    context,
+                    _gameAnalysisQuality,
+                  ),
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+      const SizedBox(height: 8),
+      _settingsSection(
+        title: 'Chessnut',
+        icon: Icons.bluetooth_outlined,
+        children: [
+          SwitchListTile(
+            key: const ValueKey('chessnut-sounds-toggle'),
+            value: _chessnutSoundsEnabled,
+            title: Text(l10n(context).boardSounds),
+            subtitle: Text(
+              l10n(context).beepForCheckCheckmateAndCompletedIllegalMoves,
+            ),
+            onChanged: (value) => unawaited(_setChessnutSoundsEnabled(value)),
+          ),
+        ],
+      ),
+      const SizedBox(height: 16),
+      AdaptiveSettingsSection(
+        title: l10n(context).settingsDiagnostics,
+        icon: Icons.bug_report_outlined,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            ListenableBuilder(
+              listenable: SamplingCapture.instance,
+              builder: (context, _) => Align(
+                alignment: Alignment.centerLeft,
+                child: TextButton(
+                  key: const ValueKey('reset-settings-defaults'),
+                  onPressed: _resettingSettings || SamplingCapture.instance.busy
+                      ? null
+                      : _confirmResetSettings,
+                  child: Text(l10n(context).resetSettingsDefaults),
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+              child: Text(
+                l10n(context).resetSettingsDefaultsScope,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ),
+            if (appFlavor == 'dev') ...[
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: Text(l10n(context).devDiagnosticsHelp),
+              ),
+              OutlinedButton.icon(
+                key: const ValueKey('save-dev-diagnostics'),
+                onPressed: () => DevDiagnostics.save(context),
+                icon: const Icon(Icons.save_alt),
+                label: Text(l10n(context).saveDevDiagnostics),
+              ),
+              const SizedBox(height: 8),
+            ],
+            OutlinedButton.icon(
+              key: const ValueKey('copy-diagnostics'),
+              style: OutlinedButton.styleFrom(
+                minimumSize: const Size.fromHeight(52),
+              ),
+              onPressed: () async {
+                await AppDiagnostics.copyToClipboard();
+                if (!mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(l10n(context).diagnosticsCopied)),
+                );
+              },
+              icon: const Icon(Icons.copy),
+              label: Text(l10n(context).copyDiagnostics),
+            ),
+          ],
+        ),
+      ),
+    ],
+  );
 
   String _playerLabel(chess.Color color) => color == _playerColor
       ? l10n(context).you
@@ -5663,44 +5894,46 @@ class _GamePageState extends State<GamePage>
   );
 
   Widget _board() {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final size = constraints.biggest.shortestSide;
-        return Stack(
-          children: [
-            cg.Chessboard(
-              key: const ValueKey('game-board'),
-              size: size,
-              orientation: _boardOrientation,
-              controller: _gameBoardController,
-              onMove: _onGameBoardMove,
-              settings: boardPreferencesOf(context).interactiveSettings
-                  .copyWith(enablePremoves: _premovesEnabled),
-            ),
-            if (_showPremovePlan)
-              Positioned.fill(
-                child: IgnorePointer(
-                  child: CustomPaint(
-                    painter: PremoveHighlights(
-                      _premoves.destinations,
-                      _boardOrientation,
-                      boardPreferencesOf(context)
-                          .interactiveSettings
-                          .colorScheme
-                          .validPremoves,
+    return KeyedSubtree(
+      key: _adaptiveBoardKey,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final size = constraints.biggest.shortestSide;
+          return Stack(
+            children: [
+              cg.Chessboard(
+                key: const ValueKey('game-board'),
+                size: size,
+                orientation: _boardOrientation,
+                controller: _gameBoardController,
+                onMove: _onGameBoardMove,
+                settings: boardPreferencesOf(context).interactiveSettings
+                    .copyWith(enablePremoves: _premovesEnabled),
+              ),
+              if (_showPremovePlan)
+                Positioned.fill(
+                  child: IgnorePointer(
+                    child: CustomPaint(
+                      painter: PremoveHighlights(
+                        _premoves.destinations,
+                        _boardOrientation,
+                        boardPreferencesOf(context)
+                            .interactiveSettings
+                            .colorScheme
+                            .validPremoves,
+                      ),
                     ),
                   ),
                 ),
-              ),
-          ],
-        );
-      },
+            ],
+          );
+        },
+      ),
     );
   }
 
   @override
   void dispose() {
-    _boardSettleTimer?.cancel();
     _resetExpiryTimer?.cancel();
     _resetDialogRevision.dispose();
     WidgetsBinding.instance.removeObserver(this);

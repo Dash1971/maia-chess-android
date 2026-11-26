@@ -20,9 +20,9 @@
   "@cancelPremoves": {
     "description": "Home / game setup: Cancel premoves"
   },
-  "chessnutExperimental": "Chessnut (experimental)",
-  "@chessnutExperimental": {
-    "description": "Home / game setup: Chessnut (experimental)"
+  "chessnutBoard": "Chessnut",
+  "@chessnutBoard": {
+    "description": "Home / game setup: Chessnut supported-board label"
   },
   "connectChessnut": "Connect Chessnut",
   "@connectChessnut": {
@@ -284,9 +284,9 @@
   "@start": {
     "description": "Live game: START"
   },
-  "chessnutStatus": "Chessnut status",
+  "chessnutStatus": "Board status",
   "@chessnutStatus": {
-    "description": "Live game: Chessnut status"
+    "description": "Electronic-board status tooltip."
   },
   "leaveCurrentGame": "Leave current game?",
   "@leaveCurrentGame": {
@@ -1059,9 +1059,9 @@
   "@couldNotConnectChessnut": {
     "description": "Play screen: Could not connect Chessnut."
   },
-  "chessnutAndroidOnly": "Chessnut support is available on Android.",
+  "chessnutAndroidOnly": "Electronic-board support is available on Android.",
   "@chessnutAndroidOnly": {
-    "description": "Play screen: Chessnut support is available on Android."
+    "description": "Electronic-board connection recovery; applies to every supported board brand. Legacy message identifier retained for saved-session compatibility."
   },
   "chessnutIsDisconnected": "Chessnut is disconnected.",
   "@chessnutIsDisconnected": {
@@ -1393,13 +1393,13 @@
   },
   "chessnutBluetoothUnavailable": "Bluetooth is unavailable on this device.",
   "@chessnutBluetoothUnavailable": {
-    "description": "Actionable Chessnut connection failure; native diagnostic details are recorded separately."
+    "description": "Electronic-board connection recovery; applies to every supported board brand. Legacy message identifier retained for saved-session compatibility."
   },
-  "chessnutPermissionPending": "Allow Bluetooth permissions, then reconnect Chessnut.",
+  "chessnutPermissionPending": "Allow Bluetooth permissions, then reconnect your board.",
   "@chessnutPermissionPending": {
-    "description": "Actionable Chessnut connection failure; native diagnostic details are recorded separately."
+    "description": "Electronic-board connection recovery; applies to every supported board brand. Legacy message identifier retained for saved-session compatibility."
   },
-  "chessnutBluetoothDisabled": "Turn on Bluetooth, then reconnect Chessnut.",
+  "chessnutBluetoothDisabled": "Turn on Bluetooth, then reconnect your board.",
   "@chessnutBluetoothDisabled": {
     "description": "Actionable Chessnut connection failure; native diagnostic details are recorded separately."
   },
@@ -1453,49 +1453,45 @@
       }
     }
   },
-  "electronicBoardExperimental": "Electronic board (experimental)",
-  "@electronicBoardExperimental": {
-    "description": "Electronic board Dev support: Experimental electronic-board settings section title; includes occupancy-only and motorized boards."
+  "electronicBoard": "Electronic board",
+  "@electronicBoard": {
+    "description": "Supported electronic-board settings section title; Chessnut and Grand Kingdom."
   },
   "connectBoard": "Connect board",
   "@connectBoard": {
-    "description": "Electronic board Dev support: Button that opens electronic-board scan and connection flow."
+    "description": "Electronic board support: Button that opens electronic-board scan and connection flow."
   },
   "chooseBoard": "Choose a board",
   "@chooseBoard": {
-    "description": "Electronic board Dev support: Discovered-board picker title."
+    "description": "Electronic board support: Discovered-board picker title."
   },
   "chooseAnotherBoard": "Choose another board",
   "@chooseAnotherBoard": {
-    "description": "Electronic board Dev support: Button to rescan and select a different board."
+    "description": "Electronic board support: Button to rescan and select a different board."
   },
   "boardSearching": "Searching for boards…",
   "@boardSearching": {
-    "description": "Electronic board Dev support: Bluetooth board scan in progress."
+    "description": "Electronic board support: Bluetooth board scan in progress."
   },
   "boardConnecting": "Connecting to board…",
   "@boardConnecting": {
-    "description": "Electronic board Dev support: Bluetooth board connection in progress."
+    "description": "Electronic board support: Bluetooth board connection in progress."
   },
   "boardDisconnected": "Board disconnected",
   "@boardDisconnected": {
-    "description": "Electronic board Dev support: Board connection lost status."
+    "description": "Electronic board support: Board connection lost status."
   },
   "boardConnectionError": "Could not connect. Check Bluetooth and the board, then retry.",
   "@boardConnectionError": {
-    "description": "Electronic board Dev support: Connection failure recovery instruction; Bluetooth is a product/protocol name."
+    "description": "Electronic board support: Connection failure recovery instruction; Bluetooth is a product/protocol name."
   },
   "boardStartingPosition": "Set up the standard starting position on your board.",
   "@boardStartingPosition": {
-    "description": "Electronic board Dev support: Physical standard initial-position setup instruction."
+    "description": "Electronic board support: Physical standard initial-position setup instruction."
   },
   "boardReady": "Board ready",
   "@boardReady": {
-    "description": "Electronic board Dev support: Physical board synchronization complete status."
-  },
-  "boardExperimentalNotice": "New board support is experimental. Please verify moves on both screens and report connection problems.",
-  "@boardExperimentalNotice": {
-    "description": "Electronic board Dev support: Experimental support notice; compare the app screens and report connection issues."
+    "description": "Electronic board support: Physical board synchronization complete status."
   },
   "boardGameRestriction": "Electronic-board games use unlimited time.",
   "@boardGameRestriction": {
@@ -1503,67 +1499,63 @@
   },
   "boardConfirmSetup": "I have set up the starting position",
   "@boardConfirmSetup": {
-    "description": "Electronic board Dev support: User confirmation of physical standard initial-position setup."
+    "description": "Electronic board support: User confirmation of physical standard initial-position setup."
   },
   "boardConfirmSetupHelp": "Check every piece before starting. This board cannot verify piece identity.",
   "@boardConfirmSetupHelp": {
-    "description": "Electronic board Dev support: Occupancy-only board limitation: it senses presence, not piece identity."
+    "description": "Electronic board support: Occupancy-only board limitation: it senses presence, not piece identity."
   },
   "boardChooseMove": "Confirm your board move",
   "@boardChooseMove": {
-    "description": "Electronic board Dev support: Title of legal-move ambiguity picker."
+    "description": "Electronic board support: Title of legal-move ambiguity picker."
   },
   "boardAmbiguousMove": "The board cannot distinguish these moves. Choose the move you played.",
   "@boardAmbiguousMove": {
-    "description": "Electronic board Dev support: Occupancy-only ambiguity explanation; player chooses the move actually made."
+    "description": "Electronic board support: Occupancy-only ambiguity explanation; player chooses the move actually made."
   },
   "boardUnavailable": "This board is not ready. Reconnect, or continue on your phone.",
   "@boardUnavailable": {
-    "description": "Electronic board Dev support: Board unavailable recovery: reconnect or continue with phone input."
+    "description": "Electronic board support: Board unavailable recovery: reconnect or continue with phone input."
   },
   "boardNewGameConfirmInstruction": "Press NEW GAME again within 2.5 seconds to confirm, or use the buttons below.",
   "@boardNewGameConfirmInstruction": {
-    "description": "Electronic board Dev support: Physical NEW GAME button second-press confirmation within 2.5 seconds; retain NEW GAME hardware marking."
+    "description": "Electronic board support: Physical NEW GAME button second-press confirmation within 2.5 seconds; retain NEW GAME hardware marking."
   },
   "boardNewGameConfirmationExpired": "To confirm on the board, press NEW GAME twice within 2.5 seconds.",
   "@boardNewGameConfirmationExpired": {
-    "description": "Electronic board Dev support: Expired physical NEW GAME confirmation instruction; retain NEW GAME hardware marking."
+    "description": "Electronic board support: Expired physical NEW GAME confirmation instruction; retain NEW GAME hardware marking."
   },
   "boardPhysicalMove": "Complete the move on your board.",
   "@boardPhysicalMove": {
-    "description": "Electronic board Dev support: Instruction to finish a physical move before proceeding."
+    "description": "Electronic board support: Instruction to finish a physical move before proceeding."
   },
   "boardResetPhysical": "Restore the position shown on screen before continuing.",
   "@boardResetPhysical": {
-    "description": "Electronic board Dev support: Instruction to restore physical board to the app position before proceeding."
+    "description": "Electronic board support: Instruction to restore physical board to the app position before proceeding."
   },
   "boardNoResults": "No supported board found. Wake your board and try again.",
   "@boardNoResults": {
-    "description": "Electronic board Dev support: Empty supported Bluetooth board scan result and recovery instruction."
+    "description": "Electronic board support: Empty supported Bluetooth board scan result and recovery instruction."
   },
   "boardWaitingForSelection": "Choose a board to connect.",
   "@boardWaitingForSelection": {
-    "description": "Electronic board Dev support: Disconnected status while waiting for player to select a board."
+    "description": "Electronic board support: Disconnected status while waiting for player to select a board."
   },
   "boardReconnect": "Reconnect board",
   "@boardReconnect": {
-    "description": "Electronic board Dev support: Button to reconnect selected physical board."
+    "description": "Electronic board support: Button to reconnect selected physical board."
   },
-  "boardLockedPegasus": "Pegasus is locked. This Dev build does not include its manufacturer initialization key.",
-  "@boardLockedPegasus": {
-    "description": "Electronic board Dev support: Manufacturer initialization missing/locked state; Dev means the separate development build."
-  },
-  "boardMotorRecovery": "Continue on your phone. This experimental adapter cannot safely restore the board’s motor state.",
+  "boardMotorRecovery": "Continue on your phone. The board’s motor state cannot be safely restored.",
   "@boardMotorRecovery": {
-    "description": "Electronic board Dev support: Motorized-board safety recovery instruction; continue with phone input because firmware motor state cannot be restored."
+    "description": "Electronic board support: Motorized-board safety recovery instruction; continue with phone input because firmware motor state cannot be restored."
   },
   "boardConfirmPosition": "Confirm the physical position",
   "@boardConfirmPosition": {
-    "description": "Electronic board Dev support: Button to explicitly confirm physical-board setup matches the current logical position."
+    "description": "Electronic board support: Button to explicitly confirm physical-board setup matches the current logical position."
   },
   "boardConfirmPositionHelp": "Check that every piece matches the position on screen.",
   "@boardConfirmPositionHelp": {
-    "description": "Electronic board Dev support: Help for explicit physical-position confirmation, including piece identities."
+    "description": "Electronic board support: Help for explicit physical-position confirmation, including piece identities."
   },
   "maiaHistorySetting": "Use move history",
   "@maiaHistorySetting": {
@@ -1595,7 +1587,7 @@
     "placeholders": {
       "boardName": {
         "type": "String",
-        "description": "Product name, e.g. Chessnut Go or DGT Pegasus; do not translate product names."
+        "description": "Product name, e.g. Chessnut Go or Square Off Grand Kingdom; do not translate product names."
       }
     }
   },
@@ -1605,7 +1597,7 @@
     "placeholders": {
       "boardName": {
         "type": "String",
-        "description": "Product name, e.g. Chessnut Go or DGT Pegasus; do not translate product names."
+        "description": "Product name, e.g. Chessnut Go or Square Off Grand Kingdom; do not translate product names."
       }
     }
   },
@@ -2018,10 +2010,6 @@
   "@editorPositionSettings": {
     "description": "Standard-chess board editor: Position settings. Tool labels must distinguish moving existing pieces, repeated placement and erasure. FEN counters are preserved; camera recognition is unavailable."
   },
-  "editorImageImportUnavailable": "Import position from image (not yet available)",
-  "@editorImageImportUnavailable": {
-    "description": "Standard-chess board editor: Import position from image (not yet available). Tool labels must distinguish moving existing pieces, repeated placement and erasure. FEN counters are preserved; camera recognition is unavailable."
-  },
   "editorShareFen": "Share FEN",
   "@editorShareFen": {
     "description": "Standard-chess board editor: Share FEN. Tool labels must distinguish moving existing pieces, repeated placement and erasure. FEN counters are preserved; camera recognition is unavailable."
@@ -2113,5 +2101,107 @@
   "sessionRecovery": "Mobile Maia opened Home to avoid reopening a session that may have caused a crash. Your saved games and settings have been kept.",
   "@sessionRecovery": {
     "description": "Home notice after suppressing an unsafe or interrupted automatic session restore. No games or settings are deleted."
+  },
+  "saveDevDiagnostics": "Save Dev diagnostics…",
+  "@saveDevDiagnostics": {
+    "description": "Dev-only local diagnostic export. App-specific testing feature; automatic bounded recording, manual export, never telemetry."
+  },
+  "devDiagnosticsHelp": "Dev records recent app events and detailed Grand Kingdom moves and board messages on this device. Older data is removed automatically. Photos and Bluetooth addresses are not recorded. Nothing is uploaded automatically. Export only if you want to share it.",
+  "@devDiagnosticsHelp": {
+    "description": "Dev-only local diagnostic export. App-specific testing feature; automatic bounded recording, manual export, never telemetry."
+  },
+  "devDiagnosticsExportFailed": "Could not save Dev diagnostics.",
+  "@devDiagnosticsExportFailed": {
+    "description": "Dev-only local diagnostic export. App-specific testing feature; automatic bounded recording, manual export, never telemetry."
+  },
+  "boardPromotionTitle": "Confirm Maia promotion",
+  "@boardPromotionTitle": {
+    "description": "Grand Kingdom assisted Maia promotion. The user, not a BLE write/OK, confirms stopped motors and physical piece replacement. Reuse existing localized piece names; no automatic replacement is implied."
+  },
+  "boardPromotionMove": "{square}: {piece}. Replace the pawn.",
+  "@boardPromotionMove": {
+    "description": "Grand Kingdom assisted Maia promotion. The user, not a BLE write/OK, confirms stopped motors and physical piece replacement. Reuse existing localized piece names; no automatic replacement is implied.",
+    "placeholders": {
+      "square": {
+        "type": "String"
+      },
+      "piece": {
+        "type": "String"
+      }
+    }
+  },
+  "boardPromotionHelp": "Wait until the motors have stopped. Replace the pawn with the indicated piece and check the entire physical position against the screen. If the move is incomplete or uncertain, continue in the app instead.",
+  "@boardPromotionHelp": {
+    "description": "Grand Kingdom assisted Maia promotion. The user, not a BLE write/OK, confirms stopped motors and physical piece replacement. Reuse existing localized piece names; no automatic replacement is implied."
+  },
+  "boardPromotionReplaced": "The motors are stopped, I replaced the pawn, and every piece matches.",
+  "@boardPromotionReplaced": {
+    "description": "Grand Kingdom assisted Maia promotion. The user, not a BLE write/OK, confirms stopped motors and physical piece replacement. Reuse existing localized piece names; no automatic replacement is implied."
+  },
+  "@recentExportGames": {
+    "description": "Recent Games selection toolbar: export the selected games into one PGN file using Save or Share. Reuses pinned Lichess exportGames."
+  },
+  "recentExportGames": "Export games",
+  "@recentExportTooLarge": {
+    "description": "Recent Games export exceeds the 5 MiB UTF-8 limit, shown as 5 MB. Nothing is saved/shared; keep selection and ask the user to select fewer games and retry. Import also allows 5 MiB."
+  },
+  "recentExportTooLarge": "Selected games exceed the 5 MB export limit. Select fewer games and try again.",
+  "pgnCollectionImported": "{count, plural, one{{count} game added to Recent games.} other{{count} games added to Recent games.}}",
+  "@pgnCollectionImported": {"description": "A whole PGN collection was validated and added to Recent games without replacing the current game. Reuse the existing localized Recent games screen name.", "placeholders": {"count": {"type": "int"}}},
+  "recentExportGameTooLarge": "A selected game exceeds the 5 MB limit per game.",
+  "@recentExportGameTooLarge": {
+    "description": "One selected PGN exceeds the 5 MiB individual-game parser limit, shown as 5 MB (or localized equivalent). This is distinct from the 5 MiB combined export limit. Nothing is saved/shared and saved games are unchanged."
+  },
+  "@recentExportFailed": {
+    "description": "Recent Games multi-game export error: one selected record could not be read/validated, or Android save/share failed. No selected game is silently omitted and stored games are not modified."
+  },
+  "recentExportFailed": "Could not export the selected games. Saved games were not changed.",
+  "recentDateColumn": "Date",
+  "@recentDateColumn": {
+    "description": "Adaptive layout: Recent games table column"
+  },
+  "recentGameColumn": "Game",
+  "@recentGameColumn": {
+    "description": "Adaptive layout: Recent games table column"
+  },
+  "recentResultColumn": "Result",
+  "@recentResultColumn": {
+    "description": "Adaptive layout: Recent games table column"
+  },
+  "settingsDiagnostics": "Diagnostics",
+  "@settingsDiagnostics": {
+    "description": "Adaptive layout: settings category for existing reset and diagnostic actions"
+  },
+  "pgnImportProgress": "Importing games…",
+  "pgnCollectionImportSummary": "{imported, plural, one{{imported} game imported} other{{imported} games imported}} · {duplicates, plural, one{{duplicates} duplicate skipped} other{{duplicates} duplicates skipped}}",
+  "@pgnImportProgress": {
+    "description": "PGN collection import progress dialog; validation, duplicate checking and atomic writes. App-specific, with no direct pinned Lichess equivalent."
+  },
+  "@pgnCollectionImportSummary": {
+    "description": "Collection import completion: new records imported and identical PGNs skipped; games with different annotations or metadata remain separate. App-specific with no direct pinned Lichess equivalent.",
+    "placeholders": {
+      "imported": {
+        "type": "int"
+      },
+      "duplicates": {
+        "type": "int"
+      }
+    }
+  },
+  "recentImportGames": "Import PGN",
+  "pgnFirstGameOnly": "Only the first game was opened. To import all games, use Recent games → Import PGN.",
+  "@recentImportGames": {
+    "description": "Recent games menu: import every game from a PGN file. Uses pinned Lichess importPgn wording."
+  },
+  "@pgnFirstGameOnly": {
+    "description": "Analysis Board opened only the first game of a multi-game PGN. Direct the user to the localized Recent games screen and Import PGN menu entry to import the whole collection."
+  },
+  "includeAnalysisAnnotations": "Include analysis",
+  "analysisSaveFailed": "Could not save analysis. The game is unchanged.",
+  "@includeAnalysisAnnotations": {
+    "description": "Checkbox inside existing PGN Save/Share/Copy menus. Include saved evaluation comments and the six !/? move-quality symbols. Ordinary comments, clocks and variations remain in either export."
+  },
+  "@analysisSaveFailed": {
+    "description": "Completed computer analysis could not be saved into the PGN; the existing saved game is preserved."
   }
 }

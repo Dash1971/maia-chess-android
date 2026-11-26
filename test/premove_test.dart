@@ -6,7 +6,7 @@ import 'package:dartchess/dartchess.dart' as dc;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maia_chess/main.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'fixtures/immediate_maia_preferences.dart';
 
 void main() {
   test('allows a premove recapture onto a currently friendly piece', () {
@@ -38,7 +38,7 @@ void main() {
   testWidgets('a mating Rxe1 premove records a Black win, not a draw', (
     tester,
   ) async {
-    SharedPreferences.setMockInitialValues({});
+    setImmediateMaiaPreferences({});
     await ActiveSessionStore.clear();
     final pendingMaia = Completer<Float32List>();
     const beforeMaiaMove = '8/8/8/8/8/6k1/P3r3/4R1K1 w - - 0 1';

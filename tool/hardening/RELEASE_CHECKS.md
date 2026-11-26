@@ -17,6 +17,11 @@ app dependency or change its offline behavior.
 
 ## Prepare the environment
 
+Prepare the complete pinned Python environment with
+[Release test setup](../../docs/RELEASE_TEST_SETUP.md), inside the task-owned
+bulk directory from [Build workspace](../../docs/BUILD_WORKSPACE.md). Reuse that
+environment for the commands below; do not create another `/tmp` release venv.
+
 Use the Flutter commit pinned in `.github/workflows/checks.yml`, JDK 17,
 Android build-tools 36.0.0 and platform-tools. Set `ANDROID_HOME` and `JAVA_HOME`
 for the machine running the checks. `--sdk-root` and `--build-tools-version`
@@ -65,8 +70,8 @@ candidate source, run that unmodified block through the pinned official
 F-Droid buildserver's source scan and unsigned build. Stop if either fails or
 the recipe needs a local-only correction. Retain the metadata diff, commands,
 logs, source SHA, and pass result. Repeat after any release-source change.
-The repository-local `fdroid/` file is a review copy, not the bot's canonical
-input. After publication, separately verify the public developer APK against
+See [the canonical-metadata rule](../../docs/RELEASING.md#2-test-and-independently-reproduce-the-apk).
+After publication, separately verify the public developer APK against
 the F-Droid unsigned build and allowed signer.
 
 Before the final merge/tag, audit the entire tracked release tree, including
@@ -80,9 +85,7 @@ the review and remaining limits before publication, not in a post-release
 documentation cleanup.
 
 ```sh
-python3 -m venv /tmp/maia-release-venv
-/tmp/maia-release-venv/bin/pip install -r tool/hardening/requirements.txt -r tool/requirements-release.txt
-/tmp/maia-release-venv/bin/python -m unittest discover -s tool -p '*_test.py'
+/absolute/task/bulk/release-test-venv/bin/python -m unittest discover -s tool -p '*_test.py'
 ```
 
 The default target is the stable package `com.dash1971.maia_chess`. Both APKs
@@ -153,7 +156,7 @@ variation fix, for example:
 
 ```sh
 python3 tool/verify_release_apk.py /path/to/corrected.apk \
-  --compare /path/to/beta17.apk \
+  --compare /path/to/previous.apk \
   --package com.dash1971.maia_chess \
   --allow-change lib/arm64-v8a/libapp.so \
   --output release-checks/code-change.json
@@ -172,7 +175,7 @@ can be signed or unsigned. The candidate's Android version code must be at
 least the baseline's. Verify both APKs above before this check.
 
 ```sh
-/tmp/maia-release-venv/bin/python tool/verify_release_upgrade.py \
+/absolute/task/bulk/release-test-venv/bin/python tool/verify_release_upgrade.py \
   --baseline-apk /path/to/previous.apk \
   --candidate-apk /path/to/candidate.apk \
   --serial emulator-5554 \
@@ -262,7 +265,9 @@ deleted automatically. The stopped test app and synthetic records remain on
 the emulator for inspection. This checks code/data compatibility; it does not
 validate the production signing key or actual phone/Bluetooth behavior.
 
-## Stable 2.5 feature qualification
+<a id="stable-25-feature-qualification"></a>
+
+## Changed-feature Stable qualification
 
 After explicit build authorization, run the new integration suites on the
 candidate Stable source/APK as well as `integration_test/review_android_test.dart`:
@@ -279,7 +284,7 @@ candidate Stable source/APK as well as `integration_test/review_android_test.dar
 
 Use the unflavored Stable build (no `--flavor preview`/`dev`), retain the source
 SHA and logs, and separately verify the actual signed Stable APK and upgrade
-from the published 2.4.0 APK. Check appearance/system-color fallback and
+from the previous published Stable APK. Check appearance/system-color fallback and
 pure-black panels on that APK. Prior Preview tests do not qualify Stable.
 These feature checks supplement the existing release gates above.
 
@@ -293,25 +298,16 @@ deliberately feed the checkers corrupted/changed artifacts, missing notes,
 altered clocks, duplicate lines and unsuitable emulator properties so a broken
 checker cannot silently report success for those cases.
 
-The existing **Checks** workflow has a `build_android` input. Bind every release
-build to the exact intended source commit:
-
-```sh
-release_sha=$(git rev-parse YOUR_BRANCH)
-gh workflow run checks.yml --ref YOUR_BRANCH \
-  -f build_android=true \
-  -f expected_source_sha="$release_sha"
-```
-
-Confirm the completed run's `headSha` equals `release_sha`. The Android job
-also refuses to build when the checked-out commit differs from the supplied
-full SHA.
+Use the exact-source workflow dispatch and source-SHA verification in
+[release-guide section 1](../../docs/RELEASING.md#1-prepare-and-freeze-the-source).
+The Android job refuses a checkout that differs from the supplied full SHA.
 
 That job builds the unsigned APK, runs packaging verification, and uploads the
 build log/JSON diagnostics even after failure. Successful runs also retain the
 APK SHA-256 and sanitized source/runner/Flutter/Java/NDK/Clang provenance. The
 unsigned APK is uploaded after success. Both artifact types include the source
-SHA in their names and expire after **90 days**. The ARM64 emulator upgrade and
+SHA in their names; their separate lifetimes are documented in
+[CI artifact retention](../../docs/CI_ARTIFACTS.md). The ARM64 emulator upgrade and
 native-engine checks remain explicit commands on a suitable host; the ordinary
 Ubuntu CI job does not claim to run them.
 

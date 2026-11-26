@@ -22,6 +22,8 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Play Maia'), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-scan-board')), findsNothing);
+    expect(find.byIcon(Icons.photo_camera_outlined), findsNothing);
     expect(find.text('Play a human-like opponent'), findsNothing);
     expect(find.textContaining('runs entirely on your phone'), findsNothing);
     expect(find.text('Open PGN file'), findsNothing);

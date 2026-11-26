@@ -1,1 +1,1 @@
-Play human-like chess offline and review your games with Maia and Stockfish
+Offline Maia chess with saved analysis, PGN transfer and electronic-board play

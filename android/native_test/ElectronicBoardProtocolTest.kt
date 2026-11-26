@@ -4,9 +4,10 @@ private fun bytes(vararg values: Int) = values.map { it.toByte() }.toByteArray()
 private fun rejects(block: () -> Unit) { check(runCatching(block).isFailure) }
 
 fun main() {
+    testDevTraceStore()
     sessionRecoveryPolicyTests()
     samplingShareFilesChecks()
-    for (flavor in listOf("preview", "", "stable", "production")) {
+    for (flavor in listOf("production", "unknown")) {
         check(BoardChannelPolicy.supports(flavor, "chessnut"))
         check(!BoardChannelPolicy.supports(flavor, "pegasus"))
         check(!BoardChannelPolicy.supports(flavor, "squareOff"))
@@ -15,7 +16,30 @@ fun main() {
         check(BoardChannelPolicy.discover(flavor, "Chessnut Go") == "chessnut")
         check(BoardChannelPolicy.discover(flavor, "Smart Chess") == "chessnut")
     }
-    check(BoardChannelPolicy.discover("dev", "DGT Pegasus") == "pegasus")
+    for (flavor in listOf("", "stable", "preview", "dev")) {
+        check(BoardChannelPolicy.supports(flavor, "chessnut"))
+        check(BoardChannelPolicy.supports(flavor, "squareOff"))
+        check(!BoardChannelPolicy.supports(flavor, "pegasus"))
+        check(BoardChannelPolicy.discover(flavor, "Square Off") == "squareOff")
+        check(BoardChannelPolicy.discover(flavor, "DGT Pegasus") == null)
+        check(BoardChannelPolicy.discover(flavor, "Square Off Pro") == null)
+    }
+    check(BoardChannelPolicy.supports("preview", "chessnut"))
+    check(BoardChannelPolicy.discover("preview", "Square Off") == "squareOff")
+    check(BoardChannelPolicy.discover("preview", "DGT Pegasus") == null)
+    check(!BoardChannelPolicy.supports("preview", "pegasus"))
+    check(BoardChannelPolicy.discover("preview", "Square Off Pro") == null)
+    for (flavor in listOf("preview", "dev", "", "stable", "production", "unknown")) {
+        val allowed = flavor in setOf("", "stable", "preview", "dev")
+        check(BoardChannelPolicy.permitsMotorCommand(flavor, "squareOff", true, "live", "live") == allowed)
+        check(!BoardChannelPolicy.permitsMotorCommand(flavor, "squareOff", false, "live", "live"))
+        check(!BoardChannelPolicy.permitsMotorCommand(flavor, "squareOff", true, "old", "live"))
+        check(!BoardChannelPolicy.permitsMotorCommand(flavor, "squareOff", true, null, "live"))
+        check(!BoardChannelPolicy.permitsMotorCommand(flavor, "pegasus", true, "live", "live"))
+        check(!BoardChannelPolicy.supports(flavor, "unknown"))
+    }
+    check(BoardChannelPolicy.discover("dev", "DGT Pegasus") == null)
+    check(!BoardChannelPolicy.supports("dev", "pegasus"))
     check(BoardChannelPolicy.discover("dev", "Square Off") == "squareOff")
     check(!BoardChannelPolicy.supports("dev", "unknown"))
 
@@ -50,15 +74,6 @@ fun main() {
     discovery.clear()
     check(discovery.snapshot().isEmpty())
 
-    val allGuidance = ElectronicBoardProtocol.pegasusLeds((0..63).toList())
-    check(allGuidance.size == 20)
-    check(allGuidance[1].toInt() == 18)
-    check(allGuidance.copyOfRange(6, 19).contentEquals((0..12).map { it.toByte() }.toByteArray()))
-    check(allGuidance.last() == 0.toByte())
-    check(ElectronicBoardProtocol.pegasusLeds(listOf(63, 63)).size == 8)
-    check(ElectronicBoardProtocol.pegasusLeds(emptyList()).contentEquals(bytes(0x60, 2, 0, 0)))
-    rejects { ElectronicBoardProtocol.pegasusLeds(listOf(-1)) }
-    rejects { ElectronicBoardProtocol.pegasusLeds(listOf(64)) }
     check(String(ElectronicBoardProtocol.squareOffMove("e2e4", "live", "live")) == "xe2e4z")
     rejects { ElectronicBoardProtocol.squareOffMove("e2e4", "old", "live") }
     rejects { ElectronicBoardProtocol.squareOffMove("e2e4", null, "live") }

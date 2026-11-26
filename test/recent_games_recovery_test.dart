@@ -66,20 +66,16 @@ void main() {
         },
         selected: (value) => selected = value,
       );
+      await tester.longPress(find.byKey(const ValueKey('recent-game-first')));
+      await tester.pumpAndSettle();
       for (final cancelWithBack in [false, true]) {
-        final buttons = tester
-            .widgetList<IconButton>(
-              find.byWidgetPredicate(
-                (widget) =>
-                    widget is IconButton &&
-                    widget.tooltip == 'Delete saved game',
-              ),
-            )
-            .toList();
+        final button = tester.widget<IconButton>(
+          find.byKey(const ValueKey('delete-selected-games')),
+        );
         // Deliver both button callbacks in one turn, before a confirmation
         // frame can intercept the second pointer event.
-        buttons.first.onPressed!();
-        buttons.last.onPressed!();
+        button.onPressed!();
+        button.onPressed!();
         await tester.pumpAndSettle();
         expect(find.byType(AlertDialog), findsOneWidget);
         expect(find.byType(LinearProgressIndicator), findsNothing);
@@ -94,6 +90,8 @@ void main() {
         expect(deletions, 0);
         expect(selected, isNull);
       }
+      await tester.binding.handlePopRoute(); // Cancel selection first.
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Player — Maia 1500'));
       await tester.pumpAndSettle();
       expect(selected, games.last.data);
